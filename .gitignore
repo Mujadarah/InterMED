@@ -19,6 +19,8 @@ InterMED.xcodeproj/
 .idea/
 .vscode/
 .worktrees/
+__pycache__/
+*.py[cod]
 
 # Secrets and local configuration
 *.xcconfig.local
