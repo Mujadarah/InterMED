@@ -24,6 +24,14 @@ def load_yaml(path: str) -> dict[str, object]:
     return document
 
 
+def load_yaml_strings(path: str) -> dict[str, object]:
+    contents = (REPOSITORY_ROOT / path).read_text(encoding="utf-8")
+    document = yaml.load(contents, Loader=yaml.BaseLoader)
+    if not isinstance(document, dict):
+        raise AssertionError(f"Expected {path} to contain a YAML mapping")
+    return document
+
+
 class MilestoneOneBootstrapTests(unittest.TestCase):
     def test_swiftui_iphone_project_files_exist(self) -> None:
         required_paths = (
@@ -102,6 +110,63 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         self.assertIn("strict: true", contents)
         self.assertIn("packages", contents)
         self.assertIn("apps", contents)
+
+    def test_unit_and_ui_test_targets_are_defined(self) -> None:
+        required_test_files = (
+            "packages/domain/Tests/InterMEDDomainTests/DomainModuleTests.swift",
+            "apps/ios/InterMEDUITests/AppLaunchTests.swift",
+        )
+        missing = [
+            path for path in required_test_files if not (REPOSITORY_ROOT / path).is_file()
+        ]
+        self.assertEqual([], missing, f"Missing test target files: {missing}")
+
+        manifest = (REPOSITORY_ROOT / "Package.swift").read_text(encoding="utf-8")
+        self.assertIn('name: "InterMEDDomainTests"', manifest)
+
+        project = load_yaml("project.yml")
+        ui_tests = project["targets"]["InterMEDUITests"]
+        self.assertEqual("bundle.ui-testing", ui_tests["type"])
+        self.assertIn(
+            {"target": "InterMED"},
+            ui_tests["dependencies"],
+        )
+        self.assertIn(
+            "InterMEDUITests",
+            project["schemes"]["InterMED"]["test"]["targets"],
+        )
+
+    def test_ci_builds_and_tests_every_pull_request_on_macos(self) -> None:
+        workflow_path = REPOSITORY_ROOT / ".github/workflows/ios-ci.yml"
+        self.assertTrue(workflow_path.is_file(), "Expected iOS CI workflow")
+
+        workflow = load_yaml_strings(".github/workflows/ios-ci.yml")
+        self.assertEqual("read", workflow["permissions"]["contents"])
+        self.assertEqual(["**"], workflow["on"]["pull_request"]["branches"])
+
+        job = workflow["jobs"]["build-and-test"]
+        self.assertEqual("macos-15", job["runs-on"])
+        self.assertEqual(
+            "/Applications/Xcode_16.4.app/Contents/Developer",
+            job["env"]["DEVELOPER_DIR"],
+        )
+
+        steps = job["steps"]
+        checkout = next(step for step in steps if "uses" in step)
+        self.assertEqual(
+            "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            checkout["uses"],
+        )
+        step_names = {step.get("name") for step in steps}
+        self.assertTrue(
+            {
+                "Run repository contract tests",
+                "Run Swift package tests",
+                "Run SwiftLint",
+                "Generate Xcode project",
+                "Build and run iOS tests",
+            }.issubset(step_names)
+        )
 
     def test_coderabbit_reviews_pull_requests_targeting_any_branch(self) -> None:
         config_path = REPOSITORY_ROOT / ".coderabbit.yaml"

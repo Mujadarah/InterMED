@@ -46,5 +46,10 @@ let package = Package(
             dependencies: ["InterMEDDomain"],
             path: "packages/test-fixtures/Sources/InterMEDTestFixtures"
         ),
+        .testTarget(
+            name: "InterMEDDomainTests",
+            dependencies: ["InterMEDDomain"],
+            path: "packages/domain/Tests/InterMEDDomainTests"
+        ),
     ]
 )

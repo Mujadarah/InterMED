@@ -1,0 +1,80 @@
+name: iOS CI
+
+on:
+  pull_request:
+    branches:
+      - "**"
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: iOS / build-and-test
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Prepare repository test environment
+        run: |
+          python3 -m venv .venv-ci
+          .venv-ci/bin/python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Run repository contract tests
+        run: .venv-ci/bin/python -m unittest tests.repository.test_milestone1_bootstrap -v
+
+      - name: Run Swift package tests
+        run: swift test --parallel
+
+      - name: Run SwiftLint
+        run: swiftlint lint --strict --config .swiftlint.yml
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec project.yml
+
+      - name: Build and run iOS tests
+        run: |
+          device_id="$(
+            xcrun simctl list devices available --json |
+              .venv-ci/bin/python -c '
+          import json
+          import sys
+
+          payload = json.load(sys.stdin)
+          candidates = [
+              (runtime, device)
+              for runtime, devices in payload["devices"].items()
+              if "iOS" in runtime
+              for device in devices
+              if device.get("isAvailable") and device["name"].startswith("iPhone")
+          ]
+          candidates.sort(key=lambda candidate: candidate[0], reverse=True)
+          if not candidates:
+              raise SystemExit("No available iPhone simulator")
+          print(candidates[0][1]["udid"])
+          '
+          )"
+
+          xcodebuild test \
+            -project InterMED.xcodeproj \
+            -scheme InterMED \
+            -destination "platform=iOS Simulator,id=${device_id}" \
+            -only-testing:InterMEDUITests \
+            CODE_SIGNING_ALLOWED=NO

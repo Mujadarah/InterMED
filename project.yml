@@ -37,6 +37,19 @@ targets:
         SUPPORTS_MACCATALYST: false
         TARGETED_DEVICE_FAMILY: "1"
 
+  InterMEDUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: apps/ios/InterMEDUITests
+    dependencies:
+      - target: InterMED
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mujadarah.intermed.uitests
+        GENERATE_INFOPLIST_FILE: true
+        TARGETED_DEVICE_FAMILY: "1"
+
 schemes:
   InterMED:
     build:
@@ -44,5 +57,9 @@ schemes:
         InterMED: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - InterMEDUITests
     archive:
       config: Release
