@@ -4,8 +4,24 @@ import re
 import unittest
 from pathlib import Path
 
+import yaml
+
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+SWIFTUI_IMPORT = re.compile(
+    r"^\s*(?:@testable\s+)?import\s+"
+    r"(?:(?:class|enum|func|protocol|struct|typealias|var)\s+)?"
+    r"SwiftUI(?:\.|\s*$)",
+    re.MULTILINE,
+)
+
+
+def load_yaml(path: str) -> dict[str, object]:
+    contents = (REPOSITORY_ROOT / path).read_text(encoding="utf-8")
+    document = yaml.safe_load(contents)
+    if not isinstance(document, dict):
+        raise AssertionError(f"Expected {path} to contain a YAML mapping")
+    return document
 
 
 class MilestoneOneBootstrapTests(unittest.TestCase):
@@ -26,12 +42,14 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         app_source = (
             REPOSITORY_ROOT / "apps/ios/InterMEDApp/App/InterMEDApp.swift"
         ).read_text(encoding="utf-8")
-        project = (REPOSITORY_ROOT / "project.yml").read_text(encoding="utf-8")
+        project = load_yaml("project.yml")
 
-        self.assertIn("import SwiftUI", app_source)
+        self.assertRegex(app_source, SWIFTUI_IMPORT)
         self.assertIn("@main", app_source)
-        self.assertRegex(project, r"TARGETED_DEVICE_FAMILY:\s*['\"]?1['\"]?")
-        self.assertNotRegex(project, r"TARGETED_DEVICE_FAMILY:\s*['\"]?1,2['\"]?")
+        device_family = project["targets"]["InterMED"]["settings"]["base"][
+            "TARGETED_DEVICE_FAMILY"
+        ]
+        self.assertEqual("1", device_family)
 
     def test_architecture_boundaries_mirror_the_required_layers(self) -> None:
         required_directories = (
@@ -68,9 +86,13 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         offenders = [
             str(path.relative_to(REPOSITORY_ROOT))
             for path in swift_files
-            if "import SwiftUI" in path.read_text(encoding="utf-8")
+            if SWIFTUI_IMPORT.search(path.read_text(encoding="utf-8"))
         ]
         self.assertEqual([], offenders, f"Domain imports SwiftUI: {offenders}")
+
+    def test_swiftui_import_detection_accepts_swift_whitespace(self) -> None:
+        self.assertRegex("import\tSwiftUI\n", SWIFTUI_IMPORT)
+        self.assertRegex("import struct SwiftUI.View\n", SWIFTUI_IMPORT)
 
     def test_swiftlint_configuration_exists(self) -> None:
         config = REPOSITORY_ROOT / ".swiftlint.yml"
@@ -82,13 +104,16 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         self.assertIn("apps", contents)
 
     def test_coderabbit_reviews_pull_requests_targeting_any_branch(self) -> None:
-        config = REPOSITORY_ROOT / ".coderabbit.yaml"
+        config_path = REPOSITORY_ROOT / ".coderabbit.yaml"
 
-        self.assertTrue(config.is_file(), "Expected repository CodeRabbit config")
-        contents = config.read_text(encoding="utf-8")
-        self.assertIn("enabled: true", contents)
-        self.assertIn("drafts: true", contents)
-        self.assertIn('      - ".*"', contents)
+        self.assertTrue(
+            config_path.is_file(), "Expected repository CodeRabbit config"
+        )
+        config = load_yaml(".coderabbit.yaml")
+        auto_review = config["reviews"]["auto_review"]
+        self.assertIs(True, auto_review["enabled"])
+        self.assertIs(True, auto_review["drafts"])
+        self.assertIn(".*", auto_review["base_branches"])
 
 
 if __name__ == "__main__":
