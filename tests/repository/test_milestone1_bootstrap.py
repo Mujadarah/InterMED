@@ -1,0 +1,86 @@
+from __future__ import annotations
+
+import re
+import unittest
+from pathlib import Path
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+
+class MilestoneOneBootstrapTests(unittest.TestCase):
+    def test_swiftui_iphone_project_files_exist(self) -> None:
+        required_paths = (
+            "project.yml",
+            "Package.swift",
+            "apps/ios/InterMEDApp/App/InterMEDApp.swift",
+            "apps/ios/InterMEDApp/Features/Home/HomeView.swift",
+        )
+
+        missing = [
+            path for path in required_paths if not (REPOSITORY_ROOT / path).is_file()
+        ]
+
+        self.assertEqual([], missing, f"Missing iOS bootstrap files: {missing}")
+
+        app_source = (
+            REPOSITORY_ROOT / "apps/ios/InterMEDApp/App/InterMEDApp.swift"
+        ).read_text(encoding="utf-8")
+        project = (REPOSITORY_ROOT / "project.yml").read_text(encoding="utf-8")
+
+        self.assertIn("import SwiftUI", app_source)
+        self.assertIn("@main", app_source)
+        self.assertRegex(project, r"TARGETED_DEVICE_FAMILY:\s*['\"]?1['\"]?")
+        self.assertNotRegex(project, r"TARGETED_DEVICE_FAMILY:\s*['\"]?1,2['\"]?")
+
+    def test_architecture_boundaries_mirror_the_required_layers(self) -> None:
+        required_directories = (
+            "apps/ios/InterMEDApp/Features",
+            "apps/ios/InterMEDApp/DesignSystem",
+            "apps/ios/InterMEDApp/Platform",
+            "packages/domain/Sources/InterMEDDomain",
+            "packages/clinical-engine/Sources/InterMEDClinicalEngine",
+            "packages/evidence/Sources/InterMEDEvidence",
+            "packages/medication/Sources/InterMEDMedication",
+            "packages/terminology/Sources/InterMEDTerminology",
+            "packages/test-fixtures/Sources/InterMEDTestFixtures",
+        )
+
+        missing = [
+            path for path in required_directories if not (REPOSITORY_ROOT / path).is_dir()
+        ]
+
+        self.assertEqual([], missing, f"Missing architecture boundaries: {missing}")
+
+        manifest = (REPOSITORY_ROOT / "Package.swift").read_text(encoding="utf-8")
+        self.assertIn('name: "InterMEDDomain"', manifest)
+        self.assertNotRegex(
+            manifest.lower(),
+            re.compile(r"appwrite|firebase|supabase|amplify"),
+            "MVP package manifest must not introduce a backend SDK",
+        )
+
+    def test_domain_module_does_not_import_swiftui(self) -> None:
+        domain_root = REPOSITORY_ROOT / "packages/domain"
+        swift_files = list(domain_root.rglob("*.swift"))
+
+        self.assertTrue(swift_files, "Domain module must contain Swift sources")
+        offenders = [
+            str(path.relative_to(REPOSITORY_ROOT))
+            for path in swift_files
+            if "import SwiftUI" in path.read_text(encoding="utf-8")
+        ]
+        self.assertEqual([], offenders, f"Domain imports SwiftUI: {offenders}")
+
+    def test_swiftlint_configuration_exists(self) -> None:
+        config = REPOSITORY_ROOT / ".swiftlint.yml"
+
+        self.assertTrue(config.is_file(), "Expected a repository SwiftLint config")
+        contents = config.read_text(encoding="utf-8")
+        self.assertIn("strict: true", contents)
+        self.assertIn("packages", contents)
+        self.assertIn("apps", contents)
+
+
+if __name__ == "__main__":
+    unittest.main()

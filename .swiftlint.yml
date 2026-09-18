@@ -1,0 +1,33 @@
+strict: true
+
+included:
+  - apps
+  - packages
+
+excluded:
+  - .build
+  - InterMED.xcodeproj
+
+opt_in_rules:
+  - array_init
+  - closure_spacing
+  - contains_over_filter_count
+  - empty_count
+  - empty_string
+  - explicit_init
+  - first_where
+  - force_unwrapping
+  - last_where
+  - modifier_order
+  - overridden_super_call
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - toggle_bool
+  - unowned_variable_capture
+
+identifier_name:
+  min_length: 2
+
+line_length:
+  warning: 100
+  error: 120
