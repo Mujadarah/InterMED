@@ -1,0 +1,27 @@
+# Apple / Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Generated Xcode project
+InterMED.xcodeproj/
+
+# Local tooling
+.DS_Store
+.idea/
+.vscode/
+.worktrees/
+
+# Secrets and local configuration
+*.xcconfig.local
+.env
+.env.*
+!.env.example

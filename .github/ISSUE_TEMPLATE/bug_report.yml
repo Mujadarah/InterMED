@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible problem without patient-identifying data.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Do not include real or identifiable patient data, credentials, or private clinical records.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Privacy check
+      options:
+        - label: I confirm this report contains no real or identifiable patient data.
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Enter synthetic data ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: App version or commit SHA
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: iPhone model, iOS version, Xcode version
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or screenshots
+      description: Remove patient data and secrets before attaching anything.
