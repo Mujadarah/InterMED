@@ -81,6 +81,15 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         self.assertIn("packages", contents)
         self.assertIn("apps", contents)
 
+    def test_coderabbit_reviews_pull_requests_targeting_any_branch(self) -> None:
+        config = REPOSITORY_ROOT / ".coderabbit.yaml"
+
+        self.assertTrue(config.is_file(), "Expected repository CodeRabbit config")
+        contents = config.read_text(encoding="utf-8")
+        self.assertIn("enabled: true", contents)
+        self.assertIn("drafts: true", contents)
+        self.assertIn('      - ".*"', contents)
+
 
 if __name__ == "__main__":
     unittest.main()

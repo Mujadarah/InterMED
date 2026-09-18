@@ -1,0 +1,24 @@
+language: en-US
+
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: true
+    drafts: true
+    auto_incremental_review: true
+    base_branches:
+      - ".*"
+  path_instructions:
+    - path: "packages/domain/**/*.swift"
+      instructions: |
+        Enforce pure domain boundaries. Flag SwiftUI, CloudKit, backend SDK,
+        storage-provider, and vendor-specific imports.
+    - path: "packages/clinical-engine/**/*.swift"
+      instructions: |
+        Require deterministic, versioned, evidence-backed clinical behavior,
+        explicit missing-data handling, provenance, and automated tests.
+        Flag invented thresholds, doses, interactions, or treatment rules.
+    - path: "apps/ios/**/*.swift"
+      instructions: |
+        Enforce iPhone-first SwiftUI presentation boundaries, accessibility,
+        privacy, and confirmation before OCR or AI candidates are persisted.
