@@ -24,6 +24,8 @@ targets:
       - path: apps/ios/InterMEDApp
     dependencies:
       - package: InterMEDCore
+        product: InterMEDApplication
+      - package: InterMEDCore
         product: InterMEDDomain
     settings:
       base:

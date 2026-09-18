@@ -9,6 +9,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
+        .library(name: "InterMEDApplication", targets: ["InterMEDApplication"]),
         .library(name: "InterMEDDomain", targets: ["InterMEDDomain"]),
         .library(name: "InterMEDClinicalEngine", targets: ["InterMEDClinicalEngine"]),
         .library(name: "InterMEDEvidence", targets: ["InterMEDEvidence"]),
@@ -17,6 +18,10 @@ let package = Package(
         .library(name: "InterMEDTestFixtures", targets: ["InterMEDTestFixtures"]),
     ],
     targets: [
+        .target(
+            name: "InterMEDApplication",
+            path: "packages/application/Sources/InterMEDApplication"
+        ),
         .target(
             name: "InterMEDDomain",
             path: "packages/domain/Sources/InterMEDDomain"
@@ -45,6 +50,11 @@ let package = Package(
             name: "InterMEDTestFixtures",
             dependencies: ["InterMEDDomain"],
             path: "packages/test-fixtures/Sources/InterMEDTestFixtures"
+        ),
+        .testTarget(
+            name: "InterMEDApplicationTests",
+            dependencies: ["InterMEDApplication"],
+            path: "packages/application/Tests/InterMEDApplicationTests"
         ),
         .testTarget(
             name: "InterMEDDomainTests",
