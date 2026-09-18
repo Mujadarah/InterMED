@@ -38,13 +38,14 @@ jobs:
       - name: Run Swift package tests
         run: swift test --parallel
 
+      - name: Install build tooling
+        run: |
+          brew install swiftlint xcodegen
+          swiftlint version
+          xcodegen --version
+
       - name: Run SwiftLint
         run: swiftlint lint --strict --config .swiftlint.yml
-
-      - name: Install XcodeGen
-        run: |
-          brew install xcodegen
-          xcodegen --version
 
       - name: Generate Xcode project
         run: xcodegen generate --spec project.yml

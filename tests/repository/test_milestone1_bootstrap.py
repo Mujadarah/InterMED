@@ -160,6 +160,7 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
         step_names = {step.get("name") for step in steps}
         self.assertTrue(
             {
+                "Install build tooling",
                 "Run repository contract tests",
                 "Run Swift package tests",
                 "Run SwiftLint",
@@ -167,6 +168,22 @@ class MilestoneOneBootstrapTests(unittest.TestCase):
                 "Build and run iOS tests",
             }.issubset(step_names)
         )
+
+        step_indexes = {
+            step["name"]: index
+            for index, step in enumerate(steps)
+            if "name" in step
+        }
+        self.assertLess(
+            step_indexes["Install build tooling"],
+            step_indexes["Run SwiftLint"],
+        )
+        install_step = next(
+            step for step in steps if step.get("name") == "Install build tooling"
+        )
+        self.assertIn("brew install swiftlint xcodegen", install_step["run"])
+        self.assertIn("swiftlint version", install_step["run"])
+        self.assertIn("xcodegen --version", install_step["run"])
 
     def test_coderabbit_reviews_pull_requests_targeting_any_branch(self) -> None:
         config_path = REPOSITORY_ROOT / ".coderabbit.yaml"
