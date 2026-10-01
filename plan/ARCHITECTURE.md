@@ -1,309 +1,102 @@
-# InterMED Architecture
+# InterMED architecture
 
-## Architectural goals
+## Canonical system
 
-- Local-first.
-- Offline-capable.
-- No backend dependency in MVP.
-- Clean separation of UI, domain, persistence, providers and clinical content.
-- Easy replacement/addition of storage, AI, medication and evidence providers.
-- Safe database migrations.
-- Testability of clinical rules without launching the iOS app.
-- Future support for account/cloud features without rewriting the core.
+The first-party client is a responsive, installable PWA built with React, TypeScript and Vite. React Router handles navigation; TanStack Query coordinates remote metadata/provider requests; Dexie abstracts IndexedDB; Zod validates boundaries; React Hook Form supports forms. Tailwind is optional. Next.js is not required absent a concrete architectural need.
 
-## Suggested repository structure
+Appwrite Cloud begins as infrastructure, preferably Frankfurt/EU: GitHub-connected Sites serve the application, Functions ingest/validate data, normalized database services store reference entities, and Storage serves permitted immutable dataset bundles. Accounts are optional later. Reference search runs locally, not through a request on every keystroke. Realtime is not a default dependency.
+
+The runtime relationships are:
+
+```text
+GitHub reviewed application revision → Appwrite Sites → PWA application shell
+ANMDMR / licensed interaction source → private Functions → normalized database
+                                              ↓ validated publication
+                                    immutable Storage datasets + version manifest
+                                              ↓ background download/validation
+PWA search / details / checker ← active IndexedDB generation (Dexie)
+```
+
+These are intended components, not existing implementation. A verified legal permission and clinical-content approval gate precede real-data publication.
+
+## Clean boundaries
+
+1. Domain: vendor-neutral entities, ingredient resolution, interaction result semantics, deterministic calculators and rules. No React, browser storage or Appwrite SDK imports.
+2. Application: use cases, coverage decisions, validation, dataset activation and orchestration through injected provider interfaces.
+3. Infrastructure: Dexie repositories, Appwrite adapters, importer parsers, source adapters, network/clock/hash facilities.
+4. Presentation: React views, responsive UI, accessible warnings and source/version display. No clinical rules embedded in view components.
+
+Shared schemas validate external inputs and transport DTOs; SDK-specific objects must be converted at the infrastructure boundary. A module's public contract and domain tests must remain usable with synthetic providers and without cloud credentials.
+
+## Proposed structure
+
+This is a target layout for future implementation; do not scaffold it during the planning revision.
 
 ```text
 InterMED/
-├── apps/
-│   └── ios/
-│       ├── InterMEDApp/
-│       ├── Features/
-│       ├── DesignSystem/
-│       └── Platform/
-│
+├── apps/web/
 ├── packages/
 │   ├── domain/
-│   ├── clinical-engine/
-│   ├── evidence/
 │   ├── medication/
-│   ├── terminology/
+│   ├── interactions/
+│   ├── clinical-calculators/
+│   ├── data-access/
+│   ├── ui/
 │   └── test-fixtures/
-│
+├── appwrite/
+│   ├── functions/
+│   │   ├── import-anmdmr/
+│   │   ├── sync-medications/
+│   │   └── interactions/
+│   └── configuration/
+├── plan/
 ├── docs/
 ├── scripts/
 ├── tests/
-├── README.md
-├── LICENSE
-└── CONTRIBUTING.md
+└── README.md
 ```
 
-A simpler single-Xcode-project layout is acceptable initially, but boundaries should mirror these modules.
+Domain dependencies point inward. Medication and interactions share canonical ingredient identifiers through explicit contracts, not private adapter implementation. Clinical-calculators has independent formula versions. Later clinical state/pathway/evidence packages must not force patient storage into the medication MVP.
 
-## Layers
+## Provider contracts
 
-### Presentation
+| Interface | Responsibility and required behavior |
+| --- | --- |
+| MedicationCatalogProvider | Versioned product/ingredient lookup, search and regulatory references; returns missing/unresolved fields explicitly |
+| DrugInteractionProvider | Structured ingredient-set evaluation; source vocabulary, provenance and coverage; distinguishes unavailable from no reported record |
+| GuidelineProvider | Later licensed/versioned evidence retrieval |
+| AIProvider | Later constrained explanation/extraction; never clinical authority |
+| AuthenticationProvider | Later optional account/session capabilities and deletion; absent in anonymous MVP |
+| BackupProvider | Later encrypted versioned export/import, separate from synchronization |
+| RemoteCaseStore | Later permitted patient storage after privacy/compliance gate |
 
-Responsibilities:
+AnmdmrMedicationAdapter, AppwriteRemoteStore and GoogleDriveBackupAdapter/DropboxBackupAdapter/OneDriveBackupAdapter are infrastructure candidates. Provider substitution must not require rewriting domain logic. Account identity, dataset access and patient identity are separate concepts.
 
-- SwiftUI screens;
-- navigation;
-- view state;
-- user input;
-- accessibility;
-- localization;
-- confirmation/review flows.
+## Data and offline responsibilities
 
-Must not contain clinical rule logic.
+MedicationProduct is distinct from ActiveIngredient; MedicationIngredient is their normalized join. Stable source identifiers and source versions preserve lineage. RegulatoryDocument references are not assumed to include licensed cached document bodies. Interaction records carry source-specific severity, evidence and management only when supplied.
 
-### Application/use-case layer
+On startup, open local data first, then check the published dataset manifest in the background. Download and validate outside IndexedDB transactions, stage an immutable generation, then atomically switch the active pointer. Readers pin one generation. Interrupted downloads, invalid data or quota failures retain the previous working generation. See [PWA_OFFLINE.md](PWA_OFFLINE.md) for multitab handling, compatibility and rollback.
 
-Examples:
+The service worker controls application-shell releases, not clinical dataset truth. SW and dataset versions are independent, with a compatibility contract. IndexedDB is not guaranteed permanent or encrypted storage: browser eviction/private-mode restrictions must be acknowledged and tested.
 
-- `CreateCase`
-- `AddObservation`
-- `ImportPhoto`
-- `ConfirmExtractedData`
-- `EvaluateClinicalState`
-- `SearchMedication`
-- `CheckInteractions`
-- `SyncCase`
+## Backend and permissions
 
-Coordinates domain objects and providers.
+Choose the final Appwrite database product/configuration during milestone 3. TablesDB is a candidate for typed normalized tables; the physical schema, indexes, transactions and limits require a decision record against the current hosted service. Domain normalization does not depend on a vendor's table/document API.
 
-### Domain
+Publish only approved reference manifests/bundles with public read permission. No public writes; raw imports, logs, review queues and credentials stay private. Appwrite table-level grants cannot be treated as row-level denials: audit effective permissions at every resource level. Server keys bypass resource permissions within their scopes, so Functions enforce their own authorization and validation.
 
-Contains pure types and rules:
+[APPWRITE.md](APPWRITE.md) specifies Sites configuration, least privilege, API keys and deployment boundaries. [DATA_SOURCES.md](DATA_SOURCES.md) controls rights. No patient data or mandatory anonymous Auth session are part of medication dataset delivery.
 
-- PatientCase
-- Identifier
-- Diagnosis
-- Procedure
-- Observation
-- LaboratoryResult
-- Medication
-- ClinicalState
-- ClinicalSignal
-- ClinicalPathway
-- EvidenceReference
-- Recommendation
-- RuleEvaluation
+## Security and extensibility
 
-Domain must not import SwiftUI, CloudKit or Appwrite SDKs.
+Use HTTPS, reviewed CSP/security headers, untrusted-text sanitization, validated inputs, server-only secrets, endpoint rate limits and safe logs. Avoid logging medication query contents, identities or future patient facts. Clinical content imports require both technical validation and content governance.
 
-### Clinical engine
+Later patient data require an explicit encryption/key-management, retention/deletion/export, access-control and hosting/compliance design. A browser PIN or WebAuthn session is not a claim of native biometric/database security. Browser XSS risk must be included in that design.
 
-Input:
+Preserve FHIR-aware clinical models, terminology licensing checks, longitudinal observations, optional identifiers, deterministic pathway signals and evidence/rule versions. Cloud backup is separate from real-time sync and requires visible conflicts and recovery semantics.
 
-```text
-ClinicalState + EvidencePackage + RulePackage
-```
+## Future native-client appendix
 
-Output:
-
-```text
-Signals
-ApplicablePathways
-MissingData
-SafetyAlerts
-Recommendations
-Explanations/provenance
-```
-
-The engine must be deterministic for validated rules.
-
-### Data/persistence
-
-Recommended MVP persistence: **SQLite + GRDB** or an equivalent explicit-schema database.
-
-Reasons:
-
-- deterministic schema;
-- explicit migrations;
-- testable queries;
-- easier portability/export;
-- suitable for long-term clinical records.
-
-SwiftData may be used for non-critical UI/preferences if useful, but should not force the clinical domain model.
-
-### Provider interfaces
-
-Create protocols/interfaces early:
-
-```swift
-protocol CaseRepository { }
-protocol LocalDatabase { }
-protocol SyncProvider { }
-protocol BackupProvider { }
-protocol OCRProvider { }
-protocol AIProvider { }
-protocol MedicationCatalogProvider { }
-protocol DrugInteractionProvider { }
-protocol GuidelineProvider { }
-protocol TerminologyProvider { }
-protocol AuthenticationProvider { }
-```
-
-Avoid naming domain interfaces after specific vendors.
-
-Bad:
-
-```text
-AppwritePatientService
-```
-
-Better:
-
-```text
-RemoteCaseStore
-AccountService
-```
-
-Vendor adapters live in infrastructure:
-
-```text
-AppwriteAccountAdapter
-CloudKitSyncAdapter
-GoogleDriveBackupAdapter
-DropboxBackupAdapter
-OneDriveBackupAdapter
-```
-
-## Storage architecture
-
-### MVP
-
-```text
-UI
- ↓
-Use Cases
- ↓
-CaseRepository
- ↓
-Encrypted Local SQLite
-```
-
-### With iCloud
-
-```text
-Local SQLite ←→ SyncCoordinator ←→ CloudKitSyncAdapter
-```
-
-Local database remains the working source of truth. Cloud sync should be asynchronous and resilient.
-
-### Future external backup
-
-```text
-Local SQLite
-   ↓
-Encrypted export bundle
-   ↓
-BackupProvider
-   ├─ Google Drive
-   ├─ OneDrive
-   └─ Dropbox
-```
-
-Prefer backup first; full multi-provider live sync is much harder and should not be promised early.
-
-## Authentication architecture
-
-MVP:
-
-```text
-No account required
-```
-
-Optional app lock is separate from user identity/account authentication.
-
-Future:
-
-```text
-AccountService
-   ├─ AppleAuthAdapter
-   ├─ GoogleAuthAdapter
-   └─ AppwriteAccountAdapter
-```
-
-Do not couple patient records to account IDs in the initial local database. Introduce a stable local `ownerScope` abstraction so local records can later be associated with an account if migration occurs.
-
-## AI architecture
-
-AI receives only the minimum required context.
-
-Preferred flow:
-
-```text
-Text/photo
- ↓
-OCR / extraction model
- ↓
-Structured candidates
- ↓
-Clinician confirmation
- ↓
-Clinical state
- ↓
-Deterministic rule/evidence engine
- ↓
-AI explanation/summarization
-```
-
-Avoid:
-
-```text
-Raw patient data → LLM → unverified clinical order
-```
-
-## Evidence packages
-
-Clinical content should be data, not UI code.
-
-Example:
-
-```yaml
-id: postop_aki
-version: 1.0.0
-triggers:
-  - rule: creatinine_rise_48h
-sources:
-  - id: kdigo-source-id
-recommendations:
-  - id: reassess_nephrotoxins
-```
-
-Packages must be versioned and testable.
-
-## Feature modules
-
-Suggested iOS modules:
-
-- Home
-- Cases
-- CaseOverview
-- InputCapture
-- Timeline
-- Vitals
-- Labs
-- Medications
-- ImagingReports
-- Procedures
-- Diagnoses
-- Pathways
-- EvidenceLibrary
-- Calculators
-- Settings
-- Security
-- SyncBackup
-
-## Migration discipline
-
-Every schema change must have:
-
-1. migration version;
-2. upgrade test;
-3. downgrade/export consideration;
-4. backup/restore test if format changes.
-
-Never rely on deleting/recreating the database during development once real beta users exist.
+Swift/SwiftUI, Xcode, SQLite/GRDB, Keychain/Secure Enclave, Face ID/Touch ID, CloudKit and TestFlight belong only to a separately scoped future native client. They are neither current persistence/presentation choices nor universal PWA security capabilities. Native providers may reuse versioned domain contracts, but require their own testing, platform policy and migration plans. No Mac, Xcode or App Store submission is required for the PWA MVP.
 

@@ -1,29 +1,33 @@
 # InterMED
 
-InterMED is an open-source, local-first clinical decision-support assistant for clinicians, initially targeting iPhone. It is designed to work offline without a hosted backend or mandatory account, while keeping clinically meaningful outputs explainable and traceable.
+InterMED is an open-source, offline-first clinical reference and decision-support platform for clinicians. Its first product is an installable Progressive Web App (PWA) for Romanian medication lookup, authoritative drug information and structured drug-interaction checking.
 
-> [!IMPORTANT]
-> InterMED is under active development. It is not validated for clinical use and must not be used as a substitute for professional judgment, local policy, or approved medical systems.
+**Planning stage: no application is implemented on main. InterMED is not yet validated for clinical use.** This revision changes the plan, not the deployed product.
 
-## Product principles
+## First release
 
-- Local-first and offline-capable.
-- Patient identity fields are optional.
-- Extracted clinical data require clinician confirmation.
-- High-impact clinical logic must be deterministic, tested, versioned, and evidence-backed.
-- Medication doses, drug interactions, and surgical indications must never be invented by an LLM.
-- iPadOS may be supported in a later release; the first build target is iPhone.
+- Search Romanian commercial products, active substances/DCI and available ATC identifiers locally.
+- Inspect ingredients, strength, formulation, regulatory provenance and RCP/SmPC/prospect references.
+- Expand combination products before checking multiple drugs against a licensed, structured interaction source.
+- Keep favorites and recent searches locally without an account.
+- Use previously downloaded reference data offline and receive safely validated, versioned updates.
 
-The controlling product and engineering documents are in [`plan/`](plan/README.md).
+The canonical client is responsive React + TypeScript + Vite, using IndexedDB through Dexie. It targets iPhone/iPad Safari (Share → Add to Home Screen), Android, Windows, macOS and Linux browsers. Installation UI varies by platform; offline use requires an initial successful load/download and available browser storage.
 
-## Status
+Appwrite Cloud is MVP infrastructure: Sites connected to GitHub, Functions for ingestion, normalized database services and Storage. Frankfurt/EU is preferred. Infrastructure does not imply mandatory Appwrite Auth: no account or anonymous authentication session is required merely to read permitted public reference datasets.
 
-Repository bootstrap is in progress. No clinical functionality is currently released or validated.
+## Safety and data rights
 
-## Contributing
+The clinician remains in control. Clinical content must expose sources and versions; missing information is not a normal or safe result. An LLM cannot invent interactions, doses, contraindications or regulatory content. Interaction-provider selection and dataset redistribution/offline rights remain unresolved release gates. Public availability is not permission to redistribute. Do not copy Mediately content.
 
-Bug reports, feature proposals, and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing. Please do not include real or identifiable patient data in issues, pull requests, tests, screenshots, or logs.
+Calculators follow the medication/interaction core. Later phases retain clinician workspaces, optional accounts, patient longitudinal data, OCR with confirmation, clinical pathways, evidence, AI assistance and external backup. Patient data require separate privacy/security/compliance approval.
+
+## Project documents and contribution
+
+Start with the [planning index](plan/README.md). [Requirements](plan/REQUIREMENTS.md) control product scope, [architecture](plan/ARCHITECTURE.md) controls boundaries, [clinical safety](plan/CLINICAL_SAFETY.md) is non-negotiable, and the [build plan](plan/CODEX_BUILD_PLAN.md) orders future implementation.
+
+Contributions through issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Documentation-only changes need no Mac, Xcode, proprietary dataset or cloud credentials. See the [source/tool guide](plan/InterMED_SOURCES_AND_SDKS.md) for future implementation references.
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE).
+First-party code and documentation use [Apache License 2.0](LICENSE). Third-party clinical datasets and documents retain their own rights; Apache-2.0 does not license them.
