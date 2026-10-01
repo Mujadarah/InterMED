@@ -23,6 +23,8 @@ Local raw logs are kept in ignored `artifacts/`. Valid red assertions: configura
 
 The initial preview command failed from nested npm argument forwarding. It was fixed before recording the browser assertion failure. Dependency installation and runner configuration failures are not described as red tests.
 
+Greptile's completed review of `a421ad2` identified missing JavaScript collection in the boundary checker and missing route-focus regression coverage. A temporary-directory fixture test first failed: four TypeScript files were collected while `.js`, `.jsx`, `.mjs` and `.cjs` were missing. The scanner was minimally extended; all eight supported JavaScript/TypeScript extensions are now collected and their forbidden private imports rejected. Component and all three browser projects also assert main-content focus after navigation. This covers existing accessibility behavior without changing it. The complete local suite then passed 20/20 unit/component tests and 15/15 browser tests.
+
 ## Verification results
 
 Local Windows x64 evidence, Node `24.21.0` / npm `11.19.0`:
@@ -34,14 +36,14 @@ Local Windows x64 evidence, Node `24.21.0` / npm `11.19.0`:
 | `npm run format:check`                   | Exit 0; every matched file formatted                                          |
 | `npm run lint`                           | Exit 0; zero errors/warnings                                                  |
 | `npm run typecheck`                      | Exit 0; strict root and DOM-free domain compilation                           |
-| `npm run test`                           | Exit 0; 19 tests passed in five files                                         |
+| `npm run test`                           | Exit 0; 20 tests passed in five files                                         |
 | `npm run check:boundaries`               | Exit 0; 12 actual source files inspected; domain manifest dependency-free     |
 | `npm audit --audit-level=low`            | Exit 0; zero vulnerabilities at this snapshot                                 |
 | `npm run build`                          | Exit 0; production HTML/CSS/JS generated                                      |
 | `npm run test:browser`                   | Exit 0; 15/15 passed, no skips/retries                                        |
 | `npm run check`                          | Exit 0; all gates above ran in sequence                                       |
 
-The documented/CI browser installation command adds `--with-deps` for Linux OS libraries; the Windows local download used `npx playwright install chromium webkit`. CI will establish the documented command on both operating systems. Lockfile SHA-256: `bea5a2a978a90b9e19d237ce576cc784f542b1823affaed6fd21924b755e7c57`.
+The documented/CI browser installation command adds `--with-deps` for Linux OS libraries; the Windows local download used `npx playwright install chromium webkit`. Both CI operating systems successfully ran the documented installation command in the external snapshot below. Lockfile SHA-256: `bea5a2a978a90b9e19d237ce576cc784f542b1823affaed6fd21924b755e7c57`.
 
 Browser versions queried from the installed engines: Chromium `153.0.8010.12`, WebKit `26.6`; Playwright `1.63.0`. Viewports: Chromium desktop 1280×720, WebKit phone 390×664 and tablet 810×1080 (device descriptors include touch/mobile emulation). Launch/no-external-request, route/deep-link reload, unknown-route recovery, keyboard skip navigation and viewport-fit checks ran on each project. Three synthetic shell screenshots were visually inspected and remain in ignored `test-results/`.
 
@@ -49,7 +51,17 @@ The first full browser run had 13 passes and two WebKit Tab-focus failures. Isol
 
 Scope/security consistency review found no clinical data, credentials, persistence, vendor SDKs or network calls in the app. LICENSE, SECURITY, all-branch reviewer configuration and the complete `plan/` corpus are unchanged. Existing issue/PR templates are preserved. Environment placeholders contain only mock mode. Dependency pins/API decisions are listed in [DEVELOPMENT.md](DEVELOPMENT.md); no required Context7 capability was unavailable.
 
-Latest-head CI and reviewer observations will be recorded after PR creation. Local passing checks do not establish external review completion or clinical readiness. DeepSource TOML activation is limited by its default-branch prerequisite; no repository settings are changed to bypass it. ESLint 9's upstream maintenance warning is documented in the development guide.
+## External checks and review
+
+[PR #3](https://github.com/Mujadarah/InterMED/pull/3) targets `main`. On implementation snapshot `a421ad2a15f78b820e820fdfc367cc8a14b17beb`, [Web checks run 36856793666](https://github.com/Mujadarah/InterMED/actions/runs/36856793666) completed successfully on Ubuntu 24.04 and Windows 2025, including clean install, browser installation and every documented quality gate. Later commits require a fresh latest-head check; the delivered PR description records that final snapshot separately from this historical run.
+
+- **Greptile:** completed review on that exact head, with two P2 comments. Both verified findings are addressed by the scanner test/fix and route-focus assertions described above; a new-head review must be inspected after pushing those changes.
+- **DeepSource Secrets:** initially flagged the synthetic configuration test value with `SCT-A000`. The fixture now uses a noncredential unknown configuration option while retaining rejection/value-redaction assertions. No finding was ignored or suppressed. The [subsequent Secrets run](https://app.deepsource.com/gh/Mujadarah/InterMED/run/2e1901ea-2e7f-4358-bedb-73772b54158b/secrets/) passed on `a421ad2`.
+- **CodeRabbit:** its green status represents a skipped automatic review; the bot explicitly reports fewer than ten repository stars. It is not a completed code review.
+- **DeepSource JavaScript/TypeScript and AI:** no completed result is available in this snapshot. Static analyzer activation requires the TOML on the default branch; AI review is on demand. No repository settings or default branch content were changed to bypass those conditions.
+- **Qodo:** no review/check was observed on this PR; no completion or service eligibility is inferred. Its existing configuration remains intact.
+
+Context7 was available and used for current dependency/API documentation. No DeepSource MCP capability was available; the actual Secrets findings were read from its authenticated browser report. Hosted reviewer results were inspected through GitHub; unavailable/skipped/on-demand reviews are distinguished from completed checks. ESLint 9's upstream maintenance warning is documented in the development guide. None of these results establishes clinical readiness or real-device validation.
 
 ## Remaining gates and Milestone 2 handoff
 
