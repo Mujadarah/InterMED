@@ -1,6 +1,29 @@
 import { expect, it } from 'vitest';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { basename, join } from 'node:path';
 // The production checker is plain JS so CI can run it independently of the app.
-import { inspectBoundary } from '../scripts/check-boundaries.mjs';
+import { inspectBoundary, sourceFiles } from '../scripts/check-boundaries.mjs';
+
+it('collects JavaScript and TypeScript files for boundary inspection', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'intermed-boundaries-'));
+  const extensions = ['js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'mts', 'cts'];
+  try {
+    for (const extension of [...extensions, 'md']) {
+      await writeFile(
+        join(directory, `adapter.${extension}`),
+        "import { x } from '@intermed/domain/src/private';",
+      );
+    }
+    const files = await sourceFiles(directory);
+    expect(files.map(({ path }) => basename(path)).sort()).toEqual(
+      extensions.map((extension) => `adapter.${extension}`).sort(),
+    );
+    expect(inspectBoundary(files)).toHaveLength(extensions.length);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 it.each([
   "import type { ReactNode } from 'react';",

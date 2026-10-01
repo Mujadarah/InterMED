@@ -39,6 +39,7 @@ it('navigates to limitations using an accessible link', async () => {
   expect(
     screen.getByRole('heading', { name: 'Development status' }),
   ).toBeVisible();
+  expect(screen.getByRole('main')).toHaveFocus();
   expect(
     screen.getByText(
       /Medication lookup and interaction checking are unavailable/,

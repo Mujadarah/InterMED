@@ -91,14 +91,18 @@ export function inspectBoundary(files) {
   return violations;
 }
 
-async function sourceFiles(directory) {
+/**
+ * @param {string} directory
+ * @returns {Promise<Array<{path: string, source: string}>>}
+ */
+export async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     if (['node_modules', 'dist'].includes(entry.name)) continue;
     const path = resolve(directory, entry.name);
     if (entry.isDirectory()) files.push(...(await sourceFiles(path)));
-    else if (/\.[cm]?tsx?$/.test(entry.name))
+    else if (/\.(?:[cm]?[jt]s|[jt]sx)$/.test(entry.name))
       files.push({
         path: relative(root, path),
         source: await readFile(path, 'utf8'),

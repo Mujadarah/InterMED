@@ -26,6 +26,7 @@ test('navigates and reloads a deep link', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Development status' }),
   ).toBeVisible();
+  await expect(page.getByRole('main')).toBeFocused();
   await page.reload();
   await expect(
     page.getByText(
