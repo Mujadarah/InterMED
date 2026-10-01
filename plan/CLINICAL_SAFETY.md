@@ -4,6 +4,18 @@
 
 InterMED may assist a clinician, but high-impact clinical decisions must be grounded in validated rules/evidence and remain under clinician control.
 
+## Medication-MVP non-negotiable rules
+
+- Resolve commercial products to confirmed active ingredients before interaction analysis; expand all combination components and show unresolved mappings.
+- Use licensed/permitted structured interaction sources, with explicit evaluated coverage. No LLM is the primary authority for whether an interaction exists.
+- Severity comes from source terminology or an explicitly documented, versioned, clinically reviewed normalization. Missing severity stays unknown.
+- No record is not proof of safety. Distinguish source-covered no reported record, incomplete/unknown coverage and unavailable/offline provider.
+- Show source, regulatory document/reference, dataset version/age, import/retrieval date and evidence level where supplied. Catalogue currency does not imply interaction currency.
+- Doses, contraindications, renal/hepatic adjustments and pregnancy/lactation information must be traceable. AI cannot fill missing official fields or invent citations.
+- Generated explanations cannot silently alter severity, dose, management, uncertainty or clinical meaning. Keep approved source facts accessible.
+- Failed dataset updates preserve the prior usable version; stale/incomplete results remain visibly qualified.
+- Medication selection is not a patient case. No patient data/identifiers are collected in this MVP.
+
 ## Output categories
 
 ### 1. Patient facts
@@ -105,6 +117,10 @@ Do not scrape or copy proprietary databases such as Mediately.
 
 The architecture should allow multiple `DrugInteractionProvider` implementations.
 
+## Calculator safety
+
+Every released formula needs a named primary source, explicit version, units, intended population, limitations and boundary/missing-data tests. Do not silently switch formulas or treat a renal estimate as a complete prescribing decision. Initial calculator inputs are ephemeral, without patient profiles.
+
 ## Clinical content governance
 
 Each rule/content change should include:
@@ -118,11 +134,11 @@ Each rule/content change should include:
 
 ## Data/privacy
 
-MVP should work without any direct patient identifier.
+Medication MVP collects no patient data and works without identity or an account. Favorites/recent searches remain local; avoid identity-linked medication analytics and query logs.
 
 When identifiers are entered, treat them as highly sensitive. Avoid sending raw identifiable data to cloud AI services by default.
 
 ## Intended-use evolution
 
-As InterMED moves from evidence navigation toward patient-specific diagnosis/treatment recommendations, perform a formal regulatory review before public clinical deployment. Do not assume a disclaimer alone removes medical-device obligations.
+Define intended use and assess clinical risk/regulatory obligations before any public clinical medication/interaction release. Repeat and extend that formal review as InterMED moves toward calculators or patient-specific diagnosis/treatment recommendations. Do not assume a disclaimer alone removes medical-device obligations.
 

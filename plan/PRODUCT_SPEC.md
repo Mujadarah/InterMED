@@ -1,24 +1,52 @@
-# InterMED Product Specification
+# InterMED product specification
 
-## 1. Product summary
+## Product and users
 
-InterMED is a **local-first clinical copilot for clinicians**. A clinician enters patient information by typing or taking photos. InterMED structures the information, tracks the patient over time, identifies relevant clinical problems and pathways, checks medication safety, finds relevant evidence/guidelines and presents the next clinical considerations with explanations and sources.
+InterMED is an open-source, offline-first clinical reference and decision-support platform. The first useful release is a fast, installable Romanian medication reference and structured drug-interaction PWA for clinicians. It is not a hospital EHR/HIS/PACS, autonomous prescriber or validated clinical product today.
 
-InterMED is not intended to be a hospital EHR, HIS, PACS or mandatory cloud service.
+Initial reference users include physicians across specialties, including surgery/perioperative care. iPhone/iPad, Android and desktop browser use are canonical; native clients remain optional future work. No Mac, Xcode or App Store submission is an MVP requirement.
 
-## 2. Primary user
+## First-release promise
 
-Initial user: physician caring for hospital inpatients, with the first specialty focus on **general surgery and perioperative care**.
+> Find a Romanian medication locally, inspect what it contains and where the information comes from, check selected active ingredients against licensed structured interaction data, and keep useful references offline without creating an account.
 
-Future users may include ICU, internal medicine, infectious diseases, oncology, cardiology, vascular surgery and other specialties.
+React + TypeScript + Vite provides the PWA; IndexedDB/Dexie provides local datasets. Appwrite Cloud infrastructure starts immediately, preferably Frankfurt/EU, with Sites/GitHub deployment, Functions, normalized database services and Storage. No mandatory Auth or anonymous session is needed for public reference reads.
 
-## 3. Core user promise
+## Medication and interaction workflows
 
-> Enter what you know by text or photo. InterMED organizes the patient's current state, shows what changed, identifies relevant clinical pathways, checks medication safety, highlights missing information and presents evidence-backed next-step considerations.
+1. Search a commercial full/partial name, DCI/active substance, available ATC or manufacturer. Local normalized indexes handle Romanian diacritics without losing original display text. Optional typo tolerance offers candidates, never auto-substitutes a medication.
+2. Select the precise product/strength/formulation. View ingredients, strengths/units, route, CIM, ATC, manufacturer, authorization holder/status and source/version where supplied.
+3. Open authoritative RCP/SmPC and prospect/PIL references. Indications, dosing, administration, contraindications, precautions, adverse effects, pregnancy/lactation and renal/hepatic information are displayed only when validated permitted content exists; missing fields are explicit.
+4. Build a temporary multidrug selection from products and/or ingredients. Resolve commercial products and expand combinations through reviewed ingredient mappings before analysis; distinguish duplicates and unresolved identities.
+5. Show structured interactions with source-specific severity, effects, mechanism, evidence, management/monitoring/alternatives when supplied. Distinguish unavailable/incomplete coverage from “no reported interaction within the evaluated source/coverage”; never say absence of a record guarantees safety.
+6. Save favorites and recent medication searches locally, clear/export them through explicit controls, and use downloaded reference data offline. The selection is not a patient record.
+7. Show dataset/version/age and background update state. Invalid, incomplete or failed updates preserve the previously usable generation.
 
-## 4. Core workflows
+ANMDMR is the canonical initial Romanian source strategy. Import/publication and offline redistribution rights remain gates. No Mediately copying; no interaction provider is selected yet. Regulatory links are not a promise of cached PDF bodies or complete clinical fields.
 
-### A. First encounter
+## First release and next calculators
+
+Medication/interaction scope is milestones 1–10, subject to relevant milestone-12 hardening and rights/clinical/intended-use approval before release. Milestone 11 adds calculators shortly afterward; milestone 12 repeats/completes hardening for that expanded rollout. Patient features cannot leapfrog these gates.
+
+Calculator candidates: BMI, BSA, Cockcroft-Gault CrCl, selected eGFR formula, corrected calcium/sodium when appropriate, Caprini, SOFA/qSOFA, Child-Pugh/MELD, Wells and other validated tools. Selection is not formula approval. Each needs a named primary reference, formula/version, units/population limits, boundary tests and clinical review. Initial inputs are ephemeral; no patient profile or automatic patient-data population in this release.
+
+## Offline and privacy contract
+
+After a successful shell/data download, local search, permitted downloaded detail fields, favorites/recent and licensed interaction data remain usable offline. Regulatory links or online-only providers show offline unavailability. First offline startup, eviction, private-mode/quota restrictions and stale datasets must be explicit. App installability does not guarantee permanent storage.
+
+The MVP collects no patient cases/identifiers and does not link medication searches to identities. Avoid sensitive query analytics and server/console logging. An Appwrite-hosted reference service is compatible with anonymous/local-only use. Hosting/operators still have security, cost and operational duties.
+
+## Preserved later clinical workspace
+
+The original patient-centered promise remains a later-phase goal:
+
+> Enter what you know → confirm the data → see what changed → see what matters → see applicable pathways → see evidence-backed next considerations.
+
+The following workflows are retained for phases 5–11+, after the relevant privacy, evidence and content-validation gates. They are not medication-MVP features.
+
+### Core workflows
+
+#### A. First encounter
 
 - Create a new patient/case.
 - Enter symptoms in natural language or photograph an existing note/document.
@@ -26,43 +54,43 @@ Future users may include ICU, internal medicine, infectious diseases, oncology, 
 - InterMED structures the information.
 - InterMED suggests clinically relevant next steps, missing information, investigations and applicable pathways.
 
-### B. Known diagnosis
+#### B. Known diagnosis
 
 - Enter/select diagnosis.
 - InterMED loads applicable guideline pathways.
 - The app shows recommended staging/investigations/management options with evidence and rationale.
 
-### C. Oncology
+#### C. Oncology
 
 - Add tumor site, pathology, CT findings, TNM/stage and relevant labs.
 - InterMED identifies guideline pathways.
 - It can surface treatment sequencing options such as surgery-first, neoadjuvant therapy, additional staging or MDT evaluation when supported by evidence.
 
-### D. Perioperative care
+#### D. Perioperative care
 
 - Record intended/performed operation.
 - InterMED tracks postoperative day.
 - Review antibiotic prophylaxis, thromboprophylaxis, medication safety, monitoring and procedure-specific postoperative considerations.
 
-### E. Postoperative deterioration
+#### E. Postoperative deterioration
 
 - Add new vitals/labs/findings by text or photo.
 - InterMED analyzes change over time rather than only isolated values.
 - It surfaces relevant complications/pathways and explains what triggered them.
 
-### F. ICU-to-ward transfer
+#### F. ICU-to-ward transfer
 
 - Record current medications and patient state.
 - InterMED supports medication reconciliation.
 - It identifies medications that may need continuation, reassessment, de-escalation or discontinuation based on indication and patient state.
 
-### G. Medication reference
+#### G. Medication reference
 
 - Search medication by commercial name, active substance, class or indication.
 - Scan a box/ampoule/chart.
 - View drug information, contraindications, interactions and patient-specific restrictions.
 
-## 5. Input modes
+### Input modes
 
 ### Text
 
@@ -84,7 +112,7 @@ Future users may include ICU, internal medicine, infectious diseases, oncology, 
 
 All extracted clinical content requires user confirmation before becoming part of the patient state.
 
-## 6. Patient identity philosophy
+### Patient identity philosophy
 
 Patient identity is **optional**, not mandatory.
 
@@ -103,66 +131,17 @@ The app should always be able to work with an anonymous generated case ID.
 
 The hospital medical-file/admission number should be easy to enter because it is often more useful operationally than a patient's name.
 
-## 7. Storage philosophy
+### Specialty scope retained
 
-### MVP
+General surgery, perioperative care, postoperative monitoring, common emergency surgical presentations, antimicrobial prophylaxis concepts, colorectal, HPB, pancreatic and acute-care surgery pathways remain future priorities. ICU, internal medicine, infectious diseases, oncology, cardiology, vascular surgery and other specialties can extend the platform.
 
-- local encrypted database;
-- no account;
-- no backend;
-- no mandatory network dependency;
-- no hospital-system integration.
+Daily review preserves longitudinal changes, medication reconciliation and ICU-to-ward de-escalation based on documented indications/evidence. Evidence-backed surgical sequencing must preserve alternatives, prerequisites, staging, optimization, biopsy, neoadjuvant options and MDT review rather than declare an unsourced single answer.
 
-### Optional v1
+## Clinical principles and non-goals
 
-- iCloud/CloudKit sync/backup, opt-in.
+Separate confirmed facts, deterministic derived values, validated safety alerts, clinical considerations, evidence summaries and optional AI explanations. Clinicians control acceptance. AI may not invent interactions/doses, substitute for absent official content or silently alter clinical meaning.
 
-### Future
+MVP excludes patient cases, OCR scanning, patient-specific dosing/allergy checks, hospital-wide databases, EHR/FHIR/PACS integration, autonomous imaging diagnosis/prescribing, AI clinical authority, mandatory accounts, billing and rosters. General permitted pregnancy/renal/hepatic reference information is in scope; patient-specific restriction/adjustment decisions are later gated functionality.
 
-- user accounts;
-- Appwrite or another backend;
-- Sign in with Apple;
-- Google Sign-In;
-- Google Drive;
-- OneDrive;
-- Dropbox;
-- cross-device sync and encrypted cloud backup.
-
-## 8. Clinical philosophy
-
-The system should distinguish:
-
-1. **Facts** — entered or extracted patient data.
-2. **Derived values** — trends/calculators.
-3. **Safety alerts** — validated deterministic rules.
-4. **Clinical considerations** — applicable pathways or differential considerations.
-5. **Evidence summaries** — what guidelines say.
-6. **AI explanations** — natural-language explanation of structured findings.
-
-The LLM must not silently invent high-risk treatment instructions, doses or surgical indications.
-
-## 9. Initial clinical scope
-
-First focus:
-
-- general surgery;
-- perioperative care;
-- postoperative monitoring;
-- common emergency surgical presentations;
-- antimicrobial prophylaxis concepts;
-- medication safety;
-- colorectal, HPB, pancreatic and acute-care surgery pathways.
-
-## 10. Non-goals for MVP
-
-- EHR/HIS integration;
-- PACS integration;
-- autonomous CT/MRI image interpretation;
-- autonomous prescribing;
-- autonomous diagnosis;
-- replacing a clinician;
-- mandatory cloud account;
-- hospital-wide patient database;
-- billing/insurance;
-- scheduling/rosters.
+Future optional accounts/sync and encrypted Drive/OneDrive/Dropbox backup do not make identity mandatory. Identifiable patient backend storage requires a separate privacy/security/compliance and operational review; cloud AI needs another explicit approval. See [FUTURE_CLOUD_AUTH.md](FUTURE_CLOUD_AUTH.md).
 
