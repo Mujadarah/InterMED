@@ -1,4 +1,4 @@
-# ClinPath — Codex Build Plan
+# InterMED — Codex Build Plan
 
 This file is intended to be fed directly to Codex as the implementation roadmap.
 

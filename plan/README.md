@@ -1,6 +1,6 @@
-# ClinPath — Codex Project Pack
+# InterMED — Codex Project Pack
 
-ClinPath is a local-first clinical decision-support assistant for clinicians. It accepts typed text and photos, organizes patient information into a structured clinical state, tracks changes over time, surfaces medication safety information and clinical pathways, and grounds important outputs in current evidence and guidelines.
+InterMED is a local-first clinical decision-support assistant for clinicians. It accepts typed text and photos, organizes patient information into a structured clinical state, tracks changes over time, surfaces medication safety information and clinical pathways, and grounds important outputs in current evidence and guidelines.
 
 ## Product direction
 

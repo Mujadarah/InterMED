@@ -1,8 +1,8 @@
-# ClinPath Clinical Safety and AI Rules
+# InterMED Clinical Safety and AI Rules
 
 ## Core safety principle
 
-ClinPath may assist a clinician, but high-impact clinical decisions must be grounded in validated rules/evidence and remain under clinician control.
+InterMED may assist a clinician, but high-impact clinical decisions must be grounded in validated rules/evidence and remain under clinician control.
 
 ## Output categories
 
@@ -124,5 +124,5 @@ When identifiers are entered, treat them as highly sensitive. Avoid sending raw 
 
 ## Intended-use evolution
 
-As ClinPath moves from evidence navigation toward patient-specific diagnosis/treatment recommendations, perform a formal regulatory review before public clinical deployment. Do not assume a disclaimer alone removes medical-device obligations.
+As InterMED moves from evidence navigation toward patient-specific diagnosis/treatment recommendations, perform a formal regulatory review before public clinical deployment. Do not assume a disclaimer alone removes medical-device obligations.
 

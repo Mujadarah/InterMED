@@ -1,4 +1,4 @@
-# ClinPath Roadmap
+# InterMED Roadmap
 
 ## Phase 0 — Foundation
 

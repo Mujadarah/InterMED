@@ -1,4 +1,4 @@
-# ClinPath Initial Data Model
+# InterMED Initial Data Model
 
 ## Design goals
 
@@ -289,7 +289,7 @@ Define a versioned JSON export envelope:
 
 ```json
 {
-  "format": "clinpath-case",
+  "format": "intermed-case",
   "version": 1,
   "exportedAt": "...",
   "case": {},

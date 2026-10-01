@@ -1,10 +1,10 @@
-# ClinPath Product Specification
+# InterMED Product Specification
 
 ## 1. Product summary
 
-ClinPath is a **local-first clinical copilot for clinicians**. A clinician enters patient information by typing or taking photos. ClinPath structures the information, tracks the patient over time, identifies relevant clinical problems and pathways, checks medication safety, finds relevant evidence/guidelines and presents the next clinical considerations with explanations and sources.
+InterMED is a **local-first clinical copilot for clinicians**. A clinician enters patient information by typing or taking photos. InterMED structures the information, tracks the patient over time, identifies relevant clinical problems and pathways, checks medication safety, finds relevant evidence/guidelines and presents the next clinical considerations with explanations and sources.
 
-ClinPath is not intended to be a hospital EHR, HIS, PACS or mandatory cloud service.
+InterMED is not intended to be a hospital EHR, HIS, PACS or mandatory cloud service.
 
 ## 2. Primary user
 
@@ -14,7 +14,7 @@ Future users may include ICU, internal medicine, infectious diseases, oncology, 
 
 ## 3. Core user promise
 
-> Enter what you know by text or photo. ClinPath organizes the patient's current state, shows what changed, identifies relevant clinical pathways, checks medication safety, highlights missing information and presents evidence-backed next-step considerations.
+> Enter what you know by text or photo. InterMED organizes the patient's current state, shows what changed, identifies relevant clinical pathways, checks medication safety, highlights missing information and presents evidence-backed next-step considerations.
 
 ## 4. Core workflows
 
@@ -23,37 +23,37 @@ Future users may include ICU, internal medicine, infectious diseases, oncology, 
 - Create a new patient/case.
 - Enter symptoms in natural language or photograph an existing note/document.
 - Add available vitals, examination findings and labs.
-- ClinPath structures the information.
-- ClinPath suggests clinically relevant next steps, missing information, investigations and applicable pathways.
+- InterMED structures the information.
+- InterMED suggests clinically relevant next steps, missing information, investigations and applicable pathways.
 
 ### B. Known diagnosis
 
 - Enter/select diagnosis.
-- ClinPath loads applicable guideline pathways.
+- InterMED loads applicable guideline pathways.
 - The app shows recommended staging/investigations/management options with evidence and rationale.
 
 ### C. Oncology
 
 - Add tumor site, pathology, CT findings, TNM/stage and relevant labs.
-- ClinPath identifies guideline pathways.
+- InterMED identifies guideline pathways.
 - It can surface treatment sequencing options such as surgery-first, neoadjuvant therapy, additional staging or MDT evaluation when supported by evidence.
 
 ### D. Perioperative care
 
 - Record intended/performed operation.
-- ClinPath tracks postoperative day.
+- InterMED tracks postoperative day.
 - Review antibiotic prophylaxis, thromboprophylaxis, medication safety, monitoring and procedure-specific postoperative considerations.
 
 ### E. Postoperative deterioration
 
 - Add new vitals/labs/findings by text or photo.
-- ClinPath analyzes change over time rather than only isolated values.
+- InterMED analyzes change over time rather than only isolated values.
 - It surfaces relevant complications/pathways and explains what triggered them.
 
 ### F. ICU-to-ward transfer
 
 - Record current medications and patient state.
-- ClinPath supports medication reconciliation.
+- InterMED supports medication reconciliation.
 - It identifies medications that may need continuation, reassessment, de-escalation or discontinuation based on indication and patient state.
 
 ### G. Medication reference

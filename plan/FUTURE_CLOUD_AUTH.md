@@ -1,4 +1,4 @@
-# ClinPath Future Cloud, Accounts and Authentication
+# InterMED Future Cloud, Accounts and Authentication
 
 ## Current decision
 
@@ -136,5 +136,5 @@ Later, if needed, build richer sync as a separate feature with explicit conflict
 
 Keep this out of current roadmap unless product requirements change.
 
-The domain can remain FHIR-aware to preserve future interoperability, but ClinPath should not require EHR access.
+The domain can remain FHIR-aware to preserve future interoperability, but InterMED should not require EHR access.
 

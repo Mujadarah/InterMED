@@ -1,4 +1,4 @@
-# ClinPath Architecture
+# InterMED Architecture
 
 ## Architectural goals
 
@@ -14,10 +14,10 @@
 ## Suggested repository structure
 
 ```text
-ClinPath/
+InterMED/
 ├── apps/
 │   └── ios/
-│       ├── ClinPathApp/
+│       ├── InterMEDApp/
 │       ├── Features/
 │       ├── DesignSystem/
 │       └── Platform/

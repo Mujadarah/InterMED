@@ -1,4 +1,4 @@
-# ClinPath Testing Strategy
+# InterMED Testing Strategy
 
 ## 1. Unit tests
 

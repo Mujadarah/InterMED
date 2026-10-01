@@ -1,4 +1,4 @@
-# ClinPath Final Requirements
+# InterMED Final Requirements
 
 ## Patient and case management
 
@@ -267,7 +267,7 @@
 ## iCloud
 
 211. The app shall support optional iCloud/CloudKit storage/synchronization.
-212. iCloud shall not be required to use ClinPath.
+212. iCloud shall not be required to use InterMED.
 213. iCloud sync shall be opt-in.
 214. The app shall show sync status and last-sync information.
 215. The app shall continue to expose a local cached copy when temporarily offline.
@@ -301,7 +301,7 @@
 237. The app should obscure sensitive app-switcher previews when privacy mode is enabled.
 238. The app should provide a manual Lock Now action.
 239. Local database encryption shall remain independent from optional UI lock settings.
-240. Biometrics shall be handled by Apple system APIs; ClinPath shall not store biometric templates.
+240. Biometrics shall be handled by Apple system APIs; InterMED shall not store biometric templates.
 
 ## Privacy
 
@@ -371,9 +371,9 @@
 
 ## Product positioning
 
-295. ClinPath shall remain usable as a standalone local clinical assistant.
-296. ClinPath shall not require connection to a hospital system.
-297. ClinPath shall not require a subscription or hosted service for the initial open-source build.
+295. InterMED shall remain usable as a standalone local clinical assistant.
+296. InterMED shall not require connection to a hospital system.
+297. InterMED shall not require a subscription or hosted service for the initial open-source build.
 298. The core user experience shall be: **enter what you know → confirm the data → see what changed → see what matters → see applicable pathways → see evidence-backed next considerations.**
 299. The project shall prioritize transparency, traceability and clinical usefulness over feature count.
 300. The architecture shall be designed as a long-lived extensible platform rather than a disposable prototype.
