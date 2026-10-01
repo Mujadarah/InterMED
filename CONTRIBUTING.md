@@ -1,29 +1,25 @@
 # Contributing to InterMED
 
-Thank you for helping improve InterMED.
+Issues, feature proposals, documentation corrections, accessibility/privacy reviews and focused pull requests are welcome. Never submit real or identifiable patient data or credentials.
 
-## Ways to contribute
+## Current stage and workflow
 
-- Report a reproducible bug using the bug-report form.
-- Propose a feature using the feature-request form.
-- Open a pull request from a fork or topic branch.
-- Review documentation, accessibility, privacy, tests, and clinical-content provenance.
+This is a planning-first repository. The canonical direction is React/TypeScript/Vite PWA, IndexedDB/Dexie and Appwrite infrastructure, not a native-iOS-first app. No Mac, Xcode, live Appwrite credentials or proprietary clinical dataset is required for documentation work.
 
-## Safety and privacy
+1. Read every repository Markdown file. Start with [plan/README.md](plan/README.md); requirements, architecture and clinical safety are controlling.
+2. Propose focused changes from a fork/topic branch through a pull request; do not push directly to main or bypass review/status-check policy.
+3. For future behavior changes, add and run a failing test before implementation, then record passing verification. Use synthetic fixtures/mock providers.
+4. Keep domain/clinical logic independent of React, browser persistence and Appwrite/provider SDKs.
+5. Run the relevant documented checks and complete the PR template. Tooling/build commands will be introduced in milestone 1; do not report nonexistent tests as passing.
 
-- Never submit real or identifiable patient data.
-- Do not add clinical thresholds, medication doses, interactions, or treatment recommendations without a permitted authoritative source, version metadata, tests, and clinical review.
-- OCR- or AI-derived clinical facts must remain candidates until explicitly confirmed by a clinician.
-- Follow [`plan/CLINICAL_SAFETY.md`](plan/CLINICAL_SAFETY.md) for every change.
+For documentation changes, review all changed files, local Markdown links, requirement traceability and cross-file scope consistency. Do not scaffold the application during the current documentation revision.
 
-## Development workflow
+## Clinical sources and security
 
-1. Fork the repository and create a focused branch.
-2. Add or update tests before implementation when behavior changes.
-3. Keep domain and clinical logic independent of SwiftUI and provider SDKs.
-4. Run the documented build, test, lint, and safety checks.
-5. Open a pull request and complete the template.
+Clinical thresholds, formulas, medication doses, interactions and treatment recommendations need a permitted authoritative source, version/provenance, tests and clinical review. Public regulatory data are not automatically redistributable. Do not copy Mediately content or commit proprietary provider responses.
 
-Direct pushes to the default branch are disabled. Changes must be proposed by pull request and pass the configured review and status-check rules.
+[CLINICAL_SAFETY.md](plan/CLINICAL_SAFETY.md) is mandatory. OCR/AI-derived clinical facts remain candidates until clinician confirmation. Missing interaction records are not proof of safety; LLM output is not dose/interaction authority.
 
-By submitting a contribution, you agree that it is licensed under Apache License 2.0.
+Use original synthetic fixtures; no patient/query content in logs/analytics. Frontend configuration is public: never commit server keys/provider tokens. Report vulnerabilities privately using [SECURITY.md](SECURITY.md).
+
+First-party contributions are Apache-2.0. Third-party data/assets need their own permission/attribution and cannot be relicensed merely by adding them here.

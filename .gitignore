@@ -1,4 +1,12 @@
-# Apple / Xcode
+# Web build and test outputs (future implementation)
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Optional future native client: Apple / Xcode
 DerivedData/
 *.xcuserstate
 xcuserdata/

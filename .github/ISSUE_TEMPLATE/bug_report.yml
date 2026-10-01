@@ -36,12 +36,12 @@ body:
     id: version
     attributes:
       label: Version or commit
-      placeholder: App version or commit SHA
+      placeholder: App/commit, schema, medication/interaction dataset and service-worker versions if applicable
   - type: input
     id: environment
     attributes:
       label: Environment
-      placeholder: iPhone model, iOS version, Xcode version
+      placeholder: Device/OS, browser/version, installed PWA or tab, online/offline state
   - type: textarea
     id: logs
     attributes:
