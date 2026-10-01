@@ -4,7 +4,7 @@
 
 Implementation priority: **Romanian medication reference + structured drug-interaction checker + offline PWA**. React/TypeScript/Vite and IndexedDB/Dexie are the canonical client direction. Appwrite Cloud infrastructure starts in the MVP; user accounts do not.
 
-This repository is planning/documentation-first. The files below describe intended behavior, not completed implementation or clinical validation. The PWA supersedes the previous native-iPhone-first plan. Native clients are optional future adapters, not MVP prerequisites.
+This repository is planning/documentation-first. The files below describe intended behavior, not completed implementation or clinical validation. The PWA supersedes the previous native-iPhone-first plan. Native application development is cancelled, not a future option; iPhone/iPad use remains Safari/PWA.
 
 Read every repository Markdown file before changing code. Treat REQUIREMENTS as product requirements, ARCHITECTURE as mandatory architectural guidance and CLINICAL_SAFETY as non-negotiable constraints. Execute CODEX_BUILD_PLAN sequentially. If these documents conflict, stop and report the conflict rather than silently selecting one.
 

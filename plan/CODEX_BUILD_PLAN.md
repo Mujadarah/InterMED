@@ -105,7 +105,7 @@ Acceptance: all applicable checks have recorded passing evidence or an explicit 
 
 Optional accounts/social login/passkeys, favorites sync, clinician notes/lists, patient/encounter/diagnosis/procedure/vitals/labs models, patient-specific dosing/allergy checks, OCR, pathways/evidence, AI, encrypted external backup, organizations/interoperability and advanced specialties require later specifications/gates in ROADMAP.
 
-CloudKit/Face ID/Keychain/SwiftUI/TestFlight require a separate future native-client specification only. Appwrite infrastructure is **not** deferred.
+Native iOS/iPadOS implementation is cancelled, including native-only SDKs/builds/synchronization. iPhone/iPad support is through the PWA. Appwrite infrastructure is **not** deferred.
 
 ## Evidence record per milestone
 

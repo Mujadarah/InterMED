@@ -6,30 +6,16 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 
-# Optional future native client: Apple / Xcode
-DerivedData/
-*.xcuserstate
-xcuserdata/
-*.moved-aside
-*.xccheckout
-*.xcscmblueprint
-
-# Swift Package Manager
-.build/
-.swiftpm/
-Package.resolved
-
-# Generated Xcode project
-InterMED.xcodeproj/
-
 # Local tooling
 .DS_Store
 .idea/
 .vscode/
 .worktrees/
+__pycache__/
+*.py[cod]
+.venv/
 
 # Secrets and local configuration
-*.xcconfig.local
 .env
 .env.*
 !.env.example

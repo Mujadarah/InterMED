@@ -85,8 +85,6 @@ Patient persistence: create anonymous case, optional file/admission/alias lookup
 
 Patient privacy/account sync: browser-specific encryption/key recovery/session locking, lock disabled/enabled/failure/background limits, account switching/revocation/conflicts, offline queues, export/deletion and provider backup restore. Generic UI locking is not proof of database encryption.
 
-Future native appendix tests: Face ID/Touch ID/PIN fallback, native preview protection and Keychain reset/device change; CloudKit unavailable/logged out/no network/two-device conflict/interrupted upload/space/disable-reenable. These are not PWA test prerequisites.
-
 ## Clinical-content/release acceptance
 
 Before public clinical content: identify author/reviewer, permitted source, source/version/date/coverage, rights and intended use, positive/negative/boundary fixtures, change history and review date. Test uncertainty/source disagreement and meaning-preserving explanations.

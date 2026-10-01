@@ -32,7 +32,3 @@ Before phase 5 and especially before any identifiable patient data reach a backe
 
 Minimize identity; generated case ID and optional alias/name/DOB/age/national ID/file/admission/ward/bed fields remain supported. Avoid raw identifiable input to generic AI providers by default; separate review/configuration is required for future cloud AI.
 
-## Future native-client appendix
-
-iCloud/CloudKit remains an optional future native storage/sync adapter, separate from PWA/Appwrite infrastructure. Face ID/Touch ID, Keychain/Secure Enclave and native app-switcher protections require native implementations; browsers cannot be assumed to provide identical semantics. Native Apple/Google sign-in must meet then-current platform distribution requirements. Native policies and tools are not MVP gates.
-

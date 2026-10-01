@@ -6,7 +6,7 @@ Provide `manifest.webmanifest` with name/short name, start URL, scope, standalon
 
 On iPhone/iPad Safari, guide users through Share → Add to Home Screen. On supported desktop/Android browsers, expose installation guidance using available browser capabilities. Do not promise identical install prompts, background scheduling or native APIs on all platforms. Installed and browser-tab modes both remain usable. Do not assume their IndexedDB contents or favorites are shared; test initial download and migration/help in each mode.
 
-No Mac, Xcode or App Store submission is required to develop/deploy the MVP. Real iPhone/iPad testing is still a release verification requirement.
+No native build or App Store submission is required to develop/deploy the PWA. Real iPhone/iPad testing is still a release verification requirement.
 
 ## Offline contract and limits
 

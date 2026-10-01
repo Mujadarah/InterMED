@@ -4,7 +4,7 @@
 
 These are intended requirements, not implemented capabilities. MVP means the Romanian medication-reference and structured interaction PWA; calculators follow shortly afterward. Appwrite infrastructure starts in MVP; accounts and patient cases do not.
 
-Numbering is continuous. [REQUIREMENTS_TRACEABILITY.md](REQUIREMENTS_TRACEABILITY.md) maps all 300 original IDs, including platform adaptations and later/native dispositions. No original clinical requirement was silently discarded. Later sections are expressly deferred, not an expansion of the medication MVP.
+Numbering is continuous. [REQUIREMENTS_TRACEABILITY.md](REQUIREMENTS_TRACEABILITY.md) maps all 300 original IDs, including platform adaptations and later clinical scope. The maintainer explicitly retired ten native-only requirements on 2026-10-01; their original IDs remain documented in the traceability record, not active requirements. No non-native clinical requirement was discarded. Later sections are expressly deferred, not an expansion of the medication MVP.
 
 [CLINICAL_SAFETY.md](CLINICAL_SAFETY.md) is mandatory. [CODEX_BUILD_PLAN.md](CODEX_BUILD_PLAN.md) defines sequential gates; a reference/interaction clinical release requires milestone-12 hardening applicable to milestones 1–10, licensed sources and intended-use review. Milestone 11 then extends calculators and milestone 12 repeats/completes hardening.
 
@@ -14,7 +14,7 @@ Scope: MVP, milestones 1–2.
 
 1. The canonical first-party client shall be a responsive installable PWA built with React, TypeScript and Vite; Next.js shall not be required without an architectural decision.
 2. The PWA shall target iPhone/iPad Safari, Android and Windows/macOS/Linux browsers in installed and tab modes; platform limitations shall be documented.
-3. The MVP shall require no Mac, Xcode, App Store submission or native iOS build.
+3. The application shall be PWA-only; no native application, native build or App Store submission is planned.
 4. The application shall provide manifest.webmanifest, scoped start URL, standalone display, installable metadata, normal/maskable icons and HTTPS service-worker registration.
 5. The service worker shall cache a versioned application shell, provide offline startup/fallback and expose safe update/reload handling.
 6. Layouts shall support phone touch targets, iPhone safe areas, tablet and desktop navigation, keyboard use and accessible error/status presentation.
@@ -510,7 +510,7 @@ Scope: Phase 10.
 336. The architecture shall support future Dropbox backup/sync integration.
 337. Third-party storage providers shall be implemented as adapters/plugins.
 338. Cloud backup shall be conceptually separate from real-time sync.
-339. The user should eventually be able to choose local-only storage or an approved Appwrite/external provider; iCloud remains a future native option.
+339. The user should eventually be able to choose local-only storage or an approved Appwrite/external provider.
 340. Future health-data backups shall use approved encryption before leaving the device, with explicit key-management/recovery design.
 341. The app shall support a versioned portable backup/export format.
 342. The app shall support import/restore of its own backup format.
@@ -574,18 +574,3 @@ Scope: Relevant clinical/backup phase gates.
 Scope: Patient workspace.
 
 372. The later patient-workspace user experience shall be: enter what you know → confirm the data → see what changed → see what matters → see applicable pathways → see evidence-backed next considerations.
-
-## Future native-client appendix
-
-Scope: Optional separate native specification; not PWA promises.
-
-373. A future native client shall protect sensitive keys/secrets with Keychain/Secure Enclave facilities where appropriate; this shall not be promised as universal browser behavior.
-374. A future native client may support optional iCloud/CloudKit storage/synchronization through a replaceable adapter.
-375. iCloud shall not be required to use InterMED, including any future native client.
-376. Future native iCloud synchronization shall be opt-in.
-377. Any future native iCloud implementation shall be isolated behind a storage/sync provider interface.
-378. A future native client may support optional Face ID app locking.
-379. A future native client may support optional Touch ID where available.
-380. Any future native biometrics shall use platform system APIs; InterMED shall not store biometric templates.
-381. Any future native iOS client using third-party/social login shall comply with then-current Apple App Store login-service requirements.
-382. Any future native iCloud adapter shall be tested for offline use, conflicts, interrupted sync and account changes before release.

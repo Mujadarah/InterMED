@@ -96,7 +96,7 @@ Later patient data require an explicit encryption/key-management, retention/dele
 
 Preserve FHIR-aware clinical models, terminology licensing checks, longitudinal observations, optional identifiers, deterministic pathway signals and evidence/rule versions. Cloud backup is separate from real-time sync and requires visible conflicts and recovery semantics.
 
-## Future native-client appendix
+## Platform scope
 
-Swift/SwiftUI, Xcode, SQLite/GRDB, Keychain/Secure Enclave, Face ID/Touch ID, CloudKit and TestFlight belong only to a separately scoped future native client. They are neither current persistence/presentation choices nor universal PWA security capabilities. Native providers may reuse versioned domain contracts, but require their own testing, platform policy and migration plans. No Mac, Xcode or App Store submission is required for the PWA MVP.
+Native iOS/iPadOS application development is cancelled, not deferred. iPhone and iPad remain supported through Safari and the installable PWA. No native-client modules, SDKs, build pipelines or cloud-sync adapters are planned.
 

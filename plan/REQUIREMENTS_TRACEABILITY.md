@@ -1,8 +1,8 @@
 # InterMED requirement traceability
 
-Baseline: main fdcb56f3f2b93289887780026d7a717962ba5e31, original requirements 1–300. All 300 have exactly one mapped requirement below; additional PWA/medication requirements precede or augment them. Current total: 382; new requirements: 82.
+Baseline: main fdcb56f3f2b93289887780026d7a717962ba5e31, original requirements 1–300. All 300 original IDs are accounted for: 290 map to current requirements and ten native-only requirements were explicitly retired by the maintainer on 2026-10-01. Current total: 372; new requirements: 82.
 
-This table describes planning changes, not implementation completion. “Retained” preserves the original normative text apart from product naming and requirement numbering; section scope controls its release. “Adapted” changes an obsolete platform/scope promise while preserving its useful intent. Native APIs remain only in the future native appendix. See [REQUIREMENTS.md](REQUIREMENTS.md) for normative text.
+This table describes planning changes, not implementation completion. “Retained” preserves the original normative text apart from product naming and requirement numbering; section scope controls its release. “Adapted” changes an obsolete platform/scope promise while preserving its useful intent. Native application development is cancelled; retired IDs have no active revised requirement. See [REQUIREMENTS.md](REQUIREMENTS.md) for normative text.
 
 | Original ID | Revised ID | Disposition | Phase/scope |
 | --- | --- | --- | --- |
@@ -214,15 +214,15 @@ This table describes planning changes, not implementation completion. “Retaine
 | 206 | 77 | Retained | MVP, milestones 2 and 6 |
 | 207 | 328 | Retained | Phase 5 |
 | 208 | 329 | Adapted to current platform/scope | Phase 5 |
-| 209 | 373 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 209 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 210 | 78 | Retained | MVP, milestones 2 and 6 |
-| 211 | 374 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
-| 212 | 375 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
-| 213 | 376 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 211 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
+| 212 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
+| 213 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 214 | 330 | Adapted to current platform/scope | Phases 4–5 |
 | 215 | 331 | Adapted to current platform/scope | Phases 4–5 |
 | 216 | 332 | Retained | Phases 4–5 |
-| 217 | 377 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 217 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 218 | 333 | Adapted to current platform/scope | Phases 4–5 |
 | 219 | 334 | Retained | Phase 10 |
 | 220 | 335 | Retained | Phase 10 |
@@ -235,8 +235,8 @@ This table describes planning changes, not implementation completion. “Retaine
 | 227 | 342 | Retained | Phase 10 |
 | 228 | 343 | Retained | Phase 10 |
 | 229 | 344 | Retained | Phase 10 |
-| 230 | 378 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
-| 231 | 379 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 230 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
+| 231 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 232 | 345 | Adapted to current platform/scope | Phases 4–5 |
 | 233 | 346 | Retained | Phases 4–5 |
 | 234 | 347 | Retained | Phases 4–5 |
@@ -245,7 +245,7 @@ This table describes planning changes, not implementation completion. “Retaine
 | 237 | 350 | Adapted to current platform/scope | Phases 4–5 |
 | 238 | 351 | Retained | Phases 4–5 |
 | 239 | 352 | Adapted to current platform/scope | Phases 4–5 |
-| 240 | 380 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 240 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 241 | 129 | Retained | MVP security; stronger later patient-data gate |
 | 242 | 353 | Retained | Phases 5 and 9 |
 | 243 | 130 | Retained | MVP security; stronger later patient-data gate |
@@ -280,7 +280,7 @@ This table describes planning changes, not implementation completion. “Retaine
 | 272 | 359 | Retained | Phases 4–5 |
 | 273 | 360 | Retained | Phases 4–5 |
 | 274 | 361 | Retained | Phases 4–5 |
-| 275 | 381 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 275 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 276 | 362 | Retained | Phases 4–5 |
 | 277 | 363 | Retained | Phases 4–5 |
 | 278 | 364 | Retained | Phases 4–5 |
@@ -289,7 +289,7 @@ This table describes planning changes, not implementation completion. “Retaine
 | 281 | 106 | Retained | Shortly after the medication/interaction core, milestone 11 |
 | 282 | 366 | Retained | Relevant clinical/backup phase gates |
 | 283 | 88 | Retained | MVP, milestones 5–6 |
-| 284 | 382 | Adapted to current platform/scope | Optional separate native specification; not PWA promises |
+| 284 | — | Retired by maintainer | Native application cancelled, 2026-10-01 |
 | 285 | 367 | Retained | Relevant clinical/backup phase gates |
 | 286 | 368 | Retained | Relevant clinical/backup phase gates |
 | 287 | 369 | Retained | Relevant clinical/backup phase gates |
@@ -310,11 +310,11 @@ This table describes planning changes, not implementation completion. “Retaine
 ## Significant adaptations
 
 - Original 202 and 270: Appwrite initial infrastructure replaces the former no-backend/future-backend premise; accounts remain optional.
-- Original 201/205 and 208/209: Dexie reference cache/schema now; patient encryption separately reviewed; native key storage only in native appendix.
-- Original 211–218 and 230–240: optional generic synchronization/session controls retained, while iCloud/native biometrics and preview guarantees are accurately scoped.
+- Original 201/205 and 208/209: Dexie reference cache/schema now; patient encryption separately reviewed; native-only key storage retired.
+- Original 211–218 and 230–240: optional generic synchronization/session controls retained; native-only sync/biometric requirements retired, while browser preview limits remain accurate.
 - Original 253: React/presentation separation replaces the old native-view-specific wording.
-- Original 275/284: native store-login and iCloud testing retained as future native constraints.
+- Original 275/284: native-only store-login and sync testing retired.
 - Original 295/297/298: anonymous reference release first, operator costs explicit, original longitudinal workflow retained for patient phase.
 - Original 111: no autonomous raw-image interpretation claim without separate specification/validation.
 
-Unchanged clinical intent includes optional identifiers, symptoms/diagnoses/procedures, oncology, all vitals/labs/trends, microbiology/devices/reports, OCR confirmation, patient medications/allergies, pathways, evidence, calculators, daily review, AI constraints, backup/export and regulatory preparation. Requirement movement does not authorize implementation before its gate.
+Unchanged clinical intent includes optional identifiers, symptoms/diagnoses/procedures, oncology, all vitals/labs/trends, microbiology/devices/reports, OCR confirmation, patient medications/allergies, pathways, evidence, calculators, daily review, AI constraints, backup/export and regulatory preparation. Requirement movement does not authorize implementation before its gate. Retired native requirements must not be reintroduced as a future implementation option.

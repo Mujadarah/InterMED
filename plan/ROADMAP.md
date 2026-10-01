@@ -49,7 +49,7 @@ Modular versioned framework; formula-specific validation for selected BMI/BSA/Cr
 
 Test offline/install/update/eviction/rollback, real iPhone/iPad Safari, Windows Chrome/Edge, Android Chrome and desktop macOS/Linux, accessibility, secure headers/permissions/secrets, source rights, clinical provenance and incident/recovery procedures.
 
-Use synthetic-data internal clinician evaluation first. Preserve the earlier staged pilot concept (approximately 5–10 internal then 20–30 external clinician testers if approved), with usability, false-alert/coverage feedback and clinical-content governance. This is a PWA pilot, not a TestFlight requirement; real clinical use needs applicable validation/intended-use approval.
+Use synthetic-data internal clinician evaluation first. Preserve the earlier staged pilot concept (approximately 5–10 internal then 20–30 external clinician testers if approved), with usability, false-alert/coverage feedback and clinical-content governance. This is a PWA pilot; real clinical use needs applicable validation/intended-use approval.
 
 ## Phase 4 — Clinician workspace
 
@@ -87,7 +87,7 @@ Portable encrypted export/import and individual case export; recovery/rollback t
 
 Oncology (colorectal, gastric/upper GI, HPB, pancreatic), broader surgery/perioperative/emergency workflows, ICU/internal medicine/infectious diseases/cardiology/vascular specialties. Retain TNM/stage/biomarkers, pathology and evidence-backed treatment sequencing/MDT review.
 
-Organizations, shared workflows and FHIR/terminology/hospital integration need new access-control, licensing and interoperability specifications. Optional native clients/iCloud remain separate, not canonical PWA dependencies.
+Organizations, shared workflows and FHIR/terminology/hospital integration need new access-control, licensing and interoperability specifications. Native application development is cancelled; iPhone/iPad access remains through Safari/PWA.
 
 ## Production/regulatory gate
 

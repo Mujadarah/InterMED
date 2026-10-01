@@ -4,7 +4,7 @@
 
 InterMED is an open-source, offline-first clinical reference and decision-support platform. The first useful release is a fast, installable Romanian medication reference and structured drug-interaction PWA for clinicians. It is not a hospital EHR/HIS/PACS, autonomous prescriber or validated clinical product today.
 
-Initial reference users include physicians across specialties, including surgery/perioperative care. iPhone/iPad, Android and desktop browser use are canonical; native clients remain optional future work. No Mac, Xcode or App Store submission is an MVP requirement.
+Initial reference users include physicians across specialties, including surgery/perioperative care. iPhone/iPad, Android and desktop browser use are canonical; native application development is cancelled. No native build or App Store submission is required.
 
 ## First-release promise
 

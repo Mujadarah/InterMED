@@ -4,7 +4,7 @@ Issues, feature proposals, documentation corrections, accessibility/privacy revi
 
 ## Current stage and workflow
 
-This is a planning-first repository. The canonical direction is React/TypeScript/Vite PWA, IndexedDB/Dexie and Appwrite infrastructure, not a native-iOS-first app. No Mac, Xcode, live Appwrite credentials or proprietary clinical dataset is required for documentation work.
+This is a planning-first repository. The canonical direction is React/TypeScript/Vite PWA, IndexedDB/Dexie and Appwrite infrastructure, not a native-iOS-first app. Native application development is cancelled; do not reintroduce native SDKs/build pipelines. No live Appwrite credentials or proprietary clinical dataset is required for documentation work.
 
 1. Read every repository Markdown file. Start with [plan/README.md](plan/README.md); requirements, architecture and clinical safety are controlling.
 2. Propose focused changes from a fork/topic branch through a pull request; do not push directly to main or bypass review/status-check policy.
