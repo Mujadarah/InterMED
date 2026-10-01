@@ -11,13 +11,13 @@ describe('public configuration', () => {
     );
   });
   it('rejects unknown public variables without echoing their values', () => {
-    expect(() => parseConfig({ VITE_API_KEY: 'synthetic-secret' })).toThrow(
-      'Invalid public configuration',
-    );
+    expect(() =>
+      parseConfig({ VITE_UNSUPPORTED_OPTION: 'unexpected-config-value' }),
+    ).toThrow('Invalid public configuration');
     try {
-      parseConfig({ VITE_API_KEY: 'synthetic-secret' });
+      parseConfig({ VITE_UNSUPPORTED_OPTION: 'unexpected-config-value' });
     } catch (error) {
-      expect(String(error)).not.toContain('synthetic-secret');
+      expect(String(error)).not.toContain('unexpected-config-value');
     }
   });
   it('ignores unrelated host variables and accepts explicit mock mode', () => {
