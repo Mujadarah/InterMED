@@ -1,27 +1,21 @@
-# Apple / Xcode
-DerivedData/
-*.xcuserstate
-xcuserdata/
-*.moved-aside
-*.xccheckout
-*.xcscmblueprint
-
-# Swift Package Manager
-.build/
-.swiftpm/
-Package.resolved
-
-# Generated Xcode project
-InterMED.xcodeproj/
+# Web build and test outputs (future implementation)
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
 
 # Local tooling
 .DS_Store
 .idea/
 .vscode/
 .worktrees/
+__pycache__/
+*.py[cod]
+.venv/
 
 # Secrets and local configuration
-*.xcconfig.local
 .env
 .env.*
 !.env.example

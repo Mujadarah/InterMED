@@ -1,251 +1,113 @@
-# ClinPath — Codex Build Plan
+# InterMED sequential build plan
 
-This file is intended to be fed directly to Codex as the implementation roadmap.
+## Status and global rules
 
-## Global rules for Codex
+This file orders future implementation; the current revision is documentation-only. Do not scaffold the application as part of this revision.
 
-1. Read `PRODUCT_SPEC.md`, `REQUIREMENTS.md`, `ARCHITECTURE.md`, `DATA_MODEL.md` and `CLINICAL_SAFETY.md` before implementing features.
-2. Do not introduce a backend in MVP.
-3. Do not require user accounts.
-4. Keep all patient identity fields optional.
-5. Keep hospital integration out of scope.
-6. Keep provider-specific SDK code out of the domain layer.
-7. Do not hard-code clinical rules inside SwiftUI views.
-8. Add migrations for every database schema change.
-9. Add tests for every clinical calculation/rule.
-10. Do not implement unvalidated medication dosing or treatment rules from model knowledge alone.
-11. Preserve offline functionality.
-12. Prefer small, reviewable commits.
+1. Read every repository Markdown file before code changes. REQUIREMENTS controls product scope, ARCHITECTURE controls architecture and CLINICAL_SAFETY is non-negotiable.
+2. Implement milestones sequentially in small reviewable commits. Do not start the next milestone until its acceptance evidence is recorded. On document conflict, failed gate or required new authority, stop and report.
+3. PWA is canonical: React + TypeScript + Vite; Appwrite Cloud infrastructure starts in milestone 3. Do not require accounts for the medication MVP.
+4. Keep domain rules independent of React, browser persistence and vendor SDKs; use injected contracts/mock providers.
+5. Use test-first work for behavior changes: record failing test, minimal implementation, passing test and refactor verification. Do not claim tests/build/deployment passed without running the relevant check.
+6. Version schemas, datasets, mapping rules, formulas and evidence separately; test migrations and recovery before upgrades.
+7. No invented clinical facts, thresholds, doses, interactions, mappings or citations. Clinical-content changes require source/rights/reviewer/version/test metadata.
+8. Keep downloaded reference functionality usable offline. Failed updates cannot erase active data.
+9. No real patient data in fixtures, logs or medication MVP. No mandatory identity. Patient features are later gated.
+10. Pin dependencies and document exact build/test/lint commands as tooling is created; documentation alone does not prove a deployable app.
+11. Publication/provisioning/paid provider selection require their own explicit maintainer authorization and rights approvals. Never force-push, merge or release merely to finish a milestone.
 
-## Milestone 1 — Project bootstrap
+## Release interpretation
 
-Tasks:
+Milestones 1–10 form the medication/interaction core. Security, device/offline/accessibility, data-rights and clinical review items described in milestone 12 are incorporated progressively and must pass before a public clinical core release. This is a release checklist, not an out-of-order milestone implementation. Milestone 11 adds calculators shortly afterward; milestone 12 then completes/repeats the checklist for that expanded rollout. No patient feature precedes a reliable medication core.
 
-- Create iOS project using Swift + SwiftUI.
-- Establish folder/module boundaries from `ARCHITECTURE.md`.
-- Add formatting/linting if desired.
-- Add test targets.
-- Create CI workflow for build + tests.
-- Add app configuration abstraction.
-- Add dependency container.
+Synthetic-only development may proceed while source rights are unresolved. Real-source ingestion/publication and a clinical interaction feature remain blocked at their rights/content gates; a mock demo cannot satisfy the clinical MVP gate.
 
-Acceptance:
+## Milestone 1 — Repository/web bootstrap
 
-- app launches;
-- tests run;
-- no backend SDK;
-- domain module has no SwiftUI dependency.
+Tasks: create React/TypeScript/Vite app; establish proposed modules/packages and public boundaries; dependency injection/configuration; React Router/validation foundations; lockfile, formatting/linting, type checks, unit/component/browser test framework and CI. Document safe environment placeholders and contributor mock mode.
 
-## Milestone 2 — Local persistence and case management
+Acceptance: reproducible install/build; app launches; type/lint/unit smoke checks run; CI verifies same commands; domain package has no React/browser/Appwrite imports; contributors run without cloud keys/proprietary data. Record commands/results, not aspirational badges.
 
-Tasks:
+## Milestone 2 — PWA shell
 
-- Add SQLite/GRDB (preferred) or equivalent explicit-schema persistence.
-- Implement migrations.
-- Implement `PatientCase`.
-- Add generated case ID.
-- Add optional name/surname/age/national ID/file number/admission number/ward/bed/alias.
-- Build case list/search/create/edit/archive/delete.
+Tasks: manifest.webmanifest, normal/maskable icons (clearly temporary if placeholders), standalone metadata, scoped service worker and shell cache; offline fallback; update prompt; responsive touch/keyboard layouts, safe areas and tablet/desktop support.
 
-Acceptance:
+Acceptance: HTTPS installed/tab shell launches on target-browser smoke matrix; post-load offline startup works; first-offline visit is honest; manifest/scope/deep links are correct; new shell does not interrupt work or wipe storage; no secret/privileged data is cached. Record real-device validation needed for final release.
 
-- case can be created with zero personal identity fields;
-- case persists after restart;
-- search works by file number/alias/name when present;
-- migration tests exist.
+## Milestone 3 — Appwrite infrastructure
 
-## Milestone 3 — Timeline, vitals and labs
+Tasks: with provisioning approval, create isolated development/production configuration, preferably Frankfurt; configure Sites/GitHub branch/root/build/output/deep-link settings; injected backend client; choose normalized database product/configuration and record decision; initial private Function/Storage structures, public-read publication boundary, environment strategy and deployment/rollback pipeline.
 
-Tasks:
+Acceptance: authorized test deployment works with exact recorded settings; unauthenticated reader can read only approved public resources without an anonymous session; reader cannot write or execute admin importer; raw/quarantine data remain private; effective resource permissions tested; no server key in bundle/log/config. Production deployment is not implied by this acceptance.
 
-- Observation model.
-- LaboratoryResult model.
-- Manual entry screens.
-- Time-series history.
-- trend calculations;
-- charts;
-- unit normalization foundation.
+## Milestone 4 — Medication domain model
 
-Acceptance:
+Tasks: MedicationProduct, ActiveIngredient, MedicationIngredient, ATCCode, DosageForm, Manufacturer, MarketingAuthorizationHolder, RegulatoryDocument, DataSource, DatasetVersion, stable IDs and provenance; validated DTOs and synthetic source fixtures.
 
-- enter multiple BP and CRP/creatinine values;
-- view timeline;
-- previous values are not overwritten;
-- trend calculations have unit tests.
+Acceptance: tested product/ingredient separation, combination expansion, unit/source preservation, missing fields and referential integrity; domain serializes independently of Appwrite; mock source can be swapped. Document ambiguous identity states.
 
-## Milestone 4 — Diagnoses and procedures
+## Milestone 5 — ANMDMR importer
 
-Tasks:
+Tasks: approve source retrieval/storage/transformation/publication scope first; design source parser using synthetic fixtures; authorized Function ingestion, encoding/schema validation, normalization/deduplication, private snapshot/quarantine/run logs, additions/changes/renames/removals, review workflow and immutable version publication.
 
-- Diagnosis model/UI.
-- Procedure model/UI.
-- automatic POD calculation.
-- procedure context.
-- allergy model.
+Acceptance: malformed/missing/duplicate/conflicting/diacritic/combination fixtures tested; partial/empty/large-drop snapshot cannot mass-remove products; retries idempotent; failed import leaves published data untouched; bundle counts/checksums/provenance verified; source rights and clinical/data reviewer approval recorded before real-data publication.
 
-Acceptance:
+## Milestone 6 — Local IndexedDB/Dexie and updates
 
-- create right hemicolectomy dated yesterday;
-- app displays POD 1 correctly;
-- app can attach diagnosis and allergy.
+Tasks: versioned schema, catalogue/index stores, metadata and independent local preferences; immediate local reads; background version check; compatible staging/validation and atomic pointer activation; multitab coordination, rollback/retention and migrations.
 
-## Milestone 5 — Security/privacy MVP
+Acceptance: restart/offline reads work after download; interruption, corruption, quota and unsupported schema keep old active data; no clearing active generation for space; concurrent tabs see one coherent generation per evaluation; migration preserves favorites; never-downloaded/evicted/storage-restricted states are visible. Deltas remain deferred until equivalence is tested.
 
-Tasks:
+## Milestone 7 — Medication search/detail UI
 
-- local encryption strategy;
-- Keychain secrets;
-- optional Face ID/Touch ID lock;
-- optional PIN/password lock;
-- lock interval settings;
-- app-switcher privacy screen;
-- delete-all-data.
+Tasks: local full/partial commercial/DCI/ATC/manufacturer search, diacritics and safe candidate ranking; strength/form/status disambiguation; detail identification/available clinical fields, RCP/prospect links, provenance/version/age and missing/offline labels.
 
-Acceptance:
+Acceptance: no query request per keystroke when local data exist; synthetic representative large-catalogue performance budget documented/measured; safe candidate selection; unavailable fields never look official; offline links honestly unavailable; touch/keyboard/screen-reader paths tested.
 
-- app works with no lock;
-- lock can be enabled/disabled;
-- biometric failure does not destroy data;
-- sensitive data absent from logs.
+## Milestone 8 — Favorites and recent searches
 
-## Milestone 6 — Photo/OCR pipeline
+Tasks: local favorites/recent, stable identifiers, removal/rename status, retention/clear/delete/export, independent migration; no account/sync.
 
-Tasks:
+Acceptance: anonymous use and restart/offline persistence; catalogue replacement does not erase preferences or silently remap drugs; clear/export behavior tested; query contents absent from telemetry/logs.
 
-- camera/photo picker;
-- Vision/VisionKit OCR;
-- generic extraction result model;
-- review/edit/confirm screen;
-- provenance linking.
+## Milestone 9 — Interaction-provider abstraction
 
-Start with:
+Tasks: vendor-neutral DrugInteractionProvider, reviewed ingredient crosswalk, structured DrugInteraction/InteractionEvidence, coverage/outcome contract, source-specific optional fields and synthetic providers; assess final source clinical quality/license/cost/offline rights.
 
-- lab sheet;
-- BP monitor;
-- medication package;
-- radiology report text.
+Acceptance: interchangeable adapters pass contracts; severity/source/evidence vocabulary preserved; explicit unmapped/incomplete/unavailable states; no LLM-generated interaction authority; final approved provider decision required before clinical milestone-10 release. Do not claim an unselected source is validated.
 
-Acceptance:
+## Milestone 10 — Multi-drug checker
 
-- extracted value is never persisted until confirmed;
-- user can correct OCR before saving.
+Tasks: product/direct-ingredient selection, combination expansion, unique-pair evaluation with bounded input/no silent truncation; duplicate exposure; coverage/provenance display, source disagreements, stale/offline/error state and licensed caching.
 
-## Milestone 7 — Clinical rule engine
+Acceptance: known reported and covered-no-record fixtures, duplicates, combinations, missing mappings/source, source errors and partial coverage pass; no universal “safe” verdict; display product-to-ingredient resolution. Approved clinical dataset validation and rights evidence must pass for clinical use. Apply the core-release hardening checklist before release.
 
-Tasks:
+## Milestone 11 — Clinical calculators
 
-- rule DSL/model;
-- rule evaluator;
-- `ClinicalState` builder;
-- `ClinicalSignal` model;
-- missing-data output;
-- provenance;
-- rule-version metadata.
+Tasks: modular formula registry and selected initial tools from PRODUCT_SPEC; choose formula-specific primary sources, units/population limits, versions and reviewer; ephemeral inputs, deterministic calculations and accessible limitations.
 
-Initial non-prescriptive rules:
+Acceptance: positive/negative/boundary/missing/unit-conversion fixtures; independent formula versions and clinical review; no silent formula switch; results source/units/limitations visible; no patient storage/auto-population or unsourced dosing.
 
-- rising creatinine/AKI pathway trigger;
-- falling Hb/bleeding consideration;
-- fever + tachycardia + rising inflammatory markers postoperative pathway;
-- hyperkalemia safety signal using validated thresholds/content.
+## Milestone 12 — MVP hardening
 
-Acceptance:
+Tasks/checklist:
+- Full supported-schema/dataset/update/multitab/rollback regression; storage eviction/quota/private modes and first offline startup.
+- Installed/tab behavior and real iPhone/iPad Safari validation; Windows Chrome/Edge, Android Chrome, macOS/Linux matrix; deep links and safe SW updates.
+- Accessibility, responsive/touch/safe-area/localization foundations; measured search/bundle budgets.
+- HTTPS/CSP/headers, dependency/secret scans, sanitization, Function rate limits/authorization and Appwrite permission denial tests.
+- Clinical/rights review, provider coverage/version/source display, intended-use/regulatory assessment and limitation wording.
+- Privacy documentation, preference export/delete, diagnostics with app/schema/dataset/source versions and update state; no sensitive logs.
+- Approved deployment, manifest rollback/restore drill, incident/operational owner, cost monitoring and staged synthetic-data clinician evaluation.
 
-- synthetic cases trigger expected signals;
-- false controls remain negative;
-- every signal has `Why` data.
+Acceptance: all applicable checks have recorded passing evidence or an explicit maintainer-approved nonclinical scope restriction. An unvalidated clinical capability is not waived by labeling it MVP. Core-release checks apply to milestones 1–10; this milestone repeats them with calculators. Report limitations honestly.
 
-## Milestone 8 — Evidence library
+## Explicitly deferred
 
-Tasks:
+Optional accounts/social login/passkeys, favorites sync, clinician notes/lists, patient/encounter/diagnosis/procedure/vitals/labs models, patient-specific dosing/allergy checks, OCR, pathways/evidence, AI, encrypted external backup, organizations/interoperability and advanced specialties require later specifications/gates in ROADMAP.
 
-- EvidenceReference model.
-- local bundled evidence metadata.
-- guideline search.
-- pathway-to-source linkage.
-- version/date display.
-- last-reviewed date.
+Native iOS/iPadOS implementation is cancelled, including native-only SDKs/builds/synchronization. iPhone/iPad support is through the PWA. Appwrite infrastructure is **not** deferred.
 
-Acceptance:
+## Evidence record per milestone
 
-- every sample pathway output can open its supporting source metadata.
-
-## Milestone 9 — Medication module
-
-Tasks:
-
-- Medication model/catalog abstraction.
-- MedicationStatement patient list.
-- scan/search/add flow.
-- DrugInteractionProvider interface.
-- interaction result UI.
-- allergy cross-check.
-- renal/hepatic hooks.
-
-Do not scrape Mediately.
-
-Acceptance:
-
-- app can use a mock/open/licensed provider interchangeably;
-- domain layer does not depend on a specific vendor SDK.
-
-## Milestone 10 — AI assistant abstraction
-
-Tasks:
-
-- `AIProvider` protocol.
-- local/mock provider for development.
-- natural-language extraction into candidates.
-- explanation generation from deterministic results.
-- patient-change summary.
-
-Acceptance:
-
-- app works without AI configured;
-- AI cannot directly persist extracted clinical facts;
-- outputs cite structured rule/evidence data when discussing clinical actions.
-
-## Milestone 11 — iCloud
-
-Tasks:
-
-- `SyncProvider` protocol.
-- CloudKit adapter.
-- sync queue/status.
-- conflict strategy.
-- opt-in setting.
-- account availability/error handling.
-
-Acceptance:
-
-- app remains functional offline;
-- local-only user never needs iCloud;
-- conflict cannot silently discard newer data.
-
-## Milestone 12 — Beta hardening
-
-Tasks:
-
-- synthetic regression suite;
-- export/import;
-- diagnostics screen;
-- crash/log redaction;
-- accessibility;
-- localization foundations;
-- TestFlight configuration;
-- privacy documentation.
-
-## Deferred explicitly
-
-Do not implement until separate approval/specification:
-
-- Appwrite backend;
-- account creation;
-- Sign in with Apple;
-- Google Sign-In;
-- Google Drive/Dropbox/OneDrive;
-- hospital EHR/FHIR connection;
-- raw CT image diagnosis;
-- autonomous prescribing;
-- oncology treatment recommendation engine beyond sourced pathway navigation.
+Record scope/requirement IDs, changed files, test-first evidence, exact commands/results, source/license/reviewer/version decisions, screenshots using synthetic data, open risks and next gate. Stop on conflicting controlling docs, unsafe migration, missing source permission or required external authority. Passing focused tests is not overall clinical-release approval.
 

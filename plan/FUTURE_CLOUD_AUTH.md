@@ -1,140 +1,34 @@
-# ClinPath Future Cloud, Accounts and Authentication
+# InterMED cloud, optional accounts and future backup
 
-## Current decision
+## Infrastructure now, authentication later
 
-Do **not** build accounts or a hosted backend for MVP.
+Appwrite Sites, Functions, database services and Storage are initial MVP infrastructure; [APPWRITE.md](APPWRITE.md) defines their boundaries. User accounts remain optional and can be deferred. Anonymous/local-first use means no account and no mandatory anonymous authentication session merely for public datasets.
 
-Reasons:
+Local medication search, favorites and recent searches remain useful without identity. Backend hosting and reference updates do not authorize collection of patient data or identity-linked medication-query analytics.
 
-- no hosting budget required;
-- less operational burden;
-- lower privacy/security surface;
-- faster development;
-- app remains useful offline;
-- avoids locking architecture to a backend before product fit is known.
+## Later clinician accounts
 
-## iCloud first
+Introduce AuthenticationProvider behind the application layer in phase 4 only with a defined user benefit: cross-device preferences/favorites, saved drug lists or approved personal notes. Explain which data move from local-only to server-backed storage and require opt-in.
 
-Implement optional iCloud/CloudKit before custom accounts if cross-device Apple sync is needed.
+Candidate mechanisms include email/password, passwordless email/magic links, Sign in with Apple and Google Sign-In. Passkeys/WebAuthn require a current provider/capability assessment; this plan does not assert that Appwrite provides a chosen passkey flow. Verify OAuth redirect/platform, session, CSRF/XSS, account-linking and recovery semantics before enabling any mechanism.
 
-Architecture:
+Account identity is not patient identity. No patient identifier becomes mandatory. Design account/session revocation, account deletion, export, conflict handling, retention and local-data ownership before public Auth launch. Signing out/deleting an account must describe which local copies remain and let the user remove them.
 
-```text
-Local database
-   ↕
-SyncCoordinator
-   ↕
-CloudKitSyncAdapter
-```
+## Migration and sync
 
-Do not make CloudKit types part of domain models.
+Keep a local-only mode. Migration to an account is explicit, reversible where feasible and tested: select data to upload, resolve duplicates/conflicts, show completion/failure and preserve a usable local copy. Do not silently upload favorites, notes or future patient records after login.
 
-## Appwrite later
+Sync status and last success are visible. Conflicts cannot silently overwrite newer clinical information. Offline queued writes, retries, account switching and permission changes need tests. Appwrite Realtime may be evaluated if it solves a concrete problem; do not make it a prerequisite for reference downloads.
 
-Appwrite is a reasonable candidate because it supports self-hosting and authentication/OAuth. Treat it as **one possible implementation**, not the architecture itself.
+## External backup and portability
 
-Create generic interfaces such as:
+Preserve BackupProvider adapters for Google Drive, OneDrive and Dropbox. They are optional future encrypted backup destinations, not primary reference-data sources and not automatically real-time sync engines. Use versioned portable InterMED envelopes, attachments/manifests, integrity validation, resumable transfer, restore previews and provider revocation.
 
-```text
-AccountService
-RemoteCaseStore
-RemoteSettingsStore
-```
+Encryption before data leave the device requires an explicit browser-compatible key-management/recovery threat model. Do not present UI locking or provider-at-rest encryption as equivalent to end-to-end backup encryption. Define what happens when a key is lost, an upload fails, storage is unavailable or data must be deleted. No health-data backup integration before the patient privacy/security review.
 
-Then implement:
+## Patient data gate
 
-```text
-AppwriteAccountAdapter
-AppwriteRemoteCaseAdapter
-```
+Before phase 5 and especially before any identifiable patient data reach a backend: approve intended use, legal basis/consent, hosting/processor arrangements, organizational permissions, encryption/key management, retention/deletion/export, audit logging, incident response and operational ownership. EU hosting alone is insufficient.
 
-This allows replacement by another provider later.
-
-## Future account value proposition
-
-Only ask users to create an account when it gives clear value, such as:
-
-- cross-platform sync beyond iCloud;
-- encrypted server backup;
-- shared settings;
-- multi-device non-Apple use;
-- organization-managed clinical content;
-- paid/pro features if ever introduced.
-
-Do not require an account merely to open/use the app.
-
-## Sign in with Apple
-
-Future option.
-
-Use Apple's AuthenticationServices framework.
-
-Store your own stable internal user/account ID and link the Apple identity to it.
-
-Do not assume email will always be a normal personal email; users may use Apple's private relay.
-
-## Google Sign-In
-
-Future option.
-
-If Google Sign-In is used to establish/authenticate the user's primary iOS app account, ensure the app also provides an equivalent login option satisfying current App Store Review login-service requirements. Sign in with Apple is the natural option.
-
-Do not implement Google-only login on iOS without reviewing the current App Store requirements at release time.
-
-## Account migration
-
-When accounts are introduced, existing local users must not lose data.
-
-Suggested migration:
-
-1. User installs update.
-2. App continues in Local Only mode.
-3. User optionally creates/signs into an account.
-4. App asks whether to associate/migrate existing local data.
-5. Show data destination clearly.
-6. Encrypt/upload only after explicit consent.
-7. Keep a recoverable local copy until migration succeeds.
-
-## Account deletion
-
-Before public account release implement:
-
-- in-app account deletion initiation;
-- remote data deletion policy;
-- local-data choice (keep local vs delete local);
-- sign-out behavior;
-- token revocation;
-- provider unlinking.
-
-## Google Drive / OneDrive / Dropbox
-
-Recommended first implementation is **encrypted backup**, not live database sync.
-
-Why:
-
-- much simpler conflict model;
-- less risk of record divergence;
-- portable;
-- user controls destination;
-- provider outage does not stop app use.
-
-Backup flow:
-
-```text
-Local DB
- ↓
-Versioned export bundle
- ↓
-Client-side encryption
- ↓
-Cloud provider upload
-```
-
-Later, if needed, build richer sync as a separate feature with explicit conflict semantics.
-
-## No hospital system integration
-
-Keep this out of current roadmap unless product requirements change.
-
-The domain can remain FHIR-aware to preserve future interoperability, but ClinPath should not require EHR access.
+Minimize identity; generated case ID and optional alias/name/DOB/age/national ID/file/admission/ward/bed fields remain supported. Avoid raw identifiable input to generic AI providers by default; separate review/configuration is required for future cloud AI.
 
