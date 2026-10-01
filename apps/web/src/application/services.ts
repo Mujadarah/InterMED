@@ -5,6 +5,10 @@ export interface AppServices {
   readonly info: BootstrapInfo;
 }
 
+/**
+ * Create application services from the injected bootstrap information provider.
+ * @throws {Error} When the configured mode is not mock.
+ */
 export function createServices(
   config: AppConfig,
   provider: BootstrapInfoProvider,

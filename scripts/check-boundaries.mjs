@@ -25,6 +25,11 @@ const browserGlobals = new Set([
   'WebSocket',
 ]);
 
+/**
+ * Inspect source records with repository-relative paths for boundary violations.
+ * Return diagnostics for private package imports, outward domain imports,
+ * computed imports and browser/network identifiers in domain code.
+ */
 export function inspectBoundary(files) {
   const violations = [];
   for (const { path, source } of files) {

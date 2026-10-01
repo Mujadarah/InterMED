@@ -2,6 +2,10 @@ import type { AppServices } from '../application/services';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useEffect, useRef } from 'react';
 
+/**
+ * Render the nonclinical navigation shell using the supplied services.
+ * Require a router context and focus main content when the pathname changes.
+ */
 export function App({ services }: { services: AppServices }) {
   const { pathname } = useLocation();
   const main = useRef<HTMLElement>(null);

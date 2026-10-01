@@ -4,6 +4,10 @@ import { App } from './presentation/App';
 import { parseConfig } from './config';
 import type { AppConfig } from './config';
 
+/**
+ * Validate the public environment and render the shell with mock services.
+ * Render a configuration alert when validation fails.
+ */
 export function Bootstrap({ env }: { env: Record<string, unknown> }) {
   let config: AppConfig;
   try {
