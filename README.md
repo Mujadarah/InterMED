@@ -2,9 +2,11 @@
 
 InterMED is an open-source, offline-first clinical reference and decision-support platform for clinicians. Its first product is an installable Progressive Web App (PWA) for Romanian medication lookup, authoritative drug information and structured drug-interaction checking.
 
-**Planning stage: no application is implemented on main. InterMED is not yet validated for clinical use.** This revision changes the plan, not the deployed product.
+**Development stage: Milestone 1 adds a nonclinical web shell.** Medication lookup, interactions, offline installation and cloud services are not implemented. InterMED is not validated for clinical use.
 
 ## First release
+
+The following describes the planned first release, not capabilities available in the bootstrap shell.
 
 - Search Romanian commercial products, active substances/DCI and available ATC identifiers locally.
 - Inspect ingredients, strength, formulation, regulatory provenance and RCP/SmPC/prospect references.
@@ -23,6 +25,8 @@ The clinician remains in control. Clinical content must expose sources and versi
 Calculators follow the medication/interaction core. Later phases retain clinician workspaces, optional accounts, patient longitudinal data, OCR with confirmation, clinical pathways, evidence, AI assistance and external backup. Patient data require separate privacy/security/compliance approval.
 
 ## Project documents and contribution
+
+For the credential-free contributor shell, use Node 24.21.0/npm 11.19.0, then `npm ci --no-fund`, `npx playwright install --with-deps chromium webkit` and `npm run check`. Start the local app with `npm run dev`. See [development commands and environment](docs/DEVELOPMENT.md) and [Milestone 1 acceptance evidence](docs/MILESTONE_1_EVIDENCE.md).
 
 Start with the [planning index](plan/README.md). [Requirements](plan/REQUIREMENTS.md) control product scope, [architecture](plan/ARCHITECTURE.md) controls boundaries, [clinical safety](plan/CLINICAL_SAFETY.md) is non-negotiable, and the [build plan](plan/CODEX_BUILD_PLAN.md) orders future implementation.
 
