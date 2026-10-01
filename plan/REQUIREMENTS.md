@@ -389,7 +389,7 @@ Scope: Phases 5, 7 and 9.
 
 ## Later patient medication safety and extended interactions
 
-Scope: Phases 4–5 and later clinically reviewed extensions.
+Scope: Phase 5 or later for patient-linked requirements 265–268 and 270–273, after the patient-data privacy/security gate and applicable clinical-content approval. Scanning requirements 267–268 also require the Phase 7 OCR confirmation/quality gate. Requirement 269 is a separate later clinically reviewed, non-patient interaction extension. Phase 4 drug lists/notes must not introduce patient records or patient-specific checks.
 
 265. The app shall support adding medications to a patient's active medication list.
 266. Medication entries shall support dose, route, frequency, start date and stop date when known.

@@ -122,21 +122,21 @@ This table describes planning changes, not implementation completion. “Retaine
 | 114 | 40 | Retained | MVP, milestone 7 |
 | 115 | 31 | Retained | MVP, milestones 4–5 |
 | 116 | 46 | Retained | MVP, milestone 7 |
-| 117 | 265 | Retained | Phases 4–5 and later clinically reviewed extensions |
-| 118 | 266 | Retained | Phases 4–5 and later clinically reviewed extensions |
-| 119 | 267 | Retained | Phases 4–5 and later clinically reviewed extensions |
-| 120 | 268 | Retained | Phases 4–5 and later clinically reviewed extensions |
+| 117 | 265 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
+| 118 | 266 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
+| 119 | 267 | Retained | Phase 5 patient-data gate plus Phase 7 OCR confirmation/quality gate |
+| 120 | 268 | Retained | Phase 5 patient-data gate plus Phase 7 OCR confirmation/quality gate |
 | 121 | 60 | Retained | MVP, milestones 9–10 |
-| 122 | 269 | Retained | Phases 4–5 and later clinically reviewed extensions |
+| 122 | 269 | Retained | Later clinically reviewed non-patient interaction extension |
 | 123 | 61 | Retained | MVP, milestones 9–10 |
 | 124 | 62 | Retained | MVP, milestones 9–10 |
 | 125 | 63 | Retained | MVP, milestones 9–10 |
 | 126 | 64 | Retained | MVP, milestones 9–10 |
-| 127 | 270 | Retained | Phases 4–5 and later clinically reviewed extensions |
-| 128 | 271 | Retained | Phases 4–5 and later clinically reviewed extensions |
+| 127 | 270 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
+| 128 | 271 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
 | 129 | 47 | Retained | MVP, milestone 7 |
-| 130 | 272 | Retained | Phases 4–5 and later clinically reviewed extensions |
-| 131 | 273 | Retained | Phases 4–5 and later clinically reviewed extensions |
+| 130 | 272 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
+| 131 | 273 | Retained | Phase 5 or later; patient-data privacy/security and clinical-content gates |
 | 132 | 41 | Retained | MVP, milestone 7 |
 | 133 | 32 | Retained | MVP, milestones 4–5 |
 | 134 | 48 | Retained | MVP, milestone 7 |

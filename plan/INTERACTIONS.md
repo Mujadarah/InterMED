@@ -38,7 +38,7 @@ Do not fabricate missing management, monitoring, alternatives, evidence grades o
 | Reported interactions | Source records found for stated evaluated coverage |
 | No reported interaction within evaluated coverage | Source evaluated the covered input/pairs and returned no record; **not proof of safety** |
 | Incomplete/unknown coverage | Unresolved ingredients, omitted pairs, unsupported context or partial dataset |
-| Unavailable | Offline online-only provider, missing dataset, rights restriction, provider error/timeout or incompatible version |
+| Unavailable | Device is offline and the provider requires an online connection; dataset is missing; rights restrict use; provider errors or times out; or versions are incompatible |
 
 “No record” must not be labeled “no interaction exists.” A stale dataset or partial coverage must remain visible even when other pairs have results. Keep version/coverage attached to saved/displayed results and invalidate/re-evaluate deliberately after source changes.
 

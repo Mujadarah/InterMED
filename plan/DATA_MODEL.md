@@ -383,13 +383,14 @@ Observation
 - valueNumeric?
 - valueText?
 - unit?
-- observedAt
+- observedAt?
+- recordedAt
 - source: manual | OCR | calculated | imported
 - sourceDocumentId?
 - confirmedByUser
 ```
 
-Use for vitals and simple measurements.
+Use for vitals and simple measurements. observedAt is the measurement time when known; recordedAt is the InterMED entry/import time and must never substitute for observedAt. Missing observedAt remains unknown and recordedAt must not be used to infer measurement order, intervals or clinical trends.
 
 ### LaboratoryResult
 
@@ -453,11 +454,12 @@ ClinicalFinding
 - category
 - label
 - value?
-- observedAt
+- observedAt?
+- recordedAt
 - source
 ```
 
-Examples: abdominal tenderness, wound erythema, drain appearance.
+Examples: abdominal tenderness, wound erythema, drain appearance. Use the same observedAt/recordedAt distinction as Observation; an unknown finding time is not its entry/import time.
 
 ### Device/Drain
 
@@ -593,5 +595,5 @@ The encrypted backup bundle may wrap this JSON plus attachments and metadata.
 
 ### Future-model implementation notes
 
-Preserve missing timestamps/units as unknown rather than invent them; extend observation provenance with recorded time when observed time is unavailable. Identifiable fields, originals/attachments and derived clinical outputs require reviewed retention, encryption/key management, access controls and delete/export semantics. A later export implementation must decide compatibility/migration for any preexisting legacy envelopes; this planning rename is not an implemented data migration.
+Preserve missing timestamps/units as unknown rather than invent them. Observation and ClinicalFinding explicitly separate optional observedAt from recordedAt entry/import provenance; UI and trend calculations must preserve that distinction. Identifiable fields, originals/attachments and derived clinical outputs require reviewed retention, encryption/key management, access controls and delete/export semantics. A later export implementation must decide compatibility/migration for any preexisting legacy envelopes; this planning rename is not an implemented data migration.
 

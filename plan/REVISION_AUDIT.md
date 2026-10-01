@@ -2,7 +2,7 @@
 
 ## Scope and baseline
 
-Revision date: 2026-10-01. Branch: plan/pwa-appwrite-revision. Baseline: latest fetched main fdcb56f3f2b93289887780026d7a717962ba5e31. Documentation only; no React scaffolding, application implementation, cloud provisioning, new-plan publication, PR creation, merge, tag or release.
+Revision date: 2026-10-01. Branch: plan/pwa-appwrite-revision. Baseline: fetched main fdcb56f3f2b93289887780026d7a717962ba5e31. The initial revision was local/documentation-only. Subsequent maintainer authorization published PR #2, configured automated reviews and permitted corrections to its review findings. No React scaffolding, application implementation, cloud provisioning, merge, tag or release is performed by this revision or review correction.
 
 Work is isolated at C:/Users/rabia/.codex/worktrees/intermed-pwa-plan/InterMED. This document records the PWA revision and the subsequent 2026-10-01 maintainer instruction to permanently discard native application work. Native-only future plans/SDK references are removed; useful clinical, web and interoperability references remain. The obsolete untracked native-first source guide in the original checkout is superseded by the committed PWA guide.
 
@@ -80,7 +80,7 @@ Internal links and structure are validated. Relevant external reference URLs are
 - Initial calculator formulas/populations, references, reviewers and intended-use risk assessment.
 - Later account mechanisms, passkey support, sync/conflicts/key recovery and patient-data hosting/privacy/compliance architecture.
 
-Publication or any source/license purchase/provisioning remains a separate maintainer decision. This branch is local until explicitly approved for publication.
+Any source/license purchase, provisioning, merge or release remains a separate maintainer decision. Publication of this branch as PR #2 was subsequently authorized; it does not authorize those other actions.
 
 ## Permanent native cleanup — 2026-10-01
 
@@ -89,3 +89,19 @@ The maintainer explicitly rejected recoverable archiving and cancelled native ap
 The abandoned native PR #1 was closed and its branch removed locally and from GitHub. The local archive snapshot reference and all 129 native-only Git objects were deleted; the latter occupied 40,801 compressed bytes. Main and the PWA branch/history remain intact; Git integrity checks pass. No new PWA-plan publication was performed.
 
 The old checkout, generated environment/cache and worktree marker are absent. Only an empty parent directory remains because its shell removal was blocked. Codex still lists archived-worktree metadata; the app exposes no supported permanent-removal operation for that metadata. This is not a retained application checkout/snapshot. Historical closed-PR information may remain on GitHub; this cleanup does not claim secure erasure from GitHub or SSD hardware.
+
+## Repository/reviewer snapshot — 2026-10-01
+
+These are dated observations from PR #2 publication/review at head bd81ccea333358b92831116e412cdb539a1113eb, not guarantees of current service state. Recheck access, dashboard settings, eligibility, quotas and actual latest-head review results before relying on them.
+
+- The repository was public and Apache-2.0, with issues/fork PRs available; Mujadarah was the only human collaborator. Main required PRs even for administrators, conversation resolution and linear history; force-push/deletion were disabled. Installed apps retained their separately granted permissions.
+- CodeRabbit loaded the all-target-branch configuration but initially skipped automatic review because the repository had fewer than ten stars. A supported manual trigger later produced a completed review on the stated head, with three actionable comments and one nitpick. The review also reported its included hourly review allowance exhausted; a successful check alone is not proof of future review availability.
+- Greptile was installed but disabled in its dashboard. InterMED was enabled; all-event triggers and no global branch filters were verified. Its completed review on the stated head reported the patient-phase conflict.
+- Qodo's open-source app was installed, but no completed PR review was verified. Its [published OSS eligibility](https://github.com/marketplace/qodo-merge-pro-for-open-source) mentioned 200+ stars. Its repository configuration loads from the default branch, so the policy added in PR #2 awaits merge. No paid upgrade or suspended commercial app was activated.
+- DeepSource Code Review and secrets detection were enabled, with no main-only filter observed. No language analyzers were enabled because the application had not been scaffolded. Its secrets check passed on the stated head; that is not evidence of a completed AI review, which has separate account/plan constraints.
+
+## PR #2 review corrections — 2026-10-01
+
+The verified findings were corrected without changing numbered normative requirement text: patient-linked requirements 265–268 and 270–273 and their traceability now require Phase 5 or later/privacy approval; scanning also retains the Phase 7 OCR gate. Requirement 269 remains a separately reviewed non-patient extension. Observation and ClinicalFinding now explicitly allow unknown observedAt and retain a separate recordedAt that cannot imply measurement time/order. The unavailable interaction-provider state names device-offline/online-required behavior and preserves all other failure cases. Transient reviewer/access observations were moved from CONTRIBUTING into the dated snapshot above.
+
+The external read-only documentation audit includes focused regression checks for these corrections alongside its preservation/structure/link checks. The focused checks reproduced the findings before correction. Application builds/tests remain inapplicable to this documentation-only PR; passing documentation checks is not clinical validation or approval to merge.
