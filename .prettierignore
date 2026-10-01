@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+artifacts/
+.tools/
+# Preserve the fully read historical planning corpus and reviewer policies.
+plan/
+.coderabbit.yaml
+.pr_agent.toml
+greptile.json
+.github/ISSUE_TEMPLATE/
+.github/pull_request_template.md
+SECURITY.md

@@ -4,15 +4,15 @@ Issues, feature proposals, documentation corrections, accessibility/privacy revi
 
 ## Current stage and workflow
 
-This is a planning-first repository. The canonical direction is React/TypeScript/Vite PWA, IndexedDB/Dexie and Appwrite infrastructure, not a native-iOS-first app. Native application development is cancelled; do not reintroduce native SDKs/build pipelines. No live Appwrite credentials or proprietary clinical dataset is required for documentation work.
+Milestone 1 provides a nonclinical React/TypeScript/Vite web shell. IndexedDB/Dexie and Appwrite infrastructure remain later sequential work. Native application development is cancelled; do not reintroduce native SDKs/build pipelines. Contributors need no live Appwrite credentials or proprietary clinical dataset.
 
 1. Read every repository Markdown file. Start with [plan/README.md](plan/README.md); requirements, architecture and clinical safety are controlling.
 2. Propose focused changes from a fork/topic branch through a pull request; do not push directly to main or bypass review/status-check policy.
-3. For future behavior changes, add and run a failing test before implementation, then record passing verification. Use synthetic fixtures/mock providers.
+3. For behavior changes, add and run a failing test before implementation, then record passing verification. Use synthetic fixtures/mock providers; installation/configuration errors are not red behavior tests.
 4. Keep domain/clinical logic independent of React, browser persistence and Appwrite/provider SDKs.
-5. Run the relevant documented checks and complete the PR template. Tooling/build commands will be introduced in milestone 1; do not report nonexistent tests as passing.
+5. Follow [development setup](docs/DEVELOPMENT.md), run `npm run check` after the pinned install/browser download, and complete the PR template. Record actual results and device-validation limits.
 
-For documentation changes, review all changed files, local Markdown links, requirement traceability and cross-file scope consistency. Do not scaffold the application during the current documentation revision.
+For documentation changes, review all changed files, local Markdown links, requirement traceability and cross-file scope consistency. Implementation follows the build plan's milestone gates; the shell does not authorize later capabilities or deployment.
 
 ## Repository access and automated reviews
 

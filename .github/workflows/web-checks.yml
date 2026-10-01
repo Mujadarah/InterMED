@@ -1,0 +1,35 @@
+name: Web checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Verify pinned runtime
+        run: node --version && npm --version
+      - name: Reproducible install
+        run: npm ci --no-fund
+      - name: Install browser binaries and OS dependencies
+        run: npx playwright install --with-deps chromium webkit
+      - name: Run documented quality gates
+        run: npm run check

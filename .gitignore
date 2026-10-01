@@ -1,10 +1,12 @@
-# Web build and test outputs (future implementation)
+# Web build and test outputs
 node_modules/
 dist/
 coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+artifacts/
+.tools/
 
 # Local tooling
 .DS_Store
