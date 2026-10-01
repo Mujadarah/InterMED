@@ -1,0 +1,12 @@
+{
+  "autoReview": ["open", "push", "rebase"],
+  "triggerOnDrafts": true,
+  "includeBranches": [],
+  "excludeBranches": [],
+  "includeAuthors": [],
+  "excludeAuthors": [],
+  "labels": [],
+  "disabledLabels": [],
+  "includeKeywords": "",
+  "ignoreKeywords": ""
+}

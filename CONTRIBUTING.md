@@ -14,6 +14,18 @@ This is a planning-first repository. The canonical direction is React/TypeScript
 
 For documentation changes, review all changed files, local Markdown links, requirement traceability and cross-file scope consistency. Do not scaffold the application during the current documentation revision.
 
+## Repository access and automated reviews
+
+The public repository accepts bug reports, feature proposals and fork-based PRs from any GitHub user. Public visibility does not grant write access. As verified on 2026-10-01, Mujadarah is the only human collaborator; main requires a PR even for administrators, resolved conversations and linear history, with force-push and deletion disabled. Topic branches remain writable by authorized maintainers so they can prepare PRs. Existing installed apps retain their own granted permissions; this is not a claim that bots are read-only.
+
+Review scope is independent of main's protection. `.coderabbit.yaml` matches every target branch with `.*`; `greptile.json` has no branch/author/label/keyword restrictions; `.pr_agent.toml` leaves Qodo source/target branch exclusions empty. Automatic review and update triggers are enabled, including draft feedback where supported. These files request reviews, not automatic approval or merge.
+
+CodeRabbit and Greptile can use PR-branch configuration. Qodo loads `.pr_agent.toml` from the default branch, so its new policy takes effect after this configuration is merged. App installation alone does not prove a completed review: check actual bot comments/checks on the latest PR head, including PRs targeting non-default branches. Account eligibility, quota and service availability can still prevent a review.
+
+DeepSource Code Review and secrets detection were verified enabled in its dashboard, which describes automatic review of every PR; no main-only filter was configured. Currently no language analyzers are enabled because application scaffolding has not been implemented. DeepSource's default branch is a baseline for results, not a restriction to main-targeted PRs. Its AI review availability is a separate account/plan constraint; do not treat a secrets scan as an AI review.
+
+References: [CodeRabbit configuration](https://docs.coderabbit.ai/reference/configuration), [Greptile configuration](https://www.greptile.com/docs/code-review/greptile-json-reference), [Qodo configuration file](https://docs.qodo.ai/qodo-documentation/code-review/get-started/configuration-overview/configuration-file), [Qodo exclusion controls](https://docs.qodo.ai/qodo-documentation/code-review/concepts), [DeepSource repository settings](https://docs.deepsource.com/docs/platform/dashboard/repository/settings).
+
 ## Clinical sources and security
 
 Clinical thresholds, formulas, medication doses, interactions and treatment recommendations need a permitted authoritative source, version/provenance, tests and clinical review. Public regulatory data are not automatically redistributable. Do not copy Mediately content or commit proprietary provider responses.

@@ -1,0 +1,18 @@
+# Qodo's hosted GitHub app reads this file from the default branch.
+# Do not filter reviews by PR source/target branch, author, label or title.
+[config]
+ignore_pr_target_branches = []
+ignore_pr_source_branches = []
+ignore_pr_authors = []
+ignore_pr_labels = []
+ignore_pr_title = []
+
+[github_app]
+pr_commands = ["/agentic_review"]
+feedback_on_draft_pr = true
+handle_push_trigger = true
+push_commands = ["/agentic_review"]
+
+[review_agent]
+enabled = true
+publish_output = true
