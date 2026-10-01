@@ -60,7 +60,7 @@ Canonicalization of salts/forms/synonyms needs clinical review; an unresolved cr
 MedicationIngredient
 - id
 - productId
-- ingredientId
+- ingredientId?
 - sourceIngredientText
 - strengthValue?
 - strengthUnit?
@@ -73,7 +73,7 @@ MedicationIngredient
 - datasetVersionId
 ```
 
-One product can have multiple joins. Preserve units and source concentration expressions; parsing must not silently alter quantity.
+A confirmed join requires ingredientId; unresolved rows retain original text and block complete interaction coverage. One product can have multiple joins. Preserve units and source concentration expressions; parsing must not silently alter quantity.
 
 ## ATCCode and DosageForm
 
