@@ -127,6 +127,29 @@ Six final synthetic screenshots were generated and visually inspected on October
 
 The TLS probe verified a secure context, actual production worker registration and cached `/status` reload with zero origin requests during reload, then captured the ready state. A temporary self-signed certificate and explicit test-only trust bypass were used. No trust store, hosting service or device was provisioned.
 
+## PR #4 review follow-up — October 6
+
+The initial pushed head `1c75bbadf460e2f207180139613faaf280f8aacf` passed [CI run 37392866160](https://github.com/Mujadarah/InterMED/actions/runs/37392866160): the complete quality gate, 24 unit/component tests and 99 production-browser tests on **both Ubuntu 24.04 and Windows 2025**. This is a historical snapshot, not the result for subsequent remediation commits. Existing pinned action/lint tooling emitted nonfatal deprecation warnings; no CI/dependency/reviewer configuration was changed.
+
+Actual [Greptile review](https://github.com/Mujadarah/InterMED/pull/4#pullrequestreview-5422292083) reviewed 41 files and posted two findings, despite its successful check status. Both were verified and fixed:
+
+- [Failed check hides waiting update](https://github.com/Mujadarah/InterMED/pull/4#discussion_r4190224456): a real worker-script 503 removed the usable waiting update button (`m2-review-waiting-red.log`). Commit `af8c9dfd4593696de892c6fdf168117b7d76672a` preserves its explicit activation; all three projects passed (`m2-review-waiting-green.log`).
+- [Cached bytes are not revalidated](https://github.com/Mujadarah/InterMED/pull/4#discussion_r4190224470): four production corruption tests failed before the fix (`m2-review-integrity-red.log`). Cached HTML/JavaScript damage, damaged waiting JavaScript and a damaged prior fallback now fail readiness/activation/selection honestly. The worker revalidates bytes, SHA-256, serving MIME and bounded unique public metadata; the current release uses compiled pins. Fetch returns the exact verified Response. Corruption is distinguishable from unreadable storage and remains repairable. This detects public same-origin cache damage; it does not create an XSS security boundary.
+
+Independent review also demonstrated that substring MIME checks accepted `text/plain; fixture=javascript` or `text/htmljunk` with otherwise correct bytes. Two new tests failed (`m2-review-mime-red.log`); MIME essence is now trimmed/case-normalized and compared with explicit allowed types. The final focused reviewer regressions passed **21/21 across all three projects** (`m2-review-mime-green.log`). Independent read-only review found no further verified issue in these fixes.
+
+Integrity/MIME remediation is isolated in commit `57cd3c13b0f465161371fd54a42664aac0cbc4e4`. Its final local `npm run check` exited 0: format/lint/types, **24 unit/component tests**, architecture checks, **zero audit vulnerabilities**, production build and **120/120 production-browser tests** (`m2-check-review-final-120.log`). The post-review `node scripts/check-local-https.mjs` also exited 0, **3/3** cached TLS reloads with zero origin requests (`m2-https-review-final.log`), under the same explicit test-only certificate bypass. The earlier 99-test results/screenshots above remain pre-review snapshots; they are preserved rather than relabeled as the final implementation.
+
+Six new post-review screenshots were captured and visually inspected; readable phone/tablet/desktop wrapping and update controls show no horizontal clipping. Engine versions and emulation/certificate limits are unchanged:
+
+| Project          | Cached TLS reload                                                        | Multitab update refused                                                              |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Chromium desktop | [TLS](evidence/milestone-2-review-2026-10-06/https-chromium-desktop.png) | [Update](evidence/milestone-2-review-2026-10-06/update-blocked-chromium-desktop.png) |
+| WebKit phone     | [TLS](evidence/milestone-2-review-2026-10-06/https-webkit-phone.png)     | [Update](evidence/milestone-2-review-2026-10-06/update-blocked-webkit-phone.png)     |
+| WebKit tablet    | [TLS](evidence/milestone-2-review-2026-10-06/https-webkit-tablet.png)    | [Update](evidence/milestone-2-review-2026-10-06/update-blocked-webkit-tablet.png)    |
+
+[CodeRabbit's status](https://github.com/Mujadarah/InterMED/pull/4#issuecomment-6006207528) explicitly means **review skipped/manual review required**, not a completed review. [DeepSource's published report](https://github.com/Mujadarah/InterMED/pull/4#issuecomment-6006216873) lists only a successful **Secrets** analysis and says AI review is on demand; no JavaScript/AI review is inferred from its grade. No inline DeepSource findings were present. The linked full DeepSource web report was unavailable through the available browser tools, so the inspected evidence is its actual GitHub report/status. On-demand reviews were not triggered, services purchased or reviewer settings changed.
+
 ## Remaining acceptance gates and Milestone 3 handoff
 
 1. **Real iPhone/iPad Safari:** install from Safari, launch in standalone mode, close/reopen/reload offline after download, deep-link behavior, actual notches/safe areas/touch/keyboard/accessibility and OS storage eviction/private-mode differences. Automated WebKit viewports do not meet this gate.
