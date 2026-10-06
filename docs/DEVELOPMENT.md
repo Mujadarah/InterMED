@@ -69,6 +69,132 @@ For optional local TLS smoke, run `node scripts/check-local-https.mjs` after `np
 
 Playwright projects exercise Chromium desktop and WebKit phone/tablet viewports. WebKit automation is not real Safari/iPhone/iPad validation. Milestone 2 adds actual production-worker/offline/update evidence and local self-signed HTTPS smoke. Real devices, installed mode and trusted HTTPS hosting remain acceptance gaps. No clinical validation is claimed. The Windows WebKit offline emulator returned an internal error; the suite instead disconnects the real test origin in every engine and additionally uses Chromium's network-offline emulation. It proves cached launch/reload/deep links with no static-shell origin requests; a browser SW-script update check can still attempt network. See the dated evidence for exact coverage.
 
+## Manual device and hosted-origin acceptance
+
+This checklist is for an operator running the app on a real target device. Record observed results; do not substitute Playwright/WebKit emulation, localhost, a self-signed certificate, or a browser certificate bypass. Use only an already-approved HTTPS origin that serves the intended build. No such origin was supplied on 2026-10-06, so the device-install and hosted-origin checks in the current evidence remain blocked. Do not deploy, create a host, or change any trust store as part of this checklist.
+
+### Record device, browser and build identity
+
+Before testing, record the date/time and timezone, model, exact OS version and build, browser version, and whether the app is in a tab or installed standalone. Record only version fields; do not capture serial numbers or device identifiers.
+
+- **iPhone/iPad:** open Settings > General > About > iOS Version or iPadOS Version. Record the complete version and build shown after opening that row. Safari does not expose a separate app-version page in Settings. In a normal Safari tab, a temporary bookmarklet can display the full user-agent string locally: create a bookmark, edit its URL to `javascript:prompt('Copy full Safari user agent',navigator.userAgent)`, open the app origin in Safari, then run the bookmark. Record the complete string and its `Version/...` field if present; the `AppleWebKit/...` token is an engine identifier, not the Safari version. The bookmarklet reads the current page only and sends nothing. If iOS blocks it and no Safari Web Inspector is available, mark the Safari version unverified instead of inferring it.
+- **Windows:** open Settings > System > About and record Edition, Version, OS build (including the revision after the dot), and system type. Open Start and run `winver` as a cross-check. In Chrome, open `chrome://version` or menu > Help > About Google Chrome; in Edge, open `edge://version` or menu > Help and feedback > About Microsoft Edge. Record the full version shown by the browser itself, not file metadata alone.
+- **Android, if a device becomes available:** record Android version/build from Settings > About phone (and Software information, where present) and Chrome's version from the browser About screen or `chrome://version`.
+
+For every result, obtain the full application commit from the build/deployment record. On the served page, record the public `meta[name="intermed-shell-revision"]` value and the `Shell version: <20-character release identity>` shown on `/status`. They are separate identifiers: the shell identity is not a Git commit or clinical dataset version. If the metadata is missing or says `development`, mark the served commit unconfirmed.
+
+On a desktop browser with DevTools, use this read-only Console probe to record the scope and both shell/worker identities. It asks the active controller for the worker's `SHELL_STATUS` response:
+
+```js
+const registration = await navigator.serviceWorker.getRegistration();
+const worker = navigator.serviceWorker.controller;
+if (!worker) throw new Error('No controlling service worker for this page');
+const workerStatus = await new Promise((resolve, reject) => {
+  const channel = new MessageChannel();
+  const timeout = setTimeout(
+    () => reject(new Error('SHELL_STATUS timed out')),
+    2000,
+  );
+  channel.port1.onmessage = ({ data }) => {
+    clearTimeout(timeout);
+    channel.port1.close();
+    resolve(data);
+  };
+  worker.postMessage({ type: 'SHELL_STATUS' }, [channel.port2]);
+});
+console.log({
+  publicRevision:
+    document.querySelector('meta[name="intermed-shell-revision"]')?.content ??
+    null,
+  scope: registration?.scope ?? null,
+  activeScriptURL: registration?.active?.scriptURL ?? null,
+  ...workerStatus,
+});
+```
+
+`version` is the selected shell being served; `workerVersion` is the active worker's own version; `fallback` identifies prior-shell service. Record all returned fields. Safari's installed app has no built-in DevTools console. Use Safari Web Inspector only if an already-available Mac can inspect the device; otherwise record the visible `/status` identity and mark the worker identity unobserved. Never infer it from the current `/sw.js` response when a worker may be serving a retained shell.
+
+### Preconditions and trusted-host inspection
+
+1. Use an owner-approved HTTPS URL that already serves the exact build. In the native browser, confirm the hostname is correct and the certificate is accepted without a warning. Record what the browser displays. Stop if it shows a certificate interstitial or the certificate is not trusted; do not bypass it.
+2. Confirm direct online navigation to `/` and `/status` returns the app shell. Record redirects and status codes. Record the `Content-Type`, `Cache-Control`, and relevant security headers for `/`, `/status`, `/manifest.webmanifest`, `/sw.js`, and a hashed asset; compare the exact values with the deployment's reviewed header policy rather than assuming a value.
+3. In DevTools, record that the worker script is `/sw.js` and its registration scope is the origin root (`https://<host>/`). Confirm `/status` deep-link routing is served by the actual host. Record the manifest and worker response status, MIME type, redirects, and cache headers.
+4. Keep a normal browser profile and a separate test profile/device for first-visit and storage tests. Use synthetic canaries only. Do not use an account, medication data, patient data, or a primary profile whose site storage could be disturbed.
+
+### Installation and cached offline launch
+
+1. **iPhone/iPad Safari:** while online at the approved origin, use Share > Add to Home Screen. If **Open as Web App** is offered, record whether it was enabled, then tap Add. Launch only by tapping the new Home Screen icon. Record whether the app actually opens standalone without Safari browser chrome; an icon or manifest alone is not installation proof.
+2. **Chrome/Edge desktop:** observe whether the app's **Install development app** button is offered. If it is absent, inspect that browser's own address-bar/menu installation option and record the exact path and outcome. Install only when the browser offers it, then launch from the installed-app entry and record standalone mode. Do not treat a synthetic prompt or an ordinary tab as installed mode.
+3. **Android Chrome, when available:** observe the app's install button, then Chrome's menu option (for example, **Install app** or **Add to Home screen**) if no button appears. Record the exact capability/menu path and wording, install only when offered, and launch from the new app icon to confirm standalone mode. Keep this row open until an actual Android device is tested.
+4. **Any additional target browser:** use its install button only when the browser exposes that capability, otherwise inspect its native install menu. Record the exact option and result; if no install option exists, record that and test tab behavior separately. Do not infer installability from the manifest.
+5. While online in the installed app, visit `/` and `/status`. Wait for **Shell available offline** and the release identity to appear. Capture the visible shell identity and the statement that the medication dataset and medication features remain unavailable online and offline. Do not continue to an offline test until successful caching is reported.
+6. With the device owner's normal network controls, disconnect networking. Force-close the installed app, relaunch it from its icon/app entry, and record the exact screen and shell identity. Navigate to **Development status** in the app and confirm `/status` works offline. Reload there only if the installed browser exposes a reload action; otherwise record reload as unavailable and report close/reopen separately. Record any previous-shell notice or failure text verbatim.
+7. Restore networking. In a clean profile/device with no prior visit to this origin, turn networking off before the first navigation. Record the browser's actual result. Expected behavior is that no InterMED shell appears without a worker/cache; do not claim a fallback page unless one was observed. Do not clear the primary profile or an existing installation to simulate this case.
+8. Repeat the installed online/offline steps with portrait and landscape orientation. On iPhone/iPad inspect the real notch, corners and Home indicator safe areas, touch targets, text wrapping and scrolling. Capture the install prompt/icon, standalone shell, offline `/status`, and any update/error state where the platform permits. Record screenshots from the actual installed app, not an emulated viewport.
+
+### User-controlled updates, failure, windows and storage
+
+These checks require an already-authorized test origin that can serve two distinct production builds on the same HTTPS origin. Use the host owner's normal release controls; this checklist does not authorize a deployment or any production fault injection.
+
+1. Cache and install build A, and record its commit, public revision, displayed shell identity and worker identity. Use a synthetic-only browser profile. In the page's DevTools Console, seed synthetic canaries before the update:
+
+   ```js
+   localStorage.setItem('intermed-manual-preference-canary', 'preserve');
+   const database = await new Promise((resolve, reject) => {
+     const request = indexedDB.open('intermed-manual-canary', 1);
+     request.onupgradeneeded = () =>
+       request.result.createObjectStore('canary');
+     request.onsuccess = () => resolve(request.result);
+     request.onerror = () => reject(request.error);
+   });
+   await new Promise((resolve, reject) => {
+     const transaction = database.transaction('canary', 'readwrite');
+     transaction.objectStore('canary').put('preserve', 'sentinel');
+     transaction.oncomplete = resolve;
+     transaction.onerror = () => reject(transaction.error);
+   });
+   database.close();
+   const unrelatedCache = await caches.open('intermed-manual-cache-canary');
+   await unrelatedCache.put(
+     new URL('/__intermed-manual-canary__', location.origin).href,
+     new Response('preserve', { headers: { 'Content-Type': 'text/plain' } }),
+   );
+   ```
+
+   Record the preference key/value, database/store/sentinel and cache name/entry/body in DevTools Application/Storage before update. These are disposable synthetic values, not app features or medication data.
+2. Have the authorized test origin serve a distinct production build B. From A, request a shell update and wait for the app's update control. On desktop, open a second InterMED app window/tab and attempt the explicit update. Record whether the app refuses while another in-scope window remains open and whether it avoids reloading that window. Close the other window, choose **Update shell and reload**, and record B's commit/revision, shell identity and worker identity. On mobile, record the actual window/tab controls the platform exposes; if it cannot open multiple installed windows, mark that subtest unavailable.
+3. On the authorized test origin only, make a controlled update failure (for example, a failed worker or required-asset response) while A is usable. Record the response/status, accessible error announcement, active shell identity and whether A still launches and reloads offline. Never cause a failure on a production host.
+4. After A-to-B and after the failure case, verify the synthetic preference, IndexedDB record and unrelated cache entry are unchanged. In DevTools Application/Storage, inspect actual Cache Storage names and Request URLs. Confirm owned caches contain only the public shell manifest, root document, approved icons, and hashed JavaScript/CSS assets; inspect bodies and `Content-Type`, not only names. Record Service Worker responses as such in the Network panel. For origin response headers, use a separate online diagnostic request with service-worker bypass only if available; turn bypass back off before installed/offline checks.
+5. If storage denial can be tested without changing device security settings, use only the disposable test profile and record the actual browser behavior. A private/incognito context may be recorded as its own mode where the target browser permits the test; do not assume it matches ordinary installed storage. Do not clear browser data to simulate eviction. OS/browser eviction is nondeterministic; mark it **not exercised** unless the platform actually evicts data and the result can be observed safely.
+
+### Input, focus and accessibility
+
+- On desktop, traverse overview, status and update controls with Tab, Shift+Tab and Enter. Check visible focus, skip link, route-change focus, and that update/readiness/failure announcements are exposed to the accessibility tree. Record keyboard-only results.
+- On iPhone, use VoiceOver and touch navigation; on Windows, use Narrator if available. Record whether update and unavailable-feature announcements are understandable. Use an external keyboard on mobile only if one is already available; otherwise mark mobile keyboard testing unavailable.
+- Record actual touch targets, zoom/text sizing, orientation, safe areas, focus behavior and any clipping. Capture screenshots that show the real device/app mode and reference them in the evidence record. Synthetic Playwright screenshots belong in a separate evidence row and never substitute for these captures.
+
+### Manual result record
+
+Create one record per device/browser/scenario. Include every field below; write **not observed** where instrumentation is unavailable.
+
+```text
+Date/time and timezone:
+Application commit (full SHA) and source of that identity:
+Served public revision meta:
+Displayed Shell version:
+SHELL_STATUS version / workerVersion / fallback / ready / storageAccessible:
+Worker script URL and registration scope:
+Device model, OS version/build, browser/version:
+Tab or installed standalone mode:
+Exact HTTPS origin; certificate trusted in the native browser (yes/no/unknown):
+Preconditions and synthetic profile:
+Steps performed:
+Expected result:
+Observed result (include exact error text):
+Screenshot/evidence filenames and what each shows:
+Limitations or unobserved fields:
+```
+
 ## Direct version inventory
 
 | Dependency                    | Exact chosen version |

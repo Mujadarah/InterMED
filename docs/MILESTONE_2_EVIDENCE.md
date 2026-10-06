@@ -160,6 +160,44 @@ CodeRabbit subsequently published [an actual review](https://github.com/Mujadara
 
 The final runtime/test implementation passed `npm run check`: **24 unit/component tests, 126/126 production-browser tests, zero audit vulnerabilities**, with all other gates retained (`m2-check-final-126.log`). Later comment-only additions passed formatting and lint again. The current production build also passed local TLS **3/3**, zero origin requests during cached reload, with the same explicit test-only certificate bypass (`m2-https-performance-final.log`). Independent read-only review found no further verified issue in the latency or deterministic-focus changes. Latest pushed-head CI/review results are recorded in the PR; prior CI snapshots above never substitute for that check.
 
+## Current revalidation snapshot - 2026-10-06
+
+This is a new dated snapshot. Earlier CI, reviewer and screenshot sections above remain historical evidence and have not been rewritten.
+
+### Repository, pull request and authored-document inventory
+
+The recheck started with a clean implementation checkout on `codex/pwa-milestone-2-shell` at `e4673a9577ad17a9ecaf491aa7772a2072326865`; `origin/main` remained `f129e0dfc9d91847502e36fbb46cad9c6659ce2c`. While this documentation was being prepared, `origin/codex/pwa-milestone-2-shell` advanced by one commit to `bdc9202b96d136d5b5fe435f5efa51892a8eec32`. The incoming diff, authored by `coderabbitai[bot]`, was inspected: it adds TypeScript documentation comments in `apps/web/pwa/shell-build.ts` and `apps/web/src/infrastructure/browser-shell.ts`; it does not change runtime behavior and is not itself review evidence. There were no local commits or overlapping edits. The existing branch was fast-forwarded to that remote head; these documentation edits were preserved. The separate planning worktree `C:/Users/rabia/.codex/worktrees/intermed-pwa-plan/InterMED` on `plan/pwa-appwrite-revision` at `95722e993cd5b3c8f5c07bbe30d0052eb3a0e3f6` was preserved. PR [#4](https://github.com/Mujadarah/InterMED/pull/4) remains OPEN and unmerged.
+
+All **26/26 repository-authored Markdown files** were fully read before editing, including the hidden `.github` path. Dependency, vendor and generated material was excluded. The inventory was:
+
+- `.github/pull_request_template.md`
+- Root and package: `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `packages/README.md`
+- Development evidence: `docs/DEVELOPMENT.md`, `docs/MILESTONE_1_EVIDENCE.md`, `docs/MILESTONE_2_EVIDENCE.md`
+- Planning: `plan/APPWRITE.md`, `plan/ARCHITECTURE.md`, `plan/CLINICAL_SAFETY.md`, `plan/CODEX_BUILD_PLAN.md`, `plan/DATA_MODEL.md`, `plan/DATA_SOURCES.md`, `plan/FUTURE_CLOUD_AUTH.md`, `plan/INTERACTIONS.md`, `plan/InterMED_SOURCES_AND_SDKS.md`, `plan/MEDICATION_DATA.md`, `plan/PRODUCT_SPEC.md`, `plan/PWA_OFFLINE.md`, `plan/README.md`, `plan/REQUIREMENTS.md`, `plan/REQUIREMENTS_TRACEABILITY.md`, `plan/REVISION_AUDIT.md`, `plan/ROADMAP.md`, `plan/TESTING.md`
+
+REQUIREMENTS, ARCHITECTURE and CLINICAL_SAFETY were applied as the scope, architecture and safety controls. The checklist was added to development documentation without app-code changes or a Milestone 3 implementation.
+
+### Exact-head CI and reviewer state
+
+Starting-head pull-request run [37395005475](https://github.com/Mujadarah/InterMED/actions/runs/37395005475) tested `e4673a9577ad17a9ecaf491aa7772a2072326865` and completed successfully on Ubuntu 24.04 and Windows 2025. After the remote fast-forward, exact-head run [37397633004](https://github.com/Mujadarah/InterMED/actions/runs/37397633004) tested `bdc9202b96d136d5b5fe435f5efa51892a8eec32`; both jobs completed successfully. Each verified Node `24.21.0` and npm `11.19.0`, installed from the lockfile, and passed `npm run check`. Logs on both operating systems show **24 unit/component tests**, **126 production-browser tests**, and **zero audit vulnerabilities**. Existing Chromium desktop and WebKit phone/tablet projects remained in the run. These are automated results, not physical-device or hosted-origin acceptance. The local shell exposes unpinned Node `25.6.1` and npm `11.9.0`, so no local npm check was run; the documentation diff passed `git diff --check`.
+
+At the `bdc9202` source head, the completed Greptile check reviewed 49 files and reported zero comments. All four previously inspected review threads were resolved and outdated at that head; the fixed-sleep concern was already corrected in `tests/browser/recovery-update.spec.ts`. The CodeRabbit status at that head says **review skipped: manual review required for this OSS repository**; it is not a completed review. DeepSource's passing status is its Secrets check only; it does not establish a JavaScript analyzer or AI review. No verified, unresolved finding was present in the inspected GitHub review evidence for that head.
+
+### Real-device and origin availability matrix
+
+The Computer Use inventory exposed no browser/app targets, and opening Chrome through its browser provider returned `Browser is not available: chrome`. No manual installation, installed launch, offline restart, actual-device screenshot, certificate inspection, hosted routing/header check or real-device update test was performed. No screenshots were generated in this snapshot. Historical Playwright/WebKit and self-signed-TLS screenshots remain synthetic evidence only.
+
+| Target | Version/availability evidence | Observed result and remaining gate |
+| --- | --- | --- |
+| iPhone 17 Pro / Safari | Owner reports iOS 27. Exact OS build and Safari version have not been verified. | Device is available for owner-run checks, but no approved trusted origin was supplied. No installation/offline result or screenshot exists yet. |
+| iPad / Safari | No iPad was reported available. | Unavailable; all iPad installation, safe-area, input and accessibility checks remain open. |
+| ASUS ROG Windows desktop / Chrome and Edge | Local hardware reports ASUSTeK ROG Strix G18 G815LP_G815LP. The owner reports Windows 11. Local Windows product-name metadata says Windows 10 Pro while `DisplayVersion` is 26H2 and build metadata is 26300.9550, so the OS version needs confirmation in Settings/About or `winver`. Chrome executable metadata is 154.0.8037.98. Edge executable metadata is 154.0.4258.53 while the installed Windows package reports 152.0.4191.53. Confirm the running browser versions in `chrome://version` and `edge://version`. | Hardware is present, but no target-browser installation/standalone/offline/update exercise was made. Product/app metadata conflicts mean the exact OS and browser version rows are still pending. |
+| Android / Chrome | No Android device was reported; ADB is not installed on this host. | Unavailable; Android installation, offline restart, update and window behavior remain open. |
+| Additional laptop | The owner mentioned a laptop but has not confirmed whether it is the ASUS ROG or a separate device. | No separate-device result is recorded. |
+| Trusted hosted HTTPS origin | No existing origin was supplied. No hosting or deployment was authorized. | Certificate trust, root scope, deployment routing, response headers, cache invalidation and hosted installability were not tested and remain open. No localhost/self-signed result closes this gate. |
+
+The reproducible version-capture steps and manual test sequence are in [DEVELOPMENT](DEVELOPMENT.md#manual-device-and-hosted-origin-acceptance). Until each target row has actual observed results and evidence, these gaps remain open; the milestone is not fully accepted.
+
 ## Remaining acceptance gates and Milestone 3 handoff
 
 1. **Real iPhone/iPad Safari:** install from Safari, launch in standalone mode, close/reopen/reload offline after download, deep-link behavior, actual notches/safe areas/touch/keyboard/accessibility and OS storage eviction/private-mode differences. Automated WebKit viewports do not meet this gate.
