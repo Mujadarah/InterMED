@@ -142,8 +142,7 @@ These checks require an already-authorized test origin that can serve two distin
    localStorage.setItem('intermed-manual-preference-canary', 'preserve');
    const database = await new Promise((resolve, reject) => {
      const request = indexedDB.open('intermed-manual-canary', 1);
-     request.onupgradeneeded = () =>
-       request.result.createObjectStore('canary');
+     request.onupgradeneeded = () => request.result.createObjectStore('canary');
      request.onsuccess = () => resolve(request.result);
      request.onerror = () => reject(request.error);
    });
@@ -162,9 +161,10 @@ These checks require an already-authorized test origin that can serve two distin
    ```
 
    Record the preference key/value, database/store/sentinel and cache name/entry/body in DevTools Application/Storage before update. These are disposable synthetic values, not app features or medication data.
+
 2. Have the authorized test origin serve a distinct production build B. From A, request a shell update and wait for the app's update control. On desktop, open a second InterMED app window/tab and attempt the explicit update. Record whether the app refuses while another in-scope window remains open and whether it avoids reloading that window. Close the other window, choose **Update shell and reload**, and record B's commit/revision, shell identity and worker identity. On mobile, record the actual window/tab controls the platform exposes; if it cannot open multiple installed windows, mark that subtest unavailable.
 3. On the authorized test origin only, make a controlled update failure (for example, a failed worker or required-asset response) while A is usable. Record the response/status, accessible error announcement, active shell identity and whether A still launches and reloads offline. Never cause a failure on a production host.
-4. After A-to-B and after the failure case, verify the synthetic preference, IndexedDB record and unrelated cache entry are unchanged. In DevTools Application/Storage, inspect actual Cache Storage names and Request URLs. Confirm owned caches contain only the public shell manifest, root document, approved icons, and hashed JavaScript/CSS assets; inspect bodies and `Content-Type`, not only names. Record Service Worker responses as such in the Network panel. For origin response headers, use a separate online diagnostic request with service-worker bypass only if available; turn bypass back off before installed/offline checks.
+4. After A-to-B and after the failure case, verify the synthetic preference, IndexedDB record and unrelated cache entry are unchanged. In DevTools Application/Storage, inspect actual Cache Storage names and Request URLs. Confirm owned caches contain only the public shell manifest, root document, approved icons, and hashed JavaScript/CSS assets; inspect bodies and `Content-Type`, not only names. Any other cached URL/body, cross-origin response, account/clinical/API payload or authentication content is outside this shell's allowlist and must be recorded as a failure for investigation. Record Service Worker responses as such in the Network panel; server logs alone do not prove that an intercepted response was absent. For origin response headers, use a separate online diagnostic request with service-worker bypass only if available; turn bypass back off before installed/offline checks.
 5. If storage denial can be tested without changing device security settings, use only the disposable test profile and record the actual browser behavior. A private/incognito context may be recorded as its own mode where the target browser permits the test; do not assume it matches ordinary installed storage. Do not clear browser data to simulate eviction. OS/browser eviction is nondeterministic; mark it **not exercised** unless the platform actually evicts data and the result can be observed safely.
 
 ### Input, focus and accessibility
