@@ -1,0 +1,213 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+
+ ❯ tests/data-access/synthetic-source.test.ts (10 tests | 10 failed) 7ms
+   × separates one fictional product from its single ingredient 4ms
+   × expands a three-ingredient combination without rewriting strengths 0ms
+   × keeps same-name products and cedilla variants distinct 0ms
+   × leaves omitted catalogue fields missing 0ms
+   × preserves a decimal comma, a microgram token and an invalid unit 0ms
+   × reports dangling ingredient, manufacturer and source ids without throwing 0ms
+   × marks every ATC row synthetic and illustrative 0ms
+   × round-trips the validated snapshot as JSON with no Appwrite payload 0ms
+   × swaps an in-memory catalogue source without changing domain code 0ms
+   × rejects a non-synthetic document and an ATC row that claims an official code system 0ms
+
+ Test Files  1 failed (1)
+      Tests  10 failed (10)
+   Start at  23:58:36
+   Duration  179ms (transform 47ms, setup 0ms, import 64ms, tests 7ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > separates one fictional product from its single ingredient
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:35:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > expands a three-ingredient combination without rewriting strengths
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:64:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > keeps same-name products and cedilla variants distinct
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:86:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > leaves omitted catalogue fields missing
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:109:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > preserves a decimal comma, a microgram token and an invalid unit
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:125:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > reports dangling ingredient, manufacturer and source ids without throwing
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:155:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > marks every ATC row synthetic and illustrative
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:171:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > round-trips the validated snapshot as JSON with no Appwrite payload
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ validated tests/data-access/synthetic-source.test.ts:22:21
+     20| function validated() {
+     21|   const result = validateSyntheticSource(syntheticMedicationFixture);
+     22|   expect(result.ok).toBe(true);
+       |                     ^
+     23|   if (!result.ok) throw new Error('synthetic fixture was rejected');
+     24|   return result.snapshot;
+ ❯ tests/data-access/synthetic-source.test.ts:184:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > swaps an in-memory catalogue source without changing domain code
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/data-access/synthetic-source.test.ts:196:38
+    194|   const primary = validateSyntheticSource(syntheticMedicationFixture);
+    195|   const alternate = validateSyntheticSource(syntheticSwapFixture);
+    196|   expect(primary.ok && alternate.ok).toBe(true);
+       |                                      ^
+    197|   if (!primary.ok || !alternate.ok) return;
+    198|   const names = (source: MedicationCatalogueSource) =>
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  tests/data-access/synthetic-source.test.ts > rejects a non-synthetic document and an ATC row that claims an official code system
+TypeError: Cannot read properties of undefined (reading '0')
+ ❯ tests/data-access/synthetic-source.test.ts:216:24
+    214|     atcCodes: { codeSystem: string }[];
+    215|   };
+    216|   const atc = official.atcCodes[0];
+       |                        ^
+    217|   expect(atc).toBeDefined();
+    218|   if (!atc) return;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
