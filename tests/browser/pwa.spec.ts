@@ -1,6 +1,83 @@
 import { expect, test } from '@playwright/test';
 import { productionServer } from './production-server';
 
+test('restricts document resources without blocking the same-origin shell', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/');
+  const policy = [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    "frame-src 'none'",
+    "form-action 'self'",
+    "script-src 'self'",
+    "style-src 'self'",
+    "img-src 'self'",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "manifest-src 'self'",
+    "worker-src 'self'",
+  ].join('; ');
+  const csp = page.locator('meta[http-equiv="Content-Security-Policy"]');
+  await expect(csp).toHaveAttribute('content', policy);
+  expect(policy).not.toMatch(/\bunsafe-(?:inline|eval)\b/);
+  const external = await productionServer();
+  try {
+    await page.evaluate((url) => {
+      document.addEventListener(
+        'securitypolicyviolation',
+        (event) => {
+          if (event.violatedDirective === 'connect-src')
+            document.documentElement.dataset['intermedCspBlocked'] =
+              event.blockedURI;
+        },
+        { once: true },
+      );
+      void fetch(url + '/regulatory/test', { mode: 'no-cors' }).catch(
+        () => undefined,
+      );
+    }, external.url);
+    await expect
+      .poll(() =>
+        page.locator('html').getAttribute('data-intermed-csp-blocked'),
+      )
+      .not.toBeNull();
+    expect(
+      await page.locator('html').getAttribute('data-intermed-csp-blocked'),
+    ).toContain(new URL(external.url).host);
+  } finally {
+    await external.close();
+  }
+  await expect(
+    page.getByRole('heading', { name: 'A foundation for InterMED' }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => getComputedStyle(document.body).marginTop),
+  ).toBe('0px');
+
+  const inlineScriptResult = await page.evaluate(() => {
+    const script = document.createElement('script');
+    script.textContent =
+      "document.documentElement.dataset['intermedCspProbe'] = 'ran';";
+    document.head.append(script);
+    return document.documentElement.dataset['intermedCspProbe'];
+  });
+  expect(inlineScriptResult).toBeUndefined();
+
+  expect((await request.get('/manifest.webmanifest')).ok()).toBe(true);
+  await page.goto('/status');
+  await expect(
+    page.getByRole('heading', { name: 'Development status' }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      async () => (await navigator.serviceWorker.ready).scope,
+    ),
+  ).toBe(new URL('/', page.url()).href);
+});
+
 test('provides install identity, metadata and decodable normal/maskable icons', async ({
   page,
   request,

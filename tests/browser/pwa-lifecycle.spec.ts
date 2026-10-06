@@ -58,7 +58,12 @@ test('keeps prohibited responses, query variants and outside origins out of cach
     await page.goto(server.url);
     await cached(page);
     const before = await keys(page);
-    const values = await page.evaluate(async (outside) => {
+    const probe = await page.context().newPage();
+    await probe.goto(server.url + '/test-probe.html');
+    await probe.waitForFunction(
+      () => navigator.serviceWorker.controller !== null,
+    );
+    const values = await probe.evaluate(async (outside) => {
       const results = [];
       for (const path of [
         '/api/reference',
@@ -89,13 +94,13 @@ test('keeps prohibited responses, query variants and outside origins out of cach
     expect(values.every((value) => value.includes('PROHIBITED_CANARY'))).toBe(
       true,
     );
-    expect(await keys(page)).toEqual(before);
+    expect(await keys(probe)).toEqual(before);
     for (const urls of Object.values(before))
       for (const url of urls)
         expect(new URL(url).pathname).toMatch(
           /^\/(index\.html|manifest\.webmanifest|assets\/[\w-]+\.(js|css)|icons\/(icon-192|icon-512|maskable-512|apple-touch-180)\.png)$/,
         );
-    const bodies = await page.evaluate(async () => {
+    const bodies = await probe.evaluate(async () => {
       const values = [];
       for (const name of await caches.keys()) {
         const cache = await caches.open(name);

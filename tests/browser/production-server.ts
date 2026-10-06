@@ -22,6 +22,13 @@ export async function productionServer() {
       request.socket.destroy();
       return;
     }
+    if (path === '/test-probe.html') {
+      response.setHeader('Content-Type', 'text/html');
+      response.end(
+        '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Worker probe</title></head><body>Worker probe</body></html>',
+      );
+      return;
+    }
     if (
       (failure === 'asset' && path === '/icons/icon-512.png') ||
       (failure === 'worker' && path === '/sw.js')
