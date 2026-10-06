@@ -2,6 +2,7 @@ import type { MedicationCatalogueSnapshot } from './catalogue';
 import { catalogueFingerprint } from './checksum';
 import type { DatasetRecordCounts } from './entities';
 import type { FieldState } from './field';
+import { parseStableId } from './ids';
 import {
   catalogueIssue,
   type CatalogueEntity,
@@ -40,19 +41,29 @@ function isTimestamp(value: string): boolean {
     value,
   );
   if (!match) return false;
+  const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
   const hour = Number(match[4]);
   const minute = Number(match[5]);
   const second = Number(match[6]);
+  if (
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31 ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59
+  )
+    return false;
+  const instant = new Date(
+    Date.UTC(year, month - 1, day, hour, minute, second),
+  );
   return (
-    month >= 1 &&
-    month <= 12 &&
-    day >= 1 &&
-    day <= 31 &&
-    hour <= 23 &&
-    minute <= 59 &&
-    second <= 59
+    instant.getUTCFullYear() === year &&
+    instant.getUTCMonth() === month - 1 &&
+    instant.getUTCDate() === day
   );
 }
 
@@ -302,19 +313,30 @@ function collect(snapshot: MedicationCatalogueSnapshot): CatalogueIssue[] {
         'dangling-source',
         sourceIds.has(sourceId),
       );
-    if (
-      version.previousVersionId.status === 'present' &&
-      !datasetIds.has(version.previousVersionId.value)
-    )
-      issues.push(
-        catalogueIssue(
-          'dangling-previous-dataset-version',
-          'DatasetVersion',
-          version.id,
-          'previousVersionId',
-          'The previous dataset version is not in this snapshot.',
-        ),
-      );
+    if (version.previousVersionId.status === 'present') {
+      const previousId = version.previousVersionId.value;
+      const parsed = parseStableId('DatasetVersion', previousId);
+      if (!parsed.ok)
+        issues.push(
+          catalogueIssue(
+            'invalid-previous-dataset-version',
+            'DatasetVersion',
+            version.id,
+            'previousVersionId',
+            'The previous dataset version id is not a DatasetVersion stable id.',
+          ),
+        );
+      else if (previousId === version.id)
+        issues.push(
+          catalogueIssue(
+            'invalid-previous-dataset-version',
+            'DatasetVersion',
+            version.id,
+            'previousVersionId',
+            'The previous dataset version id refers to this version.',
+          ),
+        );
+    }
     requireInstant(
       'DatasetVersion',
       version.id,

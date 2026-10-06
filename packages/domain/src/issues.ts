@@ -12,7 +12,7 @@ export type CatalogueIssueCode =
   | 'dangling-regulatory-document'
   | 'dangling-source'
   | 'dangling-dataset-version'
-  | 'dangling-previous-dataset-version'
+  | 'invalid-previous-dataset-version'
   | 'regulatory-document-product-mismatch'
   | 'duplicate-id'
   | 'duplicate-source-product-id'

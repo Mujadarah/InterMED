@@ -80,9 +80,6 @@ function productFindings(
       group.map((item) => signature(item.strengthText)),
     );
     const forms = new Set(group.map((item) => signature(item.dosageFormId)));
-    const sourceKeys = new Set(
-      group.map((item) => `${item.sourceId}\u001f${item.sourceProductId}`),
-    );
     if (strengths.size > 1 || forms.size > 1)
       findings.push(
         finding(
@@ -92,15 +89,29 @@ function productFindings(
           group.map((item) => item.id),
         ),
       );
-    else if (sourceKeys.size > 1)
-      findings.push(
-        finding(
-          'same-commercial-name-different-source-key',
-          name,
-          'MedicationProduct',
-          group.map((item) => item.id),
-        ),
-      );
+    for (const byStrength of groupBy(group, (item) =>
+      signature(item.strengthText),
+    ).values()) {
+      for (const partition of groupBy(byStrength, (item) =>
+        signature(item.dosageFormId),
+      ).values()) {
+        if (partition.length < 2) continue;
+        const sourceKeys = new Set(
+          partition.map(
+            (item) => `${item.sourceId}\u001f${item.sourceProductId}`,
+          ),
+        );
+        if (sourceKeys.size > 1)
+          findings.push(
+            finding(
+              'same-commercial-name-different-source-key',
+              name,
+              'MedicationProduct',
+              partition.map((item) => item.id),
+            ),
+          );
+      }
+    }
   }
 
   for (const group of groupBy(

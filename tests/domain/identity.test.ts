@@ -49,6 +49,45 @@ it('does not merge same-name products whose strength or form differs', () => {
   expect(low.id).not.toBe(high.id);
 });
 
+it('reports a shared source key inside one strength when the name also has another strength', () => {
+  const tablet = {
+    status: 'present' as const,
+    value: mustId('DosageForm', SOURCE_KEY, 'DF-FICTOCARD-TABLET'),
+  };
+  const lowA = product('SP-FICTOCARD-10A', 'Fictocard', {
+    strengthText: { status: 'present', value: '10 mg' },
+    dosageFormId: tablet,
+  });
+  const lowB = product('SP-FICTOCARD-10B', 'Fictocard', {
+    strengthText: { status: 'present', value: '10 mg' },
+    dosageFormId: tablet,
+  });
+  const high = product('SP-FICTOCARD-20', 'Fictocard', {
+    strengthText: { status: 'present', value: '20 mg' },
+    dosageFormId: tablet,
+  });
+  expect(
+    findAmbiguousIdentities(emptyCatalogue({ products: [lowA, lowB, high] })),
+  ).toEqual([
+    {
+      state: 'ambiguous-not-merged',
+      reason: 'same-commercial-name-different-source-key',
+      name: 'Fictocard',
+      entity: 'MedicationProduct',
+      entityIds: [lowA.id, lowB.id],
+      retainedAsDistinct: true,
+    },
+    {
+      state: 'ambiguous-not-merged',
+      reason: 'same-commercial-name-different-strength-or-form',
+      name: 'Fictocard',
+      entity: 'MedicationProduct',
+      entityIds: [lowA.id, lowB.id, high.id],
+      retainedAsDistinct: true,
+    },
+  ]);
+});
+
 it('keeps an identical strength and form under two source keys unresolved', () => {
   const formId = mustId('DosageForm', SOURCE_KEY, 'DF-TABLET');
   const first = product('SP-SAME-1', 'Samex', {

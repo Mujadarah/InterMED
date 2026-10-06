@@ -3,6 +3,7 @@ import {
   catalogueFingerprint,
   sealCatalogue,
   validateReferentialIntegrity,
+  type DatasetVersionId,
 } from '@intermed/domain';
 import {
   document,
@@ -192,4 +193,102 @@ it('reports a duplicated canonical id', () => {
     sealCatalogue(emptyCatalogue({ products: [alpha, copy] })),
   );
   expect(issues.map((issue) => issue.code)).toContain('duplicate-id');
+});
+
+function sealWithPrevious(
+  previousVersionId:
+    | { readonly status: 'missing' }
+    | { readonly status: 'present'; readonly value: DatasetVersionId },
+) {
+  const base = emptyCatalogue();
+  const version = base.datasetVersions[0];
+  if (!version) throw new Error('synthetic catalogue has no dataset version');
+  return sealCatalogue({
+    ...base,
+    datasetVersions: [{ ...version, previousVersionId }],
+  });
+}
+
+it('accepts a previous dataset version id that is outside this snapshot', () => {
+  const prior = mustId('DatasetVersion', SOURCE_KEY, 'synthetic-prior');
+  const sealed = sealWithPrevious({ status: 'present', value: prior });
+  expect(sealed.datasetVersions[0]?.previousVersionId).toEqual({
+    status: 'present',
+    value: prior,
+  });
+  expect(prior).not.toBe(sealed.datasetVersions[0]?.id);
+  expect(validateReferentialIntegrity(sealed)).toEqual([]);
+});
+
+it('rejects a malformed previous dataset version id', () => {
+  const sealed = sealWithPrevious({
+    status: 'present',
+    value: 'not-a-dataset-version-id' as DatasetVersionId,
+  });
+  const versionId = sealed.datasetVersions[0]?.id;
+  expect(versionId).toBeDefined();
+  expect(validateReferentialIntegrity(sealed)).toEqual([
+    {
+      code: 'invalid-previous-dataset-version',
+      entity: 'DatasetVersion',
+      entityId: versionId,
+      field: 'previousVersionId',
+      detail:
+        'The previous dataset version id is not a DatasetVersion stable id.',
+    },
+  ]);
+});
+
+it('rejects a previous dataset version id that refers to itself', () => {
+  const base = emptyCatalogue();
+  const version = base.datasetVersions[0];
+  if (!version) throw new Error('synthetic catalogue has no dataset version');
+  const sealed = sealCatalogue({
+    ...base,
+    datasetVersions: [
+      {
+        ...version,
+        previousVersionId: { status: 'present', value: version.id },
+      },
+    ],
+  });
+  expect(validateReferentialIntegrity(sealed)).toEqual([
+    {
+      code: 'invalid-previous-dataset-version',
+      entity: 'DatasetVersion',
+      entityId: version.id,
+      field: 'previousVersionId',
+      detail: 'The previous dataset version id refers to this version.',
+    },
+  ]);
+});
+
+function timestampIssues(instant: string): readonly string[] {
+  const base = emptyCatalogue();
+  const version = base.datasetVersions[0];
+  if (!version) throw new Error('synthetic catalogue has no dataset version');
+  return validateReferentialIntegrity(
+    sealCatalogue({
+      ...base,
+      datasetVersions: [{ ...version, importedAt: instant }],
+    }),
+  )
+    .filter((issue) => issue.code === 'invalid-timestamp')
+    .map((issue) => `${issue.entity}:${issue.field}`);
+}
+
+it('rejects 31 February and 31 April as timestamps', () => {
+  expect(timestampIssues('2026-02-31T00:00:00Z')).toEqual([
+    'DatasetVersion:importedAt',
+  ]);
+  expect(timestampIssues('2026-04-31T00:00:00Z')).toEqual([
+    'DatasetVersion:importedAt',
+  ]);
+});
+
+it('rejects 29 February outside a leap year and accepts it in a leap year', () => {
+  expect(timestampIssues('2026-02-29T00:00:00Z')).toEqual([
+    'DatasetVersion:importedAt',
+  ]);
+  expect(timestampIssues('2024-02-29T00:00:00Z')).toEqual([]);
 });
