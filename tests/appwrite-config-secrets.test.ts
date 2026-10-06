@@ -82,6 +82,22 @@ describe('credential shape detector', () => {
     );
   });
 
+  it('flags a secret behind generic words such as version, id or name', () => {
+    const secret =
+      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    for (const source of [
+      `{"version": "1.0", "secret": "${secret}"}`,
+      `{"id": "1.0", "secret": "${secret}"}`,
+      `{"name": "1.0", "secret": "${secret}"}`,
+      `{"revision": "1.0", "secret": "${secret}"}`,
+      `{"version": "1.0", "apiKey": "${secret}"}`,
+      `{"name": "shell", "token": "${secret}"}`,
+      `version: '${secret}'`,
+      `revision = '${secret}'`,
+    ])
+      expect(findCredentialShape(source), source).not.toBeNull();
+  });
+
   it('never tolerates key shapes, even near a public value marker', () => {
     expect(
       findCredentialShape(
