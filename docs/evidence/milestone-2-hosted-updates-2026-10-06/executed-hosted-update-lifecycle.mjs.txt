@@ -1,0 +1,259 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
+import { fileURLToPath } from 'node:url';
+import { chromium, webkit, expect } from '@playwright/test';
+
+const origin = 'https://intermed-shell-test.appwrite.network';
+const output = new URL('./', import.meta.url);
+const revisionA = '1a8f09fe351510d3bb796f9e09cfe18d00d2fe48';
+const revisionB = '166f0d6dc2bdbdc25200246d4f7a184f71de175d';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const releases = {};
+for (const name of ['a', 'b']) {
+  const worker = await readFile(new URL(`build-${name}/sw.js`, output), 'utf8');
+  releases[name] = JSON.parse(worker.match(/^const SHELL = (.+);$/m)[1]);
+}
+assert.notEqual(releases.a.version, releases.b.version);
+const report = { origin, started: new Date().toISOString(), revisionA, revisionB, releases, hosted: [], browsers: [], events: [] };
+const save = () => writeFile(new URL('hosted-update-lifecycle.json', output), JSON.stringify(report, null, 2));
+const sessions = [];
+const ready = page => expect(page.getByText('Shell available offline', { exact: true })).toBeVisible({ timeout: 30000 });
+const revision = page => page.locator('meta[name="intermed-shell-revision"]');
+const snapshot = page => page.evaluate(async () => {
+  const registration = await navigator.serviceWorker.ready;
+  const status = await new Promise((resolve, reject) => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => reject(new Error('worker status timeout')), 5000);
+    channel.port1.onmessage = ({ data }) => { clearTimeout(timer); channel.port1.close(); resolve(data); };
+    navigator.serviceWorker.controller.postMessage({ type: 'SHELL_STATUS' }, [channel.port2]);
+  });
+  const cached = [];
+  for (const name of await caches.keys()) {
+    const cache = await caches.open(name);
+    const entries = [];
+    for (const request of await cache.keys()) {
+      const response = await cache.match(request);
+      const bytes = await response.arrayBuffer();
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      entries.push({ url: request.url, type: response.headers.get('content-type'), hash: [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2, '0')).join('') });
+    }
+    cached.push({ name, entries });
+  }
+  return { status, cached, secureContext: isSecureContext, scope: registration.scope, activeState: registration.active?.state, waitingState: registration.waiting?.state, revision: document.documentElement.dataset.intermedShellRevision };
+});
+const checkCaches = result => {
+  for (const cache of result.cached.filter(x => x.name.startsWith('intermed-public-shell-v1-'))) {
+    const release = Object.values(releases).find(x => cache.name.endsWith(x.version));
+    assert.ok(release, `unexpected shell cache ${cache.name}`);
+    assert.equal(cache.entries.length, release.assets.length);
+    for (const entry of cache.entries) {
+      const pin = release.assets.find(x => origin + x.url === entry.url);
+      assert.ok(pin, `prohibited cache entry ${entry.url}`);
+      assert.equal(entry.hash, pin.hash);
+    }
+  }
+};
+const seed = page => page.evaluate(async () => {
+  localStorage.setItem('synthetic-preference', 'retain-me');
+  await (await caches.open('synthetic-unrelated-cache')).put('/synthetic-canary', new Response('retain-me'));
+  await new Promise((done, reject) => {
+    const request = indexedDB.open('synthetic-persistence-canary', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('canary');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('canary', 'readwrite');
+      tx.objectStore('canary').put('retain-me', 'synthetic');
+      tx.oncomplete = () => { db.close(); done(); };
+      tx.onerror = () => reject(tx.error);
+    };
+  });
+});
+const canaries = page => page.evaluate(async () => ({
+  preference: localStorage.getItem('synthetic-preference'),
+  cache: await (await (await caches.open('synthetic-unrelated-cache')).match('/synthetic-canary'))?.text(),
+  indexedDB: await new Promise((done, reject) => {
+    const request = indexedDB.open('synthetic-persistence-canary', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const read = db.transaction('canary').objectStore('canary').get('synthetic');
+      read.onsuccess = () => { db.close(); done(read.result); };
+      read.onerror = () => reject(read.error);
+    };
+  }),
+}));
+const assertCanaries = async page => assert.deepEqual(await canaries(page), { preference: 'retain-me', cache: 'retain-me', indexedDB: 'retain-me' });
+async function hosted(name) {
+  const result = { build: name, observed: new Date().toISOString(), files: [] };
+  for (const path of ['/', '/status', '/sw.js', ...releases[name].assets.map(x => x.url)]) {
+    const response = await fetch(origin + path, { redirect: 'error' });
+    assert.equal(response.status, 200, path);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    const file = path === '/' || path === '/status' ? 'index.html' : path.slice(1);
+    assert.equal(hash(bytes), hash(await readFile(new URL(`build-${name}/${file}`, output))), path + ' deployed bytes');
+    result.files.push({ path, hash: hash(bytes), headers: Object.fromEntries(response.headers) });
+  }
+  report.hosted.push(result);
+  await save();
+}
+async function init() {
+  await hosted('a');
+  for (const [name, engine, viewport, mobile] of [
+    ['chromium-desktop', chromium, { width: 1280, height: 720 }, false],
+    ['webkit-phone', webkit, { width: 390, height: 664 }, true],
+    ['webkit-tablet', webkit, { width: 810, height: 1080 }, true],
+  ]) {
+    const browser = await engine.launch();
+    const context = await browser.newContext({ viewport, isMobile: mobile, hasTouch: mobile, ignoreHTTPSErrors: false, serviceWorkers: 'allow' });
+    const page = await context.newPage();
+    await page.goto(origin + '/status');
+    await ready(page);
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await expect(revision(page)).toHaveAttribute('content', revisionA);
+    await seed(page);
+    const other = await context.newPage();
+    await other.goto(origin);
+    await ready(other);
+    await expect(revision(other)).toHaveAttribute('content', revisionA);
+    const before = await snapshot(page);
+    assert.equal(before.status.version, releases.a.version);
+    checkCaches(before);
+    const record = { name, engineVersion: browser.version(), certificateBypass: false, before };
+    report.browsers.push(record);
+    sessions.push({ name, browser, context, page, other, record });
+    console.log(`READY_A ${name} ${releases.a.version}`);
+  }
+  await save();
+  console.log('READY_FOR_BUILD_B_DEPLOYMENT; commands: b, failed-c, restored-b, finish');
+}
+async function updateB() {
+  await hosted('b');
+  for (const session of sessions) {
+    const { name, page, other, record } = session;
+    const navigations = [];
+    const onNavigation = frame => { if (frame === other.mainFrame()) navigations.push(frame.url()); };
+    other.on('framenavigated', onNavigation);
+    await page.getByRole('button', { name: 'Check for shell update' }).click();
+    await expect(page.getByRole('button', { name: 'Update shell and reload' })).toBeVisible({ timeout: 60000 });
+    await expect(revision(page)).toHaveAttribute('content', revisionA);
+    const waiting = await snapshot(page);
+    assert.equal(waiting.status.workerVersion, releases.a.version);
+    assert.equal(waiting.waitingState, 'installed');
+    checkCaches(waiting);
+    await page.getByRole('button', { name: 'Update shell and reload' }).click();
+    await expect(page.getByText(/Close other InterMED tabs/)).toBeVisible();
+    await expect(revision(other)).toHaveAttribute('content', revisionA);
+    assert.deepEqual(navigations, []);
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-hosted-update-blocked.png`, output)), fullPage: true });
+    record.waiting = waiting;
+    record.otherTabWasNotReloaded = true;
+    await other.close();
+    await page.getByRole('button', { name: 'Update shell and reload' }).click();
+    await expect(revision(page)).toHaveAttribute('content', revisionB, { timeout: 30000 });
+    await expect(page.locator('html')).toHaveAttribute('data-intermed-shell-revision', revisionB);
+    await ready(page);
+    await expect(page).toHaveURL(origin + '/status');
+    const after = await snapshot(page);
+    assert.equal(after.status.workerVersion, releases.b.version);
+    assert.equal(after.status.version, releases.b.version);
+    assert.equal(after.waitingState, undefined);
+    assert.equal(after.cached.filter(x => x.name.startsWith('intermed-public-shell-v1-')).length, 2);
+    checkCaches(after);
+    await assertCanaries(page);
+    record.after = after;
+    record.canariesAfterUpdate = await canaries(page);
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-hosted-build-b.png`, output)), fullPage: true });
+    console.log(`PASS_UPDATE_B ${name} ${releases.b.version}`);
+    await save();
+  }
+}
+async function failedC() {
+  const worker = await fetch(origin + '/sw.js', { redirect: 'error' });
+  const source = await worker.text();
+  const releaseC = JSON.parse(source.match(/^const SHELL = (.+);$/m)[1]);
+  assert.notEqual(releaseC.version, releases.b.version);
+  const pin = releaseC.assets.find(x => x.url === '/icons/icon-512.png');
+  const corrupt = await fetch(origin + pin.url, { redirect: 'error' });
+  const corruptHash = hash(Buffer.from(await corrupt.arrayBuffer()));
+  assert.notEqual(corruptHash, pin.hash);
+  report.failedDeployment = { observed: new Date().toISOString(), release: releaseC, headers: Object.fromEntries(worker.headers), failedAsset: { path: pin.url, expected: pin.hash, actual: corruptHash, status: corrupt.status } };
+  for (const { name, page, context, record } of sessions) {
+    const before = await snapshot(page);
+    await page.getByRole('button', { name: 'Check for shell update' }).click();
+    await expect(page.getByRole('alert')).toContainText('Shell update failed', { timeout: 60000 });
+    await expect(page.getByRole('button', { name: 'Update shell and reload' })).toHaveCount(0);
+    await ready(page);
+    const failed = await snapshot(page);
+    assert.deepEqual(failed.cached, before.cached);
+    assert.equal(failed.status.workerVersion, releases.b.version);
+    assert.equal(failed.waitingState, undefined);
+    await assertCanaries(page);
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-hosted-failed-update.png`, output)), fullPage: true });
+    if (name === 'chromium-desktop') await context.setOffline(true);
+    await page.reload();
+    await ready(page);
+    await expect(revision(page)).toHaveAttribute('content', revisionB);
+    if (name === 'chromium-desktop') await context.setOffline(false);
+    record.failedUpdate = { snapshot: failed, canaries: await canaries(page), usableBReload: true, networkDisabled: name === 'chromium-desktop' };
+    console.log(`PASS_FAILED_C ${name}`);
+    await save();
+  }
+}
+async function restoredB() {
+  await hosted('b');
+  for (const { name, page, context, record } of sessions) {
+    await page.getByRole('button', { name: 'Check for shell update' }).click();
+    await page.reload();
+    await ready(page);
+    await expect(revision(page)).toHaveAttribute('content', revisionB);
+    await assertCanaries(page);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    const restored = await snapshot(page);
+    checkCaches(restored);
+    record.restoredB = restored;
+    if (name === 'chromium-desktop') {
+      await context.setOffline(true);
+      await page.goto(origin);
+      await expect(page.getByRole('heading', { name: 'A foundation for InterMED' })).toBeVisible();
+      await page.goto(origin + '/status');
+      await page.reload();
+      await ready(page);
+      await expect(revision(page)).toHaveAttribute('content', revisionB);
+      const next = await context.newPage();
+      await next.goto(origin + '/status');
+      await ready(next);
+      await expect(revision(next)).toHaveAttribute('content', revisionB);
+      await next.close();
+      await context.setOffline(false);
+      record.postUpdateOffline = 'Chromium test context network disabled: overview/status/reload/new tab';
+    }
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-hosted-restored-b.png`, output)), fullPage: true });
+    console.log(`PASS_RESTORED_B ${name}`);
+    await save();
+  }
+}
+try {
+  await init();
+  for await (const command of createInterface({ input: process.stdin, terminal: false })) {
+    if (command === 'b') await updateB();
+    else if (command === 'failed-c') await failedC();
+    else if (command === 'restored-b') await restoredB();
+    else if (command === 'finish') break;
+    else throw new Error(`Unknown test command ${command}`);
+    report.events.push({ command, completed: new Date().toISOString() });
+    await save();
+    console.log(`COMMAND_COMPLETE ${command}`);
+  }
+  report.finished = new Date().toISOString();
+  await save();
+} catch (error) {
+  report.failure = { message: String(error), stack: error.stack };
+  await save();
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  for (const { browser } of sessions) await browser.close();
+}

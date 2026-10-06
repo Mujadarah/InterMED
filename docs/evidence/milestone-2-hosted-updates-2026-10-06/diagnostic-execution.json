@@ -1,0 +1,10 @@
+{
+  "Command": ".tools/node-v24.21.0-win-x64/node.exe artifacts/appwrite-shell-test/hosted-update-lifecycle.mjs",
+  "TTY": true,
+  "Commands": ["b", "restored-b", "failed-c", "restored-b", "finish"],
+  "SourceSHA256": "1d7786e30a85e1477b8f754a4c7b4e528595007063b6498b0c1f7718aef597f3",
+  "BehaviorStages": "All staged assertions completed and report.finished was written",
+  "CommandExit": 1,
+  "Teardown": "Process remained alive after finish; interrupted with Ctrl+C after completed behavior stages. This is not a clean exit-0 command result.",
+  "DiscardedAttempt": "First non-TTY attempt closed command stdin. Build B was briefly activated, A restored, then the complete held-client workflow was restarted in a TTY. No transition result from the discarded attempt was counted."
+}

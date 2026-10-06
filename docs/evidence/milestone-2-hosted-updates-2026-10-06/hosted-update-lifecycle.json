@@ -1,0 +1,3229 @@
+{
+  "origin": "https://intermed-shell-test.appwrite.network",
+  "started": "2026-10-06T10:11:29.000Z",
+  "revisionA": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48",
+  "revisionB": "166f0d6dc2bdbdc25200246d4f7a184f71de175d",
+  "releases": {
+    "a": {
+      "version": "c1c54c74e5cd17fe68b4",
+      "assets": [
+        {
+          "url": "/assets/index-C7qxojui.js",
+          "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279",
+          "type": "javascript"
+        },
+        {
+          "url": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "type": "text/css"
+        },
+        {
+          "url": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/index.html",
+          "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+          "type": "text/html"
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "type": "application/manifest+json"
+        }
+      ]
+    },
+    "b": {
+      "version": "a508cce57d69382da112",
+      "assets": [
+        {
+          "url": "/assets/index-D-6c_OqW.js",
+          "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce",
+          "type": "javascript"
+        },
+        {
+          "url": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "type": "text/css"
+        },
+        {
+          "url": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/index.html",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "type": "text/html"
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "type": "application/manifest+json"
+        }
+      ]
+    }
+  },
+  "hosted": [
+    {
+      "build": "a",
+      "observed": "2026-10-06T10:11:29.000Z",
+      "files": [
+        {
+          "path": "/",
+          "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "503",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:30 GMT",
+            "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.34126400947571",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "miss",
+            "x-edge-runtime-cache": "miss",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281490.157523,VS0,VE369",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/status",
+          "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "503",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:31 GMT",
+            "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.43698692321777",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281491.569467,VS0,VE486",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/sw.js",
+          "hash": "72026b3e97783a6f21985519803c54bf6e2695940b2b0e7bb0d524f0afd5e320",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "4342",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:31 GMT",
+            "etag": "\"1040475303bed97810a9a41a50df8fb9\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.21215510368347",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281491.094653,VS0,VE215",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-C7qxojui.js",
+          "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "104135",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:31 GMT",
+            "etag": "\"36deb72c286e63cdd3a862c58977bc0e\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.23321104049683",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281491.348298,VS0,VE237",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "1043",
+            "content-type": "text/css; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:31 GMT",
+            "etag": "\"29ff6057f18a1eea6b7d23e2756824d5\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.19896483421326",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281492.674906,VS0,VE208",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "835",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:32 GMT",
+            "etag": "\"2e212d423353a830bd5acc93189f7374\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.15077805519104",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281492.920399,VS0,VE155"
+          }
+        },
+        {
+          "path": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "882",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:32 GMT",
+            "etag": "\"98e194dd359749a7f29736834aab9fa6\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.20423412322998",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281492.111562,VS0,VE208"
+          }
+        },
+        {
+          "path": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:32 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.1833930015564",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281492.357608,VS0,VE188"
+          }
+        },
+        {
+          "path": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:32 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.15531086921692",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281493.582536,VS0,VE159"
+          }
+        },
+        {
+          "path": "/index.html",
+          "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "503",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:32 GMT",
+            "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.17086100578308",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281493.778031,VS0,VE176",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "722",
+            "content-type": "application/manifest+json",
+            "date": "Tue, 06 Oct 2026 10:11:33 GMT",
+            "etag": "\"34f1bf7056d2c2dc0d7b5e5a03a69ad1\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.1718590259552",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220185-FRA",
+            "x-timer": "S1791281493.992549,VS0,VE179"
+          }
+        }
+      ]
+    },
+    {
+      "build": "b",
+      "observed": "2026-10-06T10:11:55.669Z",
+      "files": [
+        {
+          "path": "/",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:57 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.2440128326416",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "miss",
+            "x-edge-runtime-cache": "miss",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281517.797604,VS0,VE253",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/status",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:57 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.44799304008484",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281517.087310,VS0,VE451",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/sw.js",
+          "hash": "23c0f94cd6631bf90cbd2c4059146714e4bf0fb13c0d580867e75c83ea55e17f",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "4340",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:57 GMT",
+            "etag": "\"d76c24f1c77655844d86cc39af07b0d9\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.21212220191956",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281518.572142,VS0,VE216",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-D-6c_OqW.js",
+          "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "104131",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:58 GMT",
+            "etag": "\"ac4e7e8891c6293cfbcd9584170f2f2c\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.21782088279724",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281518.821456,VS0,VE221",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "1043",
+            "content-type": "text/css; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:58 GMT",
+            "etag": "\"29ff6057f18a1eea6b7d23e2756824d5\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.17952013015747",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281518.125611,VS0,VE183",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "835",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:58 GMT",
+            "etag": "\"2e212d423353a830bd5acc93189f7374\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.15243697166443",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281518.342115,VS0,VE155"
+          }
+        },
+        {
+          "path": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "882",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:58 GMT",
+            "etag": "\"98e194dd359749a7f29736834aab9fa6\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.14095306396484",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281519.533961,VS0,VE144"
+          }
+        },
+        {
+          "path": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:58 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.21024298667908",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281519.711756,VS0,VE213"
+          }
+        },
+        {
+          "path": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:11:59 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.1431999206543",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281519.959699,VS0,VE147"
+          }
+        },
+        {
+          "path": "/index.html",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:11:59 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.19823098182678",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281519.140766,VS0,VE201",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "722",
+            "content-type": "application/manifest+json",
+            "date": "Tue, 06 Oct 2026 10:11:59 GMT",
+            "etag": "\"34f1bf7056d2c2dc0d7b5e5a03a69ad1\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.19401597976685",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220181-FRA",
+            "x-timer": "S1791281519.375849,VS0,VE197"
+          }
+        }
+      ]
+    },
+    {
+      "build": "b",
+      "observed": "2026-10-06T10:22:49.297Z",
+      "files": [
+        {
+          "path": "/",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:50 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.19012308120728",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282170.454466,VS0,VE194",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/status",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:51 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.39032697677612",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282171.688713,VS0,VE424",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/sw.js",
+          "hash": "23c0f94cd6631bf90cbd2c4059146714e4bf0fb13c0d580867e75c83ea55e17f",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "4340",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:51 GMT",
+            "etag": "\"d76c24f1c77655844d86cc39af07b0d9\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.18901300430298",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282171.153409,VS0,VE195",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-D-6c_OqW.js",
+          "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "104131",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:51 GMT",
+            "etag": "\"ac4e7e8891c6293cfbcd9584170f2f2c\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.2044780254364",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282171.391983,VS0,VE208",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "1043",
+            "content-type": "text/css; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:51 GMT",
+            "etag": "\"29ff6057f18a1eea6b7d23e2756824d5\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.15182399749756",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282172.698136,VS0,VE156",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "835",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:22:52 GMT",
+            "etag": "\"2e212d423353a830bd5acc93189f7374\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.18385291099548",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282172.895568,VS0,VE187"
+          }
+        },
+        {
+          "path": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "882",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:22:52 GMT",
+            "etag": "\"98e194dd359749a7f29736834aab9fa6\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.2237560749054",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282172.124126,VS0,VE232"
+          }
+        },
+        {
+          "path": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:22:52 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.20784616470337",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282172.396228,VS0,VE213"
+          }
+        },
+        {
+          "path": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:22:52 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.2137758731842",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282173.648914,VS0,VE220"
+          }
+        },
+        {
+          "path": "/index.html",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:22:53 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.14873003959656",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282173.909480,VS0,VE152",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "722",
+            "content-type": "application/manifest+json",
+            "date": "Tue, 06 Oct 2026 10:22:53 GMT",
+            "etag": "\"34f1bf7056d2c2dc0d7b5e5a03a69ad1\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.1530590057373",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220152-FRA",
+            "x-timer": "S1791282173.102288,VS0,VE156"
+          }
+        }
+      ]
+    },
+    {
+      "build": "b",
+      "observed": "2026-10-06T10:25:42.874Z",
+      "files": [
+        {
+          "path": "/",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:44 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.18064117431641",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282344.014263,VS0,VE183",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/status",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:44 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.38189506530762",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282344.231681,VS0,VE385",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/sw.js",
+          "hash": "23c0f94cd6631bf90cbd2c4059146714e4bf0fb13c0d580867e75c83ea55e17f",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "4340",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:44 GMT",
+            "etag": "\"d76c24f1c77655844d86cc39af07b0d9\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.22153306007385",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282345.654281,VS0,VE224",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-D-6c_OqW.js",
+          "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "104131",
+            "content-type": "text/javascript; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:45 GMT",
+            "etag": "\"ac4e7e8891c6293cfbcd9584170f2f2c\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.1952691078186",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282345.913380,VS0,VE199",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "1043",
+            "content-type": "text/css; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:45 GMT",
+            "etag": "\"29ff6057f18a1eea6b7d23e2756824d5\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.14400005340576",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282345.195359,VS0,VE147",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "835",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:25:45 GMT",
+            "etag": "\"2e212d423353a830bd5acc93189f7374\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.17843103408813",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282345.377067,VS0,VE181"
+          }
+        },
+        {
+          "path": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "882",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:25:45 GMT",
+            "etag": "\"98e194dd359749a7f29736834aab9fa6\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.33963298797607",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282346.593104,VS0,VE348"
+          }
+        },
+        {
+          "path": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:25:46 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.21592092514038",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282346.977684,VS0,VE218"
+          }
+        },
+        {
+          "path": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "3359",
+            "content-type": "image/png",
+            "date": "Tue, 06 Oct 2026 10:25:46 GMT",
+            "etag": "\"ca84f4481f82817981efed20820555d0\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.17472982406616",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282346.230184,VS0,VE221"
+          }
+        },
+        {
+          "path": "/index.html",
+          "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-encoding": "br",
+            "content-length": "505",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Tue, 06 Oct 2026 10:25:46 GMT",
+            "etag": "\"dec06756e51618d8d743eb857d608838\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.19297313690186",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282346.488001,VS0,VE196",
+            "x-utopia-compression": "true"
+          }
+        },
+        {
+          "path": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "headers": {
+            "accept-ranges": "bytes",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "connection": "keep-alive",
+            "content-length": "722",
+            "content-type": "application/manifest+json",
+            "date": "Tue, 06 Oct 2026 10:25:46 GMT",
+            "etag": "\"34f1bf7056d2c2dc0d7b5e5a03a69ad1\"",
+            "server": "swoole-http-server",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "via": "1.1 varnish",
+            "x-appwrite-deployment-id": "6ac4c927da19bfea3fbf",
+            "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+            "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+            "x-appwrite-traffic-type": "site",
+            "x-cache": "MISS",
+            "x-cache-hits": "0",
+            "x-content-type-options": "nosniff",
+            "x-debug-speed": "0.16394901275635",
+            "x-edge-location": "fra",
+            "x-edge-rule-cache": "hit",
+            "x-edge-runtime-cache": "hit",
+            "x-served-by": "cache-fra-etou8220168-FRA",
+            "x-timer": "S1791282347.720142,VS0,VE167"
+          }
+        }
+      ]
+    }
+  ],
+  "browsers": [
+    {
+      "name": "chromium-desktop",
+      "engineVersion": "153.0.8010.12",
+      "certificateBypass": false,
+      "before": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "waiting": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "waitingState": "installed",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "otherTabWasNotReloaded": true,
+      "after": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "canariesAfterUpdate": {
+        "preference": "retain-me",
+        "cache": "retain-me",
+        "indexedDB": "retain-me"
+      },
+      "restoredB": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "postUpdateOffline": "Chromium test context network disabled: overview/status/reload/new tab",
+      "failedUpdate": {
+        "snapshot": {
+          "status": {
+            "ready": true,
+            "storageAccessible": true,
+            "version": "a508cce57d69382da112",
+            "workerVersion": "a508cce57d69382da112",
+            "fallback": false
+          },
+          "cached": [
+            {
+              "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+                }
+              ]
+            },
+            {
+              "name": "synthetic-unrelated-cache",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                  "type": "text/plain;charset=UTF-8",
+                  "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+                }
+              ]
+            },
+            {
+              "name": "intermed-public-shell-v1-a508cce57d69382da112",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+                }
+              ]
+            }
+          ],
+          "secureContext": true,
+          "scope": "https://intermed-shell-test.appwrite.network/",
+          "activeState": "activated",
+          "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+        },
+        "canaries": {
+          "preference": "retain-me",
+          "cache": "retain-me",
+          "indexedDB": "retain-me"
+        },
+        "usableBReload": true,
+        "networkDisabled": true
+      }
+    },
+    {
+      "name": "webkit-phone",
+      "engineVersion": "26.6",
+      "certificateBypass": false,
+      "before": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "waiting": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "waitingState": "installed",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "otherTabWasNotReloaded": true,
+      "after": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activating",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "canariesAfterUpdate": {
+        "preference": "retain-me",
+        "cache": "retain-me",
+        "indexedDB": "retain-me"
+      },
+      "restoredB": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "failedUpdate": {
+        "snapshot": {
+          "status": {
+            "ready": true,
+            "storageAccessible": true,
+            "version": "a508cce57d69382da112",
+            "workerVersion": "a508cce57d69382da112",
+            "fallback": false
+          },
+          "cached": [
+            {
+              "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                }
+              ]
+            },
+            {
+              "name": "synthetic-unrelated-cache",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                  "type": "text/plain;charset=UTF-8",
+                  "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+                }
+              ]
+            },
+            {
+              "name": "intermed-public-shell-v1-a508cce57d69382da112",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                }
+              ]
+            }
+          ],
+          "secureContext": true,
+          "scope": "https://intermed-shell-test.appwrite.network/",
+          "activeState": "activated",
+          "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+        },
+        "canaries": {
+          "preference": "retain-me",
+          "cache": "retain-me",
+          "indexedDB": "retain-me"
+        },
+        "usableBReload": true,
+        "networkDisabled": false
+      }
+    },
+    {
+      "name": "webkit-tablet",
+      "engineVersion": "26.6",
+      "certificateBypass": false,
+      "before": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "waiting": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "c1c54c74e5cd17fe68b4",
+          "workerVersion": "c1c54c74e5cd17fe68b4",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "waitingState": "installed",
+        "revision": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48"
+      },
+      "otherTabWasNotReloaded": true,
+      "after": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activating",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "canariesAfterUpdate": {
+        "preference": "retain-me",
+        "cache": "retain-me",
+        "indexedDB": "retain-me"
+      },
+      "restoredB": {
+        "status": {
+          "ready": true,
+          "storageAccessible": true,
+          "version": "a508cce57d69382da112",
+          "workerVersion": "a508cce57d69382da112",
+          "fallback": false
+        },
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          },
+          {
+            "name": "synthetic-unrelated-cache",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                "type": "text/plain;charset=UTF-8",
+                "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+              }
+            ]
+          },
+          {
+            "name": "intermed-public-shell-v1-a508cce57d69382da112",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                "type": "text/javascript; charset=utf-8",
+                "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ],
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "activeState": "activated",
+        "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+      },
+      "failedUpdate": {
+        "snapshot": {
+          "status": {
+            "ready": true,
+            "storageAccessible": true,
+            "version": "a508cce57d69382da112",
+            "workerVersion": "a508cce57d69382da112",
+            "fallback": false
+          },
+          "cached": [
+            {
+              "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                }
+              ]
+            },
+            {
+              "name": "synthetic-unrelated-cache",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/synthetic-canary",
+                  "type": "text/plain;charset=UTF-8",
+                  "hash": "1bb047266329da9f7dfa7057c59fb2ca11a60e52544855a5a1c6791506f8f133"
+                }
+              ]
+            },
+            {
+              "name": "intermed-public-shell-v1-a508cce57d69382da112",
+              "entries": [
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-D-6c_OqW.js",
+                  "type": "text/javascript; charset=utf-8",
+                  "hash": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                  "type": "text/css; charset=utf-8",
+                  "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                  "type": "image/png",
+                  "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                  "type": "image/png",
+                  "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                  "type": "image/png",
+                  "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/index.html",
+                  "type": "text/html; charset=utf-8",
+                  "hash": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+                },
+                {
+                  "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                  "type": "application/manifest+json",
+                  "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+                }
+              ]
+            }
+          ],
+          "secureContext": true,
+          "scope": "https://intermed-shell-test.appwrite.network/",
+          "activeState": "activated",
+          "revision": "166f0d6dc2bdbdc25200246d4f7a184f71de175d"
+        },
+        "canaries": {
+          "preference": "retain-me",
+          "cache": "retain-me",
+          "indexedDB": "retain-me"
+        },
+        "usableBReload": true,
+        "networkDisabled": false
+      }
+    }
+  ],
+  "events": [
+    {
+      "command": "b",
+      "completed": "2026-10-06T10:12:13.839Z"
+    },
+    {
+      "command": "restored-b",
+      "completed": "2026-10-06T10:22:58.924Z"
+    },
+    {
+      "command": "failed-c",
+      "completed": "2026-10-06T10:25:12.490Z"
+    },
+    {
+      "command": "restored-b",
+      "completed": "2026-10-06T10:25:49.166Z"
+    }
+  ],
+  "failedDeployment": {
+    "observed": "2026-10-06T10:25:02.375Z",
+    "release": {
+      "version": "40d15288e5b5262502f8",
+      "assets": [
+        {
+          "url": "/assets/index-Ck4ew-iC.js",
+          "hash": "39bf53e26facdb3003eece8ee54a66f1ffd6226d87652a15e7b519d62362a030",
+          "type": "javascript"
+        },
+        {
+          "url": "/assets/index-kdzZSpSC.css",
+          "hash": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+          "type": "text/css"
+        },
+        {
+          "url": "/icons/apple-touch-180.png",
+          "hash": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-192.png",
+          "hash": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/icon-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/icons/maskable-512.png",
+          "hash": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+          "type": "image/png"
+        },
+        {
+          "url": "/index.html",
+          "hash": "6120cbdafddeafdb2bc9e8066ebc8b42638f41a53092237236601fbd4daddcfa",
+          "type": "text/html"
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "hash": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+          "type": "application/manifest+json"
+        }
+      ]
+    },
+    "headers": {
+      "accept-ranges": "bytes",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "connection": "keep-alive",
+      "content-encoding": "br",
+      "content-length": "4338",
+      "content-type": "text/javascript; charset=utf-8",
+      "date": "Tue, 06 Oct 2026 10:25:02 GMT",
+      "etag": "\"234013765580ec12b7a3e3097b28143d\"",
+      "server": "swoole-http-server",
+      "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "via": "1.1 varnish",
+      "x-appwrite-deployment-id": "6ac4cc59ae6794798ac7",
+      "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+      "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+      "x-appwrite-traffic-type": "site",
+      "x-cache": "MISS",
+      "x-cache-hits": "0",
+      "x-content-type-options": "nosniff",
+      "x-debug-speed": "0.17348599433899",
+      "x-edge-location": "fra",
+      "x-edge-rule-cache": "hit",
+      "x-edge-runtime-cache": "hit",
+      "x-served-by": "cache-fra-etou8220029-FRA",
+      "x-timer": "S1791282303.804854,VS0,VE178",
+      "x-utopia-compression": "true"
+    },
+    "failedAsset": {
+      "path": "/icons/icon-512.png",
+      "expected": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+      "actual": "456591be6e7e485b2c11118ee16562aac327492c2b7ebd30b1977139e9cab88b",
+      "status": 200
+    }
+  },
+  "finished": "2026-10-06T10:26:22.344Z"
+}
