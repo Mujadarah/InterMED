@@ -48,6 +48,10 @@ test('keyboard shell update waits, blocks other tabs, then reloads on request', 
   page,
   context,
 }) => {
+  // Each key press and focus probe is a separate browser round trip. On the
+  // Windows CI runner, WebKit tablet took 23.7s and then 31.2s here, against
+  // 8-12s for the equivalent click-driven test, so this test gets 3x the budget.
+  test.slow();
   const server = await productionServer();
   try {
     await page.goto(server.url + '/status');
