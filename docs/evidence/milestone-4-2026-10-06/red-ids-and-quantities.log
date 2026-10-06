@@ -1,0 +1,194 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+
+ ❯ tests/domain/ids-and-quantities.test.ts (8 tests | 8 failed) 8ms
+   × derives the same canonical product id for the same source key 5ms
+   × does not collapse distinct source keys that share a commercial name 1ms
+   × keeps product and ingredient ids distinct for one source key 0ms
+   × rejects a blank source key instead of inventing an id 1ms
+   × round-trips a derived id back to its source key 0ms
+   × keeps a decimal comma verbatim and normalizes only an unambiguous token 0ms
+   × does not choose a value for an ambiguous thousands-or-decimal token 0ms
+   × preserves an unrecognized unit token and does not convert it 0ms
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  23:45:05
+   Duration  149ms (transform 16ms, setup 0ms, import 28ms, tests 8ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > derives the same canonical product id for the same source key
+AssertionError: expected { ok: false, issues: [] } to deeply equal { ok: true, id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "ok": true,
++   "issues": [],
++   "ok": false,
+  }
+
+ ❯ tests/domain/ids-and-quantities.test.ts:20:17
+     18|     'SP-FICT-1',
+     19|   );
+     20|   expect(first).toEqual({ ok: true, id: second.ok ? second.id : '' });
+       |                 ^
+     21|   expect(first.ok && second.ok && first.id === second.id).toBe(true);
+     22| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > does not collapse distinct source keys that share a commercial name
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/domain/ids-and-quantities.test.ts:35:18
+     33|     'SP-SYN-20',
+     34|   );
+     35|   expect(low.ok).toBe(true);
+       |                  ^
+     36|   expect(high.ok).toBe(true);
+     37|   if (!low.ok || !high.ok) return;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > keeps product and ingredient ids distinct for one source key
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/domain/ids-and-quantities.test.ts:54:71
+     52|     'ROW-1',
+     53|   );
+     54|   expect(product.ok && ingredient.ok && product.id !== ingredient.id).…
+       |                                                                       ^
+     55|     true,
+     56|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > rejects a blank source key instead of inventing an id
+AssertionError: expected { ok: false, issues: [] } to deeply equal { ok: false, issues: [ { …(2) } ] }
+
+- Expected
++ Received
+
+  {
+-   "issues": [
+-     {
+-       "code": "empty-source-key",
+-       "field": "sourceRecordKey",
+-     },
+-   ],
++   "issues": [],
+    "ok": false,
+  }
+
+ ❯ tests/domain/ids-and-quantities.test.ts:60:74
+     58|
+     59| it('rejects a blank source key instead of inventing an id', () => {
+     60|   expect(deriveStableId('MedicationProduct', 'source.synthetic', '   '…
+       |                                                                          ^
+     61|     {
+     62|       ok: false,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > round-trips a derived id back to its source key
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/domain/ids-and-quantities.test.ts:70:22
+     68| it('round-trips a derived id back to its source key', () => {
+     69|   const derived = deriveStableId('DosageForm', 'source.synthetic', 'FO…
+     70|   expect(derived.ok).toBe(true);
+       |                      ^
+     71|   if (!derived.ok) return;
+     72|   expect(parseStableId('DosageForm', derived.id)).toEqual({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > keeps a decimal comma verbatim and normalizes only an unambiguous token
+AssertionError: expected { status: 'missing' } to deeply equal { status: 'present', value: '0.5' }
+
+- Expected
++ Received
+
+  {
+-   "status": "present",
+-   "value": "0.5",
++   "status": "missing",
+  }
+
+ ❯ tests/domain/ids-and-quantities.test.ts:81:40
+     79|
+     80| it('keeps a decimal comma verbatim and normalizes only an unambiguous …
+     81|   expect(normalizeDecimalToken('0,5')).toEqual({
+       |                                        ^
+     82|     status: 'present',
+     83|     value: '0.5',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > does not choose a value for an ambiguous thousands-or-decimal token
+AssertionError: expected { status: 'missing' } to deeply equal { status: 'unknown', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reason": "ambiguous-decimal",
+-   "status": "unknown",
++   "status": "missing",
+  }
+
+ ❯ tests/domain/ids-and-quantities.test.ts:92:42
+     90|
+     91| it('does not choose a value for an ambiguous thousands-or-decimal toke…
+     92|   expect(normalizeDecimalToken('1.000')).toEqual({
+       |                                          ^
+     93|     status: 'unknown',
+     94|     reason: 'ambiguous-decimal',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/domain/ids-and-quantities.test.ts > preserves an unrecognized unit token and does not convert it
+AssertionError: expected { status: 'missing' } to deeply equal { status: 'invalid', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "reason": "not-a-unit-token",
+-   "sourceText": "xyz-not-a-unit",
+-   "status": "invalid",
++   "status": "missing",
+  }
+
+ ❯ tests/domain/ids-and-quantities.test.ts:103:70
+    101|
+    102| it('preserves an unrecognized unit token and does not convert it', () …
+    103|   expect(assessUnit({ status: 'present', value: 'xyz-not-a-unit' })).t…
+       |                                                                      ^
+    104|     status: 'invalid',
+    105|     sourceText: 'xyz-not-a-unit',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
