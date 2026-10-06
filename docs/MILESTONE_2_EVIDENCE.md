@@ -210,3 +210,12 @@ The reproducible version-capture steps and manual test sequence are in [DEVELOPM
 4. **Final device/browser matrix:** record actual versions, outcomes and screenshots before full acceptance/public clinical release. These gaps remain open, not waived.
 
 Milestone 3 is **handoff only, not implemented**. Start its infrastructure work after Milestone 2 acceptance evidence/gaps are addressed and the maintainer supplies separate provisioning/deployment authority. Record isolated Appwrite environment/region/product decisions, reviewed public-read/private-write permissions, Sites branch/root/build/output/deep-link settings and rollback. Reuse injected boundaries; keep public configuration free of server keys and preserve independent future dataset/schema versions. Do not treat this PR as authorization to provision, publish or implement the medication model/persistence.
+
+## Follow-up validation snapshot - 2026-10-06
+
+This records checks completed after the documentation-format correction, against exact head `f29442a1e897687a24b1042e2d10c89df9ee882d`. It is a dated snapshot; checks for a later commit must be recorded against that later SHA.
+
+- Exact-head GitHub Actions run [37399038974](https://github.com/Mujadarah/InterMED/actions/runs/37399038974) passed on Ubuntu 24.04 and Windows 2025. Both jobs used Node `24.21.0` and npm `11.19.0`; `npm run check` passed, including formatting, lint, typecheck, **24 unit/component tests**, **126 production-browser tests**, and **zero audit vulnerabilities**. Chromium desktop and WebKit phone/tablet projects remained present. This is automated CI evidence, not physical-device or trusted-host acceptance.
+- The exact-head Greptile check completed successfully with 49 files reviewed and zero comments. A live PR review-thread query found all four existing inline threads resolved and outdated.
+- CodeRabbit's exact-head status was green but explicitly **review skipped: manual review required for this OSS repository**. It is not completed review evidence. DeepSource's passing check was **Secrets only**; it is not JavaScript analysis or AI review.
+- PR #4 remained open and unmerged. The owner-reported iPhone and Windows device checks, exact device/browser versions, Android/iPad coverage, and an existing trusted hosted HTTPS origin were still unavailable or unverified. No actual-device screenshots or installation/offline/update observations were added; the gates in the matrix above remain open.
