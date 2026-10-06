@@ -77,6 +77,8 @@ This checklist is for an operator running the app on a real target device. Recor
 
 ### Record device, browser and build identity
 
+**Owner-run iPhone snapshot, 2026-10-06:** [the dated screenshots and limits](MILESTONE_2_EVIDENCE.md#owner-run-iphone-offline-and-reconnection-snapshot---2026-10-06) now record owner-confirmed offline close/reopen from the Home Screen icon, visible shell identity and reconnection feedback. They do not substitute for the remaining install-flow capture, direct deep-link/reload, exact-version, accessibility or two-build update checks below.
+
 Before testing, record the date/time and timezone, model, exact OS version and build, browser version, and whether the app is in a tab or installed standalone. Record only version fields; do not capture serial numbers or device identifiers.
 
 - **iPhone/iPad:** open Settings > General > About > iOS Version or iPadOS Version. Record the complete version and build shown after opening that row. Safari does not expose a separate app-version page in Settings. In a normal Safari tab, a temporary bookmarklet can display the full user-agent string locally: create a bookmark, edit its URL to `javascript:prompt('Copy full Safari user agent',navigator.userAgent)`, open the app origin in Safari, then run the bookmark. Record the complete string and its `Version/...` field if present; the `AppleWebKit/...` token is an engine identifier, not the Safari version. The bookmarklet reads the current page only and sends nothing. If iOS blocks it and no Safari Web Inspector is available, mark the Safari version unverified instead of inferring it.
