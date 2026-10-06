@@ -108,7 +108,7 @@ Scope: MVP, milestones 9–10.
 Scope: MVP, milestones 2 and 6.
 
 66. Local reference search/details, favorites/recent and licensed downloaded interactions shall work after a successful compatible shell/data download.
-67. First-ever offline use shall show download-required/unavailable status instead of implying an empty complete catalogue.
+67. Once the application shell is cached but no compatible medication reference dataset has been downloaded, the app shall show download-required/unavailable status instead of implying an empty complete catalogue. A first-ever offline visit to a never-visited origin has no cached app code, so the browser shows its own offline/network error and InterMED cannot render; the app shall not claim otherwise. (Amended by maintainer decision, 2026-10-06.)
 68. The application shall acknowledge quota, eviction, private-mode and installed-versus-tab storage differences; persistent-storage requests are best effort.
 69. Storage failures and missing datasets shall have explicit recovery paths; permanent retention and built-in IndexedDB encryption shall not be claimed.
 70. Application-shell and clinical-dataset versions shall be separate with tested compatibility; SW activation shall not interrupt unfinished work.

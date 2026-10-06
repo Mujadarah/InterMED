@@ -46,7 +46,7 @@ Exercise concurrent writers, old readers, multitab pointer consistency, blocked/
 
 ## PWA/service worker
 
-Verify manifest/icons/scope/standalone installability, first-ever offline fallback, post-download offline launch/search/detail/favorites/checker, uncached regulator links, update prompt, SW replacement and stale shell recovery. Test new shell with old data and vice versa, safe reload boundaries and rollback without database wiping.
+Verify manifest/icons/scope/standalone installability, first-ever offline browser error and cached-shell/no-dataset download-required status (amended R67), post-download offline launch/search/detail/favorites/checker, uncached regulator links, update prompt, SW replacement and stale shell recovery. Test new shell with old data and vice versa, safe reload boundaries and rollback without database wiping.
 
 Cache tests prove privileged/authenticated requests and server secrets are not stored. Installed and tab modes may have distinct storage: verify onboarding/downloads and do not assume favorites automatically transfer.
 

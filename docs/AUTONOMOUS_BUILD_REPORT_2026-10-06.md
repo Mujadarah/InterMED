@@ -2,6 +2,8 @@
 
 Date: 2026-10-06, Europe/Bucharest. This run continued the existing Milestone 2 development shell. It added keyboard regression coverage and refreshed verification without changing application behavior. Full Milestone 2 acceptance remains blocked; Milestone 3 was not started.
 
+**Later maintainer decision, 2026-10-06:** Milestone 2 was accepted for development, the open gates moved to the Milestone 12 checklist, and R67 was amended, resolving defect #2 below; see [the decision record](MILESTONE_2_EVIDENCE.md#owner-acceptance-decision-2026-10-06).
+
 ## Repository
 
 Starting and ending branch/worktree: `codex/pwa-milestone-2-shell` at `D:/Proiecte AI/InterMED`.

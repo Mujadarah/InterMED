@@ -317,4 +317,8 @@ This table describes planning changes, not implementation completion. “Retaine
 - Original 295/297/298: anonymous reference release first, operator costs explicit, original longitudinal workflow retained for patient phase.
 - Original 111: no autonomous raw-image interpretation claim without separate specification/validation.
 
+## Maintainer amendments
+
+- Current 67 (new requirement, no original ID): amended by maintainer decision on 2026-10-06. A first-ever offline visit to a never-visited origin shows the browser's native offline error because no app code is cached; once the shell is cached but no medication dataset has been downloaded, the app shows download-required/unavailable status. The number is unchanged; see [REQUIREMENTS.md](REQUIREMENTS.md).
+
 Unchanged clinical intent includes optional identifiers, symptoms/diagnoses/procedures, oncology, all vitals/labs/trends, microbiology/devices/reports, OCR confirmation, patient medications/allergies, pathways, evidence, calculators, daily review, AI constraints, backup/export and regulatory preparation. Requirement movement does not authorize implementation before its gate. Retired native requirements must not be reintroduced as a future implementation option.

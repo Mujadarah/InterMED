@@ -6,7 +6,7 @@ This is evidence for **Milestone 2 only**, under [CODEX_BUILD_PLAN](../plan/CODE
 
 **Historical scope note:** the no-deployment statement above describes the original implementation scope. The owner's later authorization permitted isolated static Appwrite Sites hosting and the subsequent bounded update exercise recorded below. The application still has no backend connection or clinical feature. [The latest hosting snapshot](#csp-build-e-hosted-lifecycle-and-offline-restart---2026-10-06) identifies the currently active build (E). [The earlier two-build update record](#hosted-two-build-update-failure-and-restoration---2026-10-06) remains historical evidence for build B; earlier deployment/device records retain their original identities.
 
-Implementation/testing began on **2026-10-01**; work resumed on **2026-10-06 Europe/Bucharest**. Local automated evidence is recorded below. **Full target-device/installed-mode/trusted-hosted-HTTPS acceptance is still open.** No merge, tag, release, protection/reviewer change or acceptance waiver is part of this work. Milestone 1 evidence and the planning corpus remain historical snapshots.
+Implementation/testing began on **2026-10-01**; work resumed on **2026-10-06 Europe/Bucharest**. Local automated evidence is recorded below. **Current status (2026-10-06): accepted for development by maintainer decision; the remaining gates moved to the Milestone 12 pre-release checklist and are not waived** (see [the decision record](#owner-acceptance-decision-2026-10-06)). Earlier dated sections that call acceptance open are preserved as historical snapshots. No merge, tag, release, protection/reviewer change or acceptance waiver is part of this work. Milestone 1 evidence and the planning corpus remain historical snapshots.
 
 ## Reverified starting point and document inventory
 
@@ -446,3 +446,19 @@ Still open:
 ## Autonomous continuation - 2026-10-06
 
 [The autonomous build report](AUTONOMOUS_BUILD_REPORT_2026-10-06.md) records a bounded keyboard-update regression, independent review, fresh local quality checks, current hosted-E observation and the remaining human/hosting/requirements gates. Application behavior and the active test deployment were unchanged. This continuation does not claim full Milestone 2 acceptance or start Milestone 3.
+
+## Owner acceptance decision (2026-10-06)
+
+The owner (repository maintainer) gave these decisions in chat on 2026-10-06, Europe/Bucharest. They are maintainer decisions, not agent observations. No application, test, worker or deployment byte changed.
+
+**Milestone 2 is accepted for development.** The basis is the owner-confirmed iPhone/Windows installed, offline close/reopen and A→B update results, kept distinct from the agent-observed automated and instrumented hosted evidence above. The open gates are **not waived**. They move to the [Milestone 12 pre-release checklist](../plan/CODEX_BUILD_PLAN.md#milestone-12--mvp-hardening) and remain required before any public clinical release:
+
+1. Reviewed security **response** headers on a header-capable host/edge: CSP header including `frame-ancestors`, CSP on `/sw.js`, Referrer-Policy and Permissions-Policy. The production meta CSP stays.
+2. iPad Safari and Android Chrome coverage.
+3. VoiceOver/Narrator/screen-reader checks and full safe-area/orientation/input checks.
+4. Physical-device direct deep-link/reload, multitab, failed-update (corrupted C) rejection and storage-eviction behavior.
+5. Hosted corrupted-C rejection repeated against build E.
+
+**R67 is amended.** A first-ever offline visit to a never-visited origin shows the browser's native offline error, because no app code is cached and InterMED cannot render. Once the shell is cached but medication reference data has not been downloaded, the app shall show download-required/unavailable status instead of implying an empty complete catalogue. The number is unchanged. This resolves the first-offline wording discrepancy in the [autonomous build report](AUTONOMOUS_BUILD_REPORT_2026-10-06.md); the existing fresh-offline evidence matches the amended text.
+
+**Next work and authority.** Milestone 3 may begin. The owner directed Milestone 4 (pure TypeScript medication domain model with synthetic fixtures) alongside Milestone 3 Appwrite configuration/schema **as code** behind an injected backend-client interface; this is an owner-authorized ordering deviation. Live Appwrite provisioning/deployment requires fresh explicit approval. The owner merges PRs; agents never merge. This section supersedes the current-status statements in earlier dated sections, including the [Milestone 3 handoff](#remaining-acceptance-gates-and-milestone-3-handoff) start condition, which remain as historical records.
