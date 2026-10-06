@@ -82,9 +82,29 @@ test('a usable waiting recovery update survives fallback probes and page reload 
     );
     server.revision('c');
     await waiting(recovered);
-    await recovered.evaluate(() => window.dispatchEvent(new Event('focus')));
-    // Await the completed status probe, rather than winning a race against it.
-    await recovered.waitForTimeout(150);
+    // Observe the adapter's actual focus-probe reply. Separate worker messages
+    // can complete concurrently, so a second round trip is not a barrier.
+    await recovered.evaluate(
+      () =>
+        new Promise<void>((done) => {
+          const OriginalChannel = window.MessageChannel;
+          window.MessageChannel = class extends OriginalChannel {
+            constructor() {
+              super();
+              this.port1.addEventListener(
+                'message',
+                () => {
+                  // Let the adapter's handler, promise continuation and render run.
+                  queueMicrotask(() => requestAnimationFrame(() => done()));
+                },
+                { once: true },
+              );
+            }
+          };
+          window.dispatchEvent(new Event('focus'));
+          window.MessageChannel = OriginalChannel;
+        }),
+    );
     await expect(
       recovered.getByRole('button', { name: 'Update shell and reload' }),
     ).toBeVisible();
