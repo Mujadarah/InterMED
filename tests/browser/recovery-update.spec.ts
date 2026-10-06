@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { productionServer } from './production-server';
 
+/** Open a production route and await reported readiness plus an actual controlling worker. */
 async function ready(page: Page, url: string) {
   await page.goto(url);
   await expect(
@@ -8,12 +9,14 @@ async function ready(page: Page, url: string) {
   ).toBeVisible();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 }
+/** Request a real build update and await its explicit activation control. */
 async function waiting(page: Page) {
   await page.getByRole('button', { name: 'Check for shell update' }).click();
   await expect(
     page.getByRole('button', { name: 'Update shell and reload' }),
   ).toBeVisible();
 }
+/** Consent to activation and confirm that the requested build loaded with ready storage. */
 async function activate(page: Page, revision: string) {
   await page.getByRole('button', { name: 'Update shell and reload' }).click();
   await expect(
@@ -23,6 +26,7 @@ async function activate(page: Page, revision: string) {
     page.getByText('Shell available offline', { exact: true }),
   ).toBeVisible();
 }
+/** Remove only non-retained test shell caches, then close the tab to allow native activation. */
 async function evictWaiting(page: Page, retain: string[]) {
   await page.evaluate(async (versions) => {
     for (const name of await caches.keys())

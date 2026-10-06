@@ -10,6 +10,7 @@ const availability = {
   unavailable: 'Shell unavailable offline',
 };
 
+/** Present live shell readiness and explicit recovery/update actions from the injected controller. */
 export function ShellStatus({ shell }: { shell: ShellController }) {
   const state = useSyncExternalStore(shell.subscribe, shell.getSnapshot);
   const update = state.update === 'available' || state.update === 'blocked';

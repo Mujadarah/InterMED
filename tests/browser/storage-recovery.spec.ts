@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { productionServer } from './production-server';
 
+/** Await the test worker's acknowledgement before testing active or waiting storage denial. */
 async function storage(
   page: Page,
   target: 'active' | 'waiting',

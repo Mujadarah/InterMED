@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 
 // Real Vite builds A/B for updates, plus C for retention/consent regressions.
 // Metadata differs by release; lifecycle tests use the emitted workers.
+/** Build independent public A/B/C HTML, JavaScript and worker releases; fail setup on build errors. */
 export default function buildPwaFixtures() {
   for (const revision of ['a', 'b', 'c']) {
     const result = spawnSync(

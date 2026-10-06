@@ -2,6 +2,7 @@ import { deflateSync } from 'node:zlib';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 // Original temporary I monogram. White pixels stay inside radius 0.4 * size.
+/** Compute the PNG CRC-32 for a chunk's type and payload bytes. */
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -11,6 +12,7 @@ function crc32(bytes) {
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
+/** Encode a PNG chunk with its big-endian length and validated-format checksum. */
 function chunk(type, data) {
   const name = Buffer.from(type);
   const length = Buffer.alloc(4);
@@ -19,6 +21,7 @@ function chunk(type, data) {
   crc.writeUInt32BE(crc32(Buffer.concat([name, data])));
   return Buffer.concat([length, name, data, crc]);
 }
+/** Generate an opaque temporary RGBA monogram PNG inside the maskable safe zone. */
 function icon(size) {
   const raw = Buffer.alloc(size * (1 + size * 4));
   for (let y = 0; y < size; y++) {
