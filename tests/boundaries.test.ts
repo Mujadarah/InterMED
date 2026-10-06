@@ -50,6 +50,29 @@ it('allows pure domain code and ignores comments mentioning browser libraries', 
   ).toEqual([]);
 });
 
+it('rejects zod inside the domain package', () => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'packages/domain/src/rule.ts',
+        source: "import { z } from 'zod';",
+      },
+    ]),
+  ).not.toHaveLength(0);
+});
+
+it('allows data-access to import the public domain package and zod', () => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'packages/data-access/src/validate.ts',
+        source:
+          "import type { MedicationCatalogueSnapshot } from '@intermed/domain';\nimport { z } from 'zod';\n",
+      },
+    ]),
+  ).toEqual([]);
+});
+
 it('rejects private workspace imports from presentation', () => {
   expect(
     inspectBoundary([
