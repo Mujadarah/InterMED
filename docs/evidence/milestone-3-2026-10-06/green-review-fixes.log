@@ -1,0 +1,44 @@
+## green 1/3 Appwrite query JSON shape - npx vitest run packages/data-access/src/appwrite-published-dataset-reader.test.ts (serializer emits the web SDK shape)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  00:54:48
+   Duration  588ms (transform 57ms, setup 0ms, import 275ms, tests 25ms, environment 0ms)
+
+## green 2/3 secret-scan public-digest exemption - npx vitest run tests/appwrite-config-secrets.test.ts (checksum-context exemption)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  00:56:22
+   Duration  329ms (transform 37ms, setup 0ms, import 69ms, tests 33ms, environment 0ms)
+
+## green 3/3 rowSecurity/fileSecurity assertions - npx vitest run tests/appwrite-config-permissions.test.ts (unmodified configuration)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  32 passed (32)
+   Start at  00:57:52
+   Duration  433ms (transform 46ms, setup 0ms, import 111ms, tests 17ms, environment 0ms)
+
+## green all review fixes - npx vitest run (whole unit suite on the finished tree)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  10 passed (10)
+      Tests  92 passed (92)
+   Start at  00:57:55
+   Duration  5.87s (transform 1.01s, setup 0ms, import 6.27s, tests 1.35s, environment 10.90s)
+

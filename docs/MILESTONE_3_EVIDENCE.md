@@ -209,7 +209,117 @@ record the change, and the strict detector run also caught the quoted-header
 gap. The full `npm run check` then passed on the finished tree
 ([`check-final.txt`](evidence/milestone-3-2026-10-06/check-final.txt)).
 
-## Code-complete vs pending live
+## Review fixes (2026-10-06 review)
+
+A reviewer reported three findings against this milestone. Each was fixed
+test-first — the failing test first, captured in
+[`red-review-fixes.log`](evidence/milestone-3-2026-10-06/red-review-fixes.log),
+then the implementation with
+[`green-review-fixes.log`](evidence/milestone-3-2026-10-06/green-review-fixes.log)
+— and still with **no live Appwrite call** of any kind. The full gate list was
+re-run afterwards and is captured in
+[`check-after-review.log`](evidence/milestone-3-2026-10-06/check-after-review.log).
+Suite sizes after the fixes: `tests/appwrite-config-permissions.test.ts` 26 → 32
+tests, `tests/appwrite-config-secrets.test.ts` 9 → 10, Appwrite adapter 13 → 15;
+`npm run test` runs **92 tests** across 10 files (83 before this review).
+
+### 1 (High) — Appwrite query JSON shape
+
+- **Finding:** in `packages/data-access/src/appwrite-published-dataset-reader.ts`
+  `equalQuery` serialised `{"method":"equal","column":…,"values":[…]}` and
+  `orderDescQuery` serialised `{"method":"orderDesc","values":["publishedAt"]}`,
+  so the outgoing `queries[]` parameters did not use the Appwrite REST query
+  format.
+- **Verified source (not guessed):**
+  [`src/query.ts` of `appwrite/sdk-for-web`](https://raw.githubusercontent.com/appwrite/sdk-for-web/main/src/query.ts)
+  — the `Query` class of the official web SDK (the published `appwrite@28.1.0`
+  bundles the same class and serialises through `json-bigint`, whose `stringify`
+  drops object members that stay `undefined`, exactly like `JSON.stringify`).
+  `Query.toString()` always emits `{ method, attribute, values }`, so for
+  TablesDB the wire strings are:
+  - `Query.equal('dataset', 'demo')` →
+    `{"method":"equal","attribute":"dataset","values":["demo"]}`
+  - `Query.orderDesc('publishedAt')` →
+    `{"method":"orderDesc","attribute":"publishedAt"}`
+  - `Query.limit(1)` → `{"method":"limit","values":[1]}` (this one was already
+    correct)
+- **Fix:** `equalQuery` emits `attribute` and `orderDescQuery` emits `attribute`
+  without `values`. Two new adapter tests decode the `queries[N]` parameters
+  exactly as the server reads them and compare the **byte-exact** SDK strings
+  (equal, orderDesc and limit for the manifest query; equal and limit for the
+  bundle query), and the existing request-URL assertion was corrected to the
+  verified shape. A wrong shape now fails the suite — the red log shows the
+  `column`/`values` mismatch for both.
+
+### 2 (Medium) — secret-scan public-digest exemption
+
+- **Finding:** the public-digest exemption in `tests/support/secret-scan.ts`
+  triggered on a `version`-like word anywhere in a 64-character window, so
+  `{"version": "1.0", "secret": "0123456789abcdef…(64 hex)…"}` passed the scan.
+- **Fix:** `version` — and the bare word `revision` — are gone from the marker
+  set. A high-entropy value is now tolerated only in a genuine checksum context
+  bound to the value's own label or prefix:
+  - it is directly labelled by a checksum field: `hash` (the shell build
+    manifest's digest field names, i.e. `SHELL.assets[].hash` in
+    `apps/web/dist/sw.js`), `checksum`, `integrity`, `digest`, `md5` or
+    `sha1`/`sha256`/`sha384`/`sha512`, in plain, quoted or backslash-escaped
+    JSON/JS syntax, or
+  - it carries an explicit `sha256-`/`sha384-` subresource-integrity prefix, or
+  - it fills the shell's public revision metadata attribute
+    `<meta name="intermed-shell-revision" content="…">` (exact attribute name
+    required).
+
+  A word that merely appears nearby — `version`, `revision`, `id`, `name` —
+  never exempts anything.
+
+- **Tests:** a negative test with exactly the reviewer's string plus `id`,
+  `name` and `revision` neighbours behind secret-looking key names (`secret`,
+  `apiKey`, `token`) and the `version:`/`revision =` direct-label forms, while
+  the positive tests are kept: real shell asset digests and the shell revision
+  metadata are not flagged, the same digest away from a checksum context still
+  is, and key shapes are never tolerated anywhere.
+
+### 3 (Medium) — missing security-flag assertions
+
+- **Finding:** `tests/appwrite-config-permissions.test.ts` asserted grants only
+  and never looked at `rowSecurity` (tables) or `fileSecurity` (buckets) — the
+  field names of the current config format.
+- **Fix:** explicit expected values per resource, in three tests per
+  environment: `dataset-versions`, `dataset-bundles` and `published-datasets`
+  must keep `rowSecurity`/`fileSecurity` `false` and carry `read("any")`, so the
+  public read is granted at the resource level and never relies on per-row or
+  per-file grants; `import-runs`, `raw-sources`, `quarantine` and
+  `import-run-logs` must keep the flags `false` (no per-row/per-file grant is
+  documented, and one would bypass their empty `$permissions`) and carry no
+  grant at all; and every table and bucket must appear in the expectations, so a
+  new resource cannot escape them. Each assertion is `toBe(false)` and therefore
+  fails on a flipped **or** dropped flag.
+- This finding was a coverage gap rather than a wrong configuration: both config
+  files already carried the expected `false` flags. The red run is therefore an
+  **induced mutation**, recorded as such in `red-review-fixes.log`: four flags
+  were flipped temporarily (`dataset-versions.rowSecurity` and
+  `published-datasets.fileSecurity` in development, `import-runs.rowSecurity`
+  and `import-run-logs.fileSecurity` in production) to show the new assertions
+  fail on a flip, and the configuration was restored right afterwards
+  (`git status` shows no `infra/appwrite` change in the final tree). A second
+  short run flips only the two `fileSecurity` flags because the test loops stop
+  at the first failure.
+
+### Gates after the review fixes
+
+All logs above were captured with the pinned Node `24.21.0` / npm `11.19.0`;
+every run is recorded with its exit code inside
+[`check-after-review.log`](evidence/milestone-3-2026-10-06/check-after-review.log).
+
+| Command                    | Exit code | Result summary                                                                                                  |
+| -------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`     | 0         | All matched files use Prettier code style                                                                       |
+| `npm run lint`             | 0         | ESLint clean, zero warnings                                                                                     |
+| `npm run typecheck`        | 0         | App/tests/tooling types plus DOM-free domain compile                                                            |
+| `npm run test`             | 0         | 10 files, **92 tests passed** (83 before this review)                                                           |
+| `npm run check:boundaries` | 0         | Architecture boundaries passed (23 files; dependency-free domain)                                               |
+| `npm run build`            | 0         | Vite build succeeded, `apps/web/dist` written                                                                   |
+| `npm run check`            | 0         | Full gate list incl. `npm audit --audit-level=low` (0 issues) and the 135 Playwright browser tests (135 passed) |
 
 Code-complete and covered by tests now: configuration as code for both
 environments; offline permission model and its tests; secret scanning;
