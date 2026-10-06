@@ -65,7 +65,7 @@ Running 20 tests using 3 workers
   ok 20 [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell (1.4s)
 
 
-  1) [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell 
+  1) [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell
 
     Error: expect(received).toBe(expected) // Object.is equality
 
@@ -94,7 +94,7 @@ Running 20 tests using 3 workers
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  2) [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell 
+  2) [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell
 
     Error: expect(received).toBe(expected) // Object.is equality
 
@@ -124,6 +124,6 @@ Running 20 tests using 3 workers
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
   2 failed
-    [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell 
-    [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell 
+    [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell
+    [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell
   18 passed (31.2s)
