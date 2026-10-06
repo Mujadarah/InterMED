@@ -15,11 +15,20 @@ export default defineConfig({
     { name: 'webkit-phone', use: { ...devices['iPhone 13'] } },
     { name: 'webkit-tablet', use: { ...devices['iPad (gen 7)'] } },
   ],
-  webServer: {
-    command:
-      'npm run preview --workspace @intermed/web -- --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: false,
-    timeout: 30_000,
-  },
+  webServer: [
+    {
+      command:
+        'npm run dev --workspace @intermed/web -- --port 5174 --strictPort',
+      url: 'http://127.0.0.1:5174',
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command:
+        'npm run preview --workspace @intermed/web -- --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+  ],
 });

@@ -78,6 +78,43 @@ test('restricts document resources without blocking the same-origin shell', asyn
   ).toBe(new URL('/', page.url()).href);
 });
 
+test('does not apply the production CSP to the Vite development server', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const target = window as typeof window & {
+      intermedScriptPolicyViolations: string[];
+    };
+    target.intermedScriptPolicyViolations = [];
+    document.addEventListener('securitypolicyviolation', (event) => {
+      if (event.effectiveDirective.startsWith('script-src'))
+        target.intermedScriptPolicyViolations.push(
+          `${event.effectiveDirective}:${event.blockedURI}`,
+        );
+    });
+  });
+  await page.goto('http://127.0.0.1:5174/');
+  await expect(
+    page.getByRole('heading', { name: 'A foundation for InterMED' }),
+  ).toBeVisible();
+  const refreshRegistration = await page.evaluate(
+    () => typeof (window as Window & { $RefreshReg$?: unknown }).$RefreshReg$,
+  );
+  expect(refreshRegistration).toBe('function');
+  const scriptPolicyViolations = await page.evaluate(
+    () =>
+      (
+        window as typeof window & {
+          intermedScriptPolicyViolations: string[];
+        }
+      ).intermedScriptPolicyViolations,
+  );
+  expect(scriptPolicyViolations).toEqual([]);
+  await expect(
+    page.locator('meta[http-equiv="Content-Security-Policy"]'),
+  ).toHaveCount(0);
+});
+
 test('provides install identity, metadata and decodable normal/maskable icons', async ({
   page,
   request,
