@@ -4,7 +4,13 @@ interface InstallPrompt extends Event {
   prompt: () => Promise<void>;
 }
 
-/** Keep browser APIs in the adapter; never activate/reload without user action. */
+/**
+ * Create a browser shell controller; activation requests and reloads require
+ * calls to its explicit actions.
+ * With production enabled, register the root worker when supported and attach
+ * page-lifetime readiness, update and installation listeners. Otherwise, start
+ * in development state without registering a worker or attaching those listeners.
+ */
 export function createBrowserShell(production: boolean): ShellController {
   let state: ShellState = {
     availability: production ? 'installing' : 'development',
@@ -12,6 +18,7 @@ export function createBrowserShell(production: boolean): ShellController {
     canInstall: false,
   };
   const listeners = new Set<() => void>();
+  /** Merge a state patch and notify subscribers synchronously; listener errors propagate. */
   const emit = (patch: Partial<ShellState>) => {
     state = { ...state, ...patch };
     for (const listener of listeners) listener();
@@ -21,6 +28,11 @@ export function createBrowserShell(production: boolean): ShellController {
   let hadController =
     'serviceWorker' in navigator && navigator.serviceWorker.controller !== null;
   let installPrompt: InstallPrompt | undefined;
+  /**
+   * Refresh readiness from the controlling or active worker, if one exists.
+   * A failed request or a 3-second timeout marks offline use unavailable.
+   * A prior-shell fallback marks the update failed unless an update is waiting.
+   */
   const probe = async () => {
     const worker = navigator.serviceWorker.controller ?? registration?.active;
     if (!worker) return;
@@ -54,6 +66,10 @@ export function createBrowserShell(production: boolean): ShellController {
       emit({ availability: 'unavailable' });
     }
   };
+  /**
+   * Check an existing registration for updates, then refresh readiness.
+   * Update failures preserve a waiting update as available; otherwise mark failure.
+   */
   const check = async () => {
     if (!registration) return;
     try {
@@ -63,6 +79,7 @@ export function createBrowserShell(production: boolean): ShellController {
       emit({ update: registration.waiting ? 'available' : 'failed' });
     }
   };
+  /** Observe worker state changes to report waiting updates, activation and failure. */
   const watch = (worker: ServiceWorker) => {
     worker.addEventListener('statechange', () => {
       if (
@@ -80,6 +97,11 @@ export function createBrowserShell(production: boolean): ShellController {
         );
     });
   };
+  /**
+   * Register the root worker and begin tracking its lifecycle and readiness.
+   * Registration rejections mark offline use unavailable; the readiness probe
+   * can finish after this promise resolves.
+   */
   const register = () =>
     navigator.serviceWorker
       .register('/sw.js', { scope: '/', updateViaCache: 'none' })
@@ -153,7 +175,9 @@ export function createBrowserShell(production: boolean): ShellController {
     });
   }
   return {
+    /** Return the current snapshot, retaining its identity until the next state patch. */
     getSnapshot: () => state,
+    /** Subscribe to state patches and return a function that removes the listener. */
     subscribe: (listener) => {
       listeners.add(listener);
       return () => {
@@ -161,6 +185,10 @@ export function createBrowserShell(production: boolean): ShellController {
       };
     },
     check,
+    /**
+     * Clear reload consent and request cache repair from the controlling worker,
+     * or retry registration if none controls the page. Completion is reported in state.
+     */
     repair: () => {
       requestedReload = false;
       emit({ repairFailed: false });
@@ -173,12 +201,21 @@ export function createBrowserShell(production: boolean): ShellController {
         void register();
       }
     },
+    /**
+     * Request activation of a waiting update and reload on the controller change.
+     * Do nothing without a waiting worker; a worker refusal clears reload consent.
+     */
     activate: () => {
       if (!registration?.waiting) return;
       requestedReload = true;
       registration.waiting.postMessage({ type: 'ACTIVATE_SHELL' });
     },
+    /** Reload the current page immediately. */
     reload: () => window.location.reload(),
+    /**
+     * Consume the available browser installation prompt, if any.
+     * Prompt failures are caught; completion does not confirm installation.
+     */
     install: async () => {
       if (!installPrompt) return;
       const prompt = installPrompt;

@@ -13,6 +13,7 @@ export interface ShellRelease {
   version: string;
   assets: ShellAsset[];
 }
+/** Return the lowercase SHA-256 hex digest of bytes or UTF-8 text. */
 const hash = (data: string | Uint8Array) =>
   createHash('sha256').update(data).digest('hex');
 
@@ -24,6 +25,10 @@ export function shellBuild(): Plugin {
     name: 'intermed-public-shell',
     apply: 'build',
     enforce: 'post',
+    /**
+     * Expose INTERMED_SHELL_REVISION to client code, defaulting to development.
+     * @throws {Error} If the label is not 1–64 ASCII letters, digits, dots or hyphens.
+     */
     config() {
       revision = process.env['INTERMED_SHELL_REVISION'] ?? 'development';
       if (!/^[a-zA-Z0-9.-]{1,64}$/.test(revision))
@@ -34,6 +39,10 @@ export function shellBuild(): Plugin {
         },
       };
     },
+    /**
+     * Remember the resolved build output directory for shell emission.
+     * @throws {Error} If the configured base is not the root path `/`.
+     */
     configResolved(config) {
       if (config.base !== '/')
         throw new Error(
@@ -43,6 +52,7 @@ export function shellBuild(): Plugin {
     },
     transformIndexHtml: {
       order: 'post',
+      /** Return the public shell revision metadata to inject into the HTML head. */
       handler() {
         return [
           {
@@ -53,6 +63,11 @@ export function shellBuild(): Plugin {
         ];
       },
     },
+    /**
+     * Write sw.js with hashes of the emitted public shell assets.
+     * Reject if index.html is absent, the shell exceeds 16 assets or 2 MiB,
+     * or reading an asset or writing the worker fails.
+     */
     async writeBundle(_options, bundle) {
       const entries: {
         url: string;
