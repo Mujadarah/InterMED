@@ -1,0 +1,9 @@
+{
+  "name": "intermed-import-anmdmr",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Milestone 3 stub for the future ANMDMR runner. No dependencies and no credentials.",
+  "main": "src/main.js"
+}
