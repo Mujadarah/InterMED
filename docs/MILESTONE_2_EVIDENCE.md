@@ -422,6 +422,8 @@ The three screenshots were visually inspected. Each shows the development/noncli
 
 The owner reports shell `77c816387c81001988b3` on both the iPhone 17 Pro (iOS 27.0.1, build 24A446) and the ASUS ROG / Windows 11 device, and says both work correctly on the same version. The owner confirmed the earlier A-to-B update and offline checks used the installed apps on both devices; those cover A `c1c54c74e5cd17fe68b4` to B `a508cce57d69382da112` only. For E, there are no device screenshots or traces showing the origin and shell version. The date, routes covered, tab or installed mode, and exact Safari/Edge versions have not been supplied. The B-to-E update, offline restart, multitab and failure behavior on physical devices are not inferred from the earlier report.
 
+**Owner decision, same date:** the owner restated that the installed iPhone and Windows apps always show the same shell version, now E `77c816387c81001988b3`, and considers that item settled. The owner also decided that capturing exact OS/Safari/Edge versions is not mandatory for this development milestone. Version parity is therefore recorded as owner-confirmed. It is no longer listed as an open item or a request, and exact browser versions are an owner-waived field. This decision does not cover the device behavior checks below.
+
 ### Exact-head CI and reviewer state
 
 At PR head `76098c4f357edd008f065cd0dacb9d63267f0790`, [CI 37462444929](https://github.com/Mujadarah/InterMED/actions/runs/37462444929) passed on Ubuntu 24.04 and Windows 2025. The Greptile check reported 90 files reviewed, 0 comments added. All five inline review threads were resolved and outdated. **DeepSource: Secrets** reported success, which covers the Secrets analysis only. The CodeRabbit status was green but described as **"Review skipped: manual review required for this OSS repository"**. CodeRabbit's last completed review covered `e64900c`, so this is not a completed CodeRabbit review of the current head. Main remained `f129e0dfc9d91847502e36fbb46cad9c6659ce2c`. PR #4 was open and unmerged.
@@ -433,7 +435,7 @@ At source `76098c4`, a local `npm run check` on pinned Node `24.21.0` / npm `11.
 Still open:
 
 - reviewed HTTP security headers (CSP header, `frame-ancestors`, Referrer-Policy, Permissions-Policy), which need a header-capable host under separate authority
-- physical-device evidence tied to E: screenshots showing origin and version, date, routes, mode, and exact Safari/Edge versions
+- physical-device behavior on E beyond the owner-confirmed version parity (exact OS/browser versions are owner-waived)
 - physical B-to-E or later-build activation, multitab, failure and storage checks on devices
 - corrupted-C rejection repeated against E, which would need explicit authority to activate C on the test origin
 - direct device deep-link and reload, orientation and safe areas, VoiceOver/Narrator, keyboard and touch checks
