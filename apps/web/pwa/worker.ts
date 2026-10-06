@@ -10,14 +10,23 @@ const CACHE = PREFIX + SHELL.version;
 const routes = new Set(['/', '/status']);
 const owned = name => name.startsWith(PREFIX) && /^[a-f0-9]{20}$/.test(name.slice(PREFIX.length));
 const publicAsset = url => ['/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-180.png'].includes(url) || /^\/assets\/[a-zA-Z0-9_-]+\.(js|css)$/.test(url);
+const assetType = url => url === '/index.html' ? 'text/html' : url === '/manifest.webmanifest' ? 'application/manifest+json' : url.endsWith('.png') ? 'image/png' : url.endsWith('.css') ? 'text/css' : 'javascript';
 const announce = async message => {
   for (const client of await self.clients.matchAll({type: 'window'})) client.postMessage(message);
 };
+const verifiedBytes = async (response, asset) => {
+  const mime = response?.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase();
+  const usableType = asset.type === 'javascript' ? ['text/javascript', 'application/javascript'].includes(mime) : mime === asset.type;
+  if (!response?.ok || response.redirected || !usableType) return null;
+  const bytes = await response.clone().arrayBuffer();
+  if (bytes.byteLength > 2 * 1024 * 1024) return null;
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  return actual === asset.hash ? bytes : null;
+};
 const ready = async () => {
   if (!await caches.has(CACHE)) return false;
-  const cache = await caches.open(CACHE);
-  for (const asset of SHELL.assets) if (!await cache.match(asset.url)) return false;
-  return true;
+  return !!await readShell(CACHE);
 };
 const readShell = async name => {
   const cache = await caches.open(name);
@@ -25,10 +34,22 @@ const readShell = async name => {
   if (!index || index.headers.get('X-Intermed-Shell-Version') !== name.slice(PREFIX.length)) return null;
   let assets;
   try { assets = JSON.parse(index.headers.get('X-Intermed-Shell-Assets')); } catch { return null; }
-  if (!Array.isArray(assets) || assets.length === 0 || assets.length > 16 || !assets.some(asset => asset.url === '/index.html') || assets.some(asset => !publicAsset(asset.url) || !/^[a-f0-9]{64}$/.test(asset.hash))) return null;
-  for (const asset of assets) if (!await cache.match(asset.url)) return null;
+  if (!Array.isArray(assets) || assets.length === 0 || assets.length > 16 || !assets.some(asset => asset?.url === '/index.html') || assets.some(asset => !asset || typeof asset.url !== 'string' || !publicAsset(asset.url) || typeof asset.hash !== 'string' || !/^[a-f0-9]{64}$/.test(asset.hash) || asset.type !== assetType(asset.url)) || new Set(assets.map(asset => asset.url)).size !== assets.length) return null;
+  // The worker's own release uses compiled pins; prior releases use the public
+  // metadata preserved at installation. Validate bytes, not just cache presence.
+  if (name === CACHE && JSON.stringify(assets) !== JSON.stringify(SHELL.assets)) return null;
+  const responses = new Map();
+  let totalBytes = 0;
+  for (const asset of assets) {
+    const response = await cache.match(asset.url);
+    const bytes = await verifiedBytes(response, asset);
+    if (!bytes) return null;
+    totalBytes += bytes.byteLength;
+    if (totalBytes > 2 * 1024 * 1024) return null;
+    responses.set(asset.url, response);
+  }
   const order = Number(index.headers.get('X-Intermed-Activation-Order'));
-  return {cache, index, assets, name, version: name.slice(PREFIX.length), prior: index.headers.get('X-Intermed-Prior-Shell'), order, activated: Number.isSafeInteger(order) && order > 0};
+  return {cache, index: responses.get('/index.html'), assets, responses, name, version: name.slice(PREFIX.length), prior: index.headers.get('X-Intermed-Prior-Shell'), order, activated: Number.isSafeInteger(order) && order > 0};
 };
 const selectShell = async () => {
   const names = (await caches.keys()).filter(owned);
@@ -75,12 +96,8 @@ const install = async (repair = false) => {
     const retainedVersion = priorVersion === SHELL.version ? (await cache.match('/index.html'))?.headers.get('X-Intermed-Prior-Shell') : priorVersion;
     for (const asset of SHELL.assets) {
       const response = await fetch(new Request(asset.url, {cache: 'no-store', credentials: 'omit', redirect: 'error'}));
-      if (!response.ok || response.redirected || !response.headers.get('content-type')?.includes(asset.type)) throw new Error('Unusable shell asset');
-      const bytes = await response.clone().arrayBuffer();
-      if (bytes.byteLength > 2 * 1024 * 1024) throw new Error('Oversized asset');
-      const digest = await crypto.subtle.digest('SHA-256', bytes);
-      const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-      if (actual !== asset.hash) throw new Error('Shell integrity mismatch');
+      const bytes = await verifiedBytes(response, asset);
+      if (!bytes) throw new Error('Unusable shell asset');
       const headers = new Headers(response.headers);
       if (asset.url === '/index.html') {
         headers.set('X-Intermed-Shell-Version', SHELL.version);
@@ -172,7 +189,8 @@ self.addEventListener('fetch', event => {
       const selected = await selectShell();
       const path = navigation ? '/index.html' : url.pathname;
       if (selected?.assets.some(asset => asset.url === path)) {
-        const hit = await selected.cache.match(path);
+        // Return the exact Response whose bytes were verified during selection.
+        const hit = selected.responses.get(path);
         if (hit) return hit;
       }
     } catch { /* Restricted storage must not prevent an online network request. */ }
