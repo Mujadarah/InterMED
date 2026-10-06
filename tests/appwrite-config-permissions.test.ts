@@ -29,6 +29,27 @@ const privateResources = [
   'import-runs',
 ];
 
+/**
+ * Explicit security-flag expectations per resource, in the field names of the
+ * current config format: `rowSecurity` on tables, `fileSecurity` on buckets.
+ * The public resources must not rely on per-row or per-file grants — their read
+ * is granted at the resource level — and the private resources must not enable
+ * per-row or per-file grants either: no such grant is documented, and it would
+ * bypass their empty `$permissions` set.
+ */
+const publicSecurityFlags = [
+  ['tables', 'dataset-versions', 'rowSecurity'],
+  ['tables', 'dataset-bundles', 'rowSecurity'],
+  ['buckets', 'published-datasets', 'fileSecurity'],
+] as const;
+
+const privateSecurityFlags = [
+  ['tables', 'import-runs', 'rowSecurity'],
+  ['buckets', 'raw-sources', 'fileSecurity'],
+  ['buckets', 'quarantine', 'fileSecurity'],
+  ['buckets', 'import-run-logs', 'fileSecurity'],
+] as const;
+
 const importerStubPath = 'infra/appwrite/functions/import-anmdmr/src/main.js';
 
 /**
@@ -134,6 +155,37 @@ describe.each([
             : findResource(config, 'buckets', id);
         expect(resource.$permissions ?? [], `${label}/${id}`).toEqual([]);
       }
+    });
+
+    it('grants public reads at the resource level, never per row or per file', () => {
+      for (const [kind, id, field] of publicSecurityFlags) {
+        const resource = findResource(config, kind, id);
+        expect(resource[field], `${label}/${id} ${field}`).toBe(false);
+        expect(resource.$permissions ?? [], `${label}/${id}`).toContain(
+          'read("any")',
+        );
+      }
+    });
+
+    it('enables no per-row or per-file grants on private resources', () => {
+      for (const [kind, id, field] of privateSecurityFlags) {
+        const resource = findResource(config, kind, id);
+        expect(resource[field], `${label}/${id} ${field}`).toBe(false);
+        expect(resource.$permissions ?? [], `${label}/${id}`).toEqual([]);
+      }
+    });
+
+    it('states a security flag for every table and every bucket', () => {
+      const expected = [...publicSecurityFlags, ...privateSecurityFlags]
+        .map(([kind, id, field]) => `${kind}/${id}.${field}`)
+        .sort();
+      const declared = [
+        ...(config.tables ?? []).map(({ $id }) => `tables/${$id}.rowSecurity`),
+        ...(config.buckets ?? []).map(
+          ({ $id }) => `buckets/${$id}.fileSecurity`,
+        ),
+      ].sort();
+      expect(declared, label).toEqual(expected);
     });
 
     it('gives the admin importer function no public execute and no secrets', () => {
