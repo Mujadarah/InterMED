@@ -50,6 +50,38 @@ const bundleRow = {
   checksum: 'SYNTHETIC-CHECKSUM-NOT-A-REAL-DIGEST',
 };
 
+/**
+ * Byte-exact query strings produced by the Appwrite web SDK
+ * (`Query.equal`, `Query.orderDesc`, `Query.limit`) for TablesDB, verified
+ * against `src/query.ts` of https://github.com/appwrite/sdk-for-web on
+ * 2026-10-06: `Query.toString()` serialises `{ method, attribute, values }`
+ * and drops the members that stay undefined.
+ */
+const sdkQueries = {
+  dataset:
+    '{"method":"equal","attribute":"dataset","values":["synthetic-fixture-demo"]}',
+  status: '{"method":"equal","attribute":"status","values":["published"]}',
+  publishedAt: '{"method":"orderDesc","attribute":"publishedAt"}',
+  limitOne: '{"method":"limit","values":[1]}',
+  bundleForVersion:
+    '{"method":"equal","attribute":"datasetVersionId","values":["synthetic-fixture-version-0"]}',
+} as const;
+
+/**
+ * Decode the `queries[N]` request parameters exactly as the server would read
+ * them, in the order they were sent.
+ */
+function sentQueries(url: string): readonly string[] {
+  const params = new URL(url).searchParams;
+  const queries: string[] = [];
+  for (let index = 0; ; index += 1) {
+    const query = params.get(`queries[${index}]`);
+    if (query === null) break;
+    queries.push(query);
+  }
+  return queries;
+}
+
 interface RecordedCall {
   readonly url: string;
   readonly options: FetchLikeOptions | undefined;
@@ -119,11 +151,51 @@ describe('Appwrite published dataset reader', () => {
     });
     expect(call.url).toBe(
       'https://fra.cloud.appwrite.io/v1/tablesdb/intermed-datasets/tables/dataset-versions/rows' +
-        '?queries[0]=%7B%22method%22%3A%22equal%22%2C%22column%22%3A%22dataset%22%2C%22values%22%3A%5B%22synthetic-fixture-demo%22%5D%7D' +
-        '&queries[1]=%7B%22method%22%3A%22equal%22%2C%22column%22%3A%22status%22%2C%22values%22%3A%5B%22published%22%5D%7D' +
-        '&queries[2]=%7B%22method%22%3A%22orderDesc%22%2C%22values%22%3A%5B%22publishedAt%22%5D%7D' +
-        '&queries[3]=%7B%22method%22%3A%22limit%22%2C%22values%22%3A%5B1%5D%7D',
+        `?queries[0]=${encodeURIComponent(sdkQueries.dataset)}` +
+        `&queries[1]=${encodeURIComponent(sdkQueries.status)}` +
+        `&queries[2]=${encodeURIComponent(sdkQueries.publishedAt)}` +
+        `&queries[3]=${encodeURIComponent(sdkQueries.limitOne)}`,
     );
+  });
+
+  it('sends manifest queries as the exact JSON strings of the Appwrite SDK', async () => {
+    const { fetchLike, calls } = fakeFetch(() =>
+      jsonResponse(200, { total: 1, rows: [publishedRow] }),
+    );
+    const reader = createAppwritePublishedDatasetReader({
+      ...readerOptions,
+      fetchLike,
+    });
+
+    await reader.getManifest('synthetic-fixture-demo');
+
+    const call = calls[0];
+    if (!call) throw new Error('missing recorded request');
+    expect(sentQueries(call.url)).toEqual([
+      sdkQueries.dataset,
+      sdkQueries.status,
+      sdkQueries.publishedAt,
+      sdkQueries.limitOne,
+    ]);
+  });
+
+  it('sends bundle queries as the exact JSON strings of the Appwrite SDK', async () => {
+    const { fetchLike, calls } = fakeFetch(() =>
+      jsonResponse(200, { total: 1, rows: [bundleRow] }),
+    );
+    const reader = createAppwritePublishedDatasetReader({
+      ...readerOptions,
+      fetchLike,
+    });
+
+    await reader.getBundleDescriptor('synthetic-fixture-version-0');
+
+    const call = calls[0];
+    if (!call) throw new Error('missing recorded request');
+    expect(sentQueries(call.url)).toEqual([
+      sdkQueries.bundleForVersion,
+      sdkQueries.limitOne,
+    ]);
   });
 
   it('sends no API key, JWT or session cookie with public reads', async () => {

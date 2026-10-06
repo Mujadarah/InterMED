@@ -92,12 +92,21 @@ function failureForStatus(status: number): PublishedDatasetUnavailable {
   };
 }
 
-function equalQuery(column: string, value: string): string {
-  return JSON.stringify({ method: 'equal', column, values: [value] });
+/**
+ * Appwrite REST query strings for TablesDB. These mirror `Query.equal`,
+ * `Query.orderDesc` and `Query.limit` of the official web SDK exactly
+ * (`src/query.ts` of https://github.com/appwrite/sdk-for-web, `Query` builds
+ * `{ method, attribute, values }` and JSON-bigint drops the members that stay
+ * undefined), so `equal` carries `attribute` plus `values`, `orderDesc` carries
+ * only `attribute`, and `limit` carries only `values`. The adapter never sends
+ * bigint values, so `JSON.stringify` is byte-compatible with the SDK here.
+ */
+function equalQuery(attribute: string, value: string): string {
+  return JSON.stringify({ method: 'equal', attribute, values: [value] });
 }
 
-function orderDescQuery(column: string): string {
-  return JSON.stringify({ method: 'orderDesc', values: [column] });
+function orderDescQuery(attribute: string): string {
+  return JSON.stringify({ method: 'orderDesc', attribute });
 }
 
 function limitQuery(limit: number): string {
