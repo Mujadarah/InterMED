@@ -60,7 +60,7 @@ export function createBrowserShell(production: boolean): ShellController {
       await registration.update();
       await probe();
     } catch {
-      emit({ update: 'failed' });
+      emit({ update: registration.waiting ? 'available' : 'failed' });
     }
   };
   const watch = (worker: ServiceWorker) => {
