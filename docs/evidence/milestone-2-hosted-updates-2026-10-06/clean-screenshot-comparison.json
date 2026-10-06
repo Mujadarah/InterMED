@@ -1,0 +1,74 @@
+[
+  {
+    "Filename": "chromium-desktop-hosted-build-b.png",
+    "FirstRunSHA256": "fe38d72aef8d85e82a03e519f64ee99245cfd9c8c60a81e610d8ced43d985fa6",
+    "CleanRunSHA256": "fe38d72aef8d85e82a03e519f64ee99245cfd9c8c60a81e610d8ced43d985fa6",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "chromium-desktop-hosted-failed-update.png",
+    "FirstRunSHA256": "45a43516fc589e677b201f2a214b9e5f33d834f714f020505d8759f048251f72",
+    "CleanRunSHA256": "a40de22aac42149c10fedb1dc2eafeabd927d2fcddab4c38e1fcba5fdaac07c8",
+    "MatchesInspectedFirstRun": false
+  },
+  {
+    "Filename": "chromium-desktop-hosted-restored-b.png",
+    "FirstRunSHA256": "fe38d72aef8d85e82a03e519f64ee99245cfd9c8c60a81e610d8ced43d985fa6",
+    "CleanRunSHA256": "fe38d72aef8d85e82a03e519f64ee99245cfd9c8c60a81e610d8ced43d985fa6",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "chromium-desktop-hosted-update-blocked.png",
+    "FirstRunSHA256": "1a5a38284e3903d81fed2f0d1cd3a790aedd0fbbea34188e006d362ab91f1292",
+    "CleanRunSHA256": "1a5a38284e3903d81fed2f0d1cd3a790aedd0fbbea34188e006d362ab91f1292",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-phone-hosted-build-b.png",
+    "FirstRunSHA256": "2ed70717777d17971598eb9111fe9d2f55a4bc81d7e11a515d0e75d5a4d1c22a",
+    "CleanRunSHA256": "2ed70717777d17971598eb9111fe9d2f55a4bc81d7e11a515d0e75d5a4d1c22a",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-phone-hosted-failed-update.png",
+    "FirstRunSHA256": "ed3aba1faa5542305d613c959db692648dd858d9ff8c5a889ec75781228f2c6c",
+    "CleanRunSHA256": "ed3aba1faa5542305d613c959db692648dd858d9ff8c5a889ec75781228f2c6c",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-phone-hosted-restored-b.png",
+    "FirstRunSHA256": "2ed70717777d17971598eb9111fe9d2f55a4bc81d7e11a515d0e75d5a4d1c22a",
+    "CleanRunSHA256": "2ed70717777d17971598eb9111fe9d2f55a4bc81d7e11a515d0e75d5a4d1c22a",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-phone-hosted-update-blocked.png",
+    "FirstRunSHA256": "4261ebb9a765f0dde937f920a50f094363bf466aa3f2d93920d4fcf9379c4ed3",
+    "CleanRunSHA256": "4261ebb9a765f0dde937f920a50f094363bf466aa3f2d93920d4fcf9379c4ed3",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-tablet-hosted-build-b.png",
+    "FirstRunSHA256": "c4694d610ba71d286e39e9c762bf349f3a18188b322bbe547fabf5d284e7990b",
+    "CleanRunSHA256": "c4694d610ba71d286e39e9c762bf349f3a18188b322bbe547fabf5d284e7990b",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-tablet-hosted-failed-update.png",
+    "FirstRunSHA256": "fafe4bb1adcf566b2737d7e789c19ba3c8c5adb4d136d1e3c855b63f2ecf9002",
+    "CleanRunSHA256": "fafe4bb1adcf566b2737d7e789c19ba3c8c5adb4d136d1e3c855b63f2ecf9002",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-tablet-hosted-restored-b.png",
+    "FirstRunSHA256": "c4694d610ba71d286e39e9c762bf349f3a18188b322bbe547fabf5d284e7990b",
+    "CleanRunSHA256": "c4694d610ba71d286e39e9c762bf349f3a18188b322bbe547fabf5d284e7990b",
+    "MatchesInspectedFirstRun": true
+  },
+  {
+    "Filename": "webkit-tablet-hosted-update-blocked.png",
+    "FirstRunSHA256": "594909217958490e6bd3010e6a1c3ff2fc3e90b2982427e97381b575fa9d9655",
+    "CleanRunSHA256": "594909217958490e6bd3010e6a1c3ff2fc3e90b2982427e97381b575fa9d9655",
+    "MatchesInspectedFirstRun": true
+  }
+]
