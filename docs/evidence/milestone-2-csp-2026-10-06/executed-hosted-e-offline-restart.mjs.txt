@@ -1,0 +1,219 @@
+// Read-only hosted diagnostic: install active build E in a disposable persistent
+// profile, terminate the browser process, relaunch the same profile through a
+// refused proxy (real network outage) and verify the cached shell. No deployment
+// or application change; certificate validation stays enabled.
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium, webkit, expect } from '@playwright/test';
+
+const origin = 'https://intermed-shell-test.appwrite.network';
+const here = new URL('./', import.meta.url);
+const revisionE = '0e019544bde5d6691e468c4c3bf885cd90dffb1a';
+const deploymentE = '6ac4e58c6e620fd5dd84';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const workerE = await readFile(new URL('build-b/sw.js', here), 'utf8');
+const releaseE = JSON.parse(workerE.match(/^const SHELL = (.+);$/m)[1]);
+assert.equal(releaseE.version, '77c816387c81001988b3');
+const report = { origin, started: new Date().toISOString(), revisionE, deploymentE, releaseE, method: 'persistent profile; browser process closed; relaunched with proxy pointing at a refused local port', hosted: null, browsers: [] };
+const save = () => writeFile(new URL('hosted-e-offline-restart.json', here), JSON.stringify(report, null, 2));
+
+const deadPort = await new Promise(done => {
+  const server = createServer().listen(0, '127.0.0.1', () => {
+    const { port } = server.address();
+    server.close(() => done(port));
+  });
+});
+const outage = { server: `http://127.0.0.1:${deadPort}` };
+
+const ready = page => expect(page.getByText('Shell available offline', { exact: true })).toBeVisible({ timeout: 30000 });
+const revision = page => page.locator('meta[name="intermed-shell-revision"]');
+const snapshot = page => page.evaluate(async () => {
+  const registration = await navigator.serviceWorker.ready;
+  const status = await new Promise((resolve, reject) => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => reject(new Error('worker status timeout')), 5000);
+    channel.port1.onmessage = ({ data }) => { clearTimeout(timer); channel.port1.close(); resolve(data); };
+    navigator.serviceWorker.controller.postMessage({ type: 'SHELL_STATUS' }, [channel.port2]);
+  });
+  const cached = [];
+  for (const name of await caches.keys()) {
+    const cache = await caches.open(name);
+    const entries = [];
+    for (const request of await cache.keys()) {
+      const response = await cache.match(request);
+      const digest = await crypto.subtle.digest('SHA-256', await response.arrayBuffer());
+      entries.push({ url: request.url, type: response.headers.get('content-type'), hash: [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2, '0')).join('') });
+    }
+    cached.push({ name, entries });
+  }
+  return { status, cached, secureContext: isSecureContext, scope: registration.scope, activeState: registration.active?.state, waitingState: registration.waiting?.state, revision: document.documentElement.dataset.intermedShellRevision, displayMode: matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser', userAgent: navigator.userAgent };
+});
+const checkCaches = result => {
+  const owned = result.cached.filter(x => x.name.startsWith('intermed-public-shell-v1-'));
+  assert.deepEqual(owned.map(x => x.name), [`intermed-public-shell-v1-${releaseE.version}`]);
+  assert.equal(owned[0].entries.length, releaseE.assets.length);
+  for (const entry of owned[0].entries) {
+    const pin = releaseE.assets.find(x => origin + x.url === entry.url);
+    assert.ok(pin, `prohibited cache entry ${entry.url}`);
+    assert.equal(entry.hash, pin.hash);
+  }
+  const other = result.cached.filter(x => !x.name.startsWith('intermed-public-shell-v1-'));
+  assert.deepEqual(other.map(x => x.name), ['synthetic-unrelated-cache']);
+};
+const seed = page => page.evaluate(async () => {
+  localStorage.setItem('synthetic-preference', 'retain-me');
+  await (await caches.open('synthetic-unrelated-cache')).put('/synthetic-canary', new Response('retain-me'));
+  await new Promise((done, reject) => {
+    const request = indexedDB.open('synthetic-persistence-canary', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('canary');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('canary', 'readwrite');
+      tx.objectStore('canary').put('retain-me', 'synthetic');
+      tx.oncomplete = () => { db.close(); done(); };
+      tx.onerror = () => reject(tx.error);
+    };
+  });
+});
+const canaries = page => page.evaluate(async () => ({
+  preference: localStorage.getItem('synthetic-preference'),
+  cache: await (await (await caches.open('synthetic-unrelated-cache')).match('/synthetic-canary'))?.text(),
+  indexedDB: await new Promise((done, reject) => {
+    const request = indexedDB.open('synthetic-persistence-canary', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const read = db.transaction('canary').objectStore('canary').get('synthetic');
+      read.onsuccess = () => { db.close(); done(read.result); };
+      read.onerror = () => reject(read.error);
+    };
+  }),
+}));
+const retained = { preference: 'retain-me', cache: 'retain-me', indexedDB: 'retain-me' };
+// Query requests bypass the worker's shell handling, so this must reach the
+// (unavailable) network and fail, proving the outage inside the same profile.
+const networkProbe = page => page.evaluate(async url => {
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    return `unexpected HTTP ${response.status}`;
+  } catch (error) {
+    return `failed: ${error.name}`;
+  }
+}, `${origin}/sw.js?network-probe=${Date.now()}`);
+
+async function hostedE() {
+  const files = [];
+  for (const path of ['/', '/status', '/sw.js', ...releaseE.assets.map(x => x.url)]) {
+    const response = await fetch(origin + path, { redirect: 'error' });
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('x-appwrite-deployment-id'), deploymentE, path);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    const file = path === '/' || path === '/status' ? 'index.html' : path.slice(1);
+    assert.equal(hash(bytes), hash(await readFile(new URL(`build-b/${file}`, here))), path + ' deployed bytes');
+    files.push({ path, hash: hash(bytes), headers: Object.fromEntries(response.headers) });
+  }
+  report.hosted = { observed: new Date().toISOString(), files };
+}
+
+const profiles = [
+  ['chromium-desktop', chromium, { width: 1280, height: 720 }, false],
+  ['webkit-phone', webkit, { width: 390, height: 664 }, true],
+  ['webkit-tablet', webkit, { width: 810, height: 1080 }, true],
+];
+const dirs = [];
+try {
+  await hostedE();
+  await save();
+  for (const [name, engine, viewport, mobile] of profiles) {
+    const options = { viewport, isMobile: mobile, hasTouch: mobile, ignoreHTTPSErrors: false, serviceWorkers: 'allow' };
+    const record = { name, certificateBypass: false };
+    report.browsers.push(record);
+
+    // Control: a fresh profile behind the refused proxy cannot load the origin.
+    const controlDir = await mkdtemp(join(tmpdir(), `intermed-e-control-${name}-`));
+    dirs.push(controlDir);
+    const control = await engine.launchPersistentContext(controlDir, { ...options, proxy: outage });
+    const controlPage = control.pages()[0] ?? await control.newPage();
+    record.freshOfflineControl = await controlPage.goto(origin + '/status').then(r => `unexpected HTTP ${r?.status()}`, e => `navigation failed: ${String(e.message).split('\n')[0]}`);
+    assert.match(record.freshOfflineControl, /^navigation failed/);
+    await control.close();
+
+    // Online install in a disposable persistent profile.
+    const dir = await mkdtemp(join(tmpdir(), `intermed-e-offline-${name}-`));
+    dirs.push(dir);
+    const online = await engine.launchPersistentContext(dir, options);
+    record.engineVersion = online.browser()?.version() ?? null;
+    const page = online.pages()[0] ?? await online.newPage();
+    await page.goto(origin + '/status');
+    await ready(page);
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await expect(revision(page)).toHaveAttribute('content', revisionE);
+    await seed(page);
+    const before = await snapshot(page);
+    assert.equal(before.status.version, releaseE.version);
+    assert.equal(before.status.workerVersion, releaseE.version);
+    assert.equal(before.secureContext, true);
+    assert.equal(before.scope, origin + '/');
+    checkCaches(before);
+    record.online = before;
+    await online.close(); // terminates the browser process for this profile
+    record.processRestarted = true;
+
+    // Relaunch the same profile with no reachable network.
+    const offline = await engine.launchPersistentContext(dir, { ...options, proxy: outage });
+    record.offlineEngineVersion = offline.browser()?.version() ?? null;
+    const reopened = offline.pages()[0] ?? await offline.newPage();
+    const statusResponse = await reopened.goto(origin + '/status');
+    record.statusFromServiceWorker = statusResponse?.fromServiceWorker() ?? null;
+    await ready(reopened);
+    await expect(revision(reopened)).toHaveAttribute('content', revisionE);
+    record.networkProbe = await networkProbe(reopened);
+    assert.match(record.networkProbe, /^failed/);
+    const offlineStatus = await snapshot(reopened);
+    assert.equal(offlineStatus.status.version, releaseE.version);
+    assert.equal(offlineStatus.status.workerVersion, releaseE.version);
+    assert.equal(offlineStatus.status.fallback, false);
+    checkCaches(offlineStatus);
+    assert.deepEqual(await canaries(reopened), retained);
+    await reopened.screenshot({ path: fileURLToPath(new URL(`${name}-hosted-e-offline-restart.png`, here)), fullPage: true });
+
+    const home = await reopened.goto(origin);
+    record.homeFromServiceWorker = home?.fromServiceWorker() ?? null;
+    await expect(reopened.getByRole('heading', { name: 'A foundation for InterMED' })).toBeVisible();
+    await reopened.goto(origin + '/status');
+    const reload = await reopened.reload();
+    record.reloadFromServiceWorker = reload?.fromServiceWorker() ?? null;
+    await ready(reopened);
+    await expect(revision(reopened)).toHaveAttribute('content', revisionE);
+    const next = await offline.newPage();
+    const nextResponse = await next.goto(origin + '/status');
+    record.newTabFromServiceWorker = nextResponse?.fromServiceWorker() ?? null;
+    await ready(next);
+    await expect(revision(next)).toHaveAttribute('content', revisionE);
+    assert.deepEqual(await canaries(next), retained);
+    record.networkProbeAfterNavigation = await networkProbe(next);
+    assert.match(record.networkProbeAfterNavigation, /^failed/);
+    record.offline = offlineStatus;
+    record.canariesAfterRestart = await canaries(next);
+    await offline.close();
+    record.result = 'PASS';
+    console.log(`PASS_OFFLINE_PROCESS_RESTART_E ${name} ${releaseE.version}`);
+    await save();
+  }
+  report.finished = new Date().toISOString();
+  await save();
+  console.log('ALL_PROFILES_PASSED');
+} catch (error) {
+  report.failure = { message: String(error), stack: error.stack };
+  await save();
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  for (const dir of dirs) await rm(dir, { recursive: true, force: true }).catch(() => {});
+}

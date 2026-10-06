@@ -377,3 +377,64 @@ The focused test correction closes its MessagePort and resolves an unanswered pr
 The corresponding command without `--project`, repeated twenty times per project, passed **60/60**, exit 0: [green log](evidence/milestone-2-hosted-updates-2026-10-06/waiting-probe-green.log). [Playwright 1.63.0 documentation via Context7](https://github.com/microsoft/playwright/blob/v1.63.0/docs/src/service-workers-js-python.md), [official service-worker interception guidance](https://playwright.dev/docs/service-workers) and the [service-worker install algorithm](https://w3c.github.io/ServiceWorker/#installation-algorithm) were consulted; actual emitted-worker behavior and retained traces control this diagnosis. Full quality gates and latest pushed-head CI/reviewer evidence are recorded separately after the correction.
 
 The corrected source then passed local `npm run check`, **exit 0**: format, lint, typecheck, **24 unit/component tests**, 18-source architecture boundary check, **zero audit vulnerabilities**, build and **126/126 browser tests** in all three projects, with public build revision B. [The complete new quality log](evidence/milestone-2-hosted-updates-2026-10-06/waiting-probe-quality-check.log) preserves this result separately from the earlier hosted-exercise quality log. This subsequent evidence-text addition was followed by a fresh formatting/diff check. Final pushed-head CI and actual reviewer status are reported on PR #4; the failed `7ef7641` run above is not erased or represented as passing.
+
+## CSP build E, hosted lifecycle and offline restart - 2026-10-06
+
+This is a new dated snapshot. It summarizes CSP/build-E work previously recorded only in the evidence files and external addenda, and adds a new hosted offline-restart result. Earlier sections are preserved unchanged. Git head, deployment source revision, shell identity and Appwrite deployment ID are separate identifiers below.
+
+### CSP change and build identity
+
+Commit `17cee23746646b02dd37b4903a4b46df5e24bda7` added a restrictive CSP meta policy to `apps/web/index.html`: `default-src 'none'`, `base-uri 'none'`, `object-src 'none'`, `frame-src 'none'`, `form-action 'self'`, and `'self'` for script, style, image, font, connect, manifest and worker sources. Greptile then reported that the policy also blocked Vite's inline React Refresh preamble under `npm run dev`. A development-server browser regression reproduced that failure. Commit `0e019544bde5d6691e468c4c3bf885cd90dffb1a` moved the policy into a build-only Vite plugin (`apply: 'build'`), and the development regression now passes. The production regression, `restricts document resources without blocking the same-origin shell`, remains in place. The Greptile thread is resolved and outdated.
+
+| Build | Public revision / source                                                  | Shell identity         | Appwrite deployment    | Disposition                                   |
+| ----- | ------------------------------------------------------------------------- | ---------------------- | ---------------------- | --------------------------------------------- |
+| A     | `1a8f09fe351510d3bb796f9e09cfe18d00d2fe48`                                | `c1c54c74e5cd17fe68b4` | `6ac4b356974ad50d01fa` | Retained healthy rollback target              |
+| B     | `166f0d6dc2bdbdc25200246d4f7a184f71de175d`                                | `a508cce57d69382da112` | `6ac4c927da19bfea3fbf` | Retained healthy rollback target              |
+| C     | `166f0d6dc2bdbdc25200246d4f7a184f71de175d-failure-c`, built from source B | `40d15288e5b5262502f8` | `6ac4cc59ae6794798ac7` | Invalid failure-test evidence; never activate |
+| E     | `0e019544bde5d6691e468c4c3bf885cd90dffb1a`                                | `77c816387c81001988b3` | `6ac4e58c6e620fd5dd84` | **Active**                                    |
+
+The evidence-only commit `76098c4f357edd008f065cd0dacb9d63267f0790` and this documentation commit do not redeploy E.
+
+### Hosted header and CSP limits
+
+A live `curl` recheck on this date found `X-Appwrite-Deployment-Id: 6ac4e58c6e620fd5dd84` on `/`, `/status`, `/sw.js` and `/manifest.webmanifest`, along with `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`, `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=0, must-revalidate`. There was **no** `Content-Security-Policy`, `Referrer-Policy` or `Permissions-Policy` response header. The served HTML contains the production CSP meta element. Hosted `/sw.js` embeds only shell `77c816387c81001988b3` and its eight allowlisted public assets.
+
+A meta CSP applies to the document only. It cannot carry header-only directives such as `frame-ancestors`, and it cannot set a CSP response header on `/sw.js`. Neither the authorized static Appwrite Sites configuration nor the API exposed an arbitrary response-header setting. This is a statement about that configuration, not about every Appwrite product. A public community request for custom headers on static Vite Sites ([thread](https://appwrite.io/threads/1412007396322054144)) had no answer when checked, so it is not treated as an official statement either way. Server-side rendering or backend functions were deliberately not used as a workaround. A reviewed header policy needs a response-header-capable static host or edge configuration under separate authority. **This gate remains open.**
+
+### Hosted B-to-E lifecycle (instrumented tab contexts)
+
+[The staged report](evidence/milestone-2-csp-2026-10-06/hosted-e-update-lifecycle.json) records the run from 12:09:57 to 12:14:08 UTC at the trusted HTTPS origin. It used `ignoreHTTPSErrors: false` and service workers enabled, with Chromium desktop **153.0.8010.12** and Playwright WebKit phone/tablet **26.6**. Before activation and again after E's deployment, all 11 public responses matched the local build bytes. B pages stayed on B while E waited. A second open tab blocked **Update shell and reload** without navigating that tab. After the tab was closed, explicit activation reloaded `/status` to E, and the HTML metadata, executed code, displayed shell and active worker identities all matched. Each context then held exactly two owned caches (B and E, eight allowlisted entries each, bodies hash-matched) plus the synthetic unrelated cache. The `localStorage`, unrelated CacheStorage and IndexedDB canaries kept `retain-me`. Chromium also closed and reopened offline and checked `/`, `/status`, a reload and a new `/status` tab. **That run did not exercise WebKit offline restart.** Corrupted-C rejection was not repeated against E; the earlier C rejection and restoration-to-B evidence above remains separate.
+
+### New: hosted E offline browser-process restart, including WebKit
+
+This run fills the WebKit offline-restart gap without using Windows WebKit's offline emulation, which is known to be broken. The diagnostic is [`executed-hosted-e-offline-restart.mjs.txt`](evidence/milestone-2-csp-2026-10-06/executed-hosted-e-offline-restart.mjs.txt), run with `.tools/node-v24.21.0-win-x64/node.exe artifacts/appwrite-shell-test-csp-e/hosted-e-offline-restart.mjs`. It ran from 13:10:49 to 13:11:36 UTC, printed `ALL_PROFILES_PASSED` and exited **0**. It changed no deployment or application code and kept certificate validation on.
+
+1. All 11 hosted responses returned HTTP 200 with deployment ID `6ac4e58c6e620fd5dd84`, and their bytes matched local build E.
+2. **Outage control:** a fresh disposable profile launched behind a proxy aimed at a refused local port could not load the origin (Chromium `net::ERR_PROXY_CONNECTION_FAILED`; WebKit `Could not connect to server`).
+3. For each of Chromium desktop, WebKit phone and WebKit tablet, a disposable **persistent** profile loaded `/status` online and reported ready. That included a secure context, root scope, E as both served and worker version, exactly one owned E cache with the eight hash-matched allowlisted entries, and seeded synthetic canaries. **The browser process was then closed**, and the same profile was relaunched behind the refused proxy.
+4. Offline, `/status`, `/`, a `/status` reload and a new `/status` tab each reported `fromServiceWorker() === true`. Each rendered E, with `version`/`workerVersion` `77c816387c81001988b3` and `fallback: false`, unchanged allowlisted cache contents and all three canaries retained. A query-string request, which bypasses shell handling, failed inside the restarted profile both before and after these navigations. That confirms there was no network access.
+
+The three screenshots were visually inspected. Each shows the development/nonclinical labels, **Shell available offline**, shell `77c816387c81001988b3`, the unavailable-medication statement and no horizontal clipping: [Chromium desktop](evidence/milestone-2-csp-2026-10-06/hosted-e-offline-restart-chromium-desktop.png), [WebKit phone](evidence/milestone-2-csp-2026-10-06/hosted-e-offline-restart-webkit-phone.png), [WebKit tablet](evidence/milestone-2-csp-2026-10-06/hosted-e-offline-restart-webkit-tablet.png). [The full report](evidence/milestone-2-csp-2026-10-06/hosted-e-offline-restart.json) includes every cache URL/hash and response header. **Limits:** these are Playwright WebKit 26.6 tab contexts on Windows. The recorded user agent reports Macintosh/Safari 26.6 and the display mode is `browser`, so this is not iPhone Safari, installed standalone mode or physical-device evidence. The profiles were installed directly on E; this is not a second B-to-E upgrade.
+
+### Owner-reported device information (not independently observed)
+
+The owner reports shell `77c816387c81001988b3` on both the iPhone 17 Pro (iOS 27.0.1, build 24A446) and the ASUS ROG / Windows 11 device, and says both work correctly on the same version. The owner confirmed the earlier A-to-B update and offline checks used the installed apps on both devices; those cover A `c1c54c74e5cd17fe68b4` to B `a508cce57d69382da112` only. For E, there are no device screenshots or traces showing the origin and shell version. The date, routes covered, tab or installed mode, and exact Safari/Edge versions have not been supplied. The B-to-E update, offline restart, multitab and failure behavior on physical devices are not inferred from the earlier report.
+
+### Exact-head CI and reviewer state
+
+At PR head `76098c4f357edd008f065cd0dacb9d63267f0790`, [CI 37462444929](https://github.com/Mujadarah/InterMED/actions/runs/37462444929) passed on Ubuntu 24.04 and Windows 2025. The Greptile check reported 90 files reviewed, 0 comments added. All five inline review threads were resolved and outdated. **DeepSource: Secrets** reported success, which covers the Secrets analysis only. The CodeRabbit status was green but described as **"Review skipped: manual review required for this OSS repository"**. CodeRabbit's last completed review covered `e64900c`, so this is not a completed CodeRabbit review of the current head. Main remained `f129e0dfc9d91847502e36fbb46cad9c6659ce2c`. PR #4 was open and unmerged.
+
+At source `76098c4`, a local `npm run check` on pinned Node `24.21.0` / npm `11.19.0` exited **0**: formatting, lint, strict types, **24/24 unit/component tests**, the architecture boundary check (18 source files), **zero audit vulnerabilities**, the production build and **132/132 production-browser tests** across Chromium desktop and WebKit phone/tablet ([log](evidence/milestone-2-csp-2026-10-06/quality-check.log)). This documentation and evidence were added after that run's formatting stage, so a repository-wide `npm run format:check` was run again afterwards. No application, worker or test bytes changed.
+
+### Remaining gates
+
+Still open:
+
+- reviewed HTTP security headers (CSP header, `frame-ancestors`, Referrer-Policy, Permissions-Policy), which need a header-capable host under separate authority
+- physical-device evidence tied to E: screenshots showing origin and version, date, routes, mode, and exact Safari/Edge versions
+- physical B-to-E or later-build activation, multitab, failure and storage checks on devices
+- corrupted-C rejection repeated against E, which would need explicit authority to activate C on the test origin
+- direct device deep-link and reload, orientation and safe areas, VoiceOver/Narrator, keyboard and touch checks
+- iPad and Android coverage
+
+**Full Milestone 2 acceptance is not claimed or waived.** Milestone 3 has not started.
