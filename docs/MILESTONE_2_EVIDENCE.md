@@ -277,3 +277,23 @@ All three originals were copied without image edits and visually inspected. The 
 The visible shell identity matches the deployed build recorded above (`1a8f09fe351510d3bb796f9e09cfe18d00d2fe48`, shell `c1c54c74e5cd17fe68b4`). The phone's public revision metadata, active worker identity/scope, cache entries and certificate details were not inspected; displayed shell identity is not an independent phone-side commit or worker verification.
 
 This records owner-confirmed offline close/reopen from the Home Screen icon, a rendered status route and visible reconnection recovery on an actual iPhone. It does not close all iPhone acceptance: direct deep-link/reload, exact device/browser versions, install-flow capture, landscape/safe areas, VoiceOver/input, first-ever offline visit and storage behavior remain open. Actual newer-build activation, failed candidate updates, multiple windows and synthetic persistence-canary retention remain untested on the hosted device. Windows/iPad/Android and the hosted CSP/update/rollback gaps above remain open. Full Milestone 2 acceptance is not claimed; no runtime code or deployed artifact changed.
+
+## Owner-reported device details and Windows follow-up - 2026-10-06
+
+The owner subsequently supplied the iPhone OS details: **iOS 27.0.1, build 24A446**, on the previously reported iPhone 17 Pro. These are owner-reported version fields, not independently inspected Settings/About or Safari user-agent evidence. Safari's exact version and active-worker instrumentation remain unobserved. The earlier iOS 27/unknown-build snapshot is preserved above rather than relabeled.
+
+The owner followed the Windows installation/offline instructions for the **ASUS ROG / Windows 11 / Edge** target. The owner reported pressing Install, successfully installing the app and having it on the taskbar. After pasting the offline status below, the owner explicitly answered **Yes** to whether it appeared in the installed Windows app after disconnecting internet, closing all InterMED windows and reopening from the taskbar. Exact running Windows and Edge versions remain unverified; executable metadata in the earlier snapshot is not substituted for those versions.
+
+```text
+Shell available offline
+Shell version: c1c54c74e5cd17fe68b4
+Medication dataset: unavailable. Medication features remain unavailable online and offline.
+Shell update failed. A previously cached shell is retained when available. Reconnect and check again.
+Check for shell update
+```
+
+After instructions to reconnect and press **Check for shell update**, the owner supplied the same ready status/version and unavailable-medication statement, with the update-failure text absent. This supports owner-reported installation, offline close/reopen and reconnection feedback recovery. There is no Windows screenshot, network trace, certificate inspection, mode probe, worker/cache inspection or recorded click trace for this result. It is not an observed A-to-B update or proof that a previous-version shell was selected: the failure sentence is generic UI text, and the displayed shell version stayed unchanged.
+
+An attempted agent-run check used the Computer Use plugin's documented `@oai/sky` API. App/window enumeration succeeded, but inspection of the returned Edge Welcome window stopped with: **Computer Use has been stopped for this turn because it could not determine the current browser URL on Windows with enough confidence to enforce policy.** No app input or network-setting change was performed. The subsequent Windows results above came from the owner, not successful agent automation. No alternate automation bypass was used.
+
+The deployment remains the same source commit `1a8f09fe351510d3bb796f9e09cfe18d00d2fe48` and shell `c1c54c74e5cd17fe68b4`; documentation commits do not redeploy it. The basic installed offline restart is now owner-confirmed for both iPhone and Windows, with actual-device screenshots available for iPhone only. Exact running browser/Windows versions, Windows screenshots, direct deep-link/reload, full accessibility/safe-area/orientation checks, first-visit/storage tests, actual newer-build activation and hosted failure/multitab/persistence/rollback remain open. iPad/Android availability and the reviewed CSP/header policy also remain open. Full Milestone 2 acceptance is not claimed, and Milestone 3 is not started.
