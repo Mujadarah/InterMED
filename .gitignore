@@ -13,6 +13,8 @@ artifacts/
 .idea/
 .vscode/
 .worktrees/
+.claude/worktrees/
+.claude/settings.local.json
 __pycache__/
 *.py[cod]
 .venv/

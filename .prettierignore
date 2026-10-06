@@ -5,6 +5,7 @@ playwright-report/
 test-results/
 artifacts/
 .tools/
+.claude/
 # Preserve the fully read historical planning corpus and reviewer policies.
 plan/
 .coderabbit.yaml
