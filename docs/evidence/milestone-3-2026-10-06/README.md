@@ -4,7 +4,9 @@ Logs in this folder are UTF-8 with LF line endings and trailing whitespace
 stripped. Each `*-red.txt` was produced before its implementation existed and
 each `*-green.txt` after it; `gates-*.txt` and `check-final.txt` were captured on
 the finished tree, and `check-preliminary.txt` records the one failing full run
-described in [the evidence record](../../MILESTONE_3_EVIDENCE.md).
+described in [the evidence record](../../MILESTONE_3_EVIDENCE.md). The log files
+themselves are inert artifacts of the runs they record: no test, gate or build
+reads this folder, so a committed log never changes what a later run verifies.
 
 | Log                          | Command                                                                                               | Result                                                                               |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
