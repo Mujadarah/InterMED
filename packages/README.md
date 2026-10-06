@@ -2,15 +2,16 @@
 
 Only packages needed by the development web/PWA shell exist today:
 
-| Package/layer                       | Public boundary                                | Responsibility                                                                           |
-| ----------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `@intermed/domain`                  | `src/index.ts`, exposed through `exports["."]` | Dependency-free bootstrap types and injected provider contract; no clinical entities yet |
-| `@intermed/data-access`             | `src/index.ts`, exposed through `exports["."]` | Original synthetic bootstrap provider; no network or persistence                         |
-| `apps/web/src/application`          | `createServices`                               | Compose injected contracts with validated configuration                                  |
-| `apps/web/src/application/shell.ts` | `ShellController`, `ShellState`                | Inject shell status and explicit update/install actions without exposing browser types   |
-| `apps/web/src/infrastructure`       | `createBrowserShell`                           | Browser-native service-worker and installation adapter; no clinical persistence          |
-| `apps/web/src/presentation`         | `App`                                          | Accessible navigation and explicit development limitations                               |
-| `apps/web/src/Bootstrap.tsx`        | Composition root                               | Select mock infrastructure and handle invalid startup configuration                      |
+| Package/layer                       | Public boundary                                | Responsibility                                                                                                                                                                         |
+| ----------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@intermed/domain`                  | `src/index.ts`, exposed through `exports["."]` | Dependency-free bootstrap types, injected provider contract and the vendor-neutral published-dataset reader contract; no clinical entities yet                                         |
+| `@intermed/data-access`             | `src/index.ts`, exposed through `exports["."]` | Synthetic bootstrap and published-dataset providers plus the Appwrite published-dataset adapter (injected transport, Zod-validated at the boundary); no ambient network or persistence |
+| `apps/web/src/application`          | `createServices`                               | Compose injected contracts with validated configuration                                                                                                                                |
+| `apps/web/src/application/shell.ts` | `ShellController`, `ShellState`                | Inject shell status and explicit update/install actions without exposing browser types                                                                                                 |
+| `apps/web/src/infrastructure`       | `createBrowserShell`                           | Browser-native service-worker and installation adapter; no clinical persistence                                                                                                        |
+| `apps/web/src/presentation`         | `App`                                          | Accessible navigation and explicit development limitations                                                                                                                             |
+| `apps/web/src/Bootstrap.tsx`        | Composition root                               | Select mock infrastructure and handle invalid startup configuration                                                                                                                    |
+| `infra/appwrite`                    | `appwrite.config.<environment>.json`           | Appwrite configuration as code (not provisioned), guarded by offline permission and secret scans                                                                                       |
 
 `apps/web/pwa` contains Node-only production build tooling and the explicit public-shell worker generator; it is not imported into domain or presentation. The application controller is injected through bootstrap and consumed with `useSyncExternalStore`. Synthetic persistence canaries are browser tests only.
 
@@ -18,4 +19,4 @@ Imports between workspaces use only their public package names. Dependencies poi
 
 The proposed medication, interactions, clinical-calculators, ui and test-fixtures packages remain documented extension points. Create them when their milestone needs an actual public contract; do not populate empty packages with medication models, clinical fixtures or placeholder implementations now. Presentation remains in the app until shared UI is needed. Appwrite Functions/configuration begin in Milestone 3 with separate authority.
 
-No React, Appwrite, Dexie, browser persistence, vendor transport object or clinical rule enters domain. Shared DTO validation will accompany real external boundaries; Zod currently validates public app configuration only.
+No React, Appwrite, Dexie, browser persistence, vendor transport object or clinical rule enters domain. Shared DTO validation accompanies real external boundaries: Zod validates the public app configuration and the Appwrite transport responses in data-access, while domain stays dependency-free. The published-dataset reader contract in domain is read-only and vendor-neutral; its Appwrite adapter takes an injected `fetch`-like function and is tested with fakes only. Appwrite Functions/configuration live in `infra/appwrite` with separate authority and are not provisioned by this repository's tooling.
