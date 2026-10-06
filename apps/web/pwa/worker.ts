@@ -28,7 +28,7 @@ const ready = async () => {
   if (!await caches.has(CACHE)) return false;
   return !!await readShell(CACHE);
 };
-const readShell = async name => {
+const readShell = async (name, requestedPath) => {
   const cache = await caches.open(name);
   const index = await cache.match('/index.html');
   if (!index || index.headers.get('X-Intermed-Shell-Version') !== name.slice(PREFIX.length)) return null;
@@ -38,33 +38,40 @@ const readShell = async name => {
   // The worker's own release uses compiled pins; prior releases use the public
   // metadata preserved at installation. Validate bytes, not just cache presence.
   if (name === CACHE && JSON.stringify(assets) !== JSON.stringify(SHELL.assets)) return null;
+  if (requestedPath && !assets.some(asset => asset.url === requestedPath)) return null;
+  // Navigation/readiness/activation validate the complete release. A static
+  // request validates its metadata-bearing index and exact requested bytes.
+  const requested = requestedPath ? assets.filter(asset => asset.url === '/index.html' || asset.url === requestedPath) : assets;
+  const verified = await Promise.all(requested.map(async asset => {
+    const response = asset.url === '/index.html' ? index : await cache.match(asset.url);
+    const bytes = await verifiedBytes(response, asset);
+    return bytes ? {asset, response, size: bytes.byteLength} : null;
+  }));
+  if (verified.some(result => !result)) return null;
   const responses = new Map();
   let totalBytes = 0;
-  for (const asset of assets) {
-    const response = await cache.match(asset.url);
-    const bytes = await verifiedBytes(response, asset);
-    if (!bytes) return null;
-    totalBytes += bytes.byteLength;
+  for (const {asset, response, size} of verified) {
+    totalBytes += size;
     if (totalBytes > 2 * 1024 * 1024) return null;
     responses.set(asset.url, response);
   }
   const order = Number(index.headers.get('X-Intermed-Activation-Order'));
   return {cache, index: responses.get('/index.html'), assets, responses, name, version: name.slice(PREFIX.length), prior: index.headers.get('X-Intermed-Prior-Shell'), order, activated: Number.isSafeInteger(order) && order > 0};
 };
-const selectShell = async () => {
+const selectShell = async requestedPath => {
   const names = (await caches.keys()).filter(owned);
-  const current = names.includes(CACHE) ? await readShell(CACHE) : null;
+  const current = names.includes(CACHE) ? await readShell(CACHE, requestedPath) : null;
   if (current) return current;
   // Only previously activated, complete releases can recover an evicted candidate.
   // Never serve a waiting release before activation or infer age from cache order.
-  const previous = (await Promise.all(names.filter(name => name !== CACHE).map(readShell))).filter(shell => shell?.activated);
+  const previous = (await Promise.all(names.filter(name => name !== CACHE).map(name => readShell(name, requestedPath)))).filter(shell => shell?.activated);
   // Revisiting a release can create A→B→A prior cycles. Persist actual activation
   // order independently of release identity, wall-clock time and cache insertion.
   return previous.sort((a, b) => b.order - a.order)[0] ?? null;
 };
 const markActivated = async current => {
   const headers = new Headers(current.index.headers);
-  const existing = (await Promise.all((await caches.keys()).filter(owned).map(readShell))).filter(shell => shell?.activated);
+  const existing = (await Promise.all((await caches.keys()).filter(owned).map(name => readShell(name)))).filter(shell => shell?.activated);
   const order = Math.max(0, ...existing.map(shell => shell.order)) + 1;
   if (!Number.isSafeInteger(order)) throw new Error('Invalid activation order');
   headers.set('X-Intermed-Activation-Order', String(order));
@@ -186,8 +193,8 @@ self.addEventListener('fetch', event => {
   if (!navigation && !publicAsset(url.pathname)) return;
   event.respondWith((async () => {
     try {
-      const selected = await selectShell();
       const path = navigation ? '/index.html' : url.pathname;
+      const selected = await selectShell(navigation ? undefined : path);
       if (selected?.assets.some(asset => asset.url === path)) {
         // Return the exact Response whose bytes were verified during selection.
         const hit = selected.responses.get(path);

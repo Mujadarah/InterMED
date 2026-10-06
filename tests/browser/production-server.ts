@@ -64,9 +64,19 @@ export async function productionServer() {
           bytes.toString() +
             `
 const testOpen = caches.open.bind(caches);
+const testMatch = Cache.prototype.match;
+let syntheticReadDelay = 0;
+Cache.prototype.match = async function (...args) {
+  if (syntheticReadDelay) await new Promise(done => setTimeout(done, syntheticReadDelay));
+  return testMatch.apply(this, args);
+};
 self.addEventListener('message', event => {
   if (event.data?.type === 'SYNTHETIC_STORAGE') {
     caches.open = event.data.block ? async () => { throw new Error('Synthetic post-install storage denial'); } : testOpen;
+    event.ports[0]?.postMessage('changed');
+  }
+  if (event.data?.type === 'SYNTHETIC_READ_LATENCY') {
+    syntheticReadDelay = event.data.delay;
     event.ports[0]?.postMessage('changed');
   }
 });
