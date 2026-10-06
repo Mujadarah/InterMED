@@ -1,6 +1,6 @@
 # Development and reproducible checks
 
-This is Milestone 1 of [the sequential build plan](../plan/CODEX_BUILD_PLAN.md): a development/nonclinical web shell. It has no medication data, search/checker, offline/installation support, storage, accounts or backend. First-party code remains Apache-2.0. No proprietary source or patient data is needed.
+This is Milestone 2 of [the sequential build plan](../plan/CODEX_BUILD_PLAN.md): a development/nonclinical PWA shell. The production build supports public-shell caching, offline launch after successful caching, installation guidance and user-controlled shell updates. It has no medication data, search/checker, medication persistence, accounts or backend. First-party code and original temporary icon artwork remain Apache-2.0. No proprietary source or patient data is needed. [Milestone 1 evidence](MILESTONE_1_EVIDENCE.md) remains a historical snapshot; [Milestone 2 evidence](MILESTONE_2_EVIDENCE.md) records current scope and acceptance gaps.
 
 ## Requirements and installation
 
@@ -16,46 +16,58 @@ npx playwright install --with-deps chromium webkit
 npm run check
 ```
 
-The same commands run on both GitHub Actions operating systems. Linux browser installation also installs OS libraries; on Windows it downloads browsers. Internet is required to install packages/browser binaries. The application itself makes no remote requests. Actions runs on every `pull_request` event without a target-branch/path filter, and main pushes. It uses a read-only token, pinned action SHAs, no saved checkout credentials, no production secrets and no `pull_request_target` execution.
+The same commands run on both GitHub Actions operating systems. Linux browser installation also installs OS libraries; on Windows it downloads browsers. Internet is required to install packages/browser binaries. The application makes only same-origin public-shell requests, with no external/backend requests. Actions runs on every `pull_request` event without a target-branch/path filter, and main pushes. It uses a read-only token, pinned action SHAs, no saved checkout credentials, no production secrets and no `pull_request_target` execution.
 
 Run `npm run dev` for the local Vite server. Run `npm run build`, then `npm run preview` for a local preview of `apps/web/dist`; neither command deploys anything. To override a port, call the workspace directly: `npm run preview --workspace @intermed/web -- --port 4173 --strictPort`. A future hosting adapter must configure SPA fallback for `/status`; local preview deep-link verification does not prove a deployed host's routing.
 
 ## Public configuration and mock mode
 
-No environment file is required. The only supported public value is `VITE_RUNTIME_MODE=mock`; an optional placeholder is in [apps/web/.env.example](../apps/web/.env.example). No endpoint, project ID, account, anonymous Auth session or cloud key exists in this milestone. Additional `VITE_*` keys and other mode values fail startup/build validation without printing values. All frontend variables are public: never put secrets in them. `.env`/local variants remain ignored.
+No environment file is required. The only supported public runtime-configuration value is `VITE_RUNTIME_MODE=mock`; an optional placeholder is in [apps/web/.env.example](../apps/web/.env.example). No endpoint, project ID, account, anonymous Auth session or cloud key exists in this milestone. Additional `VITE_*` keys and other mode values fail startup/build validation without printing values. All frontend variables are public: never put secrets in them. `.env`/local variants remain ignored.
 
 Bootstrap validates configuration with Zod, injects a synthetic `BootstrapInfoProvider`, and renders an accessible error when runtime configuration is invalid. The provider supplies only a development label and unavailable-reference status. It supplies no fabricated medications, interactions or clinical facts. Tests substitute it through the domain contract without credentials. See [package boundaries](../packages/README.md).
 
 ## Exact quality commands
 
-| Command                       | Evidence produced                                                                               |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| `npm ci --no-fund`            | Lockfile-only reproducible workspace installation                                               |
-| `npm run format:check`        | Prettier formatting of application/tooling/current contributor docs                             |
-| `npm run lint`                | ESLint, React hooks/refresh and JSX accessibility rules; zero warnings allowed                  |
-| `npm run typecheck`           | Strict app/tests/tooling types plus DOM-free domain compilation                                 |
-| `npm run test`                | Vitest unit/component and negative boundary fixtures                                            |
-| `npm run check:boundaries`    | Actual-source AST checks plus dependency-free domain manifest                                   |
-| `npm audit --audit-level=low` | Dependency vulnerability gate                                                                   |
-| `npm run build`               | Vite production assets in `apps/web/dist`                                                       |
-| `npm run test:browser`        | Playwright production-preview launch, routes/reload/recovery, keyboard focus and viewport smoke |
-| `npm run check`               | All quality gates above in order, excluding install/browser download                            |
+| Command                       | Evidence produced                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm ci --no-fund`            | Lockfile-only reproducible workspace installation                                                 |
+| `npm run format:check`        | Prettier formatting of application/tooling/current contributor docs                               |
+| `npm run lint`                | ESLint, React hooks/refresh and JSX accessibility rules; zero warnings allowed                    |
+| `npm run typecheck`           | Strict app/tests/tooling types plus DOM-free domain compilation                                   |
+| `npm run test`                | Vitest unit/component and negative boundary fixtures                                              |
+| `npm run check:boundaries`    | Actual-source AST checks plus dependency-free domain manifest                                     |
+| `npm audit --audit-level=low` | Dependency vulnerability gate                                                                     |
+| `npm run build`               | Vite production assets in `apps/web/dist`                                                         |
+| `npm run test:browser`        | Playwright production shell, offline/cache/failure/update lifecycle, keyboard focus and viewports |
+| `npm run check`               | All quality gates above in order, excluding install/browser download                              |
 
 Use `npm run format` to format supported files. The historical planning corpus and all-branch reviewer configurations are preserved verbatim and excluded from mechanical formatting; this does not exclude them from review or static analysis. No lint/test/analyzer rule is disabled to pass the milestone. Vitest uses threads: the initial Windows fork-pool run completed after a slow 43-second startup; threads completed the same component assertions promptly. Neither startup latency nor the corrected initial Playwright preview-command error counts as a red behavior test.
 
 ## Dependencies and API decisions
 
-Exact direct versions are authoritative in root/web manifests and the lockfile. Node LTS/npm were confirmed from the official release index. React/Vite/Router/Vitest contracts were checked with Context7 and official documentation on 2026-10-01. Router uses its declarative `BrowserRouter`/`Routes` API. No PWA plugin is selected. TanStack Query, Dexie and React Hook Form are deferred until remote metadata, storage and forms are implemented; Tailwind is unnecessary for this shell.
+Exact direct versions are authoritative in root/web manifests and the lockfile. Node LTS/npm were confirmed from the official release index. React/Vite/Router/Vitest contracts were checked with Context7 and official documentation on 2026-10-01. Router uses its declarative `BrowserRouter`/`Routes` API. Milestone 2 selects a build-only Vite plugin and browser-native service worker, with no additional dependency; see the tooling decision below. TanStack Query, Dexie and React Hook Form are deferred until remote metadata, storage and forms are implemented; Tailwind is unnecessary for this shell.
 
 TypeScript 5.9.3 stays within typescript-eslint's `<6.1` peer range. ESLint 9.39.5 satisfies jsx-a11y's current supported peer range; npm reports that ESLint major as unsupported. That maintenance limitation is recorded, not hidden with an override. Reassess the accessible lint stack before future dependency upgrades. The initial full dependency audit reported zero vulnerabilities; that is time-specific evidence, not a future guarantee.
 
 Official references: [React](https://react.dev/learn), [Vite](https://vite.dev/guide/), [React Router](https://reactrouter.com/start/declarative/installation), [Zod](https://zod.dev/basics), [Vitest](https://vitest.dev/guide/), [Testing Library](https://testing-library.com/docs/react-testing-library/setup/), [Playwright](https://playwright.dev/docs/test-configuration), [ESLint](https://eslint.org/docs/latest/use/configure/configuration-files). See [Milestone 1 evidence](MILESTONE_1_EVIDENCE.md) for actual results and limits.
 
-The JavaScript/TypeScript analyzer is requested in `.deepsource.toml` without rule/category suppressions. Only generated output/dependency directories are excluded. DeepSource's [current configuration guide](https://docs.deepsource.com/docs/platform/getting-started/configure-analyzers) requires TOML on the default branch before activation; this PR cannot establish that condition without a later authorized merge. Dashboard settings are not changed. A passing secrets check does not prove JavaScript analysis or an AI review completed.
+The JavaScript/TypeScript analyzer is requested in `.deepsource.toml` without rule/category suppressions. Only generated output/dependency directories are excluded. DeepSource's [configuration guide](https://docs.deepsource.com/docs/platform/getting-started/configure-analyzers) requires TOML on the default branch before activation. Milestone 1 added it to main; actual latest-head analyzer reports still need inspection and configuration alone does not prove an analysis completed. Dashboard settings are not changed. A passing secrets check does not prove JavaScript analysis or an AI review completed.
+
+## Production PWA shell
+
+The build-only native-worker plugin is selected deliberately for the small explicit public shell, without a new package. It hashes final Vite output, validates a bounded manifest/icon/JS/CSS allowlist and emits `/sw.js` with root scope. `INTERMED_SHELL_REVISION` is an optional nonsecret build label (letters/digits/dot/hyphen, at most 64 characters); release identity also includes asset hashes and worker policy. Clinical dataset/schema versions remain independent and unimplemented.
+
+That public label is emitted in HTML metadata and compiled into startup code's root data attribute. It lets diagnostics/tests verify HTML/code coherence and makes A/B/C production fixture scripts genuinely distinct. It is public provenance, not runtime cloud configuration or a clinical dataset version.
+
+Development on port 5173 registers no worker and shows caching disabled. Production preview normally uses port 4173. Use separate origins for development and preview: an already installed worker can still control its existing origin. Development does not silently unregister workers or clear storage.
+
+Only `/` and `/status` have cached navigation fallback. A first-ever offline visitor without a worker cannot load the app; no rendered fallback is promised. Storage denial, failed downloads and eviction are reported honestly once the page can load. Updates require an explicit finish-work/activation action and refuse with multiple open in-scope windows. Complete current/prior public shells are retained; IndexedDB, preferences and unrelated caches are untouched. See [Milestone 2 evidence](MILESTONE_2_EVIDENCE.md) for exact cache rules, recovery and tests.
+
+For optional local TLS smoke, run `node scripts/check-local-https.mjs` after `npm run build`. It needs OpenSSL (`INTERMED_OPENSSL` can supply its path) and creates ignored temporary certificate/key files in `artifacts/local-https/`. It changes no trust store. Test-only certificate bypass is explicit; this is not trusted hosted/installable validation. Production browser tests build real A/B/C release fixtures into ignored `artifacts/` and use a test-only controlled origin, never an application admin endpoint.
 
 ## Browser and device limits
 
-Playwright projects exercise Chromium desktop and WebKit phone/tablet viewports. WebKit automation is not real Safari/iPhone/iPad validation. No real-device, installed-mode, HTTPS hosting, service-worker, offline or clinical validation is claimed. Milestone 2 must decide manifest/service-worker tooling and compatibility, then record offline/update/install evidence and real-device gaps. Do not begin it as part of this bootstrap.
+Playwright projects exercise Chromium desktop and WebKit phone/tablet viewports. WebKit automation is not real Safari/iPhone/iPad validation. Milestone 2 adds actual production-worker/offline/update evidence and local self-signed HTTPS smoke. Real devices, installed mode and trusted HTTPS hosting remain acceptance gaps. No clinical validation is claimed. The Windows WebKit offline emulator returned an internal error; the suite instead disconnects the real test origin in every engine and additionally uses Chromium's network-offline emulation. It proves cached launch/reload/deep links with no static-shell origin requests; a browser SW-script update check can still attempt network. See the dated evidence for exact coverage.
 
 ## Direct version inventory
 

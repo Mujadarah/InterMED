@@ -4,7 +4,7 @@ Issues, feature proposals, documentation corrections, accessibility/privacy revi
 
 ## Current stage and workflow
 
-Milestone 1 provides a nonclinical React/TypeScript/Vite web shell. IndexedDB/Dexie and Appwrite infrastructure remain later sequential work. Native application development is cancelled; do not reintroduce native SDKs/build pipelines. Contributors need no live Appwrite credentials or proprietary clinical dataset.
+Milestone 2 provides a nonclinical React/TypeScript/Vite PWA shell with scoped public-asset caching and user-controlled updates. Medication IndexedDB/Dexie persistence and Appwrite infrastructure remain later sequential work. Browser tests use synthetic persistence canaries only. Native application development is cancelled; do not reintroduce native SDKs/build pipelines. Contributors need no live Appwrite credentials or proprietary clinical dataset. See [Milestone 2 evidence and remaining acceptance gaps](docs/MILESTONE_2_EVIDENCE.md).
 
 1. Read every repository Markdown file. Start with [plan/README.md](plan/README.md); requirements, architecture and clinical safety are controlling.
 2. Propose focused changes from a fork/topic branch through a pull request; do not push directly to main or bypass review/status-check policy.
