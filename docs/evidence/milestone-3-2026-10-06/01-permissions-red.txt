@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ tests/appwrite-config-permissions.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/appwrite-config-permissions.test.ts [ tests/appwrite-config-permissions.test.ts ]
+Error: ENOENT: no such file or directory, open 'D:\Proiecte AI\InterMED-wt\m3\infra\appwrite\appwrite.config.development.json'
+ ❯ loadAppwriteConfig tests/support/appwrite-config.ts:60:18
+     58|   relativePath: string,
+     59| ): Promise<AppwriteProjectConfig> {
+     60|   const source = await readFile(join(repositoryRoot, relativePath), 'u…
+       |                  ^
+     61|   return JSON.parse(source) as AppwriteProjectConfig;
+     62| }
+ ❯ tests/appwrite-config-permissions.test.ts:14:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  23:55:35
+   Duration  146ms (transform 17ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
