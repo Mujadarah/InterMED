@@ -73,6 +73,8 @@ Playwright projects exercise Chromium desktop and WebKit phone/tablet viewports.
 
 This checklist is for an operator running the app on a real target device. Record observed results; do not substitute Playwright/WebKit emulation, localhost, a self-signed certificate, or a browser certificate bypass. Use only an already-approved HTTPS origin that serves the intended build. No such origin was supplied on 2026-10-06, so the device-install and hosted-origin checks in the current evidence remain blocked. Do not deploy, create a host, or change any trust store as part of this checklist.
 
+**Later hosting authorization, 2026-10-06:** the owner authorized an isolated Appwrite Sites deployment of the development shell only. The approved test origin is now [intermed-shell-test.appwrite.network](https://intermed-shell-test.appwrite.network/), with [development status](https://intermed-shell-test.appwrite.network/status). It serves commit `1a8f09fe351510d3bb796f9e09cfe18d00d2fe48`, public revision equal to that SHA, and shell/worker identity `c1c54c74e5cd17fe68b4`. Later documentation commits do not change this deployed artifact. The earlier unavailable-origin observation above is historical; the new hosted checks and remaining device/header/update gates are recorded in [Milestone 2 evidence](MILESTONE_2_EVIDENCE.md#authorized-appwrite-sites-test-deployment---2026-10-06). No backend feature, paid-plan change or further deployment is authorized by the manual checklist.
+
 ### Record device, browser and build identity
 
 Before testing, record the date/time and timezone, model, exact OS version and build, browser version, and whether the app is in a tab or installed standalone. Record only version fields; do not capture serial numbers or device identifiers.

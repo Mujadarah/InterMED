@@ -219,3 +219,45 @@ This records checks completed after the documentation-format correction, against
 - The exact-head Greptile check completed successfully with 49 files reviewed and zero comments. A live PR review-thread query found all four existing inline threads resolved and outdated.
 - CodeRabbit's exact-head status was green but explicitly **review skipped: manual review required for this OSS repository**. It is not completed review evidence. DeepSource's passing check was **Secrets only**; it is not JavaScript analysis or AI review.
 - PR #4 remained open and unmerged. The owner-reported iPhone and Windows device checks, exact device/browser versions, Android/iPad coverage, and an existing trusted hosted HTTPS origin were still unavailable or unverified. No actual-device screenshots or installation/offline/update observations were added; the gates in the matrix above remain open.
+
+## Authorized Appwrite Sites test deployment - 2026-10-06
+
+The owner subsequently authorized: **"Deploy PR #4's development shell to Appwrite Sites for testing. No paid-plan changes or backend provisioning."** This is a narrow hosting exception to the original no-deployment scope, not authorization for the remainder of Milestone 3. Earlier unavailable-origin snapshots remain historical.
+
+- Public test origin: [intermed-shell-test.appwrite.network](https://intermed-shell-test.appwrite.network/); existing deep link: [/status](https://intermed-shell-test.appwrite.network/status).
+- Organization: existing **GitHub Student Organization**, Education plan. The signed-in Console was accessible through Codex's in-app browser; the provided Firefox window was not exposed by the browser tool. No plan, billing or paid option changed.
+- An empty **InterMED Shell Test** project container in Frankfurt was required for Sites: `6ac4b25b0012379cf3d0`. Site **InterMED Development Shell**: `6ac4b3550003a26eea02`. Console reports deployment `6ac4b356974ad50d01fa` **Active**.
+- No application Auth accounts, databases/tables, Functions, Storage buckets, API keys or client SDK integrations were created. The existing nonclinical/mock shell was deployed unchanged. Its existing no-cloud-connection wording describes its application runtime adapters; Appwrite now provides static hosting.
+- Source commit: **`1a8f09fe351510d3bb796f9e09cfe18d00d2fe48`**, fetched/reverified against PR #4 and the clean local branch. Source-head [CI 37399875927](https://github.com/Mujadarah/InterMED/actions/runs/37399875927) passed both OS gates before deployment. The deployed public revision is that full SHA, and shell/worker version is **`c1c54c74e5cd17fe68b4`**. Later evidence-only commits are not a new deployed build.
+
+### Artifact and hosting settings
+
+The local pinned Node `24.21.0`/npm `11.19.0` runtime built the existing workspace with `INTERMED_SHELL_REVISION=1a8f09fe351510d3bb796f9e09cfe18d00d2fe48` and `npm run build` (exit 0). The eight compiled worker asset hashes were checked against final files. A `.tar.gz` containing **only nine public output files** from `apps/web/dist` was uploaded through the Console's manual-deployment flow: HTML, hashed JavaScript/CSS, manifest, four icons and worker. Archive SHA-256: `2161ab6b63dff6e78a446fe12857340d61afd0321ed19d97805c8526cad8f7e2`. No source tree, dependency directory, environment file, certificate/key, test fixture or credential was uploaded.
+
+Framework **Other**, static hosting, empty install/build commands, output directory `./`, fallback `index.html`; no custom environment variables. Appwrite packages the already-built files, rather than rebuilding with its different runtime. The site has no Git connection, new repository access grant or automatic deployment trigger. Its stable origin can support separately authorized later update tests. The fallback serves app HTML for `/status`; worker offline navigation remains limited to `/` and `/status`.
+
+Official documentation consulted: [manual deployment](https://appwrite.io/docs/products/sites/deploy-manually), [static rendering](https://appwrite.io/docs/products/sites/rendering), [generated HTTPS domains](https://appwrite.io/docs/products/sites/domains). Actual Console and hosted-response evidence controls the results below.
+
+### Hosted verification and screenshots
+
+The first request while activation was pending returned HTTP 404 `router_deployment_not_found`; this was not counted as success. After Console activation, `curl.exe` succeeded without `--insecure`. A one-off local diagnostic, `node artifacts/appwrite-shell-test/verify-hosted-shell.mjs`, then exited 0. It uses default certificate validation (`ignoreHTTPSErrors: false`) and saves [the public response/cache/TLS evidence](evidence/milestone-2-hosted-2026-10-06/hosted-verification.json).
+
+- **11/11 HTTP responses** returned 200 without redirects and matched local SHA-256 bytes: `/`, `/status`, `/sw.js`, and all eight pinned assets (including `/index.html`). No transformed HTML, JavaScript or worker was substituted by hosting.
+- Observed MIME types: HTML `text/html; charset=utf-8`, JS/worker `text/javascript; charset=utf-8`, CSS `text/css; charset=utf-8`, icons `image/png`, manifest `application/manifest+json`. All checked files use `Cache-Control: public, max-age=0, must-revalidate`; root/deep-link/worker responses carry the active deployment ID. HSTS and `X-Content-Type-Options: nosniff` are present. **No Content-Security-Policy header was observed**; a reviewed CSP/header policy remains an open gate, not a completed security acceptance claim.
+- Chromium desktop **153.0.8010.12**, WebKit phone/tablet **26.6** passed online deep-link/reload, secure context, root worker scope, exact public revision and matching active/served worker identities. All three fresh contexts contained exactly one owned cache with the eight public URLs and matching bodies; no extra cache entry was present. This snapshot does not repeat the earlier synthetic prohibited-response scenarios against the remote host.
+- TLS negotiated version 1.3 without a certificate bypass. Chromium reported certificate issuer **Certainly Intermediate R1**, subject **appwrite.network**. This establishes hosted trust in those test engines, not an observed iPhone trust/installation result.
+- Chromium's network-disabled context passed cached overview, `/status`, reload and a new tab. A separate fresh offline context failed navigation and rendered no app fallback. The WebKit hosted probe checked online registration/cache/reload only; hosted WebKit offline emulation was not claimed. Earlier controlled-origin outage evidence remains separate.
+
+Three full-page hosted screenshots were visually inspected: readable development labels, installation guidance, phone/tablet wrapping and ready/version feedback, with no horizontal clipping. They are headless browser/emulated tab captures, **not real-device or installed-mode screenshots**:
+
+| View                                            | Screenshot                                                             |
+| ----------------------------------------------- | ---------------------------------------------------------------------- |
+| Chromium desktop, cached offline `/status`      | [Desktop](evidence/milestone-2-hosted-2026-10-06/chromium-desktop.png) |
+| WebKit phone viewport, online cached `/status`  | [Phone](evidence/milestone-2-hosted-2026-10-06/webkit-phone.png)       |
+| WebKit tablet viewport, online cached `/status` | [Tablet](evidence/milestone-2-hosted-2026-10-06/webkit-tablet.png)     |
+
+### Remaining acceptance and operation
+
+The origin is available for the owner-run [manual device checklist](DEVELOPMENT.md#manual-device-and-hosted-origin-acceptance). Actual iPhone/Windows installation, installed offline restart, device versions, accessibility/safe areas, storage behavior and screenshots remain unobserved. iPad/Android coverage remains unavailable. This single deployment does not establish hosted two-build activation, failed updates, CDN invalidation across deployments, multitab/persistence-canary upgrade behavior or production rollback. A reviewed CSP/security-header policy also remains open. Full Milestone 2 acceptance is not claimed, and PR #4 remains unmerged.
+
+The Console retains the active deployment for inspection; no rollback target exists yet because this is the first deployment. Additional deployment/failure exercises must stay on this isolated test site and require their own clear authorization. No production/clinical release, backend provisioning, paid-plan change or remaining Milestone 3 implementation occurred.
