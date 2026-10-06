@@ -442,3 +442,7 @@ Still open:
 - iPad and Android coverage
 
 **Full Milestone 2 acceptance is not claimed or waived.** Milestone 3 has not started.
+
+## Autonomous continuation - 2026-10-06
+
+[The autonomous build report](AUTONOMOUS_BUILD_REPORT_2026-10-06.md) records a bounded keyboard-update regression, independent review, fresh local quality checks, current hosted-E observation and the remaining human/hosting/requirements gates. Application behavior and the active test deployment were unchanged. This continuation does not claim full Milestone 2 acceptance or start Milestone 3.
