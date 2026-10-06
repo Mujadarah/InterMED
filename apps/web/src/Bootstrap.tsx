@@ -9,6 +9,7 @@ import { developmentShell } from './application/shell';
 /**
  * Validate the public environment and render the shell with mock services.
  * Render a configuration alert when validation fails.
+ * Use the supplied shell controller, defaulting to inert development actions.
  */
 export function Bootstrap({
   env,
