@@ -96,9 +96,21 @@ test('bounds superseded waiting caches while retaining the active shell', async 
           if (!worker) return '';
           return new Promise<string>((done) => {
             const port = new MessageChannel();
-            port.port1.onmessage = (event) => {
+            // A superseded waiting worker can become redundant before replying.
+            // Bound this probe so polling can observe the replacement worker.
+            const timeout = window.setTimeout(() => {
               port.port1.close();
-              done(event.data.version);
+              done('');
+            }, 1000);
+            port.port1.onmessage = (event) => {
+              window.clearTimeout(timeout);
+              port.port1.close();
+              done(
+                event.data.ready &&
+                  event.data.workerVersion === event.data.version
+                  ? event.data.workerVersion
+                  : '',
+              );
             };
             worker.postMessage({ type: 'SHELL_STATUS' }, [port.port2]);
           });
