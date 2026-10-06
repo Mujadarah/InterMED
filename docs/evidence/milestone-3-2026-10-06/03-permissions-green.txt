@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  26 passed (26)
+   Start at  23:58:36
+   Duration  145ms (transform 17ms, setup 0ms, import 32ms, tests 5ms, environment 0ms)
+
