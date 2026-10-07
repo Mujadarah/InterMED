@@ -1281,16 +1281,23 @@ export function createLocalDatasetStore(
 
   /**
    * Remove staging generations whose writer crashed mid-write: they are never
-   * activatable and their rows serve nobody (Greptile review fix G3). Runs
-   * under the writer lease, so it never deletes underneath a live staging run.
+   * activatable and their rows serve nobody (Greptile review fix G3). Only
+   * leftovers past the abandoned-staging grace period are touched, and the
+   * writer lease is claimed only when there is something to clean: claiming it
+   * at every open would refuse the legitimate update of a concurrent tab.
    */
   async function cleanupIncompleteStaging(): Promise<void> {
     const db = database;
     if (!db || !writerLock) return;
+    const leftovers = (await db.generations.toArray()).filter(
+      (record) =>
+        record.status === 'staging' &&
+        now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS,
+    );
+    if (leftovers.length === 0) return;
     await writerLock.withExclusiveUpdate(async () => {
-      for (const record of await db.generations.toArray())
-        if (record.status === 'staging')
-          await deleteGenerationRows(record.generationId);
+      for (const record of leftovers)
+        await deleteGenerationRows(record.generationId);
       return true;
     });
   }

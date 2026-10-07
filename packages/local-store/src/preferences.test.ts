@@ -284,14 +284,14 @@ it('keeps a favorite removed that was deleted while reconciliation ran', async (
   });
   const clock = testClock();
   let armed = false;
-  let store: ReturnType<typeof testStore>;
+  let removeFavorite: () => void = () => {};
   const now = () => {
     // The first clock read after the activation broadcast is the tombstone
     // write of the post-commit reconciliation: that is when the favorite is
     // removed from another code path.
     if (armed) {
       armed = false;
-      void store.preferences.removeFavorite(alpha.productIds['SP-FICTIVOL']!);
+      removeFavorite();
     }
     return clock.now();
   };
@@ -303,7 +303,10 @@ it('keeps a favorite removed that was deleted while reconciliation ran', async (
     // interleave with the removal.
     armed = broadcasts === 2;
   });
-  store = testStore({ name: uniqueName(), events, now });
+  const store = testStore({ name: uniqueName(), events, now });
+  removeFavorite = () => {
+    void store.preferences.removeFavorite(alpha.productIds['SP-FICTIVOL']!);
+  };
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
