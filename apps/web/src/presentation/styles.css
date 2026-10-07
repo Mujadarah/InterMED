@@ -21,6 +21,7 @@ a {
   text-underline-offset: 0.2em;
 }
 a:focus-visible,
+button:focus-visible,
 main:focus-visible {
   outline: 3px solid #8b4d09;
   outline-offset: 5px;
@@ -28,7 +29,8 @@ main:focus-visible {
 .shell {
   max-width: 72rem;
   margin: auto;
-  padding: 0 2rem;
+  padding: env(safe-area-inset-top) max(2rem, env(safe-area-inset-right))
+    env(safe-area-inset-bottom) max(2rem, env(safe-area-inset-left));
 }
 .header {
   display: flex;
@@ -148,7 +150,8 @@ footer {
 }
 @media (max-width: 42rem) {
   .shell {
-    padding: 0 1.25rem;
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
   }
   .header {
     align-items: flex-start;
@@ -167,4 +170,32 @@ footer {
     grid-template-columns: 1fr;
     gap: 0.25rem;
   }
+}
+
+.shell-status {
+  max-width: 46rem;
+  margin-top: 2.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+.shell-status p:first-child {
+  font-weight: 600;
+}
+.shell-version {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+button {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  margin: 0.25rem 0.5rem 0.25rem 0;
 }

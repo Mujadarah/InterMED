@@ -1,0 +1,1 @@
+I'll review Milestone 2 as a read-only pass: controlling docs first, then the PWA shell, worker, and tests, looking only for defects with a concrete failure path.The tree is Milestone 2 plus later planning docs. Next I’ll read the controlling Markdown and the PWA shell sources before judging any defect.

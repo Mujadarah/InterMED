@@ -1,12 +1,21 @@
 import type { AppServices } from '../application/services';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useEffect, useRef } from 'react';
+import type { ShellController } from '../application/shell';
+import { developmentShell } from '../application/shell';
+import { ShellStatus } from './ShellStatus';
 
 /**
  * Render the nonclinical navigation shell using the supplied services.
  * Require a router context and focus main content when the pathname changes.
  */
-export function App({ services }: { services: AppServices }) {
+export function App({
+  services,
+  shell = developmentShell,
+}: {
+  services: AppServices;
+  shell?: ShellController;
+}) {
   const { pathname } = useLocation();
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef(pathname);
@@ -74,7 +83,7 @@ export function App({ services }: { services: AppServices }) {
             element={
               <section aria-labelledby="status-title">
                 <h1 id="status-title">Development status</h1>
-                <p className="lead">Repository and web bootstrap</p>
+                <p className="lead">Development PWA shell</p>
                 <p>
                   Medication lookup and interaction checking are unavailable. No
                   clinical capability has been validated.
@@ -86,7 +95,7 @@ export function App({ services }: { services: AppServices }) {
                   </div>
                   <div>
                     <dt>Offline use and installation</dt>
-                    <dd>Not implemented</dd>
+                    <dd>Public shell only, after successful caching</dd>
                   </div>
                   <div>
                     <dt>Patient information</dt>
@@ -97,6 +106,33 @@ export function App({ services }: { services: AppServices }) {
                   This build uses contributor mock mode without accounts or
                   cloud connections. Future clinical content requires permitted
                   sources and clinical review.
+                </p>
+                <h2>Install the development shell</h2>
+                <p>
+                  iPhone/iPad Safari: Share → Add to Home Screen. If offered,
+                  enable Open as Web App, then Add.
+                </p>
+                <p>
+                  On other browsers, use Install development app when this
+                  browser offers it. Otherwise check its address-bar or menu
+                  installation option. Some browsers offer no installation; you
+                  can continue in a tab. Installation flows differ.
+                </p>
+                <p>
+                  Connect first and wait for “Shell available offline”. A
+                  brand-new offline visit cannot load this page without a
+                  previously cached worker. Installing does not download
+                  medications.
+                </p>
+                <p>
+                  Private mode, quota limits or browser eviction can remove or
+                  restrict storage. Installed and tab modes may use different
+                  storage. Offline availability is checked now, not guaranteed
+                  permanently.
+                </p>
+                <p>
+                  Temporary development artwork: original I monogram, not
+                  approved final branding.
                 </p>
               </section>
             }
@@ -114,6 +150,7 @@ export function App({ services }: { services: AppServices }) {
             }
           />
         </Routes>
+        <ShellStatus shell={shell} />
       </main>
       <footer>
         <p>

@@ -1,0 +1,12 @@
+{
+  "Command": ".tools/node-v24.21.0-win-x64/node.exe artifacts/appwrite-shell-test/hosted-update-lifecycle.mjs",
+  "TTY": true,
+  "Commands": ["b", "failed-c", "restored-b", "finish"],
+  "SourceSHA256": "4410d43f63687d4379873d7c0f754773f1d31d376e44975f5dcb31a996d66327",
+  "CommandExit": 0,
+  "CompletedTeardowns": ["chromium-desktop", "webkit-phone", "webkit-tablet"],
+  "FinalOutput": "CLEAN_SHUTDOWN_COMPLETE",
+  "Changes": "Explicitly stop/destroy command input and close each browser context before closing its browser; behavior assertions unchanged",
+  "RetainedDeployments": "A, B and C reused; B restored active at end",
+  "ReportFinishedUTC": "2026-10-06T10:42:29.06Z"
+}

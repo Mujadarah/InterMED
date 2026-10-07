@@ -1,0 +1,63 @@
+{
+  "observedAtUtc": "2026-10-06T18:00:27Z",
+  "tool": "T3 Code collaborative preview",
+  "type": "development-shell tab observation",
+  "identity": {
+    "origin": "https://intermed-shell-test.appwrite.network",
+    "publicRevision": "0e019544bde5d6691e468c4c3bf885cd90dffb1a",
+    "scope": "https://intermed-shell-test.appwrite.network/",
+    "secureContext": true,
+    "standalone": false,
+    "version": "77c816387c81001988b3",
+    "workerVersion": "77c816387c81001988b3",
+    "fallback": false,
+    "ready": true,
+    "storageAccessible": true
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.45 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "horizontalOverflow": false,
+  "headerProbe": {
+    "cspMeta": "default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'",
+    "from": "query request bypasses shell fetch handling",
+    "headers": {
+      "accept-ranges": "bytes",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "content-encoding": "br",
+      "content-length": "603",
+      "content-type": "text/html; charset=utf-8",
+      "date": "Tue, 06 Oct 2026 18:00:27 GMT",
+      "etag": "\"1dfbdd77542613a44a9848888ef782e9\"",
+      "server": "swoole-http-server",
+      "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "via": "1.1 varnish",
+      "x-appwrite-deployment-id": "6ac4e58c6e620fd5dd84",
+      "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+      "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+      "x-appwrite-traffic-type": "site",
+      "x-cache": "MISS",
+      "x-cache-hits": "0",
+      "x-content-type-options": "nosniff",
+      "x-debug-speed": "0.19377207756042",
+      "x-edge-location": "fra",
+      "x-edge-rule-cache": "hit",
+      "x-edge-runtime-cache": "hit",
+      "x-served-by": "cache-fra-etou8220163-FRA",
+      "x-timer": "S1791309628.517076,VS0,VE214",
+      "x-utopia-compression": "true"
+    },
+    "status": 200,
+    "url": "https://intermed-shell-test.appwrite.network/?intermed-autonomous-header-probe=2026-10-06"
+  },
+  "limits": [
+    "Agent device access is turned off.",
+    "This was a browser tab, not installed Chrome/Edge or physical Safari.",
+    "No offline restart, new hosted build activation, storage failure or screen-reader test occurred in this preview.",
+    "T3 key actions reached skip link and check button, but did not establish :focus-visible; Playwright keyboard evidence is separate.",
+    "No deployment or trust-store setting changed."
+  ]
+}

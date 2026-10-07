@@ -11,12 +11,11 @@ describe('public configuration', () => {
     );
   });
   it('rejects unknown public variables without echoing their values', () => {
-    expect(() =>
-      parseConfig({ VITE_UNSUPPORTED_OPTION: 'unexpected-config-value' }),
-    ).toThrow('Invalid public configuration');
+    expect.assertions(2);
     try {
       parseConfig({ VITE_UNSUPPORTED_OPTION: 'unexpected-config-value' });
     } catch (error) {
+      expect(String(error)).toContain('Invalid public configuration');
       expect(String(error)).not.toContain('unexpected-config-value');
     }
   });

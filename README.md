@@ -2,7 +2,7 @@
 
 InterMED is an open-source, offline-first clinical reference and decision-support platform for clinicians. Its first product is an installable Progressive Web App (PWA) for Romanian medication lookup, authoritative drug information and structured drug-interaction checking.
 
-**Development stage: Milestone 1 adds a nonclinical web shell.** Medication lookup, interactions, offline installation and cloud services are not implemented. InterMED is not validated for clinical use.
+**Development stage: the Milestone 2 nonclinical PWA shell is accepted for development (2026-10-06).** The production shell can launch offline after successful caching, with installation help and user-controlled updates. Release gates (security response headers, iPad/Android, screen-reader checks) remain before any public clinical release. Medication lookup, interactions, medication datasets and cloud services remain unavailable. InterMED is not validated for clinical use; see [Milestone 2 evidence](docs/MILESTONE_2_EVIDENCE.md).
 
 ## First release
 

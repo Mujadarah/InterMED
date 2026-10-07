@@ -10,7 +10,7 @@ No native build or App Store submission is required to develop/deploy the PWA. R
 
 ## Offline contract and limits
 
-After one successful application-shell load and compatible medication dataset download, search, downloaded details, local favorites/recent searches and licensed downloaded interactions work without a network round-trip. First-ever offline startup must show an honest download-required screen, not empty results implying a complete catalogue.
+After one successful application-shell load and compatible medication dataset download, search, downloaded details, local favorites/recent searches and licensed downloaded interactions work without a network round-trip. A first-ever offline visit to a never-visited origin has no cached app code: the browser shows its native offline error and InterMED cannot render. Once the shell is cached but no compatible medication dataset has been downloaded, show an honest download-required/unavailable status, not empty results implying a complete catalogue (R67, amended by maintainer decision 2026-10-06).
 
 Regulatory links and provider-only interaction results unavailable offline must be labeled unavailable. Only explicitly permitted document bodies/interaction records may be cached. Show active dataset source/version/date, last successful update and coverage; an old dataset is not silently described as current.
 

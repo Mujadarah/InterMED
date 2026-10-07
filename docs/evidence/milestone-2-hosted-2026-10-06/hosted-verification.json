@@ -1,0 +1,569 @@
+{
+  "origin": "https://intermed-shell-test.appwrite.network",
+  "commit": "1a8f09fe351510d3bb796f9e09cfe18d00d2fe48",
+  "shell": "c1c54c74e5cd17fe68b4",
+  "files": [
+    {
+      "path": "/",
+      "status": 200,
+      "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "503",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:35 GMT",
+        "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.16583800315857",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276035.981444,VS0,VE173",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/status",
+      "status": 200,
+      "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "503",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:35 GMT",
+        "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.40432286262512",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276035.278950,VS0,VE410",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/sw.js",
+      "status": 200,
+      "sha256": "72026b3e97783a6f21985519803c54bf6e2695940b2b0e7bb0d524f0afd5e320",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "4342",
+        "content-type": "text/javascript; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:35 GMT",
+        "etag": "\"1040475303bed97810a9a41a50df8fb9\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.1699001789093",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276036.785106,VS0,VE176",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/assets/index-C7qxojui.js",
+      "status": 200,
+      "sha256": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "104135",
+        "content-type": "text/javascript; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:36 GMT",
+        "etag": "\"36deb72c286e63cdd3a862c58977bc0e\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.20456385612488",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276036.008438,VS0,VE209",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/assets/index-kdzZSpSC.css",
+      "status": 200,
+      "sha256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "1043",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:36 GMT",
+        "etag": "\"29ff6057f18a1eea6b7d23e2756824d5\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.20121479034424",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276036.290855,VS0,VE207",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/icons/apple-touch-180.png",
+      "status": 200,
+      "sha256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "835",
+        "content-type": "image/png",
+        "date": "Tue, 06 Oct 2026 08:40:36 GMT",
+        "etag": "\"2e212d423353a830bd5acc93189f7374\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.22065997123718",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276037.528893,VS0,VE225"
+      }
+    },
+    {
+      "path": "/icons/icon-192.png",
+      "status": 200,
+      "sha256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "882",
+        "content-type": "image/png",
+        "date": "Tue, 06 Oct 2026 08:40:36 GMT",
+        "etag": "\"98e194dd359749a7f29736834aab9fa6\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.15024089813232",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276037.808286,VS0,VE154"
+      }
+    },
+    {
+      "path": "/icons/icon-512.png",
+      "status": 200,
+      "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "3359",
+        "content-type": "image/png",
+        "date": "Tue, 06 Oct 2026 08:40:37 GMT",
+        "etag": "\"ca84f4481f82817981efed20820555d0\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.23115086555481",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276037.013062,VS0,VE236"
+      }
+    },
+    {
+      "path": "/icons/maskable-512.png",
+      "status": 200,
+      "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "3359",
+        "content-type": "image/png",
+        "date": "Tue, 06 Oct 2026 08:40:37 GMT",
+        "etag": "\"ca84f4481f82817981efed20820555d0\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.1663510799408",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276037.279812,VS0,VE171"
+      }
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "br",
+        "content-length": "503",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Tue, 06 Oct 2026 08:40:37 GMT",
+        "etag": "\"2e7303f801b464e2ac51b5f60bb5df2b\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.18334579467773",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276037.481402,VS0,VE187",
+        "x-utopia-compression": "true"
+      }
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "sha256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc",
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "722",
+        "content-type": "application/manifest+json",
+        "date": "Tue, 06 Oct 2026 08:40:38 GMT",
+        "etag": "\"34f1bf7056d2c2dc0d7b5e5a03a69ad1\"",
+        "server": "swoole-http-server",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "via": "1.1 varnish",
+        "x-appwrite-deployment-id": "6ac4b356974ad50d01fa",
+        "x-appwrite-edge-server": "0bBHNYBByXcKOErbUf2l16--F_fra1",
+        "x-appwrite-project-id": "6ac4b25b0012379cf3d0",
+        "x-appwrite-traffic-type": "site",
+        "x-cache": "MISS",
+        "x-cache-hits": "0",
+        "x-content-type-options": "nosniff",
+        "x-debug-speed": "0.57293605804443",
+        "x-edge-location": "fra",
+        "x-edge-rule-cache": "hit",
+        "x-edge-runtime-cache": "hit",
+        "x-served-by": "cache-fra-etou8220182-FRA",
+        "x-timer": "S1791276038.729915,VS0,VE578"
+      }
+    }
+  ],
+  "browsers": [
+    {
+      "name": "chromium-desktop",
+      "engineVersion": "153.0.8010.12",
+      "certificateBypass": false,
+      "tls": {
+        "issuer": "Certainly Intermediate R1",
+        "protocol": "TLS 1.3",
+        "subjectName": "appwrite.network",
+        "validFrom": 1790463549,
+        "validTo": 1793055548
+      },
+      "status": {
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "script": "https://intermed-shell-test.appwrite.network/sw.js",
+        "ready": true,
+        "storageAccessible": true,
+        "version": "c1c54c74e5cd17fe68b4",
+        "workerVersion": "c1c54c74e5cd17fe68b4",
+        "fallback": false,
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "sha256": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "sha256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "sha256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "sha256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "sha256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              }
+            ]
+          }
+        ]
+      },
+      "onlineDeepLinkReload": true,
+      "offline": "Chromium context network disabled: overview, status, reload and new tab passed",
+      "firstOfflineVisit": "navigation failed; no app fallback rendered"
+    },
+    {
+      "name": "webkit-phone",
+      "engineVersion": "26.6",
+      "certificateBypass": false,
+      "tls": {
+        "protocol": "TLSv1.3",
+        "subjectName": "appwrite.network",
+        "validFrom": 1790467149,
+        "validTo": 1793055548
+      },
+      "status": {
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "script": "https://intermed-shell-test.appwrite.network/sw.js",
+        "ready": true,
+        "storageAccessible": true,
+        "version": "c1c54c74e5cd17fe68b4",
+        "workerVersion": "c1c54c74e5cd17fe68b4",
+        "fallback": false,
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "sha256": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "sha256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "sha256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "sha256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "sha256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ]
+      },
+      "onlineDeepLinkReload": true,
+      "offline": "not exercised in this WebKit hosted probe"
+    },
+    {
+      "name": "webkit-tablet",
+      "engineVersion": "26.6",
+      "certificateBypass": false,
+      "tls": {
+        "protocol": "TLSv1.3",
+        "subjectName": "appwrite.network",
+        "validFrom": 1790467149,
+        "validTo": 1793055548
+      },
+      "status": {
+        "secureContext": true,
+        "scope": "https://intermed-shell-test.appwrite.network/",
+        "script": "https://intermed-shell-test.appwrite.network/sw.js",
+        "ready": true,
+        "storageAccessible": true,
+        "version": "c1c54c74e5cd17fe68b4",
+        "workerVersion": "c1c54c74e5cd17fe68b4",
+        "fallback": false,
+        "cached": [
+          {
+            "name": "intermed-public-shell-v1-c1c54c74e5cd17fe68b4",
+            "entries": [
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-C7qxojui.js",
+                "type": "text/javascript; charset=utf-8",
+                "sha256": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/assets/index-kdzZSpSC.css",
+                "type": "text/css; charset=utf-8",
+                "sha256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/apple-touch-180.png",
+                "type": "image/png",
+                "sha256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-192.png",
+                "type": "image/png",
+                "sha256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/icon-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/icons/maskable-512.png",
+                "type": "image/png",
+                "sha256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/index.html",
+                "type": "text/html; charset=utf-8",
+                "sha256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+              },
+              {
+                "url": "https://intermed-shell-test.appwrite.network/manifest.webmanifest",
+                "type": "application/manifest+json",
+                "sha256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+              }
+            ]
+          }
+        ]
+      },
+      "onlineDeepLinkReload": true,
+      "offline": "not exercised in this WebKit hosted probe"
+    }
+  ]
+}

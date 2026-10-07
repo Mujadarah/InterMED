@@ -34,11 +34,15 @@ Tasks: manifest.webmanifest, normal/maskable icons (clearly temporary if placeho
 
 Acceptance: HTTPS installed/tab shell launches on target-browser smoke matrix; post-load offline startup works; first-offline visit is honest; manifest/scope/deep links are correct; new shell does not interrupt work or wipe storage; no secret/privileged data is cached. Record real-device validation needed for final release.
 
+Status: **accepted for development** by maintainer decision on 2026-10-06, based on the owner-confirmed iPhone/Windows installed, offline close/reopen and A→B update results plus the automated evidence. The remaining open gates were moved, not waived, to the milestone 12 checklist and remain required before any public clinical release. See [Milestone 2 evidence](../docs/MILESTONE_2_EVIDENCE.md#owner-acceptance-decision-2026-10-06).
+
 ## Milestone 3 — Appwrite infrastructure
 
 Tasks: with provisioning approval, create isolated development/production configuration, preferably Frankfurt; configure Sites/GitHub branch/root/build/output/deep-link settings; injected backend client; choose normalized database product/configuration and record decision; initial private Function/Storage structures, public-read publication boundary, environment strategy and deployment/rollback pipeline.
 
 Acceptance: authorized test deployment works with exact recorded settings; unauthenticated reader can read only approved public resources without an anonymous session; reader cannot write or execute admin importer; raw/quarantine data remain private; effective resource permissions tested; no server key in bundle/log/config. Production deployment is not implied by this acceptance.
+
+Ordering (maintainer decision, 2026-10-06): milestone 3 may begin. Appwrite configuration/schema **as code** behind an injected backend-client interface may proceed alongside milestone 4 (pure TypeScript domain model with synthetic fixtures); this is an owner-authorized deviation from strict sequencing. Live Appwrite provisioning/deployment still requires fresh explicit approval. The owner merges PRs; agents never merge.
 
 ## Milestone 4 — Medication domain model
 
@@ -98,6 +102,12 @@ Tasks/checklist:
 - Clinical/rights review, provider coverage/version/source display, intended-use/regulatory assessment and limitation wording.
 - Privacy documentation, preference export/delete, diagnostics with app/schema/dataset/source versions and update state; no sensitive logs.
 - Approved deployment, manifest rollback/restore drill, incident/operational owner, cost monitoring and staged synthetic-data clinician evaluation.
+- Moved from milestone 2 (maintainer decision 2026-10-06; required before any public clinical release):
+  - reviewed security **response** headers on a header-capable host/edge: CSP header including `frame-ancestors`, CSP on `/sw.js`, Referrer-Policy and Permissions-Policy (the production meta CSP stays);
+  - iPad Safari and Android Chrome coverage;
+  - VoiceOver/Narrator/screen-reader checks and full safe-area/orientation/input checks;
+  - physical-device direct deep-link/reload, multitab, failed-update (corrupted candidate) rejection and storage-eviction behavior;
+  - hosted corrupted-candidate rejection repeated against the current build (build E at the time of the decision).
 
 Acceptance: all applicable checks have recorded passing evidence or an explicit maintainer-approved nonclinical scope restriction. An unvalidated clinical capability is not waived by labeling it MVP. Core-release checks apply to milestones 1–10; this milestone repeats them with calculators. Report limitations honestly.
 

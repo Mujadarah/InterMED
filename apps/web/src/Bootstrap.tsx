@@ -3,12 +3,20 @@ import { createServices } from './application/services';
 import { App } from './presentation/App';
 import { parseConfig } from './config';
 import type { AppConfig } from './config';
+import type { ShellController } from './application/shell';
+import { developmentShell } from './application/shell';
 
 /**
  * Validate the public environment and render the shell with mock services.
  * Render a configuration alert when validation fails.
  */
-export function Bootstrap({ env }: { env: Record<string, unknown> }) {
+export function Bootstrap({
+  env,
+  shell = developmentShell,
+}: {
+  env: Record<string, unknown>;
+  shell?: ShellController;
+}) {
   let config: AppConfig;
   try {
     config = parseConfig(env);
@@ -28,5 +36,10 @@ export function Bootstrap({ env }: { env: Record<string, unknown> }) {
       </div>
     );
   }
-  return <App services={createServices(config, mockBootstrapProvider)} />;
+  return (
+    <App
+      services={createServices(config, mockBootstrapProvider)}
+      shell={shell}
+    />
+  );
 }

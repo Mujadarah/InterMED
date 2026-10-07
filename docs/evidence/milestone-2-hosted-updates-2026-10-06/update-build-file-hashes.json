@@ -1,0 +1,152 @@
+[
+  {
+    "Label": "a",
+    "Files": [
+      {
+        "Path": "index.html",
+        "Bytes": 1238,
+        "SHA256": "d743049032460fe78dea21987bc50fbdf821c02d4526442be516d7060502b860"
+      },
+      {
+        "Path": "manifest.webmanifest",
+        "Bytes": 722,
+        "SHA256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+      },
+      {
+        "Path": "sw.js",
+        "Bytes": 12811,
+        "SHA256": "72026b3e97783a6f21985519803c54bf6e2695940b2b0e7bb0d524f0afd5e320"
+      },
+      {
+        "Path": "assets\\index-C7qxojui.js",
+        "Bytes": 332732,
+        "SHA256": "86782d8feef2c389088d6c87c920534cd2e3da358a3d1d91c779d3d533216279"
+      },
+      {
+        "Path": "assets\\index-kdzZSpSC.css",
+        "Bytes": 2809,
+        "SHA256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+      },
+      {
+        "Path": "icons\\apple-touch-180.png",
+        "Bytes": 835,
+        "SHA256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+      },
+      {
+        "Path": "icons\\icon-192.png",
+        "Bytes": 882,
+        "SHA256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+      },
+      {
+        "Path": "icons\\icon-512.png",
+        "Bytes": 3359,
+        "SHA256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+      },
+      {
+        "Path": "icons\\maskable-512.png",
+        "Bytes": 3359,
+        "SHA256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+      }
+    ]
+  },
+  {
+    "Label": "b",
+    "Files": [
+      {
+        "Path": "index.html",
+        "Bytes": 1238,
+        "SHA256": "084f096085fa7ec6dc29b196449e7c4d5d2a33366668e299914b616f18fba84b"
+      },
+      {
+        "Path": "manifest.webmanifest",
+        "Bytes": 722,
+        "SHA256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+      },
+      {
+        "Path": "sw.js",
+        "Bytes": 12811,
+        "SHA256": "23c0f94cd6631bf90cbd2c4059146714e4bf0fb13c0d580867e75c83ea55e17f"
+      },
+      {
+        "Path": "assets\\index-D-6c_OqW.js",
+        "Bytes": 332732,
+        "SHA256": "bcd3d36139a84737020b9270098005afe7a68c51ac8ac9fb9046fd91c206b9ce"
+      },
+      {
+        "Path": "assets\\index-kdzZSpSC.css",
+        "Bytes": 2809,
+        "SHA256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+      },
+      {
+        "Path": "icons\\apple-touch-180.png",
+        "Bytes": 835,
+        "SHA256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+      },
+      {
+        "Path": "icons\\icon-192.png",
+        "Bytes": 882,
+        "SHA256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+      },
+      {
+        "Path": "icons\\icon-512.png",
+        "Bytes": 3359,
+        "SHA256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+      },
+      {
+        "Path": "icons\\maskable-512.png",
+        "Bytes": 3359,
+        "SHA256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+      }
+    ]
+  },
+  {
+    "Label": "c",
+    "Files": [
+      {
+        "Path": "index.html",
+        "Bytes": 1248,
+        "SHA256": "6120cbdafddeafdb2bc9e8066ebc8b42638f41a53092237236601fbd4daddcfa"
+      },
+      {
+        "Path": "manifest.webmanifest",
+        "Bytes": 722,
+        "SHA256": "f9bd764c64d3db00c232b98fd4240b1e5ac34a15fad115e33d7789aadfc0f3fc"
+      },
+      {
+        "Path": "sw.js",
+        "Bytes": 12811,
+        "SHA256": "915265c565f1391deb3f7f8f1b0faa4c28c04309c619ba503e3d2ee4035158e2"
+      },
+      {
+        "Path": "assets\\index-Ck4ew-iC.js",
+        "Bytes": 332752,
+        "SHA256": "39bf53e26facdb3003eece8ee54a66f1ffd6226d87652a15e7b519d62362a030"
+      },
+      {
+        "Path": "assets\\index-kdzZSpSC.css",
+        "Bytes": 2809,
+        "SHA256": "c0cfb726eaaea0da88f61b42d38c2a7d334a043266ef65efd66e530891f10a34"
+      },
+      {
+        "Path": "icons\\apple-touch-180.png",
+        "Bytes": 835,
+        "SHA256": "601324c89f7a918945db36c59ce15b47ac61ca7b33c54fbe8f42320a6699be38"
+      },
+      {
+        "Path": "icons\\icon-192.png",
+        "Bytes": 882,
+        "SHA256": "1718813462b3bad60e127622ae39bca6dbf0204abb0b19b73088e42050f9bb86"
+      },
+      {
+        "Path": "icons\\icon-512.png",
+        "Bytes": 48,
+        "SHA256": "456591be6e7e485b2c11118ee16562aac327492c2b7ebd30b1977139e9cab88b"
+      },
+      {
+        "Path": "icons\\maskable-512.png",
+        "Bytes": 3359,
+        "SHA256": "c2b51632883b1ed7529317ab46586b25285c8a0a9df527d30fbc1b725606d604"
+      }
+    ]
+  }
+]
