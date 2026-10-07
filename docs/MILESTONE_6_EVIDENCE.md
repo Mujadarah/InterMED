@@ -206,6 +206,81 @@ Only Markdown (this file) was written after that captured `npm run check`
 run, and only `npm run format:check` reads Markdown: it was re-run afterwards
 and exited 0 (also recorded in the same log).
 
+### Greptile review fixes
+
+Nine findings from the Greptile review, all confirmed with a failing test
+first (Vitest on `fake-indexeddb`; none needed real multi-tab IndexedDB).
+**All nine were valid**; G1, G4 and G6 were already fixed by the Codex pass
+above and are proven by those tests; G2, G3, G5, G7, G8 and G9 are fixed
+here. Logs: [red-greptile-review.log](evidence/milestone-6-2026-10-07/red-greptile-review.log),
+[green-greptile-review.log](evidence/milestone-6-2026-10-07/green-greptile-review.log)
+(same format: one section per run with its command and exit code).
+
+|     | Finding (Greptile review)                                                                                             | Status                                            | Test(s)                                                                                                                                                                                                             | Fix                                                                                                                |
+| --- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| G1  | ownership only renewed, not checked before writes; a lease loser must stop and must not clean up the new owner's rows | already fixed by `041f4bb`                        | `multitab.test.ts` "stops staging and keeps the new writer rows when the lease is lost mid-staging" (+ the Codex #1 tests)                                                                                          | lease revalidated in every staging batch and in the pointer switch                                                 |
+| G2  | `collect()` ran without the writer lock and decided from a stale snapshot of pointers/pins                            | fixed (`d50cdc7`, pin handover in `45555f9`)      | `readers.test.ts` "refuses collection while another tab is staging instead of deleting under it", "honours a pin taken while collection is running", "restarts a generation retention window when a reader pins it" | collection under the lease; pointers and pins re-read in the delete transaction; pins refresh the retention anchor |
+| G3  | staging wrote its record first; a crash left a partial generation that `activate(id)` accepted                        | fixed (`e0927ca`, cleanup follow-up in `c72650d`) | `staging.test.ts` "refuses to activate a generation whose staging never completed", "re-verifies the stored row counts before switching the pointer", "removes an incomplete staging generation on the next open"   | `staging` → `staged` completion marker with verified counts; activation re-verifies                                |
+| G4  | a download could resume into a completed clear and re-activate                                                        | already fixed by `7c6edea`                        | `preferences.test.ts` "never lets a download resume into a completed clear"                                                                                                                                         | persisted clear epoch checked before staging and in the switch                                                     |
+| G5  | reconciliation wrote favorites back from a stale `toArray()` snapshot                                                 | fixed (`ba0d8ff`)                                 | `preferences.test.ts` "keeps a favorite removed that was deleted while reconciliation ran"                                                                                                                          | one read-modify-write transaction, `update` only existing rows                                                     |
+| G6  | reconciliation not recoverable after a crash before it ran                                                            | already fixed by `5ad1e69`                        | `staging.test.ts` "finishes a preference reconciliation that a crash interrupted"                                                                                                                                   | `reconciledGenerationId` marker, reconciled on open                                                                |
+| G7  | evicted generation could not recover: readers handed out, download skipped                                            | fixed (`45555f9`)                                 | `staging.test.ts` "recovers an evicted generation by re-downloading and replacing its rows"                                                                                                                         | completeness check before every shortcut; re-stage replaces rows                                                   |
+| G8  | startup write failures rejected the cached open promise and left `/status` on `opening`                               | fixed (`c72650d`)                                 | `migrations.test.ts` "reports a failed startup write and lets a later open retry"                                                                                                                                   | startup caught; connection closed; open stays retryable                                                            |
+| G9  | the embedded dataset version was never compared with its manifest                                                     | fixed (`bd280ae`)                                 | `staging.test.ts` "rejects a bundle whose embedded dataset version disagrees with its manifest", "applies the manifest compatibility checks to the embedded version too"                                            | mismatch → `invalid-bundle`, same compatibility checks → `incompatible-schema`                                     |
+
+Choices worth recording:
+
+- **G2**: collection is refused (nothing collected) while another tab holds
+  the writer lease, and each candidate is re-checked **inside** the deleting
+  transaction against the pointers and the in-tab pins. `openPinnedReader`
+  pins optimistically at call time and hands the pin to the reader, so a pin
+  taken while collection runs is already visible to that re-check. Pin
+  bookkeeping runs with `Dexie.ignoreTransaction`: Dexie otherwise joins an
+  in-flight transaction whose scope does not contain the store (this also
+  explains one failed attempt kept in the green log).
+- **G3**: the completion marker is `status: 'staged'`, written in one final
+  transaction after all batches and after the stored rows match the published
+  counts; `activate` requires it and re-verifies the counts inside the pointer
+  transaction (`interrupted` for an incomplete staging, `count-mismatch` for
+  missing rows). Incomplete staging generations are removed on the next open,
+  only past the abandoned-staging grace period.
+- **G8**: a quota error reports `storage-quota`, any other startup write
+  failure reports `storage-restricted` rather than the suggested
+  `storage-unavailable`, because that state's wording claims this browser
+  exposes no local database API at all, which is untrue when the API exists
+  but the profile refuses writes.
+
+Regression caught and fixed during verification: the first version of the G3
+open-time cleanup claimed the writer lease on **every** open, so a second tab
+opening refused a legitimate concurrent update (`writer-busy`) and three
+WebKit browser tests failed (kept in
+[check-after-greptile-review.log](evidence/milestone-6-2026-10-07/check-after-greptile-review.log)).
+The cleanup now only claims the lease when it has actually found stale
+leftovers, and the full suite passes again. One later full run showed a single
+failure in `local-store.spec.ts:99` ("reads a staged generation after a
+restart and while offline") on a strict-mode text locator ("Shell available
+offline" also matching the informational sentence that contains it): a
+pre-existing flake of the shell status UI, unrelated to these changes; the
+same test passed 3/3 in isolation and in every other run.
+
+Verification after these fixes, pinned Node `v24.21.0` / npm `11.19.0`
+(each command and its exit code in
+[check-after-greptile-review.log](evidence/milestone-6-2026-10-07/check-after-greptile-review.log)):
+
+| Command                    | Exit | Result                                                                                            |
+| -------------------------- | ---- | ------------------------------------------------------------------------------------------------- |
+| `npm run format:check`     | 0    | all files use Prettier code style                                                                 |
+| `npm run lint`             | 0    | no warnings (`--max-warnings 0`)                                                                  |
+| `npm run typecheck`        | 0    | workspace and domain compile                                                                      |
+| `npm run test`             | 0    | 366 Vitest tests in 28 files (11 more than after the Codex pass)                                  |
+| `npm run check:boundaries` | 0    | 62 source files; dependency-free domain; local-store confined                                     |
+| `npm run build`            | 0    | web build produced                                                                                |
+| `npm run check`            | 0    | every gate above plus `npm audit`, `scan:dist` and 150 Playwright tests in 3 projects (final run) |
+
+Only Markdown (this file) is written after that final captured
+`npm run check` run, and only `npm run format:check` reads Markdown: it is
+re-run afterwards (also recorded in the same log).
+
 ## Verification results
 
 Local Windows, pinned Node `v24.21.0` with npm `11.19.0` on `PATH`. `dexie@4.4.6` (dependency of `@intermed/local-store`) and `fake-indexeddb@6.2.5` (root dev dependency) were added at exact versions by the previous worker's manifest/lockfile edits and were verified installed before use; no other dependency changed. Logs below were captured with Node (UTF-8), including the exact command and its exit code.
