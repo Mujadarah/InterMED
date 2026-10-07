@@ -1,6 +1,6 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import ignore from 'ignore';
 import { describe, expect, it } from 'vitest';
 import {
   appwriteConfigPaths,
@@ -162,7 +162,46 @@ describe('Sites configuration and install commands', () => {
     );
   });
 
-  it('keeps archive exclusions scoped away from source and lock paths', () => {
+  it('applies the development site archive exclusions without hiding source files', async () => {
+    const devConfig = await loadAppwriteConfig(appwriteConfigPaths.development);
+    const devSite = appwriteResources(devConfig).find(
+      (entry) =>
+        entry.kind === 'sites' && entry.resource.$id === 'intermed-web-dev',
+    )?.resource;
+    expect(devSite).toBeDefined();
+
+    const ignoreRules = devSite?.ignore;
+    expect(ignoreRules).toEqual([
+      '.git',
+      '**/.git',
+      'node_modules',
+      '**/node_modules',
+      '.tools',
+      '**/.tools',
+      'artifacts',
+      '**/artifacts',
+      '.env*',
+      '**/.env*',
+      '!.env.example',
+      '!**/.env.example',
+      'dist',
+      '**/dist',
+      'coverage',
+      '**/coverage',
+      'playwright-report',
+      '**/playwright-report',
+      'test-results',
+      '**/test-results',
+      '.aws',
+      '**/.aws',
+      '.codex',
+      '**/.codex',
+      '.agents',
+      '**/.agents',
+    ]);
+    expect(ignoreRules).toBeDefined();
+
+    const matcher = ignore().add(ignoreRules as string[]);
     const ignoredPaths = [
       '.git/config',
       'node_modules/example/index.js',
@@ -188,35 +227,13 @@ describe('Sites configuration and install commands', () => {
       'packages/domain/src/index.ts',
     ];
 
-    const isIgnored = (path: string): boolean => {
-      try {
-        execFileSync(
-          'git',
-          ['check-ignore', '--no-index', '--quiet', '--', path],
-          {
-            cwd: repositoryRoot,
-            stdio: 'ignore',
-          },
-        );
-        return true;
-      } catch (error) {
-        if (
-          error &&
-          typeof error === 'object' &&
-          'status' in error &&
-          error.status === 1
-        ) {
-          return false;
-        }
-        throw error;
-      }
-    };
-
     for (const path of ignoredPaths) {
-      expect(isIgnored(path), `${path} should be ignored`).toBe(true);
+      expect(matcher.ignores(path), `${path} should be ignored`).toBe(true);
     }
     for (const path of sourcePaths) {
-      expect(isIgnored(path), `${path} should remain archivable`).toBe(false);
+      expect(matcher.ignores(path), `${path} should remain archivable`).toBe(
+        false,
+      );
     }
   });
 });

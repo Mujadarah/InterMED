@@ -1,28 +1,12 @@
-# Archive exclusions
-/.git/
-/node_modules/
-/.tools/
-/artifacts/
-/.env*
-/dist/
-/coverage/
-/playwright-report/
-/test-results/
-/.aws/
-/.codex/
-/.agents/
-**/node_modules/
-**/.tools/
-**/artifacts/
-**/.env*
-**/dist/
-**/coverage/
-**/playwright-report/
-**/test-results/
-**/.aws/
-**/.codex/
-**/.agents/
+# Web build and test outputs
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
 *.tsbuildinfo
+artifacts/
+.tools/
 
 # Local tooling
 .DS_Store
@@ -39,4 +23,3 @@ __pycache__/
 .env
 .env.*
 !.env.example
-!**/.env.example
