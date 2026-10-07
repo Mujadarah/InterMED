@@ -1,7 +1,13 @@
 import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
 import { RETAIN_READY_FOR_MS, STALE_STAGING_MS } from './store';
-import { bundle, testClock, testStore } from './test-support';
+import {
+  bundle,
+  testClock,
+  testDatabase,
+  testStore,
+  uniqueName,
+} from './test-support';
 
 it('pins one generation per reader and switches only at the next reader', async () => {
   const store = testStore();
@@ -91,6 +97,45 @@ it('retains ready generations inside the conservative cross-tab window', async (
   clock.tick(RETAIN_READY_FOR_MS);
   expect(await store.collect()).toEqual([alpha.generationId]);
   expect(await store.openPinnedReader(beta.generationId)).not.toBeNull();
+});
+
+it('restarts the retention window when a rollback reactivates a generation', async () => {
+  const clock = testClock();
+  const name = uniqueName();
+  const tabA = testStore({ name, now: clock.now });
+  const tabB = testStore({ name, now: clock.now });
+  const rows = await testDatabase(name);
+  const alpha = bundle('alpha');
+  await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const firstReadyAt = (await rows.generations.get(alpha.generationId))
+    ?.readyAt;
+
+  // Alpha is a full day old when the rollback makes it active again.
+  clock.tick(RETAIN_READY_FOR_MS + 60 * 60 * 1000);
+  const beta = bundle('beta');
+  await tabA.updates.stageAndActivate(beta.manifest, beta.text);
+  await expect(tabA.rollback()).resolves.toBe(true);
+  // `readyAt` keeps the original staging-to-ready time; the retention window
+  // is anchored on the new activation instead.
+  expect((await rows.generations.get(alpha.generationId))?.readyAt).toBe(
+    firstReadyAt,
+  );
+
+  // Another tab pins alpha right after the rollback; its pin is invisible to
+  // this tab's collection, so the retention window is what protects alpha.
+  expect(await tabB.openPinnedReader(alpha.generationId)).not.toBeNull();
+  const gamma = bundle('gamma');
+  const delta = bundle('delta');
+  await tabA.updates.stageAndActivate(gamma.manifest, gamma.text);
+  await tabA.updates.stageAndActivate(delta.manifest, delta.text);
+
+  clock.tick(60 * 60 * 1000);
+  expect(await tabA.collect()).not.toContain(alpha.generationId);
+  expect(await tabB.openPinnedReader(alpha.generationId)).not.toBeNull();
+
+  // The window is not endless: one window after the rollback it expires.
+  clock.tick(RETAIN_READY_FOR_MS);
+  expect(await tabA.collect()).toContain(alpha.generationId);
 });
 
 it('collects abandoned staged generations only after the grace period', async () => {

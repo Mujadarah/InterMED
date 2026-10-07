@@ -470,6 +470,7 @@ export function createLocalDatasetStore(
       status: 'staging',
       stagedAt: new Date(now()).toISOString(),
       readyAt: null,
+      lastUsedAt: null,
     };
     try {
       // Every staging write batch starts by revalidating the writer lease, so
@@ -534,7 +535,7 @@ export function createLocalDatasetStore(
     if (!record) return fail('interrupted');
     const active = await db.meta.get('dataset-state');
     if (active?.activeGenerationId === generationId) return refresh();
-    const readyAt = new Date(now()).toISOString();
+    const activatedAt = new Date(now()).toISOString();
     let leaseLost = false;
     try {
       // One short transaction: revalidate the writer lease, mark the
@@ -554,11 +555,13 @@ export function createLocalDatasetStore(
             (await transaction.meta.get('dataset-state')) ?? emptyMeta();
           const staged = await transaction.generations.get(generationId);
           if (!staged) throw new Error('The staged generation is missing');
-          if (staged.status !== 'ready')
-            await transaction.generations.update(generationId, {
-              status: 'ready',
-              readyAt,
-            });
+          // Every pointer switch restarts the retention window of its
+          // generation; `readyAt` keeps the first readable time.
+          await transaction.generations.update(generationId, {
+            status: 'ready',
+            readyAt: staged.readyAt ?? activatedAt,
+            lastUsedAt: activatedAt,
+          });
           await transaction.meta.put({
             ...meta,
             activeGenerationId: generationId,
@@ -976,10 +979,14 @@ export function createLocalDatasetStore(
       const abandonedStaging =
         record.status === 'staging' &&
         now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS;
+      // Retention is measured from the last activation (or rollback), never
+      // from the original staging time: a re-activated generation restarts the
+      // cross-tab window.
+      const retainedAt = record.lastUsedAt ?? record.readyAt;
       const expiredReady =
         record.status === 'ready' &&
-        record.readyAt !== null &&
-        now() - Date.parse(record.readyAt) >= retainReadyForMs;
+        retainedAt !== null &&
+        now() - Date.parse(retainedAt) >= retainReadyForMs;
       if (!abandonedStaging && !expiredReady) continue;
       await deleteGenerationRows(record.generationId);
       removed.push(record.generationId);
@@ -1005,6 +1012,7 @@ export function createLocalDatasetStore(
       const db = database;
       if (!db || !writerLock) return false;
       const outcome = await writerLock.withExclusiveUpdate(async () => {
+        const activatedAt = new Date(now()).toISOString();
         return db.transaction(
           'rw',
           db.generations,
@@ -1015,6 +1023,11 @@ export function createLocalDatasetStore(
             if (!previousId || !meta.activeGenerationId) return null;
             const previous = await db.generations.get(previousId);
             if (!previous || previous.status !== 'ready') return null;
+            // A rollback is an activation too: it restarts the retention
+            // window of the generation it brings back.
+            await db.generations.update(previousId, {
+              lastUsedAt: activatedAt,
+            });
             await db.meta.put({
               ...meta,
               activeGenerationId: previousId,

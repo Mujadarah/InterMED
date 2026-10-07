@@ -237,3 +237,36 @@ AssertionError: expected [] to match object [ Array(1) ]
 
 [exit code: 1]
 
+---
+
+## Codex #3 - rollback refreshes the retention anchor (RED against 5ad1e69)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/readers.test.ts (7 tests | 1 failed) 161ms
+   × restarts the retention window when a rollback reactivates a generation 29ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts the retention window when a rollback reactivates a generation
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:127:63
+    125|   clock.tick(60 * 60 * 1000);
+    126|   expect(await tabA.collect()).not.toContain(alpha.generationId);
+    127|   expect(await tabB.openPinnedReader(alpha.generationId)).not.toBeNull…
+       |                                                               ^
+    128|
+    129|   // The window is not endless: one window after the rollback it expir…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:22:04
+   Duration  401ms (transform 83ms, setup 0ms, import 137ms, tests 161ms, environment 0ms)
+
+[exit code: 1]
+

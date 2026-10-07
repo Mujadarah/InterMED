@@ -103,7 +103,16 @@ export interface GenerationRecord {
   readonly synthetic: boolean;
   readonly status: 'staging' | 'ready';
   readonly stagedAt: string;
+  /** First time this generation became readable after staging. Never moves. */
   readonly readyAt: string | null;
+  /**
+   * Retention anchor: the last time this generation was activated, either
+   * directly or by a rollback. `collect()` measures its cross-tab retention
+   * window from here, so re-activating a generation restarts that window.
+   * `readyAt` deliberately keeps the original staging-to-ready time for
+   * diagnostics (Codex review fix #3).
+   */
+  readonly lastUsedAt: string | null;
 }
 
 /** Persisted slice of DATA_MODEL's LocalDatasetState. */
