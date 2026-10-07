@@ -3,8 +3,6 @@
   "archiveBytes": 5753795,
   "entryCount": 314,
   "forbiddenEntries": [],
-  "publicEnvironmentExamples": [
-    "apps/web/.env.example"
-  ],
+  "publicEnvironmentExamples": ["apps/web/.env.example"],
   "inspected": "names only; no contents printed"
 }

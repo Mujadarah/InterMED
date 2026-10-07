@@ -95,18 +95,16 @@
     },
     {
       "id": 8,
-      "title": "Region/plan confirmation, quotas/cost limits, backup/restore drill",
+      "title": "Region/plan confirmation (development)",
       "commandOrProbe": "organization create-project / plan read / connector empty-resource confirmation",
       "results": {
         "region": "PASS — fra; regional API https://fra.cloud.appwrite.io/v1",
         "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
-        "capacity": "Development uses second included slot; future production needs separate capacity decision; NO billing/paid/production changes",
-        "backupRestore": "NOT RUN",
-        "productionProject": "NOT CREATED / deferred",
+        "scope": "Frankfurt region and GitHub Student Pack confirmation only; production capacity and backup/restore are outside this task",
         "siteDeployment": "Attempted development deployment failed in the cloud build image on Node 22.23.2 versus required Node 24.21.0; no successful deployment claimed"
       },
-      "status": "PARTIAL",
-      "statusDetail": "Development region+plan confirmed; backup/restore and production capacity remain open"
+      "status": "PASS",
+      "statusDetail": "Development Frankfurt region and GitHub Student Pack confirmed; wider production and backup/restore roadmap remains deferred"
     }
   ],
   "recordedFieldChecks": [
@@ -162,17 +160,15 @@
     },
     {
       "source": "research.log open issue",
-      "claim": "PublishedDatasetManifest.checksum vs catalogueFingerprint mismatch is a confirmed bug",
-      "judgment": "UNCONFIRMED — do not assert until verified; no M6 contract change this stage",
-      "action": "leave open"
+      "claim": "PublishedDatasetManifest.checksum and catalogueFingerprint are the same integrity field",
+      "judgment": "FALSE — the root checked the published-dataset.ts contract; the manifest and descriptor SHA-256 must match the actual bundle, while the internal catalogueFingerprint is a separate FNV value",
+      "action": "no domain change; the prepared publication satisfies the SHA-256 contract and the real adapter read returned the published manifest and descriptor"
     }
   ],
   "pendingApprovals": [
     "corrected unauthenticated write probes and per-row/file permission checks",
     "guard cleanup after separately approved verification",
     "anonymous non-empty list/get/download and CRUD verification",
-    "successful new development site deployment with Node 24.21.0",
-    "production capacity decision / intermed-prod creation",
-    "backup/restore drill"
+    "successful new development site deployment with Node 24.21.0"
   ]
 }

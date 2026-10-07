@@ -388,14 +388,14 @@ Milestone 3 live acceptance claim.**
 
 | #   | Check                                                                        | Command / probe                                                                          | Results (summary)                                                                                                                                                                                                                                                                                                                                                                                 | Status                                                             |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; development Sites push                                               | Existing shell is prebuilt-only. Development push `6ac61591ec43a84f8084` failed in the cloud build on Node 22.23.2 vs required Node 24.21.0 (`EBADENGINE`); CLI exit 0 does not convert the reported failure into a deployment. | **FAILED (runtime)** |
-| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                   | Approved fictional generation exists; adapter read returned available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. Anonymous non-empty list/get/download remains unverified. | **PARTIAL** |
-| 3   | Unauthenticated writes refused                                               | Initial 39-check matrix; corrected probes pending                                        | Initial run is failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200. | **FAILED (inconclusive)** |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; development Sites push                                               | Existing shell is prebuilt-only. Development push `6ac61591ec43a84f8084` failed in the cloud build on Node 22.23.2 vs required Node 24.21.0 (`EBADENGINE`); CLI exit 0 does not convert the reported failure into a deployment.                                                                                                                                                                   | **FAILED (runtime)**                                               |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                    | Approved fictional generation exists; adapter read returned available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. Anonymous non-empty list/get/download remains unverified.                                                                                                                                                                                           | **PARTIAL**                                                        |
+| 3   | Unauthenticated writes refused                                               | Initial 39-check matrix; corrected probes pending                                        | Initial run is failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200.                                                                                                                                                                                                             | **FAILED (inconclusive)**                                          |
 | 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                                             | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                                                                                              | **PASS (bounded)**                                                 |
-| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource baseline remains bounded. Private guard GETs returned `row_not_found` (existence masked), and the descriptor update was a no-op 200; corrected row/file checks and cleanup remain pending. | **PARTIAL (failed probe)** |
-| 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Original deployed-bundle scan exited 1 on two public Git revision candidates; provenance matched both to HTML/Git. A separate sanitized 13-file review copy scanned cleanly. Strict original scanner pass is not claimed. | **PARTIAL** |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource baseline remains bounded. Private guard GETs returned `row_not_found` (existence masked), and the descriptor update was a no-op 200; corrected row/file checks and cleanup remain pending.                                                                                                                                                                                         | **PARTIAL (failed probe)**                                         |
+| 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Original deployed-bundle scan exited 1 on two public Git revision candidates; provenance matched both to HTML/Git. A separate sanitized 13-file review copy scanned cleanly. Strict original scanner pass is not claimed.                                                                                                                                                                         | **PARTIAL**                                                        |
 | 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on `https://intermed-shell-test.appwrite.network` (see `site-probes/`) | Every path HTTP **200**, TLS verify OK, HSTS present; manifest id/start_url/scope `/`; SW controller+scope root; shell version `77c816387c81001988b3`. Cache-Control **observed** `public, max-age=0, must-revalidate` on all paths — **no** `immutable` / long-max-age on hashed assets (residual risk vs reviewed long-cache policy). Browser proof only; not real-device/installed acceptance. | **PASS** (scopes/TLS/deep-link); cache OBSERVED with residual risk |
-| 8   | Region/plan, quotas/cost limits, backup/restore                              | `organization create-project`, plan read                                                 | Dev **fra** + Student Pack (`auto-1`, projects=2) confirmed. Backup/restore **NOT RUN**. Production project **not** created.                                                                                                                                                                                                                                                                      | **PARTIAL**                                                        |
+| 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                                                 | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                                                                                                   | **PASS**                                                           |
 
 #### Recorded-field checks
 
@@ -410,11 +410,11 @@ Milestone 3 live acceptance claim.**
 #### Still pending after this capture
 
 Corrected unauthenticated write probes; non-empty anonymous row/file reads and
-CRUD; per-row/file permission checks; guard cleanup; a successful development
-Sites deployment using Node 24.21.0; production capacity decision; and the
-backup/restore drill remain pending. The deployed bundle scanner strict pass
-remains open because its two candidates were resolved by provenance review
-rather than by changing the scanner.
+CRUD; per-row/file permission checks; guard cleanup; and a successful
+development Sites deployment using Node 24.21.0 remain pending. Production
+capacity and backup/restore are deferred roadmap work outside this task. The
+deployed bundle scanner strict pass remains open because its two candidates were
+resolved by provenance review rather than by changing the scanner.
 
 ## PR #7 review fixes
 
@@ -527,8 +527,8 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   host or edge. Nothing in this milestone changed the CSP.
 - Live items 1–6 remain **NOT RUN**; item 7 is a shell-origin browser proof with
   observed cache headers (no immutable hashed-asset caching); item 8 is
-  **PARTIAL** (dev region/plan only). Milestone 3 live acceptance is **not**
-  claimed. No production deployment is implied.
+  **PASS** for the development region/plan confirmation only. Milestone 3 live
+  acceptance is **not** claimed. No production deployment is implied.
 - Most recorded field values remain unverified live; runtime/framework notes
   above are availability or shell-site observations only.
 - Operational ownership (release approver, incident owner, retention, cost
@@ -537,8 +537,8 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   (`datasetVersionId` unique); deltas or multi-bundle generations would need a
   schema extension (deltas are explicitly deferred in the build plan).
 - Org capacity is **GitHub Student Pack** (`auto-1`, projects limit 2, both
-  slots used by shell + `intermed-dev`). Production needs a separate capacity
-  decision; rate limits for future public functions remain unmeasured.
+  slots used by shell + `intermed-dev`). Production capacity and future public
+  function rate limits remain deferred roadmap work.
 - Hashed shell assets on the existing origin serve
   `Cache-Control: public, max-age=0, must-revalidate` with no `immutable`
   long-cache — residual risk until a reviewed header policy is confirmed on the
@@ -549,6 +549,7 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
 Development project `intermed-dev` exists; remaining Milestone 3 live acceptance
 still requires explicit maintainer authorization for push/pull, permission
 probes, publishing, and any Sites deployment that proves the recorded monorepo
-settings, plus a separate production capacity decision before `intermed-prod`.
+settings. Production capacity is a separate deferred roadmap decision before
+`intermed-prod`.
 See [the runbook](APPWRITE_RUNBOOK.md). Milestone 4 proceeds under the
 maintainer's ordering decision and is unaffected by these files.

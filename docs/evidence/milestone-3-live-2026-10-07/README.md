@@ -11,18 +11,20 @@ Companion summary:
 
 ## Contents
 
-| Path                    | Purpose                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `observations.json`     | Machine-readable status for acceptance items 1–8 and recorded-field checks                   |
-| `markdown-inventory.md` | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)         |
-| `cli-preflight.md`      | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings    |
-| `site-probes/`          | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7  |
-| `buckets/`              | Development bucket push/pull logs, including the corrected `--all` invocation                |
-| `tables/`               | Development TablesDB push/pull logs and declared-definition diff                             |
-| `function-checks/`      | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial |
-| `scanner-review/`       | Bounded anonymous baseline responses and manual review of the public revision candidates     |
-| `publication-live.json` | Sanitized synthetic generation, adapter metadata read, and guard-target record               |
-| `sites-deployment.log`  | Exact development Sites deployment attempt and Node/npm runtime failure                      |
+| Path                                                   | Purpose                                                                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `observations.json`                                    | Machine-readable status for acceptance items 1–8 and recorded-field checks                                   |
+| `markdown-inventory.md`                                | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)                         |
+| `cli-preflight.md`                                     | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings                    |
+| `site-probes/`                                         | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7                  |
+| `buckets/`                                             | Development bucket push/pull logs, including the corrected `--all` invocation                                |
+| `tables/`                                              | Development TablesDB push/pull logs and declared-definition diff                                             |
+| `function-checks/`                                     | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial                 |
+| `scanner-review/`                                      | Bounded anonymous baseline responses and manual review of the public revision candidates                     |
+| `publication-live.json`                                | Sanitized synthetic generation, adapter metadata read, and guard-target record                               |
+| `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs and REST/query recordings; the source bundle archive is excluded |
+| `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                 |
+| `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                      |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.
@@ -48,7 +50,10 @@ are not part of this pack.
   does not change that result.
 - Shell-site observations do not prove the recorded monorepo Sites build
   settings from [SITES.md](../../../infra/appwrite/SITES.md).
-- Plan/org capacity is **GitHub Student Pack** (`auto-1`), not Free plan.
+- Plan/org confirmation is **GitHub Student Pack** (`auto-1`), not Free plan.
+- Item 8 covers only the verified development Frankfurt region and Student Pack
+  confirmation. Production capacity and backup/restore remain wider roadmap
+  items deferred outside this task, not current acceptance blockers.
 - No overall Milestone 3 live acceptance claim.
 - All copied evidence is sanitized: no API keys, session tokens, `clientIP`, or
   account identifiers are committed. The public bundle scanner's exit 1 is
