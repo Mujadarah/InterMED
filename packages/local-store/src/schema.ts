@@ -6,6 +6,7 @@ import type {
   DatasetVersion,
   DosageForm,
   FavoriteEntry,
+  LocalDatasetGeneration,
   Manufacturer,
   MarketingAuthorizationHolder,
   MedicationIngredient,
@@ -15,7 +16,7 @@ import type {
   RecentSearchEntry,
   RegulatoryDocument,
 } from '@intermed/domain';
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type Table, type Transaction } from 'dexie';
 
 /**
  * Physical schema for the local dataset store.
@@ -197,6 +198,72 @@ export const LOCAL_DATASET_SCHEMA_GENERATION_2 = 2;
 
 /** Composite key parts of every `[generationId+id]` catalogue store. */
 export type RowKey = [string, string];
+
+/** The shared row envelope of every catalogue table. */
+export type AnyCatalogueTable = Table<
+  { generationId: string; id: string },
+  RowKey
+>;
+
+/** One catalogue table of a database, by store name. */
+export function catalogueTable(
+  database: LocalDatasetDatabase,
+  name: CatalogueStoreName,
+): AnyCatalogueTable {
+  // Every catalogue table carries the same row envelope, so staging and
+  // deletion can iterate store names without repeating per-store code.
+  return database[name] as unknown as AnyCatalogueTable;
+}
+
+/** The same table, bound to one open transaction instead of the ambient one. */
+export function scopedCatalogueTable(
+  transaction: Transaction,
+  name: CatalogueStoreName,
+): AnyCatalogueTable {
+  return transaction.table(name) as unknown as AnyCatalogueTable;
+}
+
+/** Every catalogue table, for transactions that span a whole generation. */
+export function catalogueTables(
+  database: LocalDatasetDatabase,
+): readonly AnyCatalogueTable[] {
+  return CATALOGUE_STORE_NAMES.map((name) => catalogueTable(database, name));
+}
+
+/** The public projection of one stored generation. */
+export function toLocalGeneration(
+  record: GenerationRecord,
+): LocalDatasetGeneration {
+  return {
+    generationId: record.generationId,
+    dataset: record.dataset,
+    version: record.version,
+    schemaVersion: record.schemaVersion,
+    sourceIds: record.sourceIds,
+    publishedAt: record.publishedAt,
+    importedAt: record.importedAt,
+    downloadedAt: record.downloadedAt,
+    checksum: record.checksum,
+    coverage: record.coverage,
+    recordCounts: record.recordCounts,
+    synthetic: record.synthetic,
+  };
+}
+
+/** The persisted state record a fresh database starts from. */
+export function emptyMeta(): DatasetStateRecord {
+  return {
+    key: 'dataset-state',
+    schemaGeneration: LOCAL_DATASET_SCHEMA_GENERATION,
+    activeGenerationId: null,
+    previousGenerationId: null,
+    lastSuccessfulCheckAt: null,
+    updateStatus: 'never-downloaded',
+    failureReason: null,
+    reconciledGenerationId: null,
+    clearEpoch: 0,
+  };
+}
 
 /** The Dexie database of the local dataset store. */
 export class LocalDatasetDatabase extends Dexie {

@@ -333,7 +333,7 @@ Running 75 tests using 3 workers
 
 $ npx vitest run tests/repository-path-hygiene.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -343,3 +343,49 @@ $ npx vitest run tests/repository-path-hygiene.test.ts
 
 [exit code: 0]
 
+---
+
+## Codacy 6 - store.ts split into cohesive modules (all existing tests unchanged, GREEN)
+
+$ npx vitest run
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/repository-path-hygiene.test.ts (3 tests | 1 failed) 418ms
+   × keeps tracked text and logs UTF-8/LF and free of machine paths 146ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/repository-path-hygiene.test.ts > keeps tracked text and logs UTF-8/LF and free of machine paths
+AssertionError: expected [ { …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "findings": [
++       "project worktree path",
++     ],
++     "path": "docs/evidence/milestone-6-2026-10-07/green-codacy-review.log",
++   },
++ ]
+
+ ❯ tests/repository-path-hygiene.test.ts:166:37
+    164| it('keeps tracked text and logs UTF-8/LF and free of machine paths', (…
+    165|   const root = resolve(import.meta.dirname, '..');
+    166|   expect(trackedPathFindings(root)).toEqual([]);
+       |                                     ^
+    167|   const paths = execFileSync('git', ['ls-files', '-z'], {
+    168|     cwd: root,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 30 passed (31)
+      Tests  1 failed | 401 passed (402)
+   Start at  20:16:07
+   Duration  12.21s (transform 2.40s, setup 0ms, import 13.81s, tests 3.77s, environment 35.71s)
+
+[exit code: 1]

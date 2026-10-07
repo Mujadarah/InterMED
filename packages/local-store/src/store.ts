@@ -1,50 +1,43 @@
 import type {
-  ActiveIngredient,
-  ActiveIngredientId,
-  ClearLocalDataResult,
   DatasetUpdateFailureReason,
-  DatasetUpdatePipeline,
   DatasetUpdateState,
-  FavoriteEntry,
-  GenerationReader,
   LocalCatalogueStore,
-  LocalDatasetCandidate,
   LocalDatasetGeneration,
-  LocalPreferencesStore,
-  MedicationIngredient,
-  MedicationProduct,
-  MedicationProductId,
-  PublishedBundleLoader,
-  PublishedDatasetManifest,
-  PublishedDatasetReader,
-  RecentSearchEntry,
 } from '@intermed/domain';
-import type { Table, Transaction } from 'dexie';
-import Dexie from 'dexie';
 import { createDefaultEventBus, type DatasetEventBus } from './events';
-import { foldForIndex } from './fold';
 import { isQuotaError, isVersionError, readOnDiskSchema } from './introspect';
 import { attachConnectionLifecycle } from './lifecycle';
+import { createWriterLock, type DatasetWriterLock } from './locks';
 import {
-  createWriterLock,
-  type DatasetWriterLock,
-  type WriterLease,
-} from './locks';
-import { atcKey, toCatalogueRows } from './rows';
+  createMaintenanceRunner,
+  type MaintenanceDiagnostics,
+  type MaintenanceTask,
+  type MaintenanceRunner,
+} from './maintenance';
+import { createPreferences } from './preferences';
+import { createRetention } from './retention';
 import {
-  CATALOGUE_STORE_NAMES,
   LOCAL_DATASET_DB_NAME,
   LOCAL_DATASET_SCHEMA_GENERATION,
   LocalDatasetDatabase,
-  RECORD_COUNT_COLLECTIONS,
-  type CatalogueRows,
+  catalogueTable,
+  emptyMeta,
+  toLocalGeneration,
   type CatalogueStoreName,
-  type DatasetStateRecord,
   type GenerationRecord,
-  type RowKey,
 } from './schema';
-import { bundleByteLength } from './synthetic-bundle';
-import { checkBundle, checkManifest } from './validate';
+import { createUpdatePipeline } from './update-pipeline';
+import type {
+  PublishedBundleLoader,
+  PublishedDatasetReader,
+} from '@intermed/domain';
+
+/**
+ * The local dataset store: the public facade that composes the update
+ * pipeline (`update-pipeline.ts`), local preferences (`preferences.ts`),
+ * retention and readers (`retention.ts`) and post-commit maintenance
+ * (`maintenance.ts`) around one small state machine.
+ */
 
 /** Default published dataset key requested from the manifest reader. */
 export const DEFAULT_DATASET_KEY = 'intermed-medication-catalogue';
@@ -65,57 +58,6 @@ export interface StagingProgress {
   readonly generationId: string;
   readonly store: CatalogueStoreName;
   readonly count: number;
-}
-
-/**
- * One post-commit maintenance task. Preference reconciliation makes the local
- * favorites match the active generation; generation collection deletes what
- * retention no longer protects.
- */
-export type MaintenanceTask =
-  | {
-      readonly kind: 'preference-reconciliation';
-      readonly generationId: string;
-    }
-  | { readonly kind: 'generation-gc' }
-  /** Fire-and-forget background work that failed (Codacy review fix 4). */
-  | { readonly kind: 'background'; readonly label: string };
-
-/**
- * A non-fatal maintenance failure. A committed activation or rollback is never
- * turned into a failure by one: it is reported here and retried later.
- */
-export interface MaintenanceFailure {
-  readonly task: MaintenanceTask;
-  readonly occurredAt: string;
-  /** `storage-quota` for `QuotaExceededError`, `error` for anything else. */
-  readonly reason: 'storage-quota' | 'error';
-  readonly message: string;
-}
-
-/** Maintenance diagnostics, deliberately separate from the update state. */
-export interface MaintenanceStatus {
-  /** True while a failed maintenance task waits for a later retry. */
-  readonly pending: boolean;
-  /** The most recent maintenance failure, or null when none happened. */
-  readonly lastFailure: MaintenanceFailure | null;
-}
-
-/** Post-commit maintenance reporting and retry (never an update failure). */
-export interface MaintenanceDiagnostics {
-  getStatus(): MaintenanceStatus;
-  subscribe(listener: () => void): () => void;
-  /** Run the maintenance tasks that failed earlier again. */
-  retry(): Promise<void>;
-}
-
-/**
- * The local dataset store plus its maintenance diagnostics. Post-commit
- * maintenance (preference reconciliation, generation collection) runs in
- * isolation and reports here; it can never fail a committed activation.
- */
-export interface LocalDatasetStore extends LocalCatalogueStore {
-  readonly maintenance: MaintenanceDiagnostics;
 }
 
 export interface LocalDatasetStoreOptions {
@@ -152,69 +94,13 @@ export interface LocalDatasetStoreOptions {
   readonly onMaintenance?: (task: MaintenanceTask) => void | Promise<void>;
 }
 
-type StageOutcome =
-  | { readonly ok: true; readonly generationId: string }
-  | { readonly ok: false; readonly state: DatasetUpdateState };
-
-/** Outcome of one guarded staging write batch. */
-type StageWrite =
-  'written' | 'lease-lost' | 'cleared' | 'cleared-quiet' | 'count-mismatch';
-
-type AnyCatalogueTable = Table<{ generationId: string; id: string }, RowKey>;
-
-function catalogueTable(
-  database: LocalDatasetDatabase,
-  name: CatalogueStoreName,
-): AnyCatalogueTable {
-  // Every catalogue table carries the same row envelope, so staging and
-  // deletion can iterate store names without repeating per-store code.
-  return database[name] as unknown as AnyCatalogueTable;
-}
-
-/** The same table, bound to one open transaction instead of the ambient one. */
-function scopedCatalogueTable(
-  transaction: Transaction,
-  name: CatalogueStoreName,
-): AnyCatalogueTable {
-  return transaction.table(name) as unknown as AnyCatalogueTable;
-}
-
-/** Every catalogue table, for transactions that span a whole generation. */
-function catalogueTables(
-  database: LocalDatasetDatabase,
-): readonly AnyCatalogueTable[] {
-  return CATALOGUE_STORE_NAMES.map((name) => catalogueTable(database, name));
-}
-
-function toLocalGeneration(record: GenerationRecord): LocalDatasetGeneration {
-  return {
-    generationId: record.generationId,
-    dataset: record.dataset,
-    version: record.version,
-    schemaVersion: record.schemaVersion,
-    sourceIds: record.sourceIds,
-    publishedAt: record.publishedAt,
-    importedAt: record.importedAt,
-    downloadedAt: record.downloadedAt,
-    checksum: record.checksum,
-    coverage: record.coverage,
-    recordCounts: record.recordCounts,
-    synthetic: record.synthetic,
-  };
-}
-
-function emptyMeta(): DatasetStateRecord {
-  return {
-    key: 'dataset-state',
-    schemaGeneration: LOCAL_DATASET_SCHEMA_GENERATION,
-    activeGenerationId: null,
-    previousGenerationId: null,
-    lastSuccessfulCheckAt: null,
-    updateStatus: 'never-downloaded',
-    failureReason: null,
-    reconciledGenerationId: null,
-    clearEpoch: 0,
-  };
+/**
+ * The local dataset store plus its maintenance diagnostics. Post-commit
+ * maintenance (preference reconciliation, generation collection) runs in
+ * isolation and reports here; it can never fail a committed activation.
+ */
+export interface LocalDatasetStore extends LocalCatalogueStore {
+  readonly maintenance: MaintenanceDiagnostics;
 }
 
 /** Ask for persistent storage as best effort. Never a permanence claim. */
@@ -250,13 +136,6 @@ export function createLocalDatasetStore(
   const owner = `intermed-tab-${crypto.randomUUID()}`;
 
   const listeners = new Set<() => void>();
-  const pins = new Map<string, number>();
-  const maintenanceListeners = new Set<() => void>();
-  const pendingMaintenance = new Map<
-    string,
-    { readonly task: MaintenanceTask; readonly work: () => Promise<void> }
-  >();
-  let lastMaintenanceFailure: MaintenanceFailure | null = null;
   let state: DatasetUpdateState = { status: 'opening' };
   let database: LocalDatasetDatabase | null = null;
   let writerLock: DatasetWriterLock | null = options.lock ?? null;
@@ -279,16 +158,6 @@ export function createLocalDatasetStore(
     return 'generation' in current ? current.generation : null;
   }
 
-  function addPin(generationId: string): void {
-    pins.set(generationId, (pins.get(generationId) ?? 0) + 1);
-  }
-
-  function removePin(generationId: string): void {
-    const count = (pins.get(generationId) ?? 0) - 1;
-    if (count > 0) pins.set(generationId, count);
-    else pins.delete(generationId);
-  }
-
   async function writeStatus(
     updateStatus: string,
     failureReason: string | null,
@@ -304,22 +173,6 @@ export function createLocalDatasetStore(
     } catch {
       /* Diagnostics only; never let metadata bookkeeping fail an update. */
     }
-  }
-
-  async function recordCheck(): Promise<void> {
-    const db = database;
-    if (!db) return;
-    const checkedAt = new Date(now()).toISOString();
-    await db.transaction('rw', db.meta, async () => {
-      const record = await db.meta.get('dataset-state');
-      if (record)
-        await db.meta.put({
-          ...record,
-          lastSuccessfulCheckAt: checkedAt,
-          updateStatus: 'checked',
-          failureReason: null,
-        });
-    });
   }
 
   async function fail(
@@ -343,13 +196,36 @@ export function createLocalDatasetStore(
     if (!generation || generation.status !== 'ready')
       return { status: 'evicted', generationId: activeGenerationId };
     // The pointer is only worth following while its rows are all there.
-    if (!(await countsMatch(generation, (name) => catalogueTable(db, name))))
+    if (
+      !(await retention.countsMatch(generation, (name) =>
+        catalogueTable(db, name),
+      ))
+    )
       return { status: 'evicted', generationId: activeGenerationId };
     return { status: 'ready', generation: toLocalGeneration(generation) };
   }
 
   const refresh = async (): Promise<DatasetUpdateState> =>
     setState(await baseState());
+
+  async function currentGenerationRecord(): Promise<GenerationRecord | null> {
+    const db = database;
+    if (!db) return null;
+    const record = await db.meta.get('dataset-state');
+    const activeGenerationId = record?.activeGenerationId ?? null;
+    if (!activeGenerationId) return null;
+    const generation = await db.generations.get(activeGenerationId);
+    if (!generation || generation.status !== 'ready') return null;
+    // An evicted generation counts as absent: it must be re-downloaded
+    // instead of skipped as the version already present (Greptile G7).
+    if (
+      !(await retention.countsMatch(generation, (name) =>
+        catalogueTable(db, name),
+      ))
+    )
+      return null;
+    return generation;
+  }
 
   async function ensureMetaRecord(): Promise<void> {
     const db = requireDatabase();
@@ -358,6 +234,68 @@ export function createLocalDatasetStore(
       if (!record) await db.meta.put(emptyMeta());
     });
   }
+
+  /** The clear epoch persisted in meta; bumped by every completed clear. */
+  async function readClearEpoch(): Promise<number> {
+    const db = database;
+    if (!db) return 0;
+    const meta = await db.meta.get('dataset-state');
+    return meta?.clearEpoch ?? 0;
+  }
+
+  const maintenance: MaintenanceRunner = createMaintenanceRunner({
+    now,
+    isQuotaError,
+  });
+
+  const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
+
+  const retention = createRetention({
+    now,
+    retainReadyForMs,
+    staleStagingMs: STALE_STAGING_MS,
+    database: () => database,
+    requireDatabase,
+    onMaintenance: options.onMaintenance,
+    background: (label, work) => maintenance.background(label, work),
+    writerLock: () => writerLock,
+  });
+
+  const preferences = createPreferences({
+    now,
+    database: () => database,
+    requireDatabase,
+    open,
+    currentGenerationRecord,
+    writerLock: () => writerLock,
+    events,
+    refresh,
+    onMaintenance: options.onMaintenance,
+  });
+
+  const pipeline = createUpdatePipeline({
+    dataset,
+    now,
+    reader: options.reader,
+    loader: options.loader,
+    onStaged: options.onStaged,
+    onMaintenance: options.onMaintenance,
+    database: () => database,
+    requireDatabase,
+    open,
+    state: () => state,
+    writerLock: () => writerLock,
+    events,
+    readClearEpoch,
+    currentGenerationRecord,
+    setState,
+    refresh,
+    writeStatus,
+    fail,
+    maintenance,
+    retention,
+    preferences,
+  });
 
   async function openDatabase(): Promise<DatasetUpdateState> {
     await requestPersistentStorage();
@@ -397,15 +335,15 @@ export function createLocalDatasetStore(
     unsubscribe ??= events.subscribe(() => {
       // Any cross-tab change - an activation or a completed clear - is applied
       // at a safe boundary by re-reading the persisted state.
-      background('cross-tab refresh', refresh);
+      maintenance.background('cross-tab refresh', refresh);
     });
     try {
       await ensureMetaRecord();
       // A crash can leave a half-written staging generation; the next open
       // that can take the writer lease removes it before anything else.
-      await runMaintenanceTask(
+      await maintenance.run(
         { kind: 'generation-gc' },
-        cleanupIncompleteStaging,
+        retention.cleanupIncompleteStaging,
       );
       // A crash may have interrupted the post-commit reconciliation of the
       // active generation: the marker in meta names the one it finished for.
@@ -425,625 +363,6 @@ export function createLocalDatasetStore(
     }
   }
 
-  const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
-
-  async function withWriter(
-    work: (
-      lease: WriterLease,
-      clearEpoch: number,
-    ) => Promise<DatasetUpdateState>,
-  ): Promise<DatasetUpdateState> {
-    await open();
-    if (!database || !writerLock) return state;
-    const outcome = await writerLock.withExclusiveUpdate((lease) =>
-      // The clear epoch captured here is what an in-flight update is allowed
-      // to write under: a clear that completes later wins over it.
-      readClearEpoch().then((clearEpoch) => work(lease, clearEpoch)),
-    );
-    return outcome.ok ? outcome.value : fail('writer-busy');
-  }
-
-  /** The clear epoch persisted in meta; bumped by every completed clear. */
-  async function readClearEpoch(): Promise<number> {
-    const db = database;
-    if (!db) return 0;
-    const meta = await db.meta.get('dataset-state');
-    return meta?.clearEpoch ?? 0;
-  }
-
-  async function currentGenerationRecord(): Promise<GenerationRecord | null> {
-    const db = database;
-    if (!db) return null;
-    const record = await db.meta.get('dataset-state');
-    const activeGenerationId = record?.activeGenerationId ?? null;
-    if (!activeGenerationId) return null;
-    const generation = await db.generations.get(activeGenerationId);
-    if (!generation || generation.status !== 'ready') return null;
-    // An evicted generation counts as absent: it must be re-downloaded
-    // instead of skipped as the version already present (Greptile G7).
-    if (!(await countsMatch(generation, (name) => catalogueTable(db, name))))
-      return null;
-    return generation;
-  }
-
-  function candidateOf(
-    manifest: PublishedDatasetManifest,
-  ): LocalDatasetCandidate {
-    return {
-      generationId: manifest.datasetVersionId,
-      version: manifest.version,
-      publishedAt: manifest.publishedAt ?? null,
-    };
-  }
-
-  async function deleteGenerationRows(generationId: string): Promise<void> {
-    const db = requireDatabase();
-    for (const name of CATALOGUE_STORE_NAMES)
-      await catalogueTable(db, name)
-        .where('generationId')
-        .equals(generationId)
-        .delete();
-    await db.generations.delete(generationId);
-  }
-
-  /** The same deletion, on one already open transaction. */
-  async function deleteGenerationRowsIn(
-    transaction: Transaction,
-    generationId: string,
-  ): Promise<void> {
-    for (const name of CATALOGUE_STORE_NAMES)
-      await scopedCatalogueTable(transaction, name)
-        .where('generationId')
-        .equals(generationId)
-        .delete();
-    await transaction.table('generations').delete(generationId);
-  }
-
-  async function cleanupPartial(generationId: string): Promise<void> {
-    const db = requireDatabase();
-    const record = await db.generations.get(generationId);
-    if (!record || record.status === 'ready') return;
-    await deleteGenerationRows(generationId);
-  }
-
-  /**
-   * State of an aborted staging run. A clear that already completed wins
-   * quietly (`cleared-quiet`): the honest visible state is the one it left
-   * behind. A run cut short mid-write reports why it stopped, and a writer
-   * that lost its lease reports `writer-busy` while touching nothing.
-   */
-  async function abortStaging(
-    outcome: StageWrite,
-  ): Promise<DatasetUpdateState> {
-    if (outcome === 'cleared-quiet') return refresh();
-    if (outcome === 'lease-lost') return fail('writer-busy');
-    if (outcome === 'count-mismatch') return fail('count-mismatch');
-    // The staged generation disappeared mid-write: the local data was cleared
-    // (or the abandoned staging record was collected) underneath this run.
-    return fail('local-data-cleared');
-  }
-
-  /**
-   * Whether the stored rows of one generation match the counts its record
-   * promises. Used to mark staging complete and to re-verify a generation
-   * before it becomes active (Greptile review fixes G3 and G7). Runs outside
-   * any ambient transaction unless its tables come from one: a verification
-   * must never join or be blocked by an unrelated in-flight transaction.
-   */
-  async function countsMatch(
-    record: GenerationRecord,
-    table: (name: CatalogueStoreName) => AnyCatalogueTable,
-  ): Promise<boolean> {
-    return Dexie.ignoreTransaction(async () => {
-      for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTIONS)) {
-        const expected = record.recordCounts[key] ?? 0;
-        const actual = await table(name)
-          .where('generationId')
-          .equals(record.generationId)
-          .count();
-        if (actual !== expected) return false;
-      }
-      return true;
-    });
-  }
-
-  async function stageUnlocked(
-    manifest: PublishedDatasetManifest,
-    bundleText: string,
-    lease: WriterLease,
-    clearEpoch: number,
-  ): Promise<StageOutcome> {
-    const db = requireDatabase();
-    const generationId = manifest.datasetVersionId;
-    const existing = await db.generations.get(generationId);
-    // A ready generation is only skipped when its rows are all there; an
-    // evicted one is re-staged, replacing its rows and touching no other
-    // generation (Greptile G7).
-    if (
-      existing?.status === 'ready' &&
-      (await countsMatch(existing, (name) => catalogueTable(db, name)))
-    )
-      return { ok: true, generationId };
-    if (existing) await deleteGenerationRows(generationId);
-    const manifestProblem = checkManifest(manifest, dataset);
-    if (manifestProblem)
-      return { ok: false, state: await fail(manifestProblem) };
-    const current = await currentGenerationRecord();
-    const currentGeneration = current ? toLocalGeneration(current) : null;
-    const candidate = candidateOf(manifest);
-    setState({ status: 'staging', generation: currentGeneration, candidate });
-    const bundle = checkBundle(manifest, bundleText);
-    if (!bundle.ok) return { ok: false, state: await fail(bundle.reason) };
-    const rows: CatalogueRows = toCatalogueRows(generationId, bundle.snapshot);
-    const record: GenerationRecord = {
-      generationId,
-      dataset: manifest.dataset,
-      version: manifest.version,
-      schemaVersion: manifest.schemaVersion,
-      sourceIds: manifest.sourceIds,
-      publishedAt: manifest.publishedAt ?? null,
-      importedAt: manifest.importedAt,
-      downloadedAt: new Date(now()).toISOString(),
-      checksum: manifest.checksum,
-      coverage: manifest.coverage,
-      recordCounts: manifest.recordCounts,
-      synthetic: bundle.synthetic,
-      status: 'staging',
-      stagedAt: new Date(now()).toISOString(),
-      readyAt: null,
-      lastUsedAt: null,
-    };
-    try {
-      // Every staging write batch is guarded: it rechecks that the generation
-      // record it writes for still exists and that this writer still owns the
-      // lease. A clear that completed underneath this run aborts staging with
-      // `local-data-cleared` before anything else is written (Codex #4); a
-      // writer whose lease was taken over stops at once and runs no cleanup
-      // over rows that may belong to the new owner (Greptile G1).
-      const created = await db.transaction(
-        'rw',
-        [db.writerLock, db.generations, db.meta],
-        async (transaction): Promise<StageWrite> => {
-          // The clear epoch is checked with the first write: an update whose
-          // clear completed while it was downloading stops here and quietly
-          // leaves the state the clear produced (Greptile G4).
-          const meta = await transaction.meta.get('dataset-state');
-          if ((meta?.clearEpoch ?? 0) !== clearEpoch) return 'cleared-quiet';
-          if (!(await lease.revalidate(transaction.writerLock)))
-            return 'lease-lost';
-          await transaction.generations.put(record);
-          return 'written';
-        },
-      );
-      if (created !== 'written')
-        return { ok: false, state: await abortStaging(created) };
-      for (const name of CATALOGUE_STORE_NAMES) {
-        const items = rows[name];
-        const written = await db.transaction(
-          'rw',
-          [db.writerLock, db.generations, catalogueTable(db, name)],
-          async (transaction): Promise<StageWrite> => {
-            const staged = await transaction.generations.get(generationId);
-            if (!staged) return 'cleared';
-            if (!(await lease.revalidate(transaction.writerLock)))
-              return 'lease-lost';
-            if (items.length > 0)
-              await scopedCatalogueTable(transaction, name).bulkPut(
-                items as unknown as { generationId: string; id: string }[],
-              );
-            return 'written';
-          },
-        );
-        if (written !== 'written')
-          return { ok: false, state: await abortStaging(written) };
-        await options.onStaged?.({
-          generationId,
-          store: name,
-          count: items.length,
-        });
-      }
-      // Completion marker: only after every batch is written and the stored
-      // rows match the published counts does the generation become `staged`
-      // and thus activatable (Greptile review fix G3).
-      const completed = await db.transaction(
-        'rw',
-        [db.writerLock, db.generations, ...catalogueTables(db)],
-        async (transaction): Promise<StageWrite> => {
-          if (!(await lease.revalidate(transaction.writerLock)))
-            return 'lease-lost';
-          const staged = await transaction.generations.get(generationId);
-          if (!staged) return 'cleared';
-          if (
-            !(await countsMatch(record, (name) =>
-              scopedCatalogueTable(transaction, name),
-            ))
-          )
-            return 'count-mismatch';
-          await transaction
-            .table('generations')
-            .update(generationId, { status: 'staged' });
-          return 'written';
-        },
-      );
-      if (completed !== 'written')
-        return { ok: false, state: await abortStaging(completed) };
-    } catch (error) {
-      await cleanupPartial(generationId);
-      if (isQuotaError(error)) {
-        await writeStatus('storage-quota', 'storage-quota');
-        return {
-          ok: false,
-          state: setState({
-            status: 'storage-quota',
-            generation: currentGeneration,
-          }),
-        };
-      }
-      return { ok: false, state: await fail('interrupted') };
-    }
-    return { ok: true, generationId };
-  }
-
-  async function activateUnlocked(
-    generationId: string,
-    lease: WriterLease,
-    clearEpoch: number,
-  ): Promise<DatasetUpdateState> {
-    const db = requireDatabase();
-    const record = await db.generations.get(generationId);
-    if (!record) return fail('interrupted');
-    const active = await db.meta.get('dataset-state');
-    // Already active *and* complete: nothing to switch. A re-staged record
-    // under the same pointer must still go through the switch to become
-    // `ready` again (Greptile review fix G7).
-    if (
-      active?.activeGenerationId === generationId &&
-      record.status === 'ready'
-    )
-      return refresh();
-    const activatedAt = new Date(now()).toISOString();
-    // Written from inside the transaction callback, so no literal narrowing.
-    let abort: string = 'interrupted';
-    try {
-      // One short transaction: revalidate the writer lease, mark the
-      // generation ready and switch the pointer. Nothing but IndexedDB work
-      // happens inside it.
-      await db.transaction(
-        'rw',
-        [db.generations, db.meta, db.writerLock, ...catalogueTables(db)],
-        async (transaction) => {
-          if (!(await lease.revalidate(transaction.writerLock))) {
-            abort = 'lease-lost';
-            throw new Error('The writer lease was lost');
-          }
-          const meta =
-            (await transaction.meta.get('dataset-state')) ?? emptyMeta();
-          // A clear that completed while this update ran wins over it: the
-          // pointer is never switched back into cleared data.
-          if ((meta.clearEpoch ?? 0) !== clearEpoch) {
-            abort = 'cleared';
-            throw new Error('The local data was cleared');
-          }
-          const staged = await transaction.generations.get(generationId);
-          if (!staged) throw new Error('The staged generation is missing');
-          // Only a complete, verified generation may become active: a crash
-          // mid-stage leaves `staging` rows that must never be pointed at
-          // (Greptile review fix G3).
-          if (staged.status === 'staging') {
-            abort = 'incomplete';
-            throw new Error('The staged generation is incomplete');
-          }
-          if (
-            !(await countsMatch(staged, (name) =>
-              scopedCatalogueTable(transaction, name),
-            ))
-          ) {
-            abort = 'count-mismatch';
-            throw new Error('The staged generation is missing rows');
-          }
-          // Every pointer switch restarts the retention window of its
-          // generation; `readyAt` keeps the first readable time.
-          await transaction.generations.update(generationId, {
-            status: 'ready',
-            readyAt: staged.readyAt ?? activatedAt,
-            lastUsedAt: activatedAt,
-          });
-          await transaction.meta.put({
-            ...meta,
-            activeGenerationId: generationId,
-            previousGenerationId:
-              meta.activeGenerationId &&
-              meta.activeGenerationId !== generationId
-                ? meta.activeGenerationId
-                : meta.previousGenerationId,
-            updateStatus: 'ready',
-            failureReason: null,
-          });
-        },
-      );
-    } catch {
-      if (abort === 'cleared') return refresh();
-      // A writer that lost its lease leaves the database to its new owner: it
-      // stops and runs no cleanup over rows that may no longer be its own.
-      if (abort === 'lease-lost') return fail('writer-busy');
-      if (abort === 'count-mismatch') return fail('count-mismatch');
-      await cleanupPartial(generationId);
-      return fail('interrupted');
-    }
-    // The pointer switch committed: the activation has succeeded. Refresh the
-    // visible state and tell the other tabs first; preference reconciliation
-    // and generation collection run afterwards, isolated: they may fail and be
-    // retried later and must never turn a committed activation into a failure.
-    const activated = await refresh();
-    events.post({ type: 'activated', generationId });
-    await runPostCommitMaintenance(generationId);
-    return activated;
-  }
-
-  async function stageAndActivateUnlocked(
-    manifest: PublishedDatasetManifest,
-    bundleText: string,
-    lease: WriterLease,
-    clearEpoch: number,
-  ): Promise<DatasetUpdateState> {
-    const staged = await stageUnlocked(manifest, bundleText, lease, clearEpoch);
-    if (!staged.ok) return staged.state;
-    return activateUnlocked(staged.generationId, lease, clearEpoch);
-  }
-
-  async function readManifest(): Promise<
-    | { readonly ok: true; readonly manifest: PublishedDatasetManifest }
-    | { readonly ok: false; readonly state: DatasetUpdateState }
-  > {
-    const current = await currentGenerationRecord();
-    const currentGeneration = current ? toLocalGeneration(current) : null;
-    setState({ status: 'checking', generation: currentGeneration });
-    const reader = options.reader;
-    if (!reader)
-      return { ok: false, state: await fail('manifest-unavailable') };
-    let result;
-    try {
-      result = await reader.getManifest(dataset);
-    } catch {
-      return { ok: false, state: await fail('manifest-unavailable') };
-    }
-    if (result.status === 'absent') {
-      await recordCheck();
-      return {
-        ok: false,
-        state: await refresh(),
-      };
-    }
-    if (result.status !== 'available')
-      return { ok: false, state: await fail('manifest-unavailable') };
-    const problem = checkManifest(result.value, dataset);
-    if (problem) return { ok: false, state: await fail(problem) };
-    await recordCheck();
-    return { ok: true, manifest: result.value };
-  }
-
-  const updates: DatasetUpdatePipeline = {
-    checkForUpdate: async () => {
-      await open();
-      const result = await readManifest();
-      if (!result.ok) return result.state;
-      const current = await currentGenerationRecord();
-      const currentGeneration = current ? toLocalGeneration(current) : null;
-      if (result.manifest.datasetVersionId === current?.generationId)
-        return refresh();
-      return setState({
-        status: 'update-available',
-        generation: currentGeneration,
-        candidate: candidateOf(result.manifest),
-      });
-    },
-
-    downloadAndActivate: () =>
-      withWriter(async (lease, clearEpoch) => {
-        const loader = options.loader;
-        const result = await readManifest();
-        if (!result.ok) return result.state;
-        const current = await currentGenerationRecord();
-        const currentGeneration = current ? toLocalGeneration(current) : null;
-        if (result.manifest.datasetVersionId === current?.generationId)
-          return refresh();
-        const candidate = candidateOf(result.manifest);
-        const reader = options.reader;
-        if (!loader || !reader) return fail('bundle-unavailable');
-        setState({
-          status: 'downloading',
-          generation: currentGeneration,
-          candidate,
-        });
-        let descriptor;
-        try {
-          descriptor = await reader.getBundleDescriptor(
-            result.manifest.datasetVersionId,
-          );
-        } catch {
-          return fail('bundle-unavailable');
-        }
-        if (descriptor.status !== 'available')
-          return fail('bundle-unavailable');
-        if (
-          descriptor.value.datasetVersionId !== result.manifest.datasetVersionId
-        )
-          return fail('invalid-bundle');
-        let bundle;
-        try {
-          bundle = await loader.loadBundle(descriptor.value);
-        } catch {
-          return fail('bundle-unavailable');
-        }
-        if (bundle.status !== 'available') return fail('bundle-unavailable');
-        if (bundleByteLength(bundle.text) !== descriptor.value.byteSize)
-          return fail('invalid-bundle');
-        return stageAndActivateUnlocked(
-          result.manifest,
-          bundle.text,
-          lease,
-          clearEpoch,
-        );
-      }),
-
-    stageBundle: (manifest, bundleText) =>
-      withWriter(async (lease, clearEpoch) => {
-        const staged = await stageUnlocked(
-          manifest,
-          bundleText,
-          lease,
-          clearEpoch,
-        );
-        return staged.ok ? refresh() : staged.state;
-      }),
-
-    activate: (generationId) =>
-      withWriter((lease, clearEpoch) =>
-        activateUnlocked(generationId, lease, clearEpoch),
-      ),
-
-    stageAndActivate: (manifest, bundleText) =>
-      withWriter((lease, clearEpoch) =>
-        stageAndActivateUnlocked(manifest, bundleText, lease, clearEpoch),
-      ),
-  };
-
-  async function reconcilePreferences(generationId: string): Promise<void> {
-    await options.onMaintenance?.({
-      kind: 'preference-reconciliation',
-      generationId,
-    });
-    const db = requireDatabase();
-    const failures: string[] = [];
-    let quotaFailure = false;
-    // One transaction over the preference stores: read-modify-write per
-    // favorite with no non-Dexie await in between (Greptile review fix G5).
-    await db.transaction(
-      'rw',
-      [db.favorites, db.tombstones, db.products, db.meta],
-      async (transaction) => {
-        const favorites = await transaction.favorites.toArray();
-        for (const favorite of favorites) {
-          // One product's failure must never stop the others (Codacy item 3).
-          try {
-            // Stable product id lookup: a favorite is never remapped to another id.
-            const row = await transaction.products.get([
-              generationId,
-              favorite.productId,
-            ]);
-            if (row) {
-              await transaction.favorites.update(favorite.productId, {
-                status: 'available',
-                lastKnownDisplayName: row.entity.commercialName,
-                lastKnownDatasetVersionId: row.entity.datasetVersionId,
-              });
-              // The same stable product id is back: its tombstone is stale
-              // (Codacy review fix 2).
-              await transaction.tombstones.delete(favorite.productId);
-            } else {
-              await transaction.tombstones.put({
-                productId: favorite.productId,
-                lastKnownDisplayName: favorite.lastKnownDisplayName,
-                removedAt: new Date(now()).toISOString(),
-              });
-              // Only rows that still exist are updated: a favorite that was
-              // removed while this ran stays removed.
-              await transaction.favorites.update(favorite.productId, {
-                status: 'removed',
-              });
-            }
-          } catch (error) {
-            failures.push(favorite.productId);
-            if (isQuotaError(error)) quotaFailure = true;
-          }
-        }
-        // Only a complete run marks the generation reconciled; a partial one
-        // is left for the retry (Codacy item 3, Greptile review fix G6).
-        if (failures.length === 0)
-          await transaction.meta.update('dataset-state', {
-            reconciledGenerationId: generationId,
-          });
-      },
-    );
-    if (failures.length > 0) {
-      // Thrown only after the transaction committed: the reconciled items are
-      // kept, and the task is reported and retried.
-      throw Object.assign(
-        new Error(
-          `Preference reconciliation failed for ${failures.length} product(s): ${failures.join(', ')}`,
-        ),
-        quotaFailure ? { name: 'QuotaExceededError' } : {},
-      );
-    }
-  }
-
-  function maintenanceKey(task: MaintenanceTask): string {
-    if (task.kind === 'background') return `background#${task.label}`;
-    return task.kind === 'generation-gc'
-      ? 'generation-gc'
-      : `preference-reconciliation#${task.generationId}`;
-  }
-
-  /** Record one maintenance failure and notify its subscribers. */
-  function reportMaintenance(failure: MaintenanceFailure): void {
-    lastMaintenanceFailure = failure;
-    for (const listener of [...maintenanceListeners]) listener();
-  }
-
-  /** Report a failed background task as a diagnostic instead of a rejection. */
-  function reportBackgroundFailure(label: string, error: unknown): void {
-    reportMaintenance({
-      task: { kind: 'background', label },
-      occurredAt: new Date(now()).toISOString(),
-      reason: isQuotaError(error) ? 'storage-quota' : 'error',
-      message: error instanceof Error ? error.message : String(error),
-    });
-  }
-
-  /**
-   * Fire-and-forget background work. Every unawaited promise goes through
-   * here, so its failure becomes a diagnostic and never an unhandled
-   * rejection (Codacy review fix 4).
-   */
-  function background(label: string, work: () => Promise<unknown>): void {
-    void work().catch((error: unknown) =>
-      reportBackgroundFailure(label, error),
-    );
-  }
-
-  /**
-   * Run one maintenance task in isolation. A failure is reported as a
-   * diagnostic and retried later; it never fails the update that scheduled it.
-   */
-  async function runMaintenanceTask(
-    task: MaintenanceTask,
-    work: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await work();
-      pendingMaintenance.delete(maintenanceKey(task));
-    } catch (error) {
-      pendingMaintenance.set(maintenanceKey(task), { task, work });
-      reportMaintenance({
-        task,
-        occurredAt: new Date(now()).toISOString(),
-        reason: isQuotaError(error) ? 'storage-quota' : 'error',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  /** Maintenance of a committed pointer switch: reconciliation, then GC. */
-  async function runPostCommitMaintenance(generationId: string): Promise<void> {
-    await runMaintenanceTask(
-      { kind: 'preference-reconciliation', generationId },
-      () => reconcilePreferences(generationId),
-    );
-    await runMaintenanceTask({ kind: 'generation-gc' }, async () => {
-      await collectGenerations();
-    });
-  }
-
   /** Reconcile preferences the active generation never was reconciled for. */
   async function catchUpReconciliation(): Promise<void> {
     const db = database;
@@ -1052,412 +371,11 @@ export function createLocalDatasetStore(
     const activeGenerationId = meta?.activeGenerationId ?? null;
     if (!activeGenerationId) return;
     if (meta?.reconciledGenerationId === activeGenerationId) return;
-    await runMaintenanceTask(
+    await maintenance.run(
       { kind: 'preference-reconciliation', generationId: activeGenerationId },
-      () => reconcilePreferences(activeGenerationId),
+      () => preferences.reconcilePreferences(activeGenerationId),
     );
   }
-
-  const preferences: LocalPreferencesStore = {
-    listFavorites: async () => {
-      await open();
-      return requireDatabase().favorites.toArray();
-    },
-    addFavorite: async (input) => {
-      await open();
-      const db = requireDatabase();
-      const entry: FavoriteEntry = {
-        productId: input.productId,
-        createdAt: new Date(now()).toISOString(),
-        lastKnownDisplayName: input.lastKnownDisplayName,
-        lastKnownDatasetVersionId: input.lastKnownDatasetVersionId,
-        status: 'unresolved',
-      };
-      await db.favorites.put(entry);
-      const record = await currentGenerationRecord();
-      if (record) await reconcilePreferences(record.generationId);
-      return (await db.favorites.get(input.productId)) ?? entry;
-    },
-    removeFavorite: async (productId) => {
-      await open();
-      const db = requireDatabase();
-      await db.favorites.delete(productId);
-    },
-    listRecentSearches: async () => {
-      await open();
-      return requireDatabase()
-        .recentSearches.orderBy('occurredAt')
-        .reverse()
-        .toArray();
-    },
-    addRecentSearch: async (input) => {
-      await open();
-      const db = requireDatabase();
-      const entry: RecentSearchEntry = {
-        id: `${new Date(now()).toISOString()}#${input.query}`,
-        query: input.query,
-        occurredAt: new Date(now()).toISOString(),
-        lastKnownDatasetVersionId: input.lastKnownDatasetVersionId,
-      };
-      await db.recentSearches.put(entry);
-      return entry;
-    },
-    clearRecentSearches: async () => {
-      await open();
-      await requireDatabase().recentSearches.clear();
-    },
-    listProductTombstones: async () => {
-      await open();
-      return requireDatabase().tombstones.toArray();
-    },
-    clearAllLocalData: async (): Promise<ClearLocalDataResult> => {
-      await open();
-      const db = database;
-      if (!db || !writerLock) return { status: 'cleared' };
-      // Clearing is a writer operation: it is refused instead of racing the
-      // staging or activation of another tab and leaving orphaned rows behind.
-      const outcome = await writerLock.withExclusiveUpdate(async (lease) =>
-        db.transaction(
-          'rw',
-          [
-            db.generations,
-            db.products,
-            db.ingredients,
-            db.productIngredients,
-            db.atcCodes,
-            db.dosageForms,
-            db.manufacturers,
-            db.holders,
-            db.documents,
-            db.sources,
-            db.datasetVersions,
-            db.meta,
-            db.writerLock,
-            db.favorites,
-            db.recentSearches,
-            db.tombstones,
-          ],
-          async (transaction) => {
-            if (!(await lease.revalidate(transaction.writerLock))) return false;
-            const meta =
-              (await transaction.meta.get('dataset-state')) ?? emptyMeta();
-            for (const name of CATALOGUE_STORE_NAMES)
-              await scopedCatalogueTable(transaction, name).clear();
-            await transaction.generations.clear();
-            await transaction.meta.clear();
-            await transaction.favorites.clear();
-            await transaction.recentSearches.clear();
-            await transaction.tombstones.clear();
-            // The bumped clear epoch invalidates every update that is already
-            // in flight: a completed clear can never be undone by earlier work.
-            await transaction.meta.put({
-              ...emptyMeta(),
-              clearEpoch: (meta.clearEpoch ?? 0) + 1,
-            });
-            return true;
-          },
-        ),
-      );
-      if (!outcome.ok || !outcome.value)
-        return { status: 'refused', reason: 'writer-busy' };
-      await refresh();
-      // Other tabs hold their own view of the state: tell them the local data
-      // is gone so none of them keeps reporting a generation that no longer
-      // exists.
-      events.post({ type: 'cleared' });
-      return { status: 'cleared' };
-    },
-  };
-
-  function createReader(record: GenerationRecord): GenerationReader {
-    const generationId = record.generationId;
-    addPin(generationId);
-    let released = false;
-    return {
-      generationId,
-      generation: toLocalGeneration(record),
-      product: async (id: MedicationProductId) =>
-        (await requireDatabase().products.get([generationId, id]))?.entity ??
-        null,
-      ingredient: async (id: ActiveIngredientId) =>
-        (await requireDatabase().ingredients.get([generationId, id]))?.entity ??
-        null,
-      productIngredients: async (productId: MedicationProductId) => {
-        const rows = await requireDatabase()
-          .productIngredients.where('[generationId+productId]')
-          .equals([generationId, productId])
-          .toArray();
-        return rows.map((row) => row.entity) as MedicationIngredient[];
-      },
-      productsByNamePrefix: async (prefix: string) => {
-        const folded = foldForIndex(prefix);
-        const rows = await requireDatabase()
-          .products.where('[generationId+nameFolded]')
-          .between(
-            [generationId, folded],
-            [generationId, `${folded}\uffff`],
-            true,
-            true,
-          )
-          .toArray();
-        return rows.map((row) => row.entity) as MedicationProduct[];
-      },
-      ingredientsByDciPrefix: async (prefix: string) => {
-        const folded = foldForIndex(prefix);
-        const rows = await requireDatabase()
-          .ingredients.where('[generationId+dciFolded]')
-          .between(
-            [generationId, folded],
-            [generationId, `${folded}\uffff`],
-            true,
-            true,
-          )
-          .toArray();
-        return rows.map((row) => row.entity) as ActiveIngredient[];
-      },
-      productsByAtcCode: async (code: string) => {
-        const db = requireDatabase();
-        const atcRows = await db.atcCodes
-          .where('[generationId+code]')
-          .equals([generationId, code])
-          .toArray();
-        const products: MedicationProduct[] = [];
-        for (const atc of atcRows) {
-          const rows = await db.products
-            .where('atcKeys')
-            .equals(atcKey(generationId, atc.id))
-            .toArray();
-          for (const row of rows) products.push(row.entity);
-        }
-        return products;
-      },
-      productIds: async () => {
-        const rows = await requireDatabase()
-          .products.where('generationId')
-          .equals(generationId)
-          .toArray();
-        return rows
-          .map((row) => row.entity.id)
-          .sort() as readonly MedicationProductId[];
-      },
-      release: () => {
-        if (released) return;
-        released = true;
-        removePin(generationId);
-      },
-    };
-  }
-
-  async function pinnedReader(
-    record: GenerationRecord,
-  ): Promise<GenerationReader> {
-    // Pin before anything else: a generation someone is reading keeps its
-    // cross-tab retention window, so the pin also refreshes the retention
-    // anchor (Greptile review fix G2). Pin bookkeeping never joins another
-    // in-flight transaction: it must run whatever else is writing.
-    const reader = createReader(record);
-    await Dexie.ignoreTransaction(() =>
-      requireDatabase()
-        .generations.update(record.generationId, {
-          lastUsedAt: new Date(now()).toISOString(),
-        })
-        .catch((error: unknown) =>
-          // Diagnostics only; the pin itself already protects the generation.
-          reportBackgroundFailure('pin retention refresh', error),
-        ),
-    );
-    return reader;
-  }
-
-  async function collectGenerations(): Promise<readonly string[]> {
-    await options.onMaintenance?.({ kind: 'generation-gc' });
-    await open();
-    const db = database;
-    if (!db) return [];
-    const meta = await db.meta.get('dataset-state');
-    const keep = new Set<string>();
-    if (meta?.activeGenerationId) keep.add(meta.activeGenerationId);
-    if (meta?.previousGenerationId) keep.add(meta.previousGenerationId);
-    for (const [generationId, count] of pins)
-      if (count > 0) keep.add(generationId);
-    const candidates: GenerationRecord[] = [];
-    for (const record of await db.generations.toArray()) {
-      if (keep.has(record.generationId)) continue;
-      const abandonedStaging =
-        record.status !== 'ready' &&
-        now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS;
-      // Retention is measured from the last activation (or rollback, or pin),
-      // never from the original staging time: a re-activated generation
-      // restarts the cross-tab window.
-      const retainedAt = record.lastUsedAt ?? record.readyAt;
-      const expiredReady =
-        record.status === 'ready' &&
-        retainedAt !== null &&
-        now() - Date.parse(retainedAt) >= retainReadyForMs;
-      if (abandonedStaging || expiredReady) candidates.push(record);
-    }
-    const removed: string[] = [];
-    for (const record of candidates) {
-      // The decision is taken again inside the deleting transaction: a pointer
-      // switch or a pin that happened after the snapshot protects the
-      // generation it targets (Greptile review fix G2).
-      const deleted = await db.transaction(
-        'rw',
-        [db.generations, db.meta, ...catalogueTables(db)],
-        async (transaction) => {
-          const current = await transaction.meta.get('dataset-state');
-          if (current?.activeGenerationId === record.generationId) return false;
-          if (current?.previousGenerationId === record.generationId)
-            return false;
-          if ((pins.get(record.generationId) ?? 0) > 0) return false;
-          const staged = await transaction.generations.get(record.generationId);
-          if (!staged) return false;
-          await deleteGenerationRowsIn(transaction, record.generationId);
-          return true;
-        },
-      );
-      if (deleted) removed.push(record.generationId);
-    }
-    return removed;
-  }
-
-  /**
-   * Run collection under the writer lease. It is refused - nothing is
-   * collected - while another tab stages or activates: collection never
-   * deletes underneath a writer.
-   */
-  async function collectUnderLock(): Promise<readonly string[]> {
-    await open();
-    const db = database;
-    if (!db || !writerLock) return [];
-    const outcome = await writerLock.withExclusiveUpdate(async () =>
-      collectGenerations(),
-    );
-    return outcome.ok ? outcome.value : [];
-  }
-
-  /**
-   * Remove staging generations whose writer crashed mid-write: they are never
-   * activatable and their rows serve nobody (Greptile review fix G3). Only
-   * leftovers past the abandoned-staging grace period are touched, and the
-   * writer lease is claimed only when there is something to clean: claiming it
-   * at every open would refuse the legitimate update of a concurrent tab.
-   */
-  async function cleanupIncompleteStaging(): Promise<void> {
-    const db = database;
-    if (!db || !writerLock) return;
-    const leftovers = (await db.generations.toArray()).filter(
-      (record) =>
-        record.status === 'staging' &&
-        now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS,
-    );
-    if (leftovers.length === 0) return;
-    await writerLock.withExclusiveUpdate(async () => {
-      for (const record of leftovers)
-        await deleteGenerationRows(record.generationId);
-      return true;
-    });
-  }
-
-  const generations = {
-    openReader: async () => {
-      await open();
-      const record = await currentGenerationRecord();
-      return record ? pinnedReader(record) : null;
-    },
-    openPinnedReader: async (generationId: string) => {
-      // Pin before anything else: a collection that runs right now must see
-      // this pin even before the reader is validated (Greptile review fix G2).
-      // The pin is unwound again when the generation turns out unusable.
-      addPin(generationId);
-      let held = true;
-      const unwind = (): null => {
-        if (held) {
-          held = false;
-          removePin(generationId);
-        }
-        return null;
-      };
-      try {
-        await open();
-        const db = database;
-        if (!db) return unwind();
-        const record = await Dexie.ignoreTransaction(() =>
-          db.generations.get(generationId),
-        );
-        if (!record || record.status !== 'ready') return unwind();
-        // An evicted generation has no usable reader (Greptile G7).
-        if (!(await countsMatch(record, (name) => catalogueTable(db, name))))
-          return unwind();
-        // The reader takes the pin over from this optimistic hold.
-        unwind();
-        return pinnedReader(record);
-      } catch (error) {
-        unwind();
-        throw error;
-      }
-    },
-    rollback: async () => {
-      await open();
-      const db = database;
-      if (!db || !writerLock) return false;
-      const outcome = await writerLock.withExclusiveUpdate(async () => {
-        const activatedAt = new Date(now()).toISOString();
-        return db.transaction(
-          'rw',
-          db.generations,
-          db.meta,
-          async (): Promise<string | null> => {
-            const meta = (await db.meta.get('dataset-state')) ?? emptyMeta();
-            const previousId = meta.previousGenerationId;
-            if (!previousId || !meta.activeGenerationId) return null;
-            const previous = await db.generations.get(previousId);
-            if (!previous || previous.status !== 'ready') return null;
-            // A rollback is an activation too: it restarts the retention
-            // window of the generation it brings back.
-            await db.generations.update(previousId, {
-              lastUsedAt: activatedAt,
-            });
-            await db.meta.put({
-              ...meta,
-              activeGenerationId: previousId,
-              previousGenerationId: meta.activeGenerationId,
-              updateStatus: 'ready',
-              failureReason: null,
-            });
-            return previousId;
-          },
-        );
-      });
-      if (!outcome.ok || !outcome.value) return false;
-      const rolledBackTo = outcome.value;
-      await refresh();
-      events.post({ type: 'activated', generationId: rolledBackTo });
-      await runMaintenanceTask(
-        { kind: 'preference-reconciliation', generationId: rolledBackTo },
-        () => reconcilePreferences(rolledBackTo),
-      );
-      return true;
-    },
-    collect: collectUnderLock,
-  };
-
-  const maintenance: MaintenanceDiagnostics = {
-    getStatus: () => ({
-      pending: pendingMaintenance.size > 0,
-      lastFailure: lastMaintenanceFailure,
-    }),
-    subscribe: (listener) => {
-      maintenanceListeners.add(listener);
-      return () => {
-        maintenanceListeners.delete(listener);
-      };
-    },
-    retry: async () => {
-      for (const entry of [...pendingMaintenance.values()])
-        await runMaintenanceTask(entry.task, entry.work);
-    },
-  };
 
   const store: LocalDatasetStore = {
     getState: () => state,
@@ -1477,11 +395,32 @@ export function createLocalDatasetStore(
       opening = null;
       setState({ status: 'opening' });
     },
-    updates,
-    preferences,
+    updates: pipeline.updates,
+    preferences: preferences.store,
     maintenance,
-    ...generations,
+    openReader: async () => {
+      await open();
+      const record = await currentGenerationRecord();
+      return record ? retention.pinnedReader(record) : null;
+    },
+    openPinnedReader: async (generationId: string) => {
+      await open();
+      // The pin is taken before the reader is validated (Greptile G2).
+      return retention.openPinned(generationId);
+    },
+    rollback: pipeline.rollback,
+    collect: async () => {
+      await open();
+      return retention.collectUnderLock();
+    },
   };
-  background('initial open', open);
+  maintenance.background('initial open', open);
   return store;
 }
+
+export type {
+  MaintenanceDiagnostics,
+  MaintenanceFailure,
+  MaintenanceStatus,
+  MaintenanceTask,
+} from './maintenance';
