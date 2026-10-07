@@ -1,5 +1,13 @@
 import { existsSync, mkdirSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import {
+  dirname,
+  isAbsolute,
+  join,
+  posix,
+  relative,
+  resolve,
+  win32,
+} from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -39,6 +47,71 @@ export function resolvePinnedPaths(env = process.env) {
     npmCliPath: requiredAbsolutePath(
       env.APPWRITE_PINNED_NPM_CLI,
       'APPWRITE_PINNED_NPM_CLI',
+    ),
+  };
+}
+
+function platformDetails(platform, arch) {
+  const details = {
+    'win32/x64': { packageName: 'node-win-x64', binaryName: 'node.exe' },
+    'linux/x64': { packageName: 'node-linux-x64', binaryName: 'node' },
+    'linux/arm64': { packageName: 'node-linux-arm64', binaryName: 'node' },
+  }[`${platform}/${arch}`];
+  if (!details) {
+    throw new Error(
+      `Unsupported Node bootstrap platform/architecture: ${platform}/${arch}`,
+    );
+  }
+  return details;
+}
+
+export function resolveToolchainPaths(
+  nodePath,
+  npmCliPath,
+  pathValue,
+  platform,
+) {
+  const pathApi = platform === 'win32' ? win32 : posix;
+  const npmPackageDirectory = pathApi.dirname(
+    pathApi.dirname(pathApi.dirname(npmCliPath)),
+  );
+  const npmWrapperDirectory = pathApi.join(npmPackageDirectory, '.bin');
+  const nodeBinDirectory = pathApi.dirname(nodePath);
+  return [npmWrapperDirectory, nodeBinDirectory, pathValue ?? '']
+    .filter(Boolean)
+    .join(platform === 'win32' ? ';' : ':');
+}
+
+export function bootstrapInstallSpec(
+  platform = process.platform,
+  arch = process.arch,
+  prefix = toolchainPrefix(),
+) {
+  const { packageName, binaryName } = platformDetails(platform, arch);
+  const pathApi = platform === 'win32' ? win32 : posix;
+  return {
+    packages: [`${packageName}@${NODE_VERSION}`, `npm@${NPM_VERSION}`],
+    npmArgs: [
+      'install',
+      '--prefix',
+      prefix,
+      '--no-save',
+      '--package-lock=false',
+      '--ignore-scripts',
+    ],
+    nodePath: pathApi.join(
+      prefix,
+      'node_modules',
+      packageName,
+      'bin',
+      binaryName,
+    ),
+    npmCliPath: pathApi.join(
+      prefix,
+      'node_modules',
+      'npm',
+      'bin',
+      'npm-cli.js',
     ),
   };
 }
@@ -92,18 +165,10 @@ function bootstrapToolchain() {
     ? requiredAbsolutePath(process.env.APPWRITE_HOST_NPM, 'APPWRITE_HOST_NPM')
     : hostNpmCliPath();
 
+  const spec = bootstrapInstallSpec(process.platform, process.arch, prefix);
   const result = spawnSync(
     hostNode,
-    [
-      hostNpm,
-      'install',
-      '--prefix',
-      prefix,
-      '--no-save',
-      '--package-lock=false',
-      `node@${NODE_VERSION}`,
-      `npm@${NPM_VERSION}`,
-    ],
+    [hostNpm, ...spec.npmArgs, ...spec.packages],
     {
       cwd: repositoryRoot,
       env: {
@@ -120,11 +185,7 @@ function bootstrapToolchain() {
     );
   }
 
-  const nodeName = process.platform === 'win32' ? 'node.exe' : 'node';
-  return {
-    nodePath: join(prefix, 'node_modules', 'node', 'bin', nodeName),
-    npmCliPath: join(prefix, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
-  };
+  return { nodePath: spec.nodePath, npmCliPath: spec.npmCliPath };
 }
 
 function resolveToolchain() {
@@ -158,8 +219,6 @@ function run() {
 
   const { nodePath, npmCliPath } = resolveToolchain();
   const versions = verifyVersions(nodePath, npmCliPath);
-  const nodeBin = dirname(nodePath);
-  const npmBin = dirname(dirname(npmCliPath));
   const args =
     command === 'install'
       ? [npmCliPath, 'ci', '--no-fund']
@@ -168,7 +227,12 @@ function run() {
     cwd: repositoryRoot,
     env: {
       ...process.env,
-      PATH: `${nodeBin}${process.platform === 'win32' ? ';' : ':'}${npmBin}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH ?? ''}`,
+      PATH: resolveToolchainPaths(
+        nodePath,
+        npmCliPath,
+        process.env.PATH,
+        process.platform,
+      ),
       NPM_CONFIG_FUND: 'false',
     },
     stdio: 'inherit',
