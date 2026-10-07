@@ -1,5 +1,5 @@
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   LINUX_X64_MUSL_ARTIFACT,
@@ -79,6 +79,47 @@ describe('Appwrite pinned toolchain launcher', () => {
     expect(spec.nodePath).toMatch(
       /node-v24\.21\.0-linux-x64-musl[/\\]bin[/\\]node$/,
     );
+  });
+
+  it('rejects a prefix in the repository whose relative path starts with two dots', () => {
+    const originalPrefix = process.env.APPWRITE_TOOLCHAIN_PREFIX;
+    process.env.APPWRITE_TOOLCHAIN_PREFIX = resolve(
+      process.cwd(),
+      '..m3-prefix-probe',
+    );
+
+    try {
+      expect(() => bootstrapInstallSpec('win32', 'x64')).toThrow(
+        /outside the repository/i,
+      );
+    } finally {
+      if (originalPrefix === undefined) {
+        delete process.env.APPWRITE_TOOLCHAIN_PREFIX;
+      } else {
+        process.env.APPWRITE_TOOLCHAIN_PREFIX = originalPrefix;
+      }
+    }
+  });
+
+  it('allows a prefix in an outside sibling directory and restores the environment', () => {
+    const originalPrefix = process.env.APPWRITE_TOOLCHAIN_PREFIX;
+    process.env.APPWRITE_TOOLCHAIN_PREFIX = resolve(
+      process.cwd(),
+      '..',
+      'm3-prefix-probe',
+    );
+
+    try {
+      expect(() => bootstrapInstallSpec('win32', 'x64')).not.toThrow();
+    } finally {
+      if (originalPrefix === undefined) {
+        delete process.env.APPWRITE_TOOLCHAIN_PREFIX;
+      } else {
+        process.env.APPWRITE_TOOLCHAIN_PREFIX = originalPrefix;
+      }
+    }
+
+    expect(process.env.APPWRITE_TOOLCHAIN_PREFIX).toBe(originalPrefix);
   });
 
   it('refuses Linux arm64 without an exact verified official musl artifact', () => {
