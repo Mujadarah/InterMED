@@ -543,17 +543,34 @@ export function createFakeAppwriteRest(options) {
     if (headerValue('x-appwrite-project') !== projectId) {
       return problem(401, 'general_unauthorized_scope');
     }
-    if (headerValue('x-appwrite-key') !== options.serverKey) {
+    // Real REST auth surface: the server key authenticates private I/O, while
+    // an anonymous caller (no key at all) is the public consumer of `read("any")`
+    // resources only. A wrong key is always rejected.
+    const apiKey = headerValue('x-appwrite-key');
+    const authenticated = apiKey === options.serverKey;
+    if (apiKey !== null && !authenticated) {
       return problem(401, 'general_unauthorized_scope');
     }
+    if (!authenticated && method !== 'GET') {
+      return problem(401, 'general_unauthorized_scope');
+    }
+
+    const isPublicRow = (row) =>
+      authenticated ||
+      (Array.isArray(row.$permissions) &&
+        row.$permissions.includes('read("any")'));
+    const isPublicFile = (stored) =>
+      authenticated ||
+      (Array.isArray(stored.permissions) &&
+        stored.permissions.includes('read("any")'));
 
     const path = call.url.slice(endpoint.length).split('?')[0] ?? '';
     const tableRows = /^\/tablesdb\/([^/]+)\/tables\/([^/]+)\/rows$/;
     const tableRow = /^\/tablesdb\/([^/]+)\/tables\/([^/]+)\/rows\/([^/]+)$/;
     const bucketFiles = /^\/storage\/buckets\/([^/]+)\/files$/;
     const bucketFile = /^\/storage\/buckets\/([^/]+)\/files\/([^/]+)$/;
-    const bucketDownload =
-      /^\/storage\/buckets\/([^/]+)\/files\/([^/]+)\/download$/;
+    const bucketContent =
+      /^\/storage\/buckets\/([^/]+)\/files\/([^/]+)\/(download|view)$/;
 
     const rowsMatch = tableRows.exec(path);
     if (rowsMatch && method === 'GET') {
@@ -565,9 +582,9 @@ export function createFakeAppwriteRest(options) {
       } catch {
         return problem(400, 'general_query_invalid');
       }
-      const all = [...(rows.get(tableId)?.entries() ?? [])].map(
-        ([rowId, values]) => flatRow(tableId, rowId, values),
-      );
+      const all = [...(rows.get(tableId)?.entries() ?? [])]
+        .map(([rowId, values]) => flatRow(tableId, rowId, values))
+        .filter(isPublicRow);
       let filtered;
       try {
         filtered = applyQueries(all, queries);
@@ -609,7 +626,7 @@ export function createFakeAppwriteRest(options) {
     const rowMatch = tableRow.exec(path);
     if (rowMatch && method === 'GET') {
       const stored = rows.get(rowMatch[2])?.get(rowMatch[3]);
-      if (!stored) return problem(404, 'row_not_found');
+      if (!stored || !isPublicRow(stored)) return problem(404, 'row_not_found');
       return jsonResponse(200, flatRow(rowMatch[2], rowMatch[3], stored));
     }
     if (rowMatch && method === 'DELETE') {
@@ -641,13 +658,14 @@ export function createFakeAppwriteRest(options) {
       }
       return createFileResponse(bucketId, fileId, file, form, storage);
     }
-    const fileMatch = bucketFile.exec(path) ?? bucketDownload.exec(path);
+    const fileMatch = bucketFile.exec(path) ?? bucketContent.exec(path);
     if (fileMatch && method === 'GET') {
       const bucketId = fileMatch[1];
       const fileId = fileMatch[2];
       const stored = files.get(bucketId)?.get(fileId);
-      if (!stored) return problem(404, 'file_not_found');
-      if (bucketDownload.test(path)) {
+      if (!stored || !isPublicFile(stored))
+        return problem(404, 'file_not_found');
+      if (bucketContent.test(path)) {
         return bytesResponse(200, stored.bytes);
       }
       return jsonResponse(200, flatFile(bucketId, fileId, stored));
