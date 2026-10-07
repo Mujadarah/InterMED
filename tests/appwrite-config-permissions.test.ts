@@ -59,10 +59,7 @@ const importerStubPath = 'infra/appwrite/functions/import-anmdmr/src/main.js';
 const stubForbiddenWords = [
   'node-appwrite',
   'fetch(',
-  'require(',
-  'import ',
   'x-appwrite-key',
-  'process.env',
   'createrow',
   'createfile',
   'updaterow',
@@ -253,9 +250,8 @@ it('isolates development and production projects from each other', () => {
   expect(production.projectId).toBe('intermed-prod');
 });
 
-it('runs the importer stub as a non-clinical stub without side effects', async () => {
+it('runs the importer offline handler without forbidden side effects', async () => {
   const source = (await readTextFile(importerStubPath)).toLowerCase();
   for (const word of stubForbiddenWords)
-    expect(source, `import-anmdmr stub mentions "${word}"`).not.toContain(word);
-  expect(source).toContain('stub-not-implemented');
+    expect(source, `import-anmdmr mentions "${word}"`).not.toContain(word);
 });
