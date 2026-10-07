@@ -17,9 +17,15 @@ export async function readPublishedMetadata(options) {
     outputDirectory,
     fetchLike = globalThis.fetch,
   } = options;
-  if (projectId !== DEV_PROJECT || endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT)
-    throw new Error('live acceptance is restricted to the fixed intermed-dev project');
-  if (!dataset || !outputDirectory) throw new Error('dataset and outputDirectory are required');
+  if (
+    projectId !== DEV_PROJECT ||
+    endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT
+  )
+    throw new Error(
+      'live acceptance is restricted to the fixed intermed-dev project',
+    );
+  if (!dataset || !outputDirectory)
+    throw new Error('dataset and outputDirectory are required');
   if (typeof fetchLike !== 'function') throw new Error('fetchLike is required');
   const reader = createAppwritePublishedDatasetReader({
     endpoint,

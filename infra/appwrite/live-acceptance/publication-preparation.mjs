@@ -1,9 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import {
-  serializeCatalogue,
-} from '@intermed/domain';
+import { serializeCatalogue } from '@intermed/domain';
 import {
   syntheticMedicationFixture,
   validateSyntheticSource,
@@ -22,8 +20,13 @@ const BUCKETS = [
 const PUBLIC_READ = ['read("any")'];
 
 function assertDevelopmentProject(projectId, endpoint) {
-  if (projectId !== DEV_PROJECT || endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT)
-    throw new Error('live acceptance is restricted to the fixed intermed-dev project');
+  if (
+    projectId !== DEV_PROJECT ||
+    endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT
+  )
+    throw new Error(
+      'live acceptance is restricted to the fixed intermed-dev project',
+    );
 }
 
 function sha256(bytes) {
@@ -136,7 +139,9 @@ export async function prepareSyntheticPublication(options) {
 
   const validated = validateSyntheticSource(syntheticMedicationFixture);
   if (!validated.ok)
-    throw new Error(`synthetic fixture invalid: ${validated.issues[0]?.message}`);
+    throw new Error(
+      `synthetic fixture invalid: ${validated.issues[0]?.message}`,
+    );
   const snapshot = validated.snapshot;
   const version = snapshot.datasetVersions[0];
   if (!version) throw new Error('synthetic fixture has no dataset version');
@@ -183,7 +188,10 @@ export async function prepareSyntheticPublication(options) {
 
   await mkdir(outputDirectory, { recursive: true });
   const bundlePath = join(outputDirectory, fileName);
-  const descriptorPath = join(outputDirectory, 'dataset-bundle-descriptor.json');
+  const descriptorPath = join(
+    outputDirectory,
+    'dataset-bundle-descriptor.json',
+  );
   const versionPath = join(outputDirectory, 'dataset-version-row.json');
   await writeFile(bundlePath, bytes);
   await writeFile(descriptorPath, `${JSON.stringify(descriptor, null, 2)}\n`);
@@ -205,7 +213,9 @@ export async function prepareSyntheticPublication(options) {
       rowId,
       '--data',
       JSON.stringify(data),
-      ...(permissions.length ? ['--permissions', JSON.stringify(permissions)] : []),
+      ...(permissions.length
+        ? ['--permissions', JSON.stringify(permissions)]
+        : []),
       ...config,
     ];
     return { argv, data, command: commandFromArgv(argv) };
@@ -251,12 +261,22 @@ export async function prepareSyntheticPublication(options) {
     {
       action: 'table-create-descriptor-row',
       automatic: false,
-      ...rowCommand('dataset-bundles', descriptor.$id, rowData(descriptor), PUBLIC_READ),
+      ...rowCommand(
+        'dataset-bundles',
+        descriptor.$id,
+        rowData(descriptor),
+        PUBLIC_READ,
+      ),
     },
     {
       action: 'table-create-manifest-row-last',
       automatic: false,
-      ...rowCommand('dataset-versions', versionRow.$id, rowData(versionRow), PUBLIC_READ),
+      ...rowCommand(
+        'dataset-versions',
+        versionRow.$id,
+        rowData(versionRow),
+        PUBLIC_READ,
+      ),
     },
   ];
 

@@ -2,8 +2,13 @@ const DEV_PROJECT = 'intermed-dev';
 const DEV_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 
 function assertDevelopmentProject(projectId, endpoint) {
-  if (projectId !== DEV_PROJECT || endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT)
-    throw new Error('live acceptance is restricted to the fixed intermed-dev project');
+  if (
+    projectId !== DEV_PROJECT ||
+    endpoint.replace(/\/+$/, '') !== DEV_ENDPOINT
+  )
+    throw new Error(
+      'live acceptance is restricted to the fixed intermed-dev project',
+    );
 }
 
 function url(endpoint, path) {
@@ -87,7 +92,11 @@ function rowPayload(tableId) {
 function fileFormData(fileId) {
   const form = new FormData();
   form.append('fileId', fileId);
-  form.append('file', new Blob(['synthetic guard'], { type: 'text/plain' }), 'guard.txt');
+  form.append(
+    'file',
+    new Blob(['synthetic guard'], { type: 'text/plain' }),
+    'guard.txt',
+  );
   return form;
 }
 
@@ -103,8 +112,16 @@ export async function runAnonymousProbe(options) {
   if (typeof fetchLike !== 'function') throw new Error('fetchLike is required');
   const checks = [];
   const check = async (name, target, expected, requestOptions = {}) => {
-    const observed = await request(fetchLike, target, { ...requestOptions, projectId });
-    checks.push({ name, expected, observed, pass: expected.includes(observed.status) });
+    const observed = await request(fetchLike, target, {
+      ...requestOptions,
+      projectId,
+    });
+    checks.push({
+      name,
+      expected,
+      observed,
+      pass: expected.includes(observed.status),
+    });
   };
   const rowPath = (tableId, rowId = '') =>
     `/tablesdb/${databaseId}/tables/${tableId}/rows${rowId ? `/${rowId}` : ''}`;
@@ -158,7 +175,9 @@ export async function runAnonymousProbe(options) {
       expectedRead,
     );
     await check(
-      isPublic ? 'public-download-published-datasets' : `private-download-${file.bucketId}`,
+      isPublic
+        ? 'public-download-published-datasets'
+        : `private-download-${file.bucketId}`,
       url(endpoint, filePath(file.bucketId, file.fileId, '/download')),
       expectedRead,
     );

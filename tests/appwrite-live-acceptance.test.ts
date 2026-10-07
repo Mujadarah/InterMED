@@ -2,15 +2,9 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import {
-  prepareSyntheticPublication,
-} from '../infra/appwrite/live-acceptance/publication-preparation.mjs';
-import {
-  runAnonymousProbe,
-} from '../infra/appwrite/live-acceptance/anonymous-probe.mjs';
-import {
-  readPublishedMetadata,
-} from '../infra/appwrite/live-acceptance/adapter-read.mjs';
+import { prepareSyntheticPublication } from '../infra/appwrite/live-acceptance/publication-preparation.mjs';
+import { runAnonymousProbe } from '../infra/appwrite/live-acceptance/anonymous-probe.mjs';
+import { readPublishedMetadata } from '../infra/appwrite/live-acceptance/adapter-read.mjs';
 
 const project = {
   projectId: 'intermed-dev',
@@ -39,7 +33,9 @@ describe('Appwrite live acceptance preparation', () => {
       'table-create-descriptor-row',
       'table-create-manifest-row-last',
     ]);
-    expect(result.commandPlan.every(({ automatic }) => automatic === false)).toBe(true);
+    expect(
+      result.commandPlan.every(({ automatic }) => automatic === false),
+    ).toBe(true);
     expect(
       result.commandPlan.every(
         ({ command, argv }) =>
@@ -52,7 +48,9 @@ describe('Appwrite live acceptance preparation', () => {
           !command.includes('--data @'),
       ),
     ).toBe(true);
-    expect(result.commandPlan.at(-1)?.action).toBe('table-create-manifest-row-last');
+    expect(result.commandPlan.at(-1)?.action).toBe(
+      'table-create-manifest-row-last',
+    );
 
     const bundle = await readFile(result.files[0]!, 'utf8');
     expect(JSON.parse(bundle).dataSources).toBeDefined();
@@ -135,10 +133,15 @@ describe('anonymous Appwrite probe', () => {
 
     expect(result.failed).toBe(0);
     expect(result.checks).toHaveLength(39);
-    expect(calls.every(({ options }) => !JSON.stringify(options).match(/key|jwt|cookie|token/i))).toBe(
-      true,
+    expect(
+      calls.every(
+        ({ options }) =>
+          !JSON.stringify(options).match(/key|jwt|cookie|token/i),
+      ),
+    ).toBe(true);
+    expect(result.checks.some((check) => check.expected.includes('400'))).toBe(
+      false,
     );
-    expect(result.checks.some((check) => check.expected.includes('400'))).toBe(false);
     expect(
       calls.some(
         ({ url, options }) =>
