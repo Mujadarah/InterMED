@@ -91,7 +91,7 @@ AssertionError: expected [ …(2) ] to deeply equal [ …(2) ]
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  tests/appwrite-config-secrets.test.ts > credential shape detector > flags a secret behind generic words such as version, id or name
-AssertionError: {"version": "1.0", "secret": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}: expected null not to be null
+AssertionError: {"version": "1.0", "secret": "<redacted synthetic fixture>"}: expected null not to be null
  ❯ tests/appwrite-config-secrets.test.ts:98:55
      96|       `revision = '${secret}'`,
      97|     ])

@@ -1,0 +1,294 @@
+PR #7 review fixes - red runs before the fixes. Every credential fixture is synthetic and assembled at runtime, so no key-shaped literal appears in these logs.
+
+## red 1/3 dropped regex flags in the credential scanner - npx vitest run tests/appwrite-config-secrets.test.ts (the detector rebuilds each pattern without its i flag)
+## exit code: 1
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ tests/appwrite-config-secrets.test.ts (14 tests | 4 failed) 217ms
+     × flags a lowercase quoted key header 3ms
+     × flags a mixed-case quoted key header 0ms
+     × flags a lowercase key variable assignment 0ms
+     × flags a mixed-case key variable assignment 0ms
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 10 passed (14)
+   Start at  09:58:55
+   Duration  351ms (transform 20ms, setup 0ms, import 33ms, tests 217ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/appwrite-config-secrets.test.ts > credential shape detector > flags a lowercase quoted key header
+AssertionError: lowercase key header: expected null to be 'API key assignment carrying a value' // Object.is equality
+
+- Expected:
+"API key assignment carrying a value"
+
++ Received:
+null
+
+ ❯ tests/appwrite-config-secrets.test.ts:78:65
+     76|   it('flags a lowercase quoted key header', () => {
+     77|     const source = `headers: { "${['x', 'appwrite', 'key'].join('-')}"…
+     78|     expect(findCredentialShape(source), 'lowercase key header').toBe(
+       |                                                                 ^
+     79|       'API key assignment carrying a value',
+     80|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/appwrite-config-secrets.test.ts > credential shape detector > flags a mixed-case quoted key header
+AssertionError: mixed-case key header: expected null to be 'API key assignment carrying a value' // Object.is equality
+
+- Expected:
+"API key assignment carrying a value"
+
++ Received:
+null
+
+ ❯ tests/appwrite-config-secrets.test.ts:85:66
+     83|   it('flags a mixed-case quoted key header', () => {
+     84|     const source = `headers: { "${['X', 'ApPwRiTe', 'kEy'].join('-')}"…
+     85|     expect(findCredentialShape(source), 'mixed-case key header').toBe(
+       |                                                                  ^
+     86|       'API key assignment carrying a value',
+     87|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/appwrite-config-secrets.test.ts > credential shape detector > flags a lowercase key variable assignment
+AssertionError: lowercase key assignment: expected null to be 'API key assignment carrying a value' // Object.is equality
+
+- Expected:
+"API key assignment carrying a value"
+
++ Received:
+null
+
+ ❯ tests/appwrite-config-secrets.test.ts:92:69
+     90|   it('flags a lowercase key variable assignment', () => {
+     91|     const source = `${['appwrite', 'api', 'key'].join('_')}=${syntheti…
+     92|     expect(findCredentialShape(source), 'lowercase key assignment').to…
+       |                                                                     ^
+     93|       'API key assignment carrying a value',
+     94|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/appwrite-config-secrets.test.ts > credential shape detector > flags a mixed-case key variable assignment
+AssertionError: mixed-case key assignment: expected null to be 'API key assignment carrying a value' // Object.is equality
+
+- Expected:
+"API key assignment carrying a value"
+
++ Received:
+null
+
+ ❯ tests/appwrite-config-secrets.test.ts:99:70
+     97|   it('flags a mixed-case key variable assignment', () => {
+     98|     const source = `${['Appwrite', 'API', 'Key'].join('_')}=${syntheti…
+     99|     expect(findCredentialShape(source), 'mixed-case key assignment').t…
+       |                                                                      ^
+    100|       'API key assignment carrying a value',
+    101|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+## red 2/3 Sites install path - npx vitest run tests/appwrite-sites-install.test.ts (the install prefix resolves to apps/, where no package-lock.json exists)
+## exit code: 1
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ tests/appwrite-sites-install.test.ts (2 tests | 2 failed) 6ms
+     × installs the npm workspace root in development 4ms
+     × installs the npm workspace root in production 1ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  09:58:56
+   Duration  139ms (transform 15ms, setup 0ms, import 27ms, tests 6ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/appwrite-sites-install.test.ts > Sites install command > installs the npm workspace root in development
+AssertionError: intermed-web-dev installs the npm workspace root: expected 'D:\Proiecte AI\InterMED-wt\m3\apps' to be 'D:\Proiecte AI\InterMED-wt\m3' // Object.is equality
+
+Expected: "D:\Proiecte AI\InterMED-wt\m3"
+Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
+
+ ❯ tests/appwrite-sites-install.test.ts:38:73
+     36|         );
+     37|         const root = installRoot(String(resource.installCommand));
+     38|         expect(root, `${resource.$id} installs the npm workspace root`…
+       |                                                                         ^
+     39|           repositoryRoot,
+     40|         );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/appwrite-sites-install.test.ts > Sites install command > installs the npm workspace root in production
+AssertionError: intermed-web-prod installs the npm workspace root: expected 'D:\Proiecte AI\InterMED-wt\m3\apps' to be 'D:\Proiecte AI\InterMED-wt\m3' // Object.is equality
+
+Expected: "D:\Proiecte AI\InterMED-wt\m3"
+Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
+
+ ❯ tests/appwrite-sites-install.test.ts:38:73
+     36|         );
+     37|         const root = installRoot(String(resource.installCommand));
+     38|         expect(root, `${resource.$id} installs the npm workspace root`…
+       |                                                                         ^
+     39|           repositoryRoot,
+     40|         );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+## red 3/3 required post-build bundle scan - npx vitest run tests/scan-dist-secrets.test.ts (scripts/scan-dist-secrets.mjs does not exist yet and check does not run it)
+## exit code: 1
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ tests/scan-dist-secrets.test.ts (5 tests | 4 failed) 122ms
+     × fails when the build output is missing instead of skipping 42ms
+     × reports credential-shaped build output without echoing the value 39ms
+     × passes clean build output 38ms
+     × runs the scan after the build and before the browser tests in check 1ms
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  09:58:57
+   Duration  253ms (transform 16ms, setup 0ms, import 29ms, tests 122ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/scan-dist-secrets.test.ts > post-build bundle secret scan > fails when the build output is missing instead of skipping
+AssertionError: expected 'node:internal/modules/cjs/loader:1568…' to contain 'missing'
+
+- Expected
++ Received
+
+- missing
++ node:internal/modules/cjs/loader:1568
++   throw err;
++   ^
++
++ Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
++     at Module._load (node:internal/modules/cjs/loader:1341:5)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.21.0
++
+
+ ❯ tests/scan-dist-secrets.test.ts:42:27
+     40|     const result = runScan(missing);
+     41|     expect(result.status, 'a missing build output must fail the scan')…
+     42|     expect(result.stderr).toContain('missing');
+       |                           ^
+     43|   });
+     44|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/scan-dist-secrets.test.ts > post-build bundle secret scan > reports credential-shaped build output without echoing the value
+AssertionError: expected 'node:internal/modules/cjs/loader:1568…' to contain 'app.js'
+
+- Expected
++ Received
+
+- app.js
++ node:internal/modules/cjs/loader:1568
++   throw err;
++   ^
++
++ Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
++     at Module._load (node:internal/modules/cjs/loader:1341:5)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.21.0
++
+
+ ❯ tests/scan-dist-secrets.test.ts:56:27
+     54|       1,
+     55|     );
+     56|     expect(result.stderr).toContain('app.js');
+       |                           ^
+     57|     expect(result.stderr).toContain('Appwrite standard_ API key');
+     58|     expect(result.stderr).not.toContain(syntheticKey);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/scan-dist-secrets.test.ts > post-build bundle secret scan > passes clean build output
+AssertionError: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.21.0
+: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/scan-dist-secrets.test.ts:68:42
+     66|     );
+     67|     const result = runScan(directory);
+     68|     expect(result.status, result.stderr).toBe(0);
+       |                                          ^
+     69|     expect(result.stdout).toContain('no credential-shaped strings');
+     70|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/scan-dist-secrets.test.ts > post-build scan wiring > runs the scan after the build and before the browser tests in check
+AssertionError: expected undefined to be 'node scripts/scan-dist-secrets.mjs' // Object.is equality
+
+- Expected:
+"node scripts/scan-dist-secrets.mjs"
+
++ Received:
+undefined
+
+ ❯ tests/scan-dist-secrets.test.ts:78:43
+     76|       scripts: Record<string, string>;
+     77|     };
+     78|     expect(manifest.scripts['scan:dist']).toBe(
+       |                                           ^
+     79|       'node scripts/scan-dist-secrets.mjs',
+     80|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯

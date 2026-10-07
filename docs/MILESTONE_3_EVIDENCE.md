@@ -63,10 +63,10 @@ with [`SITES.md`](../infra/appwrite/SITES.md).
   scopes and no variables; its entrypoint returns `stub-not-implemented` and
   performs no ingestion, no writes and no service calls (asserted by test).
 - Sites settings are documented and mirrored as `sites` entries (root `apps/web`,
-  install `npm ci --prefix .. --no-fund`, build `npm run build`, output `./dist`,
-  SPA deep-link fallback `index.html`, static adapter, framework `other`), with
-  the monorepo alternative recorded. `appwrite push sites` is excluded from the
-  runbook so no routine command can create or change a site.
+  install `npm ci --prefix ../.. --no-fund`, build `npm run build`, output
+  `./dist`, SPA deep-link fallback `index.html`, static adapter, framework
+  `other`), with the monorepo alternative recorded. `appwrite push sites` is
+  excluded from the runbook so no routine command can create or change a site.
 - No secrets anywhere: `vars`, `scopes` and all identifier fields hold slugs and
   placeholders only.
 
@@ -370,6 +370,75 @@ project/CLI version; correct the configuration if `appwrite pull` output differs
   `$`-prefixed system fields. Verified against the REST documentation and SDK
   type-safety examples on 2026-10-06; confirm on the first live read and adjust
   `versionRowSchema`/`bundleRowSchema` if the live payload nests columns.
+
+## PR #7 review fixes
+
+Four findings against [PR #7](https://github.com/Mujadarah/InterMED/pull/7) were
+fixed test-first where they were behaviour: the failing runs are
+[`red-pr7.log`](evidence/milestone-3-2026-10-06/red-pr7.log) and the passing
+ones [`green-pr7.log`](evidence/milestone-3-2026-10-06/green-pr7.log), still
+with **no live Appwrite call** of any kind. All gates and the full
+`npm run check` were re-run afterwards and captured in
+[`check-after-pr7.log`](evidence/milestone-3-2026-10-06/check-after-pr7.log).
+`npm run test` now runs **103 tests** across 12 files (92 across 10 before this
+round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
+`tests/appwrite-sites-install.test.ts` (2) and `tests/scan-dist-secrets.test.ts`
+(5). No test, lint rule, gate or the boundary checker was weakened or skipped.
+
+1. **Secrets check — secret-shaped literals in committed source.** The fake
+   credential fixtures of `apps/web/src/config.test.ts` and
+   `tests/appwrite-config-secrets.test.ts` were committed as plain literals
+   (key-shaped `standard_…` strings, long hexadecimal strings, an
+   `APPWRITE_API_KEY=…` line). Every one of them is now assembled at runtime —
+   `['standard', '_', 'f'.repeat(32)].join('')`, `'ab'.repeat(32)` and
+   template/value constructions — so no key-shaped literal remains in any file
+   while the tests assert exactly the same detections. Verbatim fixture values
+   that earlier runs had printed into
+   [`09-secret-scan-red.txt`](evidence/milestone-3-2026-10-06/09-secret-scan-red.txt)
+   and
+   [`red-review-fixes.log`](evidence/milestone-3-2026-10-06/red-review-fixes.log)
+   are replaced with `<redacted synthetic fixture>` (assertion text kept), as
+   noted in the
+   [evidence README](evidence/milestone-3-2026-10-06/README.md). A re-grep of
+   the whole diff against `ffa7c51` for `standard_[A-Za-z0-9]{8,}` and bare 40+
+   hexadecimal literals finds none left in this branch's files outside the
+   public shell digests quoted by pre-existing historical documents.
+2. **Sites install path (Greptile P1).** `npm ci --prefix .. --no-fund` ran with
+   `apps/web` as the working directory and therefore targeted `apps/`, which has
+   no `package.json` and no lockfile. Both configuration files now install with
+   `npm ci --prefix ../.. --no-fund`, which resolves from `apps/web` to the
+   repository root holding the single root `package-lock.json`
+   ([SITES.md](../infra/appwrite/SITES.md) explains the variant). The offline
+   test `tests/appwrite-sites-install.test.ts` asserts for both environments that
+   the configured prefix resolves to the lockfile directory.
+3. **Regex flags dropped (Greptile P2).** `findCredentialShape` rebuilt each
+   pattern with `'g'` only, silently dropping its `i` flag, so a lowercase or
+   mixed-case `"x-appwrite-key": "…"` or `appwrite_api_key=…` was missed. The
+   matcher now keeps every existing flag and appends `g`; four new tests cover
+   lowercase and mixed-case key header and variable assignments (red log: all
+   four failed before the fix).
+4. **Built bundle never scanned in CI (Greptile P2).** `npm run check` runs
+   `npm run test` before `npm run build`, so the test suite's opportunistic scan
+   of `apps/web/dist` was skipped on a fresh checkout.
+   `scripts/scan-dist-secrets.mjs` reuses the same detector and runs as
+   `npm run scan:dist`, wired into `npm run check` directly after
+   `npm run build`; it **fails** when the build output is missing instead of
+   skipping and reports file names and pattern labels only. Five tests cover
+   missing, clean and credential-carrying build output plus the `check`/CI
+   wiring. `.github/**` is unchanged: CI already runs `npm run check`, so the
+   scan runs there after the build.
+
+| Command                       | Exit code | Result summary                                                             | Log                   |
+| ----------------------------- | --------- | -------------------------------------------------------------------------- | --------------------- |
+| `npm run format:check`        | 0         | All matched files use Prettier code style                                  | `check-after-pr7.log` |
+| `npm run lint`                | 0         | ESLint clean, zero warnings                                                | `check-after-pr7.log` |
+| `npm run typecheck`           | 0         | App/tests/tooling types plus DOM-free domain compile                       | `check-after-pr7.log` |
+| `npm run test`                | 0         | 12 files, **103 tests passed** (92 before this round)                      | `check-after-pr7.log` |
+| `npm run check:boundaries`    | 0         | Architecture boundaries passed (23 files; dependency-free domain)          | `check-after-pr7.log` |
+| `npm audit --audit-level=low` | 0         | found 0 vulnerabilities                                                    | `check-after-pr7.log` |
+| `npm run build`               | 0         | Vite build succeeded, `apps/web/dist` written                              | `check-after-pr7.log` |
+| `npm run scan:dist`           | 0         | 9 files scanned, no credential-shaped strings                              | `check-after-pr7.log` |
+| `npm run check`               | 0         | Full gate list in order plus the 135 Playwright browser tests (135 passed) | `check-after-pr7.log` |
 
 ## Conservative decisions taken
 

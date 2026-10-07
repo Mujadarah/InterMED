@@ -12,6 +12,12 @@ its exit code. The log files themselves are inert artifacts of the runs they
 record: no test, gate or build reads this folder, so a committed log never
 changes what a later run verifies.
 
+**Redaction note (PR #7 review fixes):** synthetic credential values that had
+been copied verbatim into `09-secret-scan-red.txt` and `red-review-fixes.log`
+are replaced with `<redacted synthetic fixture>`; the assertion text around them
+is unchanged. The later `*-pr7.log` files build every credential fixture at
+runtime, so they contain no key-shaped literal at all.
+
 | Log                          | Command                                                                                               | Result                                                                               |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `01-permissions-red.txt`     | `npx vitest run tests/appwrite-config-permissions.test.ts` (before `infra/appwrite/`)                 | failed: config missing                                                               |
@@ -36,3 +42,6 @@ changes what a later run verifies.
 | `red-review-fixes.log`       | review findings 1–3, `npx vitest run` per finding before the fixes (finding 3 = induced flag flips)   | 3 + 1 + 2 + 2 failed as expected                                                     |
 | `green-review-fixes.log`     | the same runs after the fixes, plus a full `npx vitest run`                                           | 15 + 10 + 32 passed, whole suite 92 passed                                           |
 | `check-after-review.log`     | `npm run format:check` … `npm run build`, then `npm run check` on the reviewed tree                   | every gate exit 0, 92 unit + 135 browser tests passed                                |
+| `red-pr7.log`                | PR #7 behaviour findings before the fixes: regex flags, Sites install path, required dist scan        | 4 + 2 + 4 failed as expected                                                         |
+| `green-pr7.log`              | the same three runs after the fixes, plus `npm run scan:dist` and a full `npm run test`               | 14 + 2 + 5 passed, real bundle clean, whole suite 103 passed                         |
+| `check-after-pr7.log`        | every quality gate and `npm run check` on the PR #7 fix tree                                          | every gate exit 0, 103 unit + 135 browser tests passed                               |
