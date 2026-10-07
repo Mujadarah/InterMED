@@ -333,3 +333,128 @@ null
 
 [exit code: 1]
 
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 83ms
+   × keeps a favorite removed that was deleted while reconciliation ran 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+ReferenceError: sharedBus is not defined
+ ❯ packages/local-store/src/preferences.test.ts:297:18
+    295|     return clock.now();
+    296|   };
+    297|   const events = sharedBus();
+       |                  ^
+    298|   events.subscribe(() => {
+    299|     armed = true;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:10:37
+   Duration  13.55s (transform 2.18s, setup 0ms, import 17.93s, tests 703ms, environment 40.88s)
+
+[exit code: 1]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 112ms
+   × keeps a favorite removed that was deleted while reconciliation ran 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+AssertionError: expected [] to match object [ Array(1) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "productId": "mpsource.syntheticSP-FICTIVOL",
+-   },
+- ]
++ []
+
+ ❯ packages/local-store/src/preferences.test.ts:312:59
+    310|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    311|   expect(await store.preferences.listFavorites()).toEqual([]);
+    312|   expect(await store.preferences.listProductTombstones()).toMatchObjec…
+       |                                                           ^
+    313|     { productId: alpha.productIds['SP-FICTIVOL'] },
+    314|   ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:16:12
+   Duration  1.46s (transform 1.78s, setup 0ms, import 4.71s, tests 732ms, environment 3.15s)
+
+[exit code: 1]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 129ms
+   × keeps a favorite removed that was deleted while reconciliation ran 33ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+AssertionError: expected [ { …(5) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "createdAt": "2026-06-01T00:00:00.000Z",
++     "lastKnownDatasetVersionId": "dvsource.syntheticsynthetic-alpha",
++     "lastKnownDisplayName": "Fictivol alpha",
++     "productId": "mpsource.syntheticSP-FICTIVOL",
++     "status": "removed",
++   },
++ ]
+
+ ❯ packages/local-store/src/preferences.test.ts:315:51
+    313|
+    314|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    315|   expect(await store.preferences.listFavorites()).toEqual([]);
+       |                                                   ^
+    316|   expect(await store.preferences.listProductTombstones()).toMatchObjec…
+    317|     { productId: alpha.productIds['SP-FICTIVOL'] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:30:40
+   Duration  1.66s (transform 2.41s, setup 0ms, import 5.39s, tests 787ms, environment 3.35s)
+
+[exit code: 1]
+

@@ -894,31 +894,45 @@ export function createLocalDatasetStore(
       generationId,
     });
     const db = requireDatabase();
-    const favorites = await db.favorites.toArray();
-    for (const favorite of favorites) {
-      // Stable product id lookup: a favorite is never remapped to another id.
-      const row = await db.products.get([generationId, favorite.productId]);
-      if (row) {
-        await db.favorites.put({
-          ...favorite,
-          status: 'available',
-          lastKnownDisplayName: row.entity.commercialName,
-          lastKnownDatasetVersionId: row.entity.datasetVersionId,
+    // One transaction over the preference stores: read-modify-write per
+    // favorite with no non-Dexie await in between (Greptile review fix G5).
+    await db.transaction(
+      'rw',
+      [db.favorites, db.tombstones, db.products, db.meta],
+      async (transaction) => {
+        const favorites = await transaction.favorites.toArray();
+        for (const favorite of favorites) {
+          // Stable product id lookup: a favorite is never remapped to another id.
+          const row = await transaction.products.get([
+            generationId,
+            favorite.productId,
+          ]);
+          if (row) {
+            await transaction.favorites.update(favorite.productId, {
+              status: 'available',
+              lastKnownDisplayName: row.entity.commercialName,
+              lastKnownDatasetVersionId: row.entity.datasetVersionId,
+            });
+          } else {
+            await transaction.tombstones.put({
+              productId: favorite.productId,
+              lastKnownDisplayName: favorite.lastKnownDisplayName,
+              removedAt: new Date(now()).toISOString(),
+            });
+            // Only rows that still exist are updated: a favorite that was
+            // removed while this ran stays removed.
+            await transaction.favorites.update(favorite.productId, {
+              status: 'removed',
+            });
+          }
+        }
+        // Record what was reconciled, so a run interrupted by a crash is
+        // picked up again on the next open (Greptile review fix G6).
+        await transaction.meta.update('dataset-state', {
+          reconciledGenerationId: generationId,
         });
-      } else {
-        await db.tombstones.put({
-          productId: favorite.productId,
-          lastKnownDisplayName: favorite.lastKnownDisplayName,
-          removedAt: new Date(now()).toISOString(),
-        });
-        await db.favorites.put({ ...favorite, status: 'removed' });
-      }
-    }
-    // Record what was reconciled, so a run interrupted by a crash is picked up
-    // again on the next open.
-    await db.meta.update('dataset-state', {
-      reconciledGenerationId: generationId,
-    });
+      },
+    );
   }
 
   function maintenanceKey(task: MaintenanceTask): string {

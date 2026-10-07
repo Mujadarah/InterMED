@@ -4,6 +4,7 @@ import type { PublishedBundleLoader } from '@intermed/domain';
 import {
   bundle,
   fakePublishedSource,
+  sharedBus,
   testClock,
   testMarkerLock,
   testStore,
@@ -274,6 +275,47 @@ it('aborts staging cleanly when the local data is cleared underneath it', async 
   expect(await clearer.openReader()).toBeNull();
   expect(clearer.getState()).toMatchObject({ status: 'never-downloaded' });
   expect(cleared).toEqual({ status: 'cleared' });
+});
+
+it('keeps a favorite removed that was deleted while reconciliation ran', async () => {
+  const alpha = bundle('alpha');
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
+  });
+  const clock = testClock();
+  let armed = false;
+  let store: ReturnType<typeof testStore>;
+  const now = () => {
+    // The first clock read after the activation broadcast is the tombstone
+    // write of the post-commit reconciliation: that is when the favorite is
+    // removed from another code path.
+    if (armed) {
+      armed = false;
+      void store.preferences.removeFavorite(alpha.productIds['SP-FICTIVOL']!);
+    }
+    return clock.now();
+  };
+  const events = sharedBus();
+  let broadcasts = 0;
+  events.subscribe(() => {
+    broadcasts += 1;
+    // The second activation broadcast is the one whose reconciliation must
+    // interleave with the removal.
+    armed = broadcasts === 2;
+  });
+  store = testStore({ name: uniqueName(), events, now });
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(await store.preferences.listFavorites()).toEqual([]);
+  expect(await store.preferences.listProductTombstones()).toMatchObject([
+    { productId: alpha.productIds['SP-FICTIVOL'] },
+  ]);
 });
 
 it('never lets a download resume into a completed clear', async () => {
