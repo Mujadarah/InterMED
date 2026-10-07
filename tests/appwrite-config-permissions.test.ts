@@ -202,11 +202,31 @@ describe.each([
       const site = config.sites?.[0];
       if (!site) throw new Error(`${label}: missing site resource`);
       expect(site.fallbackFile, label).toBe('index.html');
-      expect(site.outputDirectory, label).toBe('./dist');
-      expect(site.installCommand, label).not.toBe('');
-      expect(site.buildCommand, label).toBe('npm run build');
-      expect(site.path, label).toBe('apps/web');
       expect(site.adapter, label).toBe('static');
+      expect(site.framework, label).toBe('other');
+      expect(site.buildRuntime, label).toBe('node-22');
+      expect(site.enabled, label).toBe(true);
+      expect(site.logging, label).toBe(true);
+
+      if (label === 'development') {
+        expect(site.$id, label).toBe('intermed-web-dev');
+        expect(site.name, label).toBe('InterMED web (development)');
+        expect(site.path, label).toBe('../..');
+        expect(site.installCommand, label).toBe('npm ci --no-fund');
+        expect(site.buildCommand, label).toBe(
+          'npm run build --workspace @intermed/web',
+        );
+        expect(site.outputDirectory, label).toBe('./apps/web/dist');
+      } else {
+        expect(site.$id, label).toBe('intermed-web-prod');
+        expect(site.name, label).toBe('InterMED web (production)');
+        expect(site.path, label).toBe('apps/web');
+        expect(site.installCommand, label).toBe(
+          'npm ci --prefix ../.. --no-fund',
+        );
+        expect(site.buildCommand, label).toBe('npm run build');
+        expect(site.outputDirectory, label).toBe('./dist');
+      }
     });
 
     it('never references the existing Milestone 2 test project or site', () => {

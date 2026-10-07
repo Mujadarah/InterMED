@@ -374,12 +374,12 @@
       "framework": "other",
       "adapter": "static",
       "timeout": 30,
-      "installCommand": "npm ci --prefix ../.. --no-fund",
-      "buildCommand": "npm run build",
-      "outputDirectory": "./dist",
+      "installCommand": "npm ci --no-fund",
+      "buildCommand": "npm run build --workspace @intermed/web",
+      "outputDirectory": "./apps/web/dist",
       "buildRuntime": "node-22",
       "fallbackFile": "index.html",
-      "path": "apps/web"
+      "path": "../.."
     }
   ]
 }

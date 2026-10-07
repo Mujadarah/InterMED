@@ -1,0 +1,49 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3-sites
+
+ Γ¥» tests/appwrite-sites-install.test.ts (2 tests | 1 failed) 8ms
+     ├ù resolves concrete site settings correctly in development 5ms
+ Γ¥» tests/appwrite-config-permissions.test.ts (32 tests | 1 failed) 11ms
+     ├ù documents SPA fallback and monorepo build settings on the site 4ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/appwrite-config-permissions.test.ts > Appwrite development configuration as code > documents SPA fallback and monorepo build settings on the site
+AssertionError: development: expected 'apps/web' to be '../..' // Object.is equality
+
+Expected: "../.."
+Received: "apps/web"
+
+ Γ¥» tests/appwrite-config-permissions.test.ts:214:34
+    212|         expect(site.$id, label).toBe('intermed-web-dev');
+    213|         expect(site.name, label).toBe('InterMED web (development)');
+    214|         expect(site.path, label).toBe('../..');
+       |                                  ^
+    215|         expect(site.installCommand, label).toBe('npm ci --no-fund');
+    216|         expect(site.buildCommand, label).toBe(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  tests/appwrite-sites-install.test.ts > Sites configuration and install commands > resolves concrete site settings correctly in development
+AssertionError: expected 'apps/web' to be '../..' // Object.is equality
+
+Expected: "../.."
+Received: "apps/web"
+
+ Γ¥» tests/appwrite-sites-install.test.ts:77:33
+     75|           expect(resource.$id).toBe('intermed-web-dev');
+     76|           expect(resource.name).toBe('InterMED web (development)');
+     77|           expect(resource.path).toBe('../..');
+       |                                 ^
+     78|           expect(workingDir).toBe(repositoryRoot);
+     79|           expect(resource.installCommand).toBe('npm ci --no-fund');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 32 passed (34)
+   Start at  11:52:05
+   Duration  191ms (transform 41ms, setup 0ms, import 79ms, tests 19ms, environment 0ms)
+
+
