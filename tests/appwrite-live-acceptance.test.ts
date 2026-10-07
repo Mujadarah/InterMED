@@ -332,7 +332,7 @@ describe('anonymous Appwrite probe', () => {
     expect(calls).toHaveLength(1);
   });
 
-  it('only masks a verified private row_not_found as a refusal', async () => {
+  it('only masks a verified private exact-row GET row_not_found as a refusal', async () => {
     const result = await runAnonymousProbe({
       ...project,
       fetchLike: async (
@@ -361,12 +361,62 @@ describe('anonymous Appwrite probe', () => {
       verifiedPrivateRows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
     });
 
-    expect(result.failed).toBe(0);
+    expect(result.failed).toBe(1);
+    expect(result.checks[0]).toMatchObject({
+      pass: false,
+    });
     expect(result.checks[1]).toMatchObject({
       maskedRefusal: true,
       originalPass: false,
       pass: true,
     });
+  });
+
+  it('does not mask an unverified private exact-row GET row_not_found', async () => {
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async (): Promise<ProbeFetchResponse> => ({
+        ok: false,
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+        text: async () => JSON.stringify({ type: 'row_not_found' }),
+        json: async () => ({ type: 'row_not_found' }),
+      }),
+      guard: {
+        rows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+        files: [],
+      },
+    });
+
+    expect(result.failed).toBeGreaterThan(0);
+    expect(result.checks[1]).toMatchObject({
+      pass: false,
+    });
+    expect(result.checks[1]).not.toHaveProperty('maskedRefusal');
+  });
+
+  it('does not mask a private write row_not_found', async () => {
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async (): Promise<ProbeFetchResponse> => ({
+        ok: false,
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+        text: async () => JSON.stringify({ type: 'row_not_found' }),
+        json: async () => ({ type: 'row_not_found' }),
+      }),
+      guard: {
+        rows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+        files: [],
+      },
+      verifiedPrivateRows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+    });
+
+    expect(result.failed).toBeGreaterThan(0);
+    const writes = result.checks.filter(({ name }) => name.startsWith('row-'));
+    expect(writes).toHaveLength(3);
+    expect(writes.every(({ pass }) => !pass)).toBe(true);
+    expect(writes.every((check) => !('maskedRefusal' in check))).toBe(true);
   });
 
   it('records public success and private 401/403 denial without credentials', async () => {
