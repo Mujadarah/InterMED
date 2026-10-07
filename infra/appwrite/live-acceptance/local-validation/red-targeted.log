@@ -1,0 +1,2 @@
+Command: npm exec vitest run tests/appwrite-live-acceptance.test.ts --reporter=verbose
+Result: BLOCKED before execution — Permission denied because no interactive user response was available. Retry in an interactive session so the user can approve it, or try an alternative that does not require this permission.
