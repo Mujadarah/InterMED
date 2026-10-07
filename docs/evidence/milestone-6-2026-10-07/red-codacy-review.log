@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store/src/multitab.test.ts -t unpredictable UUIDs
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (8 tests | 1 failed | 7 skipped) 4ms
    × uses unpredictable UUIDs for writer tokens and tab ids 3ms
@@ -42,7 +42,7 @@ AssertionError: expected 'web-lock-vgm5jfuszcd' to match /^[0-9a-f]{8}-[0-9a-f]{
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t comes back
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (10 tests | 1 failed | 9 skipped) 51ms
    × clears the tombstone when a tombstoned product comes back 50ms
@@ -88,7 +88,7 @@ AssertionError: expected [ { …(3) } ] to deeply equal []
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t one product fails
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (11 tests | 1 failed | 8 skipped) 99ms
    × keeps reconciling other favorites when one product fails 20ms
@@ -136,7 +136,7 @@ AssertionError: expected [ [ …(2) ], [ …(2) ] ] to deeply equal [ [ …(2) ]
 
 $ npx vitest run packages/local-store/src/multitab.test.ts -t unhandled rejection
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (9 tests | 1 failed | 8 skipped) 1036ms
    × reports a failed background refresh instead of an unhandled rejection 1036ms
@@ -200,4 +200,3 @@ The latest test that might've caused the error is "reports a failed background r
    Duration  1.28s (transform 86ms, setup 0ms, import 140ms, tests 1.04s, environment 0ms)
 
 [exit code: 1]
-

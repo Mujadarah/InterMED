@@ -22,7 +22,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  27 passed (27)
@@ -58,7 +58,7 @@ dist/assets/index-UuqhPdAK.js   503.11 kB │ gzip: 155.51 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m6\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test

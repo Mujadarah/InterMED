@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store/src/readers.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 1239ms
    × refuses collection while another tab is staging instead of deleting under it 13ms
@@ -70,7 +70,7 @@ AssertionError: expected null not to be null
 
 $ npx vitest run packages/local-store/src/readers.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 277ms
    × refuses collection while another tab is staging instead of deleting under it 15ms
@@ -147,7 +147,7 @@ AssertionError: expected [ Array(1) ] to not include 'dv\u001fsource.synthetic\u
 
 $ npx vitest run packages/local-store/src/staging.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (19 tests | 3 failed) 222ms
    × refuses to activate a generation whose staging never completed 11ms
@@ -262,7 +262,7 @@ undefined
 
 $ npx vitest run packages/local-store/src/staging.test.ts -t recovers an evicted generation
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (20 tests | 1 failed | 19 skipped) 43ms
    × recovers an evicted generation by re-downloading and replacing its rows 43ms
@@ -339,7 +339,7 @@ null
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 83ms
    × keeps a favorite removed that was deleted while reconciliation ran 5ms
@@ -372,7 +372,7 @@ ReferenceError: sharedBus is not defined
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 112ms
    × keeps a favorite removed that was deleted while reconciliation ran 25ms
@@ -416,7 +416,7 @@ AssertionError: expected [] to match object [ Array(1) ]
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 129ms
    × keeps a favorite removed that was deleted while reconciliation ran 33ms
@@ -464,7 +464,7 @@ AssertionError: expected [ { …(5) } ] to deeply equal []
 
 $ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  11 passed | 16 skipped (27)
@@ -480,7 +480,7 @@ $ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed
 
 $ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 67ms
    × reports a failed startup write and lets a later open retry 2ms
@@ -513,7 +513,7 @@ TypeError: Cannot read properties of undefined (reading 'prototype')
 
 $ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 65ms
    × reports a failed startup write and lets a later open retry 4ms
@@ -546,7 +546,7 @@ QuotaExceededError: Synthetic quota
 
 $ npx vitest run packages/local-store/src/staging.test.ts -t embedded
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (22 tests | 2 failed | 20 skipped) 53ms
    × rejects a bundle whose embedded dataset version disagrees with its manifest 42ms
@@ -1227,4 +1227,3 @@ AssertionError: expected { ok: true, snapshot: { …(10) }, …(1) } to deeply e
    Duration  290ms (transform 82ms, setup 0ms, import 134ms, tests 53ms, environment 0ms)
 
 [exit code: 1]
-

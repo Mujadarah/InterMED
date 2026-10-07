@@ -1,12 +1,11 @@
-
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  Γ¥» packages/local-store/src/multitab.test.ts (3 tests | 2 failed) 5019ms
    ├ù refuses a concurrent update instead of racing another writer 5011ms
    ├ù lets other tabs switch at a safe boundary while pinned readers continue 3ms
 node.exe :
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

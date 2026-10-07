@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (6 tests | 3 failed) 90ms
    × renews the fallback writer lease while its work runs so no other writer can take it 7ms
@@ -93,7 +93,7 @@ AssertionError: expected { status: 'ready', …(1) } to match object { status: '
 
 $ npx vitest run packages/local-store/src/staging.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (16 tests | 3 failed) 213ms
    × keeps a committed activation successful when preference reconciliation fails 13ms
@@ -163,7 +163,7 @@ AssertionError: expected [] to match object [ Array(1) ]
 
 $ npx vitest run packages/local-store/src/staging.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (16 tests | 3 failed) 197ms
    × keeps a committed activation successful when preference reconciliation fails 14ms
@@ -243,7 +243,7 @@ AssertionError: expected [] to match object [ Array(1) ]
 
 $ npx vitest run packages/local-store/src/readers.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/readers.test.ts (7 tests | 1 failed) 161ms
    × restarts the retention window when a rollback reactivates a generation 29ms
@@ -276,7 +276,7 @@ AssertionError: expected null not to be null
 
 $ npx vitest run packages/local-store/src/preferences.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (8 tests | 3 failed) 110ms
    × refuses clear-all while another tab is staging instead of racing it 12ms
@@ -368,7 +368,7 @@ AssertionError: expected { status: 'ready', …(1) } to match object { status: '
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t aborts staging cleanly
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (8 tests | 1 failed | 7 skipped) 33ms
    × aborts staging cleanly when the local data is cleared underneath it 32ms
@@ -412,7 +412,7 @@ AssertionError: expected { status: 'update-failed', …(2) } to match object { s
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (7 tests | 1 failed) 1115ms
    × tells other tabs when one tab clears the local data 1026ms
@@ -448,4 +448,3 @@ AssertionError: expected { status: 'ready', …(1) } to match object { status: '
    Duration  1.36s (transform 85ms, setup 0ms, import 138ms, tests 1.11s, environment 0ms)
 
 [exit code: 1]
-

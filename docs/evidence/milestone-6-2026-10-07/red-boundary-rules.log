@@ -1,5 +1,4 @@
-
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  Γ¥» tests/boundaries.test.ts (21 tests | 5 failed) 81ms
    ├ù rejects a local-store import outside the composition root: apps/web/src/presentation/View.ts 7ms
@@ -9,7 +8,7 @@
    ├ù rejects a local-store import outside the composition root: packages/local-store-consumer.ts 1ms
 node.exe :
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

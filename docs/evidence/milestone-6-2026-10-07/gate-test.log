@@ -4,7 +4,7 @@ $ npm.cmd run test
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  27 passed (27)

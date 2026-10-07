@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (6 tests | 2 failed) 10070ms
    × aborts an activation whose writer lease was lost to another tab 5009ms
@@ -50,7 +50,7 @@ If this is a long-running test, pass a timeout value as the last argument or con
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (0 test)
 
@@ -78,7 +78,7 @@ Error: Transform failed with 2 errors:
 ─────╯
 
   Plugin: vite:oxc
-  File: D:/Proiecte AI/InterMED-wt/m6/packages/local-store/src/locks.ts
+  File: <worktree>/packages/local-store/src/locks.ts
  ❯ transformWithOxc ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7581:19
  ❯ TransformPluginContext.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7653:26
  ❯ EnvironmentPluginContainer.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8545:51
@@ -100,7 +100,7 @@ Error: Transform failed with 2 errors:
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -116,7 +116,7 @@ $ npx vitest run packages/local-store/src/multitab.test.ts
 
 $ npx vitest run packages/local-store/src/staging.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -132,7 +132,7 @@ $ npx vitest run packages/local-store/src/staging.test.ts
 
 $ npx vitest run packages/local-store/src/readers.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -148,7 +148,7 @@ $ npx vitest run packages/local-store/src/readers.test.ts
 
 $ npx vitest run packages/local-store/src/preferences.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -164,7 +164,7 @@ $ npx vitest run packages/local-store/src/preferences.test.ts
 
 $ npx vitest run packages/local-store/src/multitab.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -173,4 +173,3 @@ $ npx vitest run packages/local-store/src/multitab.test.ts
    Duration  435ms (transform 93ms, setup 0ms, import 149ms, tests 171ms, environment 0ms)
 
 [exit code: 0]
-

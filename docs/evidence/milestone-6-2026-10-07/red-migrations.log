@@ -1,5 +1,4 @@
-
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  Γ¥» packages/local-store/src/migrations.test.ts (9 tests | 7 failed) 38ms
    ├ù migrates a v1 database with favorites and keeps the active generation 12ms
@@ -11,7 +10,7 @@
    ├ù surfaces reload-required instead of blocking when another tab upgrades 3ms
 node.exe :
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

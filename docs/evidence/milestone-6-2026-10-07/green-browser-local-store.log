@@ -1,6 +1,6 @@
 node.exe : [WebServer] (node:68188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

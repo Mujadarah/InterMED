@@ -1,6 +1,6 @@
 node.exe : [WebServer] (node:28264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
@@ -63,8 +63,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:101:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:101:11
 
     Error Context: test-results\local-store-reads-a-staged-3be8c-a-restart-and-while-offline-chromium-desktop\error-context.md
 
@@ -87,8 +87,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:152:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:152:11
 
     Error Context: test-results\local-store-two-tabs-evalu-db471-see-one-coherent-generation-chromium-desktop\error-context.md
 
@@ -111,8 +111,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:243:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:243:11
 
     Error Context: test-results\local-store-an-old-tab-rep-eb0cc-f-losing-data-on-an-upgrade-chromium-desktop\error-context.md
 
@@ -489,7 +489,7 @@ Running 15 tests using 3 workers
           |                        ^
       283 | });
       284 |
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:282:24
+        at <worktree>\tests\browser\local-store.spec.ts:282:24
 
     Error Context: test-results\local-store-the-production-acf33-s-no-test-only-harness-code-chromium-desktop\error-context.md
 
@@ -512,8 +512,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:101:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:101:11
 
     Error Context: test-results\local-store-reads-a-staged-3be8c-a-restart-and-while-offline-webkit-phone\error-context.md
 
@@ -536,8 +536,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:152:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:152:11
 
     Error Context: test-results\local-store-two-tabs-evalu-db471-see-one-coherent-generation-webkit-phone\error-context.md
 
@@ -560,8 +560,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:243:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:243:11
 
     Error Context: test-results\local-store-an-old-tab-rep-eb0cc-f-losing-data-on-an-upgrade-webkit-phone\error-context.md
 
@@ -938,7 +938,7 @@ Running 15 tests using 3 workers
           |                        ^
       283 | });
       284 |
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:282:24
+        at <worktree>\tests\browser\local-store.spec.ts:282:24
 
     Error Context: test-results\local-store-the-production-acf33-s-no-test-only-harness-code-webkit-phone\error-context.md
 
@@ -961,8 +961,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:101:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:101:11
 
     Error Context: test-results\local-store-reads-a-staged-3be8c-a-restart-and-while-offline-webkit-tablet\error-context.md
 
@@ -985,8 +985,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:152:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:152:11
 
     Error Context: test-results\local-store-two-tabs-evalu-db471-see-one-coherent-generation-webkit-tablet\error-context.md
 
@@ -1009,8 +1009,8 @@ Running 15 tests using 3 workers
       22 |     () =>
       23 |       Boolean(
       24 |         (window as unknown as Partial<HarnessWindow>)
-        at harnessReady (D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:21:14)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:243:11
+        at harnessReady (<worktree>\tests\browser\local-store.spec.ts:21:14)
+        at <worktree>\tests\browser\local-store.spec.ts:243:11
 
     Error Context: test-results\local-store-an-old-tab-rep-eb0cc-f-losing-data-on-an-upgrade-webkit-tablet\error-context.md
 
@@ -1387,7 +1387,7 @@ Running 15 tests using 3 workers
           |                        ^
       283 | });
       284 |
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:282:24
+        at <worktree>\tests\browser\local-store.spec.ts:282:24
 
     Error Context: test-results\local-store-the-production-acf33-s-no-test-only-harness-code-webkit-tablet\error-context.md
 

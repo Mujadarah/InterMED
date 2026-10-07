@@ -1,5 +1,4 @@
-
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  Γ¥» packages/local-store/src/readers.test.ts (6 tests | 6 failed) 44ms
    ├ù pins one generation per reader and switches only at the next reader 15ms
@@ -10,7 +9,7 @@
    ├ù looks up names, DCI, links and ATC codes inside the pinned generation only 3ms
 node.exe :
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

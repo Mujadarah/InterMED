@@ -1,5 +1,4 @@
-
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  Γ¥» packages/local-store/src/preferences.test.ts (5 tests | 5 failed) 26ms
    ├ù keeps favorites and recent searches through a replacement and a restart 13ms
@@ -9,7 +8,7 @@
    ├ù orders recent searches by recency and can clear them 1ms
 node.exe :
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

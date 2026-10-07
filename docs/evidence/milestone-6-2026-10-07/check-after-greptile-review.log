@@ -20,7 +20,7 @@ $ npm run lint
 > eslint . --max-warnings 0
 
 
-D:\Proiecte AI\InterMED-wt\m6\packages\local-store\src\preferences.test.ts
+<worktree>\packages\local-store\src\preferences.test.ts
   287:7  error  'store' is never reassigned. Use 'const' instead  prefer-const
 
 ✖ 1 problem (1 error, 0 warnings)
@@ -48,7 +48,7 @@ $ npm run test
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -141,7 +141,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -182,7 +182,7 @@ dist/assets/index-Dv0ge2Z9.js   509.08 kB │ gzip: 157.09 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m6\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test
@@ -377,7 +377,7 @@ Running 150 tests using 3 workers
       166 |       const harness = (window as unknown as HarnessWindow)
       167 |         .__intermedLocalStoreHarness;
       168 |       await harness.beginEvaluation();
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:165:16
+        at <worktree>\tests\browser\local-store.spec.ts:165:16
 
     Error Context: test-results\local-store-two-tabs-evalu-db471-see-one-coherent-generation-webkit-phone\error-context.md
 
@@ -400,7 +400,7 @@ Running 150 tests using 3 workers
       166 |       const harness = (window as unknown as HarnessWindow)
       167 |         .__intermedLocalStoreHarness;
       168 |       await harness.beginEvaluation();
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:165:16
+        at <worktree>\tests\browser\local-store.spec.ts:165:16
 
     Error Context: test-results\local-store-two-tabs-evalu-db471-see-one-coherent-generation-webkit-tablet\error-context.md
 
@@ -426,7 +426,7 @@ Running 150 tests using 3 workers
       268 |
       269 |     await expect(oldTab.getByTestId('dataset-section')).toHaveAttribute(
       270 |       'data-dataset-state',
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:267:40
+        at <worktree>\tests\browser\local-store.spec.ts:267:40
 
     Error Context: test-results\local-store-an-old-tab-rep-eb0cc-f-losing-data-on-an-upgrade-webkit-tablet\error-context.md
 
@@ -474,7 +474,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -515,7 +515,7 @@ dist/assets/index-aL6QDpCx.js   509.15 kB │ gzip: 157.09 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m6\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test
@@ -717,7 +717,7 @@ Running 150 tests using 3 workers
       107 |     await harnessReady(page);
       108 |     const staged = await page.evaluate(async () => {
       109 |       const harness = (window as unknown as HarnessWindow)
-        at D:\Proiecte AI\InterMED-wt\m6\tests\browser\local-store.spec.ts:106:61
+        at <worktree>\tests\browser\local-store.spec.ts:106:61
 
     Error Context: test-results\local-store-reads-a-staged-3be8c-a-restart-and-while-offline-webkit-tablet\error-context.md
 
@@ -763,7 +763,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -804,7 +804,7 @@ dist/assets/index-aL6QDpCx.js   509.15 kB │ gzip: 157.09 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m6\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test
@@ -998,4 +998,3 @@ Checking formatting...
 All matched files use Prettier code style!
 
 [exit code: 0]
-

@@ -85,7 +85,7 @@ Schema generation 2 exists as a **test** schema only (`packages/local-store/src/
 
 ## Test-first record
 
-Logs are UTF-8, LF, trailing whitespace stripped, under [docs/evidence/milestone-6-2026-10-07/](evidence/milestone-6-2026-10-07/).
+Logs are UTF-8, LF, trailing whitespace stripped, under [docs/evidence/milestone-6-2026-10-07/](evidence/milestone-6-2026-10-07/). Machine-specific path segments in their verbatim output are redacted to repository-neutral placeholders (`<worktree>`, `<repo>`, `<temp>`) as recorded in that folder's README; commands, results and exit codes are unchanged.
 
 Method, stated plainly: this is red/green behaviour-determining evidence, not a claim that every implementation was written test-first. For the status page, boundary rules and browser harness, tests were written and run red against code that did not exist yet, then implemented. The `@intermed/local-store` implementation and its suites were developed together in this session; for those, each red log was captured by running the finished suite **with the implementation withheld** (the store factory replaced by a not-implemented stub, or the single behaviour removed), and each green log with the implementation in place. Every suite was shown to fail with the implementation withheld and pass with it; the implementation was largely written before the suites.
 

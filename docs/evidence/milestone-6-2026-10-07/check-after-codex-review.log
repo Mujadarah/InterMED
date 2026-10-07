@@ -86,7 +86,7 @@ $ npm run test
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -124,7 +124,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  28 passed (28)
@@ -165,7 +165,7 @@ dist/assets/index-CLW24Ntz.js   506.47 kB │ gzip: 156.48 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m6\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test
@@ -374,4 +374,3 @@ Checking formatting...
 All matched files use Prettier code style!
 
 [exit code: 0]
-

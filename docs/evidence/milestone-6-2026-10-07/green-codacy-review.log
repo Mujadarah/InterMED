@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/multitab.test.ts (8 tests | 1 failed) 199ms
    × uses unpredictable UUIDs for writer tokens and tab ids 3ms
@@ -42,7 +42,7 @@ AssertionError: expected 'web-lock-81572a43-db0f-4f42-bade-dc8b…' to match /^[
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -58,7 +58,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store/src/preferences.test.ts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  1 passed (1)
@@ -74,7 +74,7 @@ $ npx vitest run packages/local-store/src/preferences.test.ts
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (11 tests | 1 failed) 324ms
    × keeps reconciling other favorites when one product fails 28ms
@@ -107,7 +107,7 @@ ReferenceError: testDatabase is not defined
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -123,7 +123,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -139,7 +139,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -324,6 +324,22 @@ Running 75 tests using 3 workers
   ok 73 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
 
   75 passed (51.9s)
+
+[exit code: 0]
+
+---
+
+## Codacy 8 - path hygiene exclusions removed and machine paths redacted (repository-path-hygiene GREEN)
+
+$ npx vitest run tests/repository-path-hygiene.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:00:18
+   Duration  1.39s (transform 13ms, setup 0ms, import 26ms, tests 1.26s, environment 0ms)
 
 [exit code: 0]
 
