@@ -3,9 +3,11 @@
 ## Current development PASS status
 
 All requested Milestone 3 development live checks 1–8 passed, including the
-final real-adapter read and owner-approved cleanup. PR delivery remains pending
-final exact-head CI. This is not a global release or clinical-product
-validation claim.
+final real-adapter read and owner-approved cleanup. This handoff is a dated
+**pre-delivery snapshot captured 2026-10-07**. The final PR source includes
+reviewed offline helper/test changes, but no new cloud deployment was made from
+that source; PR #9 checks are authoritative for final delivery once CI
+completes. This is not a global release or clinical-product validation claim.
 
 - Development project `intermed-dev` is active in Frankfurt (`fra`); the
   organization plan is GitHub Student Pack `auto-1`, with both project slots
@@ -40,11 +42,11 @@ validation claim.
   real-device acceptance, which is out of scope here.
 - Review adjudication: pinned `appwrite-cli@28.1.0 tables-db delete-row --help`
   exited 0 and reports canonical Usage `tablesdb`; the previously recorded
-  alias-based publication/read/delete succeeded. The private-list helper's
-  masked-404 bug is being corrected offline, while the recorded private-list
-  HTTP 401 remains valid. CI for `ac848af0b48f92a4eb9ab03b8aa7841769165e33`
-  failed on the Ubuntu fixture and passed on Windows; final exact-head CI is
-  pending.
+  alias-based publication/read/delete succeeded and is not a plan failure.
+  The private-list masked-404 helper bug was fixed in the offline PR source;
+  the recorded private-list HTTP 401 remains valid. CI for
+  `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on the Ubuntu fixture and
+  passed on Windows; PR #9 checks are authoritative for the final exact head.
 
 ## Not run or out of scope
 

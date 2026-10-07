@@ -1,7 +1,8 @@
 {
   "evidenceDate": "2026-10-07",
   "baselineCommit": "f167d439fe3d608b99fb130ee314b2bbf68798f1",
-  "overallMilestone3LiveAcceptance": "DEVELOPMENT CHECKS PASSED; PR DELIVERY PENDING FINAL EXACT-HEAD CI",
+  "overallMilestone3LiveAcceptance": "DEVELOPMENT CHECKS PASSED; PRE-DELIVERY SNAPSHOT 2026-10-07",
+  "deliveryNote": "Final PR source contains reviewed offline helper/test changes; no new cloud deployment was made from that source. PR #9 checks are authoritative for final delivery once CI completes.",
   "developmentProject": {
     "projectId": "intermed-dev",
     "name": "InterMED Development",
@@ -170,7 +171,7 @@
   ],
   "reviewAdjudications": {
     "cliAlias": "A freshly executed pinned appwrite-cli@28.1.0 tables-db delete-row --help exited 0; canonical Usage is tablesdb. The previously recorded alias-based publication/read/delete commands succeeded and are not a plan failure.",
-    "privateList": "The helper private-list masked-404 behavior is being corrected separately offline. The recorded private list HTTP 401 remains valid evidence.",
-    "ci": "Historical CI for source ac848af0b48f92a4eb9ab03b8aa7841769165e33 failed on the Ubuntu fixture while Windows passed. Final exact-head CI remains pending."
+    "privateList": "The helper private-list masked-404 behavior was fixed in the offline PR source. The recorded private list HTTP 401 remains valid evidence.",
+    "ci": "Historical CI for source ac848af0b48f92a4eb9ab03b8aa7841769165e33 failed on the Ubuntu fixture while Windows passed. PR #9 checks are authoritative for the final exact head."
   }
 }

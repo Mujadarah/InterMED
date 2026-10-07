@@ -4,8 +4,11 @@ Evidence for Milestone 3 **live verification against the new development
 project only**. Baseline commit
 `f167d439fe3d608b99fb130ee314b2bbf68798f1` (= `origin/main` at capture). This
 pack records what the lead and owner already executed. **All requested
-development live checks passed; PR delivery remains pending final exact-head
-CI.** This does not claim a global release or clinical-product validation.
+development live checks passed.** This is a dated **pre-delivery snapshot
+captured 2026-10-07**. The final PR source contains reviewed offline
+helper/test changes, but no new cloud deployment was made from that source; PR
+#9 checks are authoritative for final delivery once CI completes. This does
+not claim a global release or clinical-product validation.
 
 Companion summary:
 [docs/MILESTONE_3_EVIDENCE.md](../../MILESTONE_3_EVIDENCE.md#live-verification-development-project-2026-10-07).
@@ -26,6 +29,8 @@ Companion summary:
 | `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs, corrected probe records, approval-gated cleanup plan, and REST/query recordings; the source bundle archive is excluded      |
 | `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                                                                             |
 | `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                                                                                  |
+| `checks/`                                              | Normalized UTF-8/LF independent full-check logs for the reviewed publication, evidence, and Sites branches                                                               |
+| `reviewers/`                                           | Concise read-only review briefs for the three code/evidence branches                                                                                                    |
 | `cleanup-live/`                                        | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                        |
 | `adapter-final-after-cleanup/`                         | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                             |
 | `site-retry/`                                          | Earlier failed Sites retries and official Node 24.21.0 musl checksum evidence; binary archive excluded                                                                   |
@@ -93,10 +98,11 @@ are not part of this pack.
 - Review adjudication: a freshly executed pinned `appwrite-cli@28.1.0`
   `tables-db delete-row --help` exited 0; canonical Usage is `tablesdb`.
   The previously recorded alias-based publication/read/delete succeeded and
-  is not a plan failure. The private-list helper's masked-404 bug is being
-  corrected separately offline; the recorded private list HTTP 401 remains
-  valid. CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on
-  the Ubuntu fixture while Windows passed; final exact-head CI remains pending.
+  is not a plan failure. The private-list masked-404 helper bug was fixed in
+  the offline PR source; the recorded private list HTTP 401 remains valid.
+  CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on the
+  Ubuntu fixture while Windows passed; PR #9 checks are authoritative for the
+  final exact head.
 - The official Node `24.21.0` Linux x64 musl archive checksum is recorded in
   both `site-retry/` and `site-musl-live/`. The gzip archive hash matched the
   official SHASUMS file. Production remains untouched; npm and Windows

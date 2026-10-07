@@ -12,21 +12,23 @@ scope: no `MedicationProduct`, `ActiveIngredient`, `MedicationIngredient` or any
 other Milestone 4 entity was created here, and no clinical fact appears in any
 fixture (all fixtures are synthetic and flagged as such).
 
-Through 2026-10-06 this milestone was configuration-as-code only (no
-provisioning). On **2026-10-07** the owner approved creation of a separate
+Through 2026-10-06 this milestone was configuration-as-code only (no provisioning). On **2026-10-07** the owner approved creation of a separate
 Frankfurt development project and limited read-only checks; the honest status of
 each live acceptance item is under
 [Live verification (development project)](#live-verification-development-project-2026-10-07).
-**All requested Milestone 3 development live checks passed; PR delivery remains
-pending final exact-head CI.** This is bounded development evidence, not a
-global release or clinical-product validation claim.
+**All requested Milestone 3 development live checks passed.** This dated
+evidence is a **pre-delivery snapshot captured 2026-10-07**: the final PR
+source includes reviewed offline helper/test fixes, but no new cloud deployment
+was made from that source. PR #9 checks are the authoritative final delivery
+state once CI completes. This is bounded development evidence, not a global
+release or clinical-product validation claim.
 
 ## Scope and requirement IDs
 
 | Requirement (REQUIREMENTS.md)                                                                           | How this milestone addresses it                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R10 — Appwrite Sites/Functions/database/Storage, Frankfurt                                              | Configuration as code for both environments at `https://fra.cloud.appwrite.io/v1`; provisioning pending                                            |
-| R11 — Sites GitHub branch/root/install/build/output/domain, tested SPA deep links                       | [infra/appwrite/SITES.md](../infra/appwrite/SITES.md) plus `sites` config entries; live deep-link test pending                                     |
+| R10 — Appwrite Sites/Functions/database/Storage, Frankfurt                                              | Configuration as code plus bounded development verification at `https://fra.cloud.appwrite.io/v1`; production provisioning remains separate |
+| R11 — Sites GitHub branch/root/install/build/output/domain, tested SPA deep links                       | [infra/appwrite/SITES.md](../infra/appwrite/SITES.md) plus `sites` config entries; development deep-link checks recorded in the dated pack     |
 | R12 — preview/development separated from production                                                     | [decision 0002](decisions/0002-environment-strategy.md): separate projects, separate config files                                                  |
 | R13 — public access without account/anonymous session, no public writes                                 | `read("any")` on three published resources only; offline tests assert the complete grant set                                                       |
 | R14 — importer/raw/quarantine/logs/keys never public                                                    | Empty grants on private resources; function `execute: []`, `scopes: []`, `vars: []`; secret scan                                                   |
@@ -41,7 +43,7 @@ global release or clinical-product validation claim.
 | R84 — immutable published generations, rollback                                                         | Publication/rollback model in decision 0001 and runbook §7.3                                                                                       |
 | R124 — reviewed CSP/security headers                                                                    | CSP **unchanged** by instruction; the future `connect-src` need is recorded under [open risks](#open-risks-and-gaps)                               |
 | R125 — Functions least privilege, bounded inputs, safe logs                                             | No execute permission, no scopes, no variables, bounded timeout; rate limits pending (no public function exists)                                   |
-| R126 — effective Appwrite permissions tested                                                            | Offline grant tests now; live denial matrix scripted in runbook §5                                                                                 |
+| R126 — effective Appwrite permissions tested                                                            | Offline grant tests and corrected 39/39 development denial matrix recorded in runbook §5 evidence                                                   |
 | R127 — pinning, lockfile, secret scanning in CI                                                         | `zod@4.6.5` pinned exactly, lockfile updated, `npm audit --audit-level=low` clean, secret scan runs inside `npm run test` (and therefore in CI)    |
 | R135/R136 — dependency-free domain, contributor mock mode                                               | Domain contract is types-only; mock reader serves flagged synthetic fixtures                                                                       |
 | R142/R145 — storage/replaceable providers behind interfaces                                             | Injected `FetchLike` transport and `PublishedDatasetReader` contract                                                                               |
@@ -339,8 +341,8 @@ Evidence pack:
 `buckets/**`, `tables/**`, `function-checks/**`, `scanner-review/**`,
 `site-probes/**`). Baseline
 `f167d439fe3d608b99fb130ee314b2bbf68798f1` (= live `origin/main`). **Current
-status: all requested development live checks passed; PR delivery remains
-pending final exact-head CI.**
+status: all requested development live checks passed; this is the dated
+2026-10-07 pre-delivery snapshot.**
 
 #### Verified lead/owner facts (public ids only)
 
@@ -449,7 +451,9 @@ The requested development live checks and final adapter read/cleanup passed.
 Production is untouched. Production bootstrap integrity, production capacity,
 backup/restore, real-device acceptance, immutable-cache policy, and clinical
 validation remain explicitly out of scope or future follow-ups; none blocks this
-development status. PR delivery remains pending final exact-head CI.
+development status. The final PR source contains reviewed offline helper/test
+changes, with no new cloud deployment from that source; PR #9 checks are
+authoritative for final delivery once CI completes.
 
 ## PR #7 review fixes
 
@@ -585,22 +589,23 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   long-cache — residual risk until a reviewed header policy is confirmed on the
   intended development Sites deployment.
 
-### Review adjudications and current CI state
+### Review adjudications and pre-delivery CI state
 
 - A freshly executed pinned `appwrite-cli@28.1.0`
   `tables-db delete-row --help` exited 0; canonical Usage is `tablesdb`.
   The previously recorded alias-based publication/read/delete succeeded and
   is not a plan failure.
-- The helper private-list masked-404 bug is being corrected separately offline.
+- The helper private-list masked-404 bug was fixed in the offline PR source.
   The actual recorded private list HTTP 401 remains valid evidence.
 - CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on the Ubuntu
-  fixture while Windows passed. Final exact-head CI remains pending; this
-  historical result does not replace that check.
+  fixture while Windows passed. PR #9 checks are authoritative for the final
+  exact head; this historical result does not replace that check.
 
 ## Next gate
 
 Development project `intermed-dev` exists and all requested development live
-checks passed. PR delivery remains pending final exact-head CI. Production
+checks passed. This is a dated pre-delivery snapshot; PR #9 checks are
+authoritative for final delivery. Production
 capacity is a separate deferred roadmap decision before `intermed-prod`; other
 production, restore, real-device, immutable-cache, and clinical follow-ups are
 retained as future scope.
