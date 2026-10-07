@@ -95,6 +95,7 @@ export type {
   PublishedDatasetUnavailableReason,
 } from './published-dataset';
 export type {
+  ClearLocalDataResult,
   DatasetGenerationRepository,
   DatasetStateSource,
   DatasetUpdateFailureReason,

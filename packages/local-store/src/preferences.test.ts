@@ -1,6 +1,17 @@
 import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
-import { bundle, testClock, testStore, uniqueName } from './test-support';
+import type { PublishedBundleLoader } from '@intermed/domain';
+import {
+  bundle,
+  fakePublishedSource,
+  testClock,
+  testMarkerLock,
+  testStore,
+  uniqueName,
+} from './test-support';
+
+/** Lease TTL the clear tests pin on their marker locks (see `testMarkerLock`). */
+const LEASE_TTL_MS = 60_000;
 
 it('keeps favorites and recent searches through a replacement and a restart', async () => {
   const name = uniqueName();
@@ -160,4 +171,160 @@ it('orders recent searches by recency and can clear them', async () => {
   ).toEqual(['placebex', 'fictivol']);
   await store.preferences.clearRecentSearches();
   expect(await store.preferences.listRecentSearches()).toEqual([]);
+});
+
+it('refuses clear-all while another tab is staging instead of racing it', async () => {
+  const name = uniqueName();
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    onStaged: async ({ store }) => {
+      if (store === 'ingredients') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const other = testStore({ name });
+  const alpha = bundle('alpha');
+  await other.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+  const cleared = await other.preferences.clearAllLocalData();
+
+  release();
+  await running;
+  expect(writer.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: alpha.generationId },
+  });
+  expect(await other.openPinnedReader(alpha.generationId)).not.toBeNull();
+  expect(await other.preferences.listFavorites()).toHaveLength(1);
+  expect(cleared).toEqual({ status: 'refused', reason: 'writer-busy' });
+
+  // Once the writer is done, the same clear runs under the writer lease.
+  expect(await other.preferences.clearAllLocalData()).toEqual({
+    status: 'cleared',
+  });
+  expect(other.getState()).toMatchObject({ status: 'never-downloaded' });
+  expect(await other.preferences.listFavorites()).toEqual([]);
+  expect(await other.openReader()).toBeNull();
+});
+
+it('aborts staging cleanly when the local data is cleared underneath it', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const stalled = await testMarkerLock(name, clock.now, {
+    ttlMs: LEASE_TTL_MS,
+  });
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    now: clock.now,
+    lock: stalled.lock,
+    onStaged: async ({ store }) => {
+      if (store === 'ingredients') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const clearer = testStore({ name, now: clock.now });
+  const alpha = bundle('alpha');
+
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+  // The stalled writer's lease expires, so the clear may take the writer lock
+  // and complete while staging is between two write batches.
+  clock.tick(LEASE_TTL_MS + 1_000);
+  const cleared = await clearer.preferences.clearAllLocalData();
+  release();
+
+  await expect(running).resolves.toMatchObject({
+    status: 'update-failed',
+    reason: 'local-data-cleared',
+  });
+  // The aborted staging left no orphaned rows and no generation record behind.
+  expect(await stalled.db.generations.get(alpha.generationId)).toBeUndefined();
+  expect(
+    await stalled.db.products
+      .where('generationId')
+      .equals(alpha.generationId)
+      .count(),
+  ).toBe(0);
+  expect(await clearer.openReader()).toBeNull();
+  expect(clearer.getState()).toMatchObject({ status: 'never-downloaded' });
+  expect(cleared).toEqual({ status: 'cleared' });
+});
+
+it('never lets a download resume into a completed clear', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const stalled = await testMarkerLock(name, clock.now, {
+    ttlMs: LEASE_TTL_MS,
+  });
+  const alpha = bundle('alpha');
+  let reachedLoad: () => void = () => {};
+  let releaseBundle: () => void = () => {};
+  const loadReached = new Promise<void>((resolve) => {
+    reachedLoad = resolve;
+  });
+  const bundleHeld = new Promise<void>((resolve) => {
+    releaseBundle = resolve;
+  });
+  const source = fakePublishedSource(alpha);
+  const loader: PublishedBundleLoader = {
+    loadBundle: async (descriptor) => {
+      const result = await source.loader.loadBundle(descriptor);
+      reachedLoad();
+      await bundleHeld;
+      return result;
+    },
+  };
+  const writer = testStore({
+    name,
+    now: clock.now,
+    lock: stalled.lock,
+    reader: source.reader,
+    loader,
+  });
+  const clearer = testStore({ name, now: clock.now });
+
+  const running = writer.updates.downloadAndActivate();
+  await loadReached;
+  // The download waits for the bundle while its lease expires; the clear takes
+  // the writer lock and completes.
+  clock.tick(LEASE_TTL_MS + 1_000);
+  const cleared = await clearer.preferences.clearAllLocalData();
+  releaseBundle();
+
+  await expect(running).resolves.toMatchObject({ status: 'never-downloaded' });
+  expect(writer.getState()).toMatchObject({ status: 'never-downloaded' });
+  expect(await stalled.db.generations.toArray()).toEqual([]);
+  expect(
+    await stalled.db.products
+      .where('generationId')
+      .equals(alpha.generationId)
+      .count(),
+  ).toBe(0);
+  expect(cleared).toEqual({ status: 'cleared' });
 });

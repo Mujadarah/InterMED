@@ -25,6 +25,8 @@ const FAILURE_TEXT: Record<DatasetUpdateFailureReason, string> = {
   'count-mismatch': 'the downloaded dataset did not match the published counts',
   interrupted: 'the update was interrupted',
   'writer-busy': 'another tab was updating the dataset at the same time',
+  'local-data-cleared':
+    'the local dataset was cleared while the update was running',
 };
 
 function ageText(downloadedAt: string): string {

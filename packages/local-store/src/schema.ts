@@ -130,6 +130,12 @@ export interface DatasetStateRecord {
    * reconciliation and the next open runs it again.
    */
   readonly reconciledGenerationId: string | null;
+  /**
+   * Bumped by every completed clear-all. An update captures it when it starts
+   * and stops quietly when it changed: a completed clear can never be undone
+   * by work that was already in flight (Greptile review fix G4).
+   */
+  readonly clearEpoch: number;
 }
 
 /** Cross-tab writer marker used when the Web Locks API is unavailable. */

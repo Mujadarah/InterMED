@@ -142,3 +142,19 @@ $ npx vitest run packages/local-store/src/readers.test.ts
 
 [exit code: 0]
 
+---
+
+## Codex #4 + G4 - clear-all takes the writer lease, staging aborts cleanly, clear epoch (GREEN)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  16:32:42
+   Duration  351ms (transform 82ms, setup 0ms, import 136ms, tests 111ms, environment 0ms)
+
+[exit code: 0]
+

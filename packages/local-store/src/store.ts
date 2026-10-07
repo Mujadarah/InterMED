@@ -1,6 +1,7 @@
 import type {
   ActiveIngredient,
   ActiveIngredientId,
+  ClearLocalDataResult,
   DatasetUpdateFailureReason,
   DatasetUpdatePipeline,
   DatasetUpdateState,
@@ -151,6 +152,9 @@ type StageOutcome =
   | { readonly ok: true; readonly generationId: string }
   | { readonly ok: false; readonly state: DatasetUpdateState };
 
+/** Outcome of one guarded staging write batch. */
+type StageWrite = 'written' | 'lease-lost' | 'cleared' | 'cleared-quiet';
+
 type AnyCatalogueTable = Table<{ generationId: string; id: string }, RowKey>;
 
 function catalogueTable(
@@ -197,6 +201,7 @@ function emptyMeta(): DatasetStateRecord {
     updateStatus: 'never-downloaded',
     failureReason: null,
     reconciledGenerationId: null,
+    clearEpoch: 0,
   };
 }
 
@@ -390,12 +395,27 @@ export function createLocalDatasetStore(
   const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
 
   async function withWriter(
-    work: (lease: WriterLease) => Promise<DatasetUpdateState>,
+    work: (
+      lease: WriterLease,
+      clearEpoch: number,
+    ) => Promise<DatasetUpdateState>,
   ): Promise<DatasetUpdateState> {
     await open();
     if (!database || !writerLock) return state;
-    const outcome = await writerLock.withExclusiveUpdate(work);
+    const outcome = await writerLock.withExclusiveUpdate((lease) =>
+      // The clear epoch captured here is what an in-flight update is allowed
+      // to write under: a clear that completes later wins over it.
+      readClearEpoch().then((clearEpoch) => work(lease, clearEpoch)),
+    );
     return outcome.ok ? outcome.value : fail('writer-busy');
+  }
+
+  /** The clear epoch persisted in meta; bumped by every completed clear. */
+  async function readClearEpoch(): Promise<number> {
+    const db = database;
+    if (!db) return 0;
+    const meta = await db.meta.get('dataset-state');
+    return meta?.clearEpoch ?? 0;
   }
 
   async function currentGenerationRecord(): Promise<GenerationRecord | null> {
@@ -435,10 +455,27 @@ export function createLocalDatasetStore(
     await deleteGenerationRows(generationId);
   }
 
+  /**
+   * State of an aborted staging run. A clear that already completed wins
+   * quietly (`cleared-quiet`): the honest visible state is the one it left
+   * behind. A run cut short mid-write reports why it stopped, and a writer
+   * that lost its lease reports `writer-busy` while touching nothing.
+   */
+  async function abortStaging(
+    outcome: StageWrite,
+  ): Promise<DatasetUpdateState> {
+    if (outcome === 'cleared-quiet') return refresh();
+    if (outcome === 'lease-lost') return fail('writer-busy');
+    // The staged generation disappeared mid-write: the local data was cleared
+    // (or the abandoned staging record was collected) underneath this run.
+    return fail('local-data-cleared');
+  }
+
   async function stageUnlocked(
     manifest: PublishedDatasetManifest,
     bundleText: string,
     lease: WriterLease,
+    clearEpoch: number,
   ): Promise<StageOutcome> {
     const db = requireDatabase();
     const generationId = manifest.datasetVersionId;
@@ -473,36 +510,52 @@ export function createLocalDatasetStore(
       lastUsedAt: null,
     };
     try {
-      // Every staging write batch starts by revalidating the writer lease, so
-      // a writer whose lease was taken over stops writing at once instead of
-      // racing (or cleaning up after) the new owner.
+      // Every staging write batch is guarded: it rechecks that the generation
+      // record it writes for still exists and that this writer still owns the
+      // lease. A clear that completed underneath this run aborts staging with
+      // `local-data-cleared` before anything else is written (Codex #4); a
+      // writer whose lease was taken over stops at once and runs no cleanup
+      // over rows that may belong to the new owner (Greptile G1).
       const created = await db.transaction(
         'rw',
         db.writerLock,
         db.generations,
-        async (transaction) => {
-          if (!(await lease.revalidate(transaction.writerLock))) return false;
+        db.meta,
+        async (transaction): Promise<StageWrite> => {
+          // The clear epoch is checked with the first write: an update whose
+          // clear completed while it was downloading stops here and quietly
+          // leaves the state the clear produced (Greptile G4).
+          const meta = await transaction.meta.get('dataset-state');
+          if ((meta?.clearEpoch ?? 0) !== clearEpoch) return 'cleared-quiet';
+          if (!(await lease.revalidate(transaction.writerLock)))
+            return 'lease-lost';
           await transaction.generations.put(record);
-          return true;
+          return 'written';
         },
       );
-      if (!created) return { ok: false, state: await fail('writer-busy') };
+      if (created !== 'written')
+        return { ok: false, state: await abortStaging(created) };
       for (const name of CATALOGUE_STORE_NAMES) {
         const items = rows[name];
         const written = await db.transaction(
           'rw',
           db.writerLock,
+          db.generations,
           catalogueTable(db, name),
-          async (transaction) => {
-            if (!(await lease.revalidate(transaction.writerLock))) return false;
+          async (transaction): Promise<StageWrite> => {
+            const staged = await transaction.generations.get(generationId);
+            if (!staged) return 'cleared';
+            if (!(await lease.revalidate(transaction.writerLock)))
+              return 'lease-lost';
             if (items.length > 0)
               await scopedCatalogueTable(transaction, name).bulkPut(
                 items as unknown as { generationId: string; id: string }[],
               );
-            return true;
+            return 'written';
           },
         );
-        if (!written) return { ok: false, state: await fail('writer-busy') };
+        if (written !== 'written')
+          return { ok: false, state: await abortStaging(written) };
         await options.onStaged?.({
           generationId,
           store: name,
@@ -529,6 +582,7 @@ export function createLocalDatasetStore(
   async function activateUnlocked(
     generationId: string,
     lease: WriterLease,
+    clearEpoch: number,
   ): Promise<DatasetUpdateState> {
     const db = requireDatabase();
     const record = await db.generations.get(generationId);
@@ -536,7 +590,8 @@ export function createLocalDatasetStore(
     const active = await db.meta.get('dataset-state');
     if (active?.activeGenerationId === generationId) return refresh();
     const activatedAt = new Date(now()).toISOString();
-    let leaseLost = false;
+    // Written from inside the transaction callback, so no literal narrowing.
+    let abort: string = 'interrupted';
     try {
       // One short transaction: revalidate the writer lease, mark the
       // generation ready and switch the pointer. Nothing but IndexedDB work
@@ -548,11 +603,17 @@ export function createLocalDatasetStore(
         db.writerLock,
         async (transaction) => {
           if (!(await lease.revalidate(transaction.writerLock))) {
-            leaseLost = true;
+            abort = 'lease-lost';
             throw new Error('The writer lease was lost');
           }
           const meta =
             (await transaction.meta.get('dataset-state')) ?? emptyMeta();
+          // A clear that completed while this update ran wins over it: the
+          // pointer is never switched back into cleared data.
+          if ((meta.clearEpoch ?? 0) !== clearEpoch) {
+            abort = 'cleared';
+            throw new Error('The local data was cleared');
+          }
           const staged = await transaction.generations.get(generationId);
           if (!staged) throw new Error('The staged generation is missing');
           // Every pointer switch restarts the retention window of its
@@ -576,9 +637,10 @@ export function createLocalDatasetStore(
         },
       );
     } catch {
+      if (abort === 'cleared') return refresh();
       // A writer that lost its lease leaves the database to its new owner: it
       // stops and runs no cleanup over rows that may no longer be its own.
-      if (leaseLost) return fail('writer-busy');
+      if (abort === 'lease-lost') return fail('writer-busy');
       await cleanupPartial(generationId);
       return fail('interrupted');
     }
@@ -596,10 +658,11 @@ export function createLocalDatasetStore(
     manifest: PublishedDatasetManifest,
     bundleText: string,
     lease: WriterLease,
+    clearEpoch: number,
   ): Promise<DatasetUpdateState> {
-    const staged = await stageUnlocked(manifest, bundleText, lease);
+    const staged = await stageUnlocked(manifest, bundleText, lease, clearEpoch);
     if (!staged.ok) return staged.state;
-    return activateUnlocked(staged.generationId, lease);
+    return activateUnlocked(staged.generationId, lease, clearEpoch);
   }
 
   async function readManifest(): Promise<
@@ -650,7 +713,7 @@ export function createLocalDatasetStore(
     },
 
     downloadAndActivate: () =>
-      withWriter(async (lease) => {
+      withWriter(async (lease, clearEpoch) => {
         const loader = options.loader;
         const result = await readManifest();
         if (!result.ok) return result.state;
@@ -689,21 +752,33 @@ export function createLocalDatasetStore(
         if (bundle.status !== 'available') return fail('bundle-unavailable');
         if (bundleByteLength(bundle.text) !== descriptor.value.byteSize)
           return fail('invalid-bundle');
-        return stageAndActivateUnlocked(result.manifest, bundle.text, lease);
+        return stageAndActivateUnlocked(
+          result.manifest,
+          bundle.text,
+          lease,
+          clearEpoch,
+        );
       }),
 
     stageBundle: (manifest, bundleText) =>
-      withWriter(async (lease) => {
-        const staged = await stageUnlocked(manifest, bundleText, lease);
+      withWriter(async (lease, clearEpoch) => {
+        const staged = await stageUnlocked(
+          manifest,
+          bundleText,
+          lease,
+          clearEpoch,
+        );
         return staged.ok ? refresh() : staged.state;
       }),
 
     activate: (generationId) =>
-      withWriter((lease) => activateUnlocked(generationId, lease)),
+      withWriter((lease, clearEpoch) =>
+        activateUnlocked(generationId, lease, clearEpoch),
+      ),
 
     stageAndActivate: (manifest, bundleText) =>
-      withWriter((lease) =>
-        stageAndActivateUnlocked(manifest, bundleText, lease),
+      withWriter((lease, clearEpoch) =>
+        stageAndActivateUnlocked(manifest, bundleText, lease, clearEpoch),
       ),
   };
 
@@ -846,40 +921,58 @@ export function createLocalDatasetStore(
       await open();
       return requireDatabase().tombstones.toArray();
     },
-    clearAllLocalData: async () => {
+    clearAllLocalData: async (): Promise<ClearLocalDataResult> => {
       await open();
-      const db = requireDatabase();
-      await db.transaction(
-        'rw',
-        [
-          db.generations,
-          db.products,
-          db.ingredients,
-          db.productIngredients,
-          db.atcCodes,
-          db.dosageForms,
-          db.manufacturers,
-          db.holders,
-          db.documents,
-          db.sources,
-          db.datasetVersions,
-          db.meta,
-          db.favorites,
-          db.recentSearches,
-          db.tombstones,
-        ],
-        async () => {
-          for (const name of CATALOGUE_STORE_NAMES)
-            await catalogueTable(db, name).clear();
-          await db.generations.clear();
-          await db.meta.clear();
-          await db.favorites.clear();
-          await db.recentSearches.clear();
-          await db.tombstones.clear();
-          await db.meta.put(emptyMeta());
-        },
+      const db = database;
+      if (!db || !writerLock) return { status: 'cleared' };
+      // Clearing is a writer operation: it is refused instead of racing the
+      // staging or activation of another tab and leaving orphaned rows behind.
+      const outcome = await writerLock.withExclusiveUpdate(async (lease) =>
+        db.transaction(
+          'rw',
+          [
+            db.generations,
+            db.products,
+            db.ingredients,
+            db.productIngredients,
+            db.atcCodes,
+            db.dosageForms,
+            db.manufacturers,
+            db.holders,
+            db.documents,
+            db.sources,
+            db.datasetVersions,
+            db.meta,
+            db.writerLock,
+            db.favorites,
+            db.recentSearches,
+            db.tombstones,
+          ],
+          async (transaction) => {
+            if (!(await lease.revalidate(transaction.writerLock))) return false;
+            const meta =
+              (await transaction.meta.get('dataset-state')) ?? emptyMeta();
+            for (const name of CATALOGUE_STORE_NAMES)
+              await scopedCatalogueTable(transaction, name).clear();
+            await transaction.generations.clear();
+            await transaction.meta.clear();
+            await transaction.favorites.clear();
+            await transaction.recentSearches.clear();
+            await transaction.tombstones.clear();
+            // The bumped clear epoch invalidates every update that is already
+            // in flight: a completed clear can never be undone by earlier work.
+            await transaction.meta.put({
+              ...emptyMeta(),
+              clearEpoch: (meta.clearEpoch ?? 0) + 1,
+            });
+            return true;
+          },
+        ),
       );
+      if (!outcome.ok || !outcome.value)
+        return { status: 'refused', reason: 'writer-busy' };
       await refresh();
+      return { status: 'cleared' };
     },
   };
 

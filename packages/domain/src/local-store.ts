@@ -79,7 +79,8 @@ export type DatasetUpdateFailureReason =
   | 'integrity-failed'
   | 'count-mismatch'
   | 'interrupted'
-  | 'writer-busy';
+  | 'writer-busy'
+  | 'local-data-cleared';
 
 /**
  * Visible local dataset state. It is deliberately explicit: a missing dataset,
@@ -234,6 +235,15 @@ export interface ProductTombstone {
 }
 
 /**
+ * Outcome of the explicit clear-all of local data (R78). Clearing is a writer
+ * operation and is refused while another tab is staging or activating, instead
+ * of racing it and leaving orphaned rows behind.
+ */
+export type ClearLocalDataResult =
+  | { readonly status: 'cleared' }
+  | { readonly status: 'refused'; readonly reason: 'writer-busy' };
+
+/**
  * Local preferences. They live outside dataset generations, use stable product
  * identifiers and migrate independently of catalogue replacement.
  */
@@ -252,8 +262,14 @@ export interface LocalPreferencesStore {
   }): Promise<RecentSearchEntry>;
   clearRecentSearches(): Promise<void>;
   listProductTombstones(): Promise<readonly ProductTombstone[]>;
-  /** Delete every local dataset and preference record. Explicit user action. */
-  clearAllLocalData(): Promise<void>;
+  /**
+   * Delete every local dataset and preference record. Explicit user action.
+   * Runs under the dataset writer lock and is refused with `writer-busy` while
+   * another tab is writing; nothing is deleted then. A completed clear also
+   * invalidates updates that are already in flight: they stop without writing
+   * instead of restoring what the user just deleted.
+   */
+  clearAllLocalData(): Promise<ClearLocalDataResult>;
 }
 
 /**
