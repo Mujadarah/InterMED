@@ -160,9 +160,15 @@ export async function runAnonymousProbe(options) {
     });
     const isDenialExpectation =
       expected.includes(401) && expected.includes(403);
+    const isVerifiedPrivateRowGet =
+      requestOptions.method === undefined &&
+      typeof requestOptions.privateTableId === 'string' &&
+      typeof requestOptions.privateRowId === 'string' &&
+      target.endsWith(`/rows/${requestOptions.privateRowId}`);
     const isVerifiedMissingPrivateRow =
       observed.status === 404 &&
       observed.errorType === 'row_not_found' &&
+      isVerifiedPrivateRowGet &&
       verifiedPrivateRows.has(
         `${requestOptions.privateTableId ?? ''}/${requestOptions.privateRowId ?? ''}`,
       );
