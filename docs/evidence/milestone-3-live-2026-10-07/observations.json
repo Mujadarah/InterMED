@@ -166,7 +166,11 @@
     }
   ],
   "pendingApprovals": [
-    "anonymous non-empty list/get/download and CRUD verification",
     "production bootstrap package integrity pinning (production untouched)"
-  ]
+  ],
+  "reviewAdjudications": {
+    "cliAlias": "A freshly executed pinned appwrite-cli@28.1.0 tables-db delete-row --help exited 0; canonical Usage is tablesdb. The previously recorded alias-based publication/read/delete commands succeeded and are not a plan failure.",
+    "privateList": "The helper private-list masked-404 behavior is being corrected separately offline. The recorded private list HTTP 401 remains valid evidence.",
+    "ci": "Historical CI for source ac848af0b48f92a4eb9ab03b8aa7841769165e33 failed on the Ubuntu fixture while Windows passed. Final exact-head CI remains pending."
+  }
 }

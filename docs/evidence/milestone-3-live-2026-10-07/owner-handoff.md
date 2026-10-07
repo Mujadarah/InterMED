@@ -29,14 +29,22 @@ validation claim.
 ## Historical failures and limits
 
 - The first 39-check matrix and six crosswalk failures remain retained as
-  failed/inconclusive evidence. The corrected 39/39 bounded probes and the
-  owner-approved seven-object cleanup are recorded separately.
+  failed/inconclusive historical evidence. The corrected 39/39 bounded probes
+  passed; the owner-approved seven-object cleanup deleted all seven disposable
+  guards, and the owner repeat confirmed them not-found.
 - Earlier Sites attempts failed on Node runtime compatibility (`node-22` and
   `fcntl64`); they are historical failures, not evidence against the final
   musl deployment.
 - Observed cache policy is `public, max-age=0, must-revalidate`; immutable
   long-cache headers remain a future policy follow-up. Browser proof is not
   real-device acceptance, which is out of scope here.
+- Review adjudication: pinned `appwrite-cli@28.1.0 tables-db delete-row --help`
+  exited 0 and reports canonical Usage `tablesdb`; the previously recorded
+  alias-based publication/read/delete succeeded. The private-list helper's
+  masked-404 bug is being corrected offline, while the recorded private-list
+  HTTP 401 remains valid. CI for `ac848af0b48f92a4eb9ab03b8aa7841769165e33`
+  failed on the Ubuntu fixture and passed on Windows; final exact-head CI is
+  pending.
 
 ## Not run or out of scope
 

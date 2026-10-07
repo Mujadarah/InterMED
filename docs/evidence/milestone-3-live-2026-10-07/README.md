@@ -44,14 +44,16 @@ are not part of this pack.
   The generation is fictional and carries `not-approved` / `not-reviewed`
   references; it is not clinical approval.
 - The first 39-check permission matrix is retained as a **failed/inconclusive**
-  probe, not a pass: the descriptor PATCH was a no-op with HTTP 200, storage
-  update attempts used the wrong method and returned 404, and private guard
-  GETs returned `row_not_found` rather than an authorization proof. The helper
-  continued after an unexpected 200. The concrete six-row mapping is in
+  historical probe, not a pass: the descriptor PATCH was a no-op with HTTP
+  200, storage update attempts used the wrong method and returned 404, and
+  private guard GETs returned `row_not_found` rather than an authorization
+  proof. The helper continued after an unexpected 200. The concrete six-row mapping is in
   [`publication-live/first-to-corrected-probes.md`](publication-live/first-to-corrected-probes.md),
   with links to both the first and corrected JSON for every row. The corrected
-  matrix passed 39/39 with no abort, while the private `import-runs` GET
-  remains a masked 404 rather than a strict 401/403 proof.
+  matrix passed 39/39 with no abort, the seven approved disposable guard
+  objects were deleted, and the owner repeat confirmed them not-found. The
+  published version, bundle, and file were preserved. The private `import-runs`
+  GET remains a masked 404 rather than a strict 401/403 proof.
 - The owner's first repeat was conditional rather than an anonymous write/private
   read pass. A later owner-approved cleanup executed the exact seven-object
   plan: all seven delete commands exited 0, while the owner-side repeat
@@ -88,6 +90,13 @@ are not part of this pack.
   manifest, service-worker, and referenced asset files. The earlier strict
   scan failure and its public-revision classification remain retained as
   historical evidence; they are not rewritten.
+- Review adjudication: a freshly executed pinned `appwrite-cli@28.1.0`
+  `tables-db delete-row --help` exited 0; canonical Usage is `tablesdb`.
+  The previously recorded alias-based publication/read/delete succeeded and
+  is not a plan failure. The private-list helper's masked-404 bug is being
+  corrected separately offline; the recorded private list HTTP 401 remains
+  valid. CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on
+  the Ubuntu fixture while Windows passed; final exact-head CI remains pending.
 - The official Node `24.21.0` Linux x64 musl archive checksum is recorded in
   both `site-retry/` and `site-musl-live/`. The gzip archive hash matched the
   official SHASUMS file. Production remains untouched; npm and Windows

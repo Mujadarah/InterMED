@@ -26,6 +26,6 @@
     "coverage": "Fictional coverage only. Not for clinical use.",
     "rightsApprovalReference": "not-approved",
     "clinicalReviewReference": "not-reviewed",
-    "permissionMatrix": "Initial 39-check run failed/inconclusive; corrected probes and cleanup were not approved or executed."
+    "permissionMatrix": "Corrected probes passed 39/39; seven approved disposable guard rows/files were deleted and owner repeat confirmed not-found; published version, bundle, and file were preserved."
   }
 }

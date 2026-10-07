@@ -362,7 +362,8 @@ pending final exact-head CI.**
   and the two approved function checks are recorded in the evidence pack.
   One fictional synthetic generation and ten total synthetic/guard objects
   were also created; the real adapter read its manifest and descriptor.
-  The first 39-check permission matrix remains failed/inconclusive: it used
+  The first 39-check permission matrix remains failed/inconclusive historical
+  evidence: it used
   an invalid storage update method, accepted an unexpected descriptor 200
   no-op, masked private guard existence with 404, and did not fail fast.
   The corrected 39-check probes passed 39/39 without aborting; the private
@@ -564,8 +565,13 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   Sites deployment retains the observed no-immutable-cache risk. Item 8 is
   **PASS** for development region/plan confirmation only. No production
   deployment is implied.
-- Most recorded field values remain unverified live; runtime/framework notes
-  above are availability or shell-site observations only.
+- Current recorded live facts are verified in the dated pack: corrected
+  permission probes passed 39/39; all seven approved disposable guards were
+  deleted and the owner repeat confirmed them not-found; the published
+  version, bundle, and file `aba05ea1b8fc3e49f18d517b` were preserved; the
+  final real adapter selected that version; and development deployment
+  `6ac62b9286ef77aa3a78` is ready with pinned Node `24.21.0` / npm `11.19.0`.
+  Earlier first-run failures and failed deployments remain historical evidence.
 - Operational ownership (release approver, incident owner, retention, cost
   monitoring, alerting) is unassigned and required before production.
 - One bundle per dataset generation is assumed by the current descriptor table
@@ -578,6 +584,18 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   `Cache-Control: public, max-age=0, must-revalidate` with no `immutable`
   long-cache — residual risk until a reviewed header policy is confirmed on the
   intended development Sites deployment.
+
+### Review adjudications and current CI state
+
+- A freshly executed pinned `appwrite-cli@28.1.0`
+  `tables-db delete-row --help` exited 0; canonical Usage is `tablesdb`.
+  The previously recorded alias-based publication/read/delete succeeded and
+  is not a plan failure.
+- The helper private-list masked-404 bug is being corrected separately offline.
+  The actual recorded private list HTTP 401 remains valid evidence.
+- CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on the Ubuntu
+  fixture while Windows passed. Final exact-head CI remains pending; this
+  historical result does not replace that check.
 
 ## Next gate
 
