@@ -16,7 +16,9 @@ evidence review. The seven targets are exactly the disposable guard objects:
 | file | `import-run-logs`    | `guard-importrunlogs`     |
 | file | `published-datasets` | `guard-publisheddatasets` |
 
-The exact commands are in `cleanup-plan.json`. The row syntax
+The exact commands are in `cleanup-plan.json`; each of the seven command
+strings explicitly pins
+`infra/appwrite/appwrite.config.development.json` with `--config-file`. The row syntax
 `tablesdb delete-row --database-id ... --table-id ... --row-id ...` and file
 syntax `storage delete-file --bucket-id ... --file-id ...` were checked against
 cached `appwrite-cli@28.1.0 --help` output. No cloud operation was performed
