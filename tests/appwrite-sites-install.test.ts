@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -119,8 +120,8 @@ describe('Sites configuration and install commands', () => {
     });
   }
 
-  it('proves host runtime images cannot satisfy exact engines without wrapper and verifies pinned toolchain wrapper', async () => {
-    // 1. Read root package.json engines and .npmrc
+  it('verifies the pinned toolchain wrapper for the configured host runtime', async () => {
+    // Read root package.json engines and .npmrc.
     const pkgJson = JSON.parse(
       readFileSync(join(repositoryRoot, 'package.json'), 'utf8'),
     ) as { engines?: { node?: string; npm?: string } };
@@ -130,16 +131,7 @@ describe('Sites configuration and install commands', () => {
     expect(pkgJson.engines?.npm).toBe('11.19.0');
     expect(npmrc).toContain('engine-strict=true');
 
-    // 2. Direct host runtime versions:
-    // Appwrite node-22 live runtime base is 22.9.0
-    // Appwrite node-24 live runtime base is 24.13.0
-    // Both fail the exact node 24.21.0 engine requirement
-    const appwriteNode22Host = '22.9.0';
-    const appwriteNode24Host = '24.13.0';
-    expect(appwriteNode22Host).not.toBe(pkgJson.engines?.node);
-    expect(appwriteNode24Host).not.toBe(pkgJson.engines?.node);
-
-    // 3. Pinned toolchain wrapper in development site
+    // The development site uses npx to provide the exact declared toolchain.
     const devConfig = await loadAppwriteConfig(appwriteConfigPaths.development);
     const devSite = appwriteResources(devConfig).find(
       (entry) =>
@@ -156,9 +148,6 @@ describe('Sites configuration and install commands', () => {
     expect(devSite?.buildCommand).toBe(expectedBuildCommand);
     expect(devSite?.buildRuntime).toBe('node-22');
 
-    // 4. Verify bootstrap compatibility:
-    // npm@11.19.0 engines requirement is "^20.17.0 || >=22.9.0"
-    // node-22 live image base 22.9.0 satisfies >=22.9.0 bootstrap
     expect(devSite?.installCommand).toContain(
       `--package=node@${pkgJson.engines?.node}`,
     );
@@ -171,5 +160,63 @@ describe('Sites configuration and install commands', () => {
     expect(devSite?.buildCommand).toContain(
       `--package=npm@${pkgJson.engines?.npm}`,
     );
+  });
+
+  it('keeps archive exclusions scoped away from source and lock paths', () => {
+    const ignoredPaths = [
+      '.git/config',
+      'node_modules/example/index.js',
+      '.tools/cache',
+      'artifacts/build/index.html',
+      '.env.local',
+      'apps/web/.env.production',
+      'dist/index.html',
+      'coverage/index.html',
+      'playwright-report/index.html',
+      'test-results/results.json',
+      '.aws/credentials',
+      '.codex/session.json',
+      '.agents/local.json',
+    ];
+    const sourcePaths = [
+      'package.json',
+      'package-lock.json',
+      '.npmrc',
+      'apps/web/package.json',
+      'apps/web/.env.example',
+      'apps/web/src/main.tsx',
+      'packages/domain/src/index.ts',
+    ];
+
+    const isIgnored = (path: string): boolean => {
+      try {
+        execFileSync(
+          'git',
+          ['check-ignore', '--no-index', '--quiet', '--', path],
+          {
+            cwd: repositoryRoot,
+            stdio: 'ignore',
+          },
+        );
+        return true;
+      } catch (error) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'status' in error &&
+          error.status === 1
+        ) {
+          return false;
+        }
+        throw error;
+      }
+    };
+
+    for (const path of ignoredPaths) {
+      expect(isIgnored(path), `${path} should be ignored`).toBe(true);
+    }
+    for (const path of sourcePaths) {
+      expect(isIgnored(path), `${path} should remain archivable`).toBe(false);
+    }
   });
 });
