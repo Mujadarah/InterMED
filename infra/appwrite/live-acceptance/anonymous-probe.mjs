@@ -27,6 +27,8 @@ function responseHeader(response, name) {
 
 async function request(fetchLike, target, options = {}) {
   const { projectId: _projectId, ...fetchOptions } = options;
+  delete fetchOptions.privateTableId;
+  delete fetchOptions.privateRowId;
   try {
     const response = await fetchLike(target, {
       ...fetchOptions,
@@ -102,6 +104,26 @@ function rowPayload(tableId, preparedRow) {
   };
 }
 
+function rowPatchPayload(tableId, preparedRow) {
+  const data = { ...rowPayload(tableId, preparedRow) };
+  if (tableId === 'dataset-versions')
+    return {
+      ...data,
+      status: 'staging',
+      coverage: `${data.coverage ?? 'Synthetic disposable guard only.'} updated`,
+    };
+  if (tableId === 'dataset-bundles')
+    return {
+      ...data,
+      fileName: 'live-acceptance-guard-updated.json',
+    };
+  return {
+    ...data,
+    publicationStatus: 'staging',
+    approvalReference: 'anonymous-probe-updated',
+  };
+}
+
 function fileFormData(fileId) {
   const form = new FormData();
   form.append('fileId', fileId);
@@ -124,17 +146,44 @@ export async function runAnonymousProbe(options) {
   assertDevelopmentProject(projectId, endpoint);
   if (typeof fetchLike !== 'function') throw new Error('fetchLike is required');
   const checks = [];
+  const verifiedPrivateRows = new Set(
+    (options.verifiedPrivateRows ?? []).map((row) =>
+      typeof row === 'string' ? row : `${row.tableId}/${row.rowId}`,
+    ),
+  );
+  let aborted = false;
+  const pendingNames = [];
   const check = async (name, target, expected, requestOptions = {}) => {
     const observed = await request(fetchLike, target, {
       ...requestOptions,
       projectId,
     });
+    const isDenialExpectation =
+      expected.includes(401) && expected.includes(403);
+    const isVerifiedMissingPrivateRow =
+      observed.status === 404 &&
+      observed.errorType === 'row_not_found' &&
+      verifiedPrivateRows.has(
+        `${requestOptions.privateTableId ?? ''}/${requestOptions.privateRowId ?? ''}`,
+      );
+    const originalPass = expected.includes(observed.status);
+    const maskedRefusal = !originalPass && isVerifiedMissingPrivateRow;
+    const pass = originalPass || maskedRefusal;
     checks.push({
       name,
       expected,
       observed,
-      pass: expected.includes(observed.status),
+      pass,
+      ...(maskedRefusal ? { maskedRefusal: true, originalPass } : {}),
     });
+    if (
+      !pass &&
+      isDenialExpectation &&
+      observed.status >= 200 &&
+      observed.status < 300
+    )
+      aborted = true;
+    return pass;
   };
   const rowPath = (tableId, rowId = '') =>
     `/tablesdb/${databaseId}/tables/${tableId}/rows${rowId ? `/${rowId}` : ''}`;
@@ -142,95 +191,130 @@ export async function runAnonymousProbe(options) {
     `/storage/buckets/${bucketId}/files${fileId ? `/${fileId}` : ''}${suffix}`;
   const publicTables = new Set(['dataset-versions', 'dataset-bundles']);
 
+  const operations = [];
   for (const row of guard.rows) {
     const isPublic = publicTables.has(row.tableId);
-    await check(
-      `${isPublic ? 'public' : 'private'}-list-${row.tableId}`,
-      url(endpoint, rowPath(row.tableId)),
-      isPublic ? [200, 204] : [401, 403],
-    );
-    await check(
-      `${isPublic ? 'public' : 'private'}-get-${row.tableId}`,
-      url(endpoint, rowPath(row.tableId, row.rowId)),
-      isPublic ? [200, 204] : [401, 403],
-    );
-    await check(
-      `row-POST-${row.tableId}`,
-      url(endpoint, rowPath(row.tableId)),
-      [401, 403],
+    operations.push(
       {
-        method: 'POST',
-        body: JSON.stringify({
-          rowId: `anon-create-${row.tableId}`,
-          data: rowPayload(row.tableId, row),
-        }),
+        name: `${isPublic ? 'public' : 'private'}-list-${row.tableId}`,
+        target: url(endpoint, rowPath(row.tableId)),
+        expected: isPublic ? [200, 204] : [401, 403],
+        requestOptions: isPublic
+          ? {}
+          : { privateTableId: row.tableId, privateRowId: row.rowId },
       },
-    );
-    await check(
-      `row-PATCH-${row.tableId}`,
-      url(endpoint, rowPath(row.tableId, row.rowId)),
-      [401, 403],
       {
-        method: 'PATCH',
-        body: JSON.stringify({ data: rowPayload(row.tableId, row) }),
+        name: `${isPublic ? 'public' : 'private'}-get-${row.tableId}`,
+        target: url(endpoint, rowPath(row.tableId, row.rowId)),
+        expected: isPublic ? [200, 204] : [401, 403],
+        requestOptions: isPublic
+          ? {}
+          : { privateTableId: row.tableId, privateRowId: row.rowId },
       },
-    );
-    await check(
-      `row-DELETE-${row.tableId}`,
-      url(endpoint, rowPath(row.tableId, row.rowId)),
-      [401, 403],
-      { method: 'DELETE' },
+      {
+        name: `row-POST-${row.tableId}`,
+        target: url(endpoint, rowPath(row.tableId)),
+        expected: [401, 403],
+        requestOptions: {
+          method: 'POST',
+          body: JSON.stringify({
+            rowId: `anon-create-${row.tableId}`,
+            data: rowPayload(row.tableId, row),
+          }),
+        },
+      },
+      {
+        name: `row-PATCH-${row.tableId}`,
+        target: url(endpoint, rowPath(row.tableId, row.rowId)),
+        expected: [401, 403],
+        requestOptions: {
+          method: 'PATCH',
+          body: JSON.stringify({ data: rowPatchPayload(row.tableId, row) }),
+        },
+      },
+      {
+        name: `row-DELETE-${row.tableId}`,
+        target: url(endpoint, rowPath(row.tableId, row.rowId)),
+        expected: [401, 403],
+        requestOptions: { method: 'DELETE' },
+      },
     );
   }
 
   for (const file of guard.files) {
     const isPublic = file.bucketId === 'published-datasets';
     const expectedRead = isPublic ? [200, 204] : [401, 403];
-    await check(
-      `${isPublic ? 'public' : 'private'}-list-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId)),
-      expectedRead,
-    );
-    await check(
-      `${isPublic ? 'public' : 'private'}-get-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId, file.fileId)),
-      expectedRead,
-    );
-    await check(
-      isPublic
-        ? 'public-download-published-datasets'
-        : `private-download-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId, file.fileId, '/download')),
-      expectedRead,
-    );
-    await check(
-      `file-POST-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId)),
-      [401, 403],
+    operations.push(
       {
-        method: 'POST',
-        body: fileFormData(
-          `anon-create-${file.bucketId.replaceAll('-', '').slice(0, 20)}`,
+        name: `${isPublic ? 'public' : 'private'}-list-${file.bucketId}`,
+        target: url(endpoint, filePath(file.bucketId)),
+        expected: expectedRead,
+      },
+      {
+        name: `${isPublic ? 'public' : 'private'}-get-${file.bucketId}`,
+        target: url(endpoint, filePath(file.bucketId, file.fileId)),
+        expected: expectedRead,
+      },
+      {
+        name: isPublic
+          ? 'public-download-published-datasets'
+          : `private-download-${file.bucketId}`,
+        target: url(
+          endpoint,
+          filePath(file.bucketId, file.fileId, '/download'),
         ),
+        expected: expectedRead,
+      },
+      {
+        name: `file-POST-${file.bucketId}`,
+        target: url(endpoint, filePath(file.bucketId)),
+        expected: [401, 403],
+        requestOptions: {
+          method: 'POST',
+          body: fileFormData(
+            `anon-create-${file.bucketId.replaceAll('-', '').slice(0, 20)}`,
+          ),
+        },
+      },
+      {
+        name: `file-PUT-${file.bucketId}`,
+        target: url(endpoint, filePath(file.bucketId, file.fileId)),
+        expected: [401, 403],
+        requestOptions: {
+          method: 'PUT',
+          body: JSON.stringify({ name: 'live-acceptance-guard-updated.txt' }),
+        },
+      },
+      {
+        name: `file-DELETE-${file.bucketId}`,
+        target: url(endpoint, filePath(file.bucketId, file.fileId)),
+        expected: [401, 403],
+        requestOptions: { method: 'DELETE' },
       },
     );
-    await check(
-      `file-PATCH-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId, file.fileId)),
-      [401, 403],
-      { method: 'PATCH', body: JSON.stringify({ name: 'guard.txt' }) },
+  }
+  for (let index = 0; index < operations.length; index += 1) {
+    const operation = operations[index];
+    pendingNames.push(...operations.slice(index + 1).map(({ name }) => name));
+    const pass = await check(
+      operation.name,
+      operation.target,
+      operation.expected,
+      operation.requestOptions,
     );
-    await check(
-      `file-DELETE-${file.bucketId}`,
-      url(endpoint, filePath(file.bucketId, file.fileId)),
-      [401, 403],
-      { method: 'DELETE' },
-    );
+    if (!pass && aborted) break;
+    pendingNames.length = 0;
   }
   return {
     projectId,
     checks,
     failed: checks.filter((item) => !item.pass).length,
-    log: JSON.stringify({ projectId, checks }, null, 2),
+    aborted,
+    remainingNotRun: pendingNames,
+    log: JSON.stringify(
+      { projectId, checks, aborted, remainingNotRun: pendingNames },
+      null,
+      2,
+    ),
   };
 }

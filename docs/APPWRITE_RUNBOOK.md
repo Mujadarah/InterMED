@@ -108,6 +108,14 @@ Run unauthenticated, with **no** API key and **no** session, against the
 development project first. Expected results are part of the Milestone 3 live
 acceptance record; anything else is a failure to investigate, not a warning.
 
+The offline probe uses materially different valid row updates and `PUT` for
+Storage file updates (`updateFile`). An unexpected `2xx` on any write or on a
+private read aborts the matrix immediately and records the checks that were
+not run. A private row `404` with `row_not_found` may be counted as a masked
+refusal only when the caller supplies explicit owner-verified existence for
+that exact table/row pair; `400` and unverified `404` responses remain
+failures.
+
 > **NOT YET EXECUTED — requires maintainer approval**
 
 ```powershell
