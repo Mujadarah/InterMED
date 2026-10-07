@@ -32,11 +32,15 @@ assert that no live identifier appears in the configuration.
 **Monorepo note.** npm workspaces install from the repository root, which holds
 the single root `package-lock.json`. The development site uses
 `node infra/appwrite/pinned-toolchain.mjs install` and
-`node infra/appwrite/pinned-toolchain.mjs build`: the launcher uses the host Node
-only to install `node@24.21.0` and `npm@11.19.0` into an isolated temporary
-prefix outside the archive. It then verifies both versions and invokes the
-absolute pinned Node executable with the absolute `npm-cli.js`, prepending only
-their binary directories to `PATH` for npm/Vite child processes.
+`node infra/appwrite/pinned-toolchain.mjs build`: the launcher uses the host
+Node only to install the direct platform package (`node-win-x64`,
+`node-linux-x64`, or `node-linux-arm64`) at `24.21.0` and `npm@11.19.0` into
+an isolated temporary prefix outside the archive, with lifecycle scripts
+disabled. It then verifies both versions and invokes the absolute pinned Node
+executable with the absolute `npm-cli.js`, prepending the prefix's `.bin`
+wrapper directory and the pinned Node binary directory to `PATH` for npm/Vite
+child processes. Unsupported platform/architecture combinations fail
+explicitly.
 `APPWRITE_HOST_NPM`, `APPWRITE_PINNED_NODE`, and `APPWRITE_PINNED_NPM_CLI` are
 absolute-path test and operator injection points; no credentials are written by
 the launcher.
