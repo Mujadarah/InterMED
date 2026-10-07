@@ -1,49 +1,65 @@
 
  RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3-sites
 
- Γ¥» tests/appwrite-sites-install.test.ts (2 tests | 1 failed) 8ms
+ Γ¥» tests/appwrite-sites-install.test.ts (3 tests | 2 failed) 8ms
      ├ù resolves concrete site settings correctly in development 5ms
- Γ¥» tests/appwrite-config-permissions.test.ts (32 tests | 1 failed) 11ms
-     ├ù documents SPA fallback and monorepo build settings on the site 4ms
+     ├ù proves host runtime images cannot satisfy exact engines without wrapper and verifies pinned toolchain wrapper 1ms
+ Γ¥» tests/appwrite-config-permissions.test.ts (32 tests | 1 failed) 10ms
+     ├ù documents SPA fallback and monorepo build settings on the site 3ms
 
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
 
  FAIL  tests/appwrite-config-permissions.test.ts > Appwrite development configuration as code > documents SPA fallback and monorepo build settings on the site
-AssertionError: development: expected 'apps/web' to be '../..' // Object.is equality
+AssertionError: development: expected 'npm ci --no-fund' to be 'npx --yes --package=node@24.21.0 --paΓÇª' // Object.is equality
 
-Expected: "../.."
-Received: "apps/web"
+Expected: "npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund""
+Received: "npm ci --no-fund"
 
- Γ¥» tests/appwrite-config-permissions.test.ts:214:34
-    212|         expect(site.$id, label).toBe('intermed-web-dev');
+ Γ¥» tests/appwrite-config-permissions.test.ts:215:44
     213|         expect(site.name, label).toBe('InterMED web (development)');
     214|         expect(site.path, label).toBe('../..');
-       |                                  ^
-    215|         expect(site.installCommand, label).toBe('npm ci --no-fund');
-    216|         expect(site.buildCommand, label).toBe(
+    215|         expect(site.installCommand, label).toBe(
+       |                                            ^
+    216|           'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --caΓÇª
+    217|         );
 
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
 
  FAIL  tests/appwrite-sites-install.test.ts > Sites configuration and install commands > resolves concrete site settings correctly in development
-AssertionError: expected 'apps/web' to be '../..' // Object.is equality
+AssertionError: expected 'npm ci --no-fund' to be 'npx --yes --package=node@24.21.0 --paΓÇª' // Object.is equality
 
-Expected: "../.."
-Received: "apps/web"
+Expected: "npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund""
+Received: "npm ci --no-fund"
 
- Γ¥» tests/appwrite-sites-install.test.ts:77:33
-     75|           expect(resource.$id).toBe('intermed-web-dev');
-     76|           expect(resource.name).toBe('InterMED web (development)');
-     77|           expect(resource.path).toBe('../..');
-       |                                 ^
-     78|           expect(workingDir).toBe(repositoryRoot);
-     79|           expect(resource.installCommand).toBe('npm ci --no-fund');
+ Γ¥» tests/appwrite-sites-install.test.ts:80:43
+     78|           expect(resource.path).toBe('../..');
+     79|           expect(workingDir).toBe(repositoryRoot);
+     80|           expect(resource.installCommand).toBe(
+       |                                           ^
+     81|             'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --ΓÇª
+     82|           );
 
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
+
+ FAIL  tests/appwrite-sites-install.test.ts > Sites configuration and install commands > proves host runtime images cannot satisfy exact engines without wrapper and verifies pinned toolchain wrapper
+AssertionError: expected 'npm ci --no-fund' to be 'npx --yes --package=node@24.21.0 --paΓÇª' // Object.is equality
+
+Expected: "npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund""
+Received: "npm ci --no-fund"
+
+ Γ¥» tests/appwrite-sites-install.test.ts:157:37
+    155|       'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "ΓÇª
+    156|
+    157|     expect(devSite?.installCommand).toBe(expectedInstallCommand);
+       |                                     ^
+    158|     expect(devSite?.buildCommand).toBe(expectedBuildCommand);
+    159|     expect(devSite?.buildRuntime).toBe('node-22');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
 
 
  Test Files  2 failed (2)
-      Tests  2 failed | 32 passed (34)
-   Start at  11:52:05
-   Duration  191ms (transform 41ms, setup 0ms, import 79ms, tests 19ms, environment 0ms)
-
+      Tests  3 failed | 32 passed (35)
+   Start at  12:08:56
+   Duration  152ms (transform 38ms, setup 0ms, import 62ms, tests 17ms, environment 0ms)
 

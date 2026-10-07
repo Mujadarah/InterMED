@@ -212,9 +212,11 @@ describe.each([
         expect(site.$id, label).toBe('intermed-web-dev');
         expect(site.name, label).toBe('InterMED web (development)');
         expect(site.path, label).toBe('../..');
-        expect(site.installCommand, label).toBe('npm ci --no-fund');
+        expect(site.installCommand, label).toBe(
+          'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"',
+        );
         expect(site.buildCommand, label).toBe(
-          'npm run build --workspace @intermed/web',
+          'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"',
         );
         expect(site.outputDirectory, label).toBe('./apps/web/dist');
       } else {

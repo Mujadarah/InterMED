@@ -1,0 +1,7 @@
+npm error code EBADENGINE
+npm error engine Unsupported engine
+npm error engine Not compatible with your version of node/npm: intermed@0.0.0
+npm error notsup Not compatible with your version of node/npm: intermed@0.0.0
+npm error notsup Required: {"node":"24.21.0","npm":"11.19.0"}
+npm error notsup Actual:   {"node":"v25.6.1","npm":"11.9.0"}
+npm error A complete log of this run can be found in: C:\Users\rabia\AppData\Local\npm-cache\_logs\2026-10-07T09_09_02_695Z-debug-0.log

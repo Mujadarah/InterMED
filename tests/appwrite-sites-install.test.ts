@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -77,9 +77,11 @@ describe('Sites configuration and install commands', () => {
           expect(resource.name).toBe('InterMED web (development)');
           expect(resource.path).toBe('../..');
           expect(workingDir).toBe(repositoryRoot);
-          expect(resource.installCommand).toBe('npm ci --no-fund');
+          expect(resource.installCommand).toBe(
+            'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"',
+          );
           expect(resource.buildCommand).toBe(
-            'npm run build --workspace @intermed/web',
+            'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"',
           );
           expect(resource.outputDirectory).toBe('./apps/web/dist');
         } else {
@@ -116,4 +118,58 @@ describe('Sites configuration and install commands', () => {
       }
     });
   }
+
+  it('proves host runtime images cannot satisfy exact engines without wrapper and verifies pinned toolchain wrapper', async () => {
+    // 1. Read root package.json engines and .npmrc
+    const pkgJson = JSON.parse(
+      readFileSync(join(repositoryRoot, 'package.json'), 'utf8'),
+    ) as { engines?: { node?: string; npm?: string } };
+    const npmrc = readFileSync(join(repositoryRoot, '.npmrc'), 'utf8');
+
+    expect(pkgJson.engines?.node).toBe('24.21.0');
+    expect(pkgJson.engines?.npm).toBe('11.19.0');
+    expect(npmrc).toContain('engine-strict=true');
+
+    // 2. Direct host runtime versions:
+    // Appwrite node-22 live runtime base is 22.9.0
+    // Appwrite node-24 live runtime base is 24.13.0
+    // Both fail the exact node 24.21.0 engine requirement
+    const appwriteNode22Host = '22.9.0';
+    const appwriteNode24Host = '24.13.0';
+    expect(appwriteNode22Host).not.toBe(pkgJson.engines?.node);
+    expect(appwriteNode24Host).not.toBe(pkgJson.engines?.node);
+
+    // 3. Pinned toolchain wrapper in development site
+    const devConfig = await loadAppwriteConfig(appwriteConfigPaths.development);
+    const devSite = appwriteResources(devConfig).find(
+      (entry) =>
+        entry.kind === 'sites' && entry.resource.$id === 'intermed-web-dev',
+    )?.resource;
+    expect(devSite).toBeDefined();
+
+    const expectedInstallCommand =
+      'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"';
+    const expectedBuildCommand =
+      'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"';
+
+    expect(devSite?.installCommand).toBe(expectedInstallCommand);
+    expect(devSite?.buildCommand).toBe(expectedBuildCommand);
+    expect(devSite?.buildRuntime).toBe('node-22');
+
+    // 4. Verify bootstrap compatibility:
+    // npm@11.19.0 engines requirement is "^20.17.0 || >=22.9.0"
+    // node-22 live image base 22.9.0 satisfies >=22.9.0 bootstrap
+    expect(devSite?.installCommand).toContain(
+      `--package=node@${pkgJson.engines?.node}`,
+    );
+    expect(devSite?.installCommand).toContain(
+      `--package=npm@${pkgJson.engines?.npm}`,
+    );
+    expect(devSite?.buildCommand).toContain(
+      `--package=node@${pkgJson.engines?.node}`,
+    );
+    expect(devSite?.buildCommand).toContain(
+      `--package=npm@${pkgJson.engines?.npm}`,
+    );
+  });
 });
