@@ -656,3 +656,19 @@ $ npx vitest run packages/local-store
 
 [exit code: 0]
 
+---
+
+## G8 - startup write failures report a state and the open stays retryable (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  5 passed (5)
+      Tests  57 passed (57)
+   Start at  19:19:07
+   Duration  622ms (transform 302ms, setup 0ms, import 657ms, tests 1.17s, environment 0ms)
+
+[exit code: 0]
+

@@ -458,3 +458,85 @@ AssertionError: expected [ { …(5) } ] to deeply equal []
 
 [exit code: 1]
 
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  11 passed | 16 skipped (27)
+      Tests  31 passed | 330 skipped (361)
+   Start at  19:08:13
+   Duration  1.52s (transform 2.19s, setup 0ms, import 4.95s, tests 372ms, environment 2.97s)
+
+[exit code: 0]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 67ms
+   × reports a failed startup write and lets a later open retry 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports a failed startup write and lets a later open retry
+TypeError: Cannot read properties of undefined (reading 'prototype')
+ ❯ packages/local-store/src/migrations.test.ts:207:27
+    205| it('reports a failed startup write and lets a later open retry', async…
+    206|   const name = uniqueName();
+    207|   const put = Dexie.Table.prototype.put;
+       |                           ^
+    208|   const quota = Object.assign(new Error('Synthetic quota'), {
+    209|     name: 'QuotaExceededError',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed | 16 skipped (27)
+      Tests  1 failed | 31 passed | 330 skipped (362)
+   Start at  19:09:25
+   Duration  1.43s (transform 2.48s, setup 0ms, import 5.06s, tests 356ms, environment 2.80s)
+
+[exit code: 1]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 65ms
+   × reports a failed startup write and lets a later open retry 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports a failed startup write and lets a later open retry
+QuotaExceededError: Synthetic quota
+ ❯ packages/local-store/src/migrations.test.ts:207:31
+    205| it('reports a failed startup write and lets a later open retry', async…
+    206|   const name = uniqueName();
+    207|   const quota = Object.assign(new Error('Synthetic quota'), {
+       |                               ^
+    208|     name: 'QuotaExceededError',
+    209|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed | 16 skipped (27)
+      Tests  1 failed | 31 passed | 330 skipped (362)
+   Start at  19:15:46
+   Duration  1.48s (transform 2.34s, setup 0ms, import 5.01s, tests 350ms, environment 2.84s)
+
+[exit code: 1]
+

@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
+import Dexie from 'dexie';
 import { readOnDiskSchema } from './introspect';
 import { attachConnectionLifecycle } from './lifecycle';
 import { openSchemaUpgradeProbe } from './probe';
@@ -199,4 +200,33 @@ it('requests persistent storage as best effort and survives its denial', async (
   } finally {
     vi.unstubAllGlobals();
   }
+});
+
+it('reports a failed startup write and lets a later open retry', async () => {
+  const name = uniqueName();
+  const quota = Object.assign(new Error('Synthetic quota'), {
+    name: 'QuotaExceededError',
+  });
+  // The first transaction of an open is the startup meta write.
+  const spy = vi
+    .spyOn(Dexie.prototype, 'transaction')
+    .mockImplementation((() => {
+      throw quota;
+    }) as unknown as typeof Dexie.prototype.transaction);
+  const store = testStore({ name });
+  try {
+    await store.open();
+    expect(store.getState()).toMatchObject({
+      status: 'storage-quota',
+      generation: null,
+    });
+    expect(await store.openReader()).toBeNull();
+  } finally {
+    spy.mockRestore();
+  }
+
+  // The failed open is not cached as a rejected promise: a later open runs
+  // again and succeeds.
+  await store.open();
+  expect(store.getState()).toMatchObject({ status: 'never-downloaded' });
 });

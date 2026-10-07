@@ -387,22 +387,35 @@ export function createLocalDatasetStore(
       now,
       owner,
     });
-    await ensureMetaRecord();
     unsubscribe ??= events.subscribe(() => {
       // Any cross-tab change - an activation or a completed clear - is applied
       // at a safe boundary by re-reading the persisted state.
       void refresh();
     });
-    // A crash can leave a half-written staging generation; the next open that
-    // can take the writer lease removes it before anything else.
-    await runMaintenanceTask(
-      { kind: 'generation-gc' },
-      cleanupIncompleteStaging,
-    );
-    // A crash may have interrupted the post-commit reconciliation of the
-    // active generation: the marker in meta names the one it finished for.
-    await catchUpReconciliation();
-    return refresh();
+    try {
+      await ensureMetaRecord();
+      // A crash can leave a half-written staging generation; the next open
+      // that can take the writer lease removes it before anything else.
+      await runMaintenanceTask(
+        { kind: 'generation-gc' },
+        cleanupIncompleteStaging,
+      );
+      // A crash may have interrupted the post-commit reconciliation of the
+      // active generation: the marker in meta names the one it finished for.
+      await catchUpReconciliation();
+      return await refresh();
+    } catch (error) {
+      // The connection cannot be used: close it, report why, and leave the
+      // open retryable instead of caching a rejected promise (Greptile G8).
+      database = null;
+      db.close();
+      opening = null;
+      return setState(
+        isQuotaError(error)
+          ? { status: 'storage-quota', generation: null }
+          : { status: 'storage-restricted' },
+      );
+    }
   }
 
   const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
