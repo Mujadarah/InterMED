@@ -38,7 +38,41 @@ function productionShellCsp(): Plugin {
   };
 }
 
+/**
+ * Test-only local-store harness entry.
+ *
+ * The harness script is added to the HTML only when the build runs with
+ * `INTERMED_LOCAL_STORE_HARNESS=1`, so production builds cannot contain it.
+ * Playwright builds a dedicated fixture with that flag; `npm run build` never
+ * sets it.
+ */
+function localStoreHarness(): Plugin {
+  const enabled = process.env['INTERMED_LOCAL_STORE_HARNESS'] === '1';
+  return {
+    name: 'intermed-local-store-harness',
+    enforce: 'pre',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: () =>
+        enabled
+          ? [
+              {
+                tag: 'script',
+                attrs: {
+                  type: 'module',
+                  src: '/src/dev/local-store-harness.ts',
+                },
+                injectTo: 'head-prepend',
+              },
+            ]
+          : [],
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   parseConfig(loadEnv(mode, process.cwd(), 'VITE_'));
-  return { plugins: [react(), shellBuild(), productionShellCsp()] };
+  return {
+    plugins: [react(), shellBuild(), productionShellCsp(), localStoreHarness()],
+  };
 });

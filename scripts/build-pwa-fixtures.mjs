@@ -3,9 +3,10 @@ import { resolve } from 'node:path';
 
 // Real Vite builds A/B for updates, plus C for retention/consent regressions.
 // Metadata differs by release; lifecycle tests use the emitted workers.
+// A fourth build adds the test-only local-store harness; it is never shipped.
 /** Build independent public A/B/C HTML, JavaScript and worker releases; fail setup on build errors. */
 export default function buildPwaFixtures() {
-  for (const revision of ['a', 'b', 'c']) {
+  for (const revision of ['a', 'b', 'c', 'harness']) {
     const result = spawnSync(
       process.execPath,
       [
@@ -16,7 +17,13 @@ export default function buildPwaFixtures() {
       ],
       {
         cwd: resolve('apps/web'),
-        env: { ...process.env, INTERMED_SHELL_REVISION: revision },
+        env: {
+          ...process.env,
+          INTERMED_SHELL_REVISION: revision,
+          ...(revision === 'harness'
+            ? { INTERMED_LOCAL_STORE_HARNESS: '1' }
+            : {}),
+        },
         encoding: 'utf8',
       },
     );
