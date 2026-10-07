@@ -1,0 +1,10 @@
+Command: node.exe ./node_modules/vitest/vitest.mjs run tests/web-vite-config.test.ts
+Node: v24.21.0
+Exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ✓ tests/web-vite-config.test.ts (2 tests)
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
