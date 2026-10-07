@@ -28,9 +28,13 @@ Research source: orchestration `research.log` (help-only probes against
 
 Query JSON wire key remains **`attribute`** (SDK + CLI binary + Utopia parser).
 REST docs that show `"column"` are documentation drift; the adapter’s
-`attribute` shape is correct per research. A separate research note about
-`PublishedDatasetManifest.checksum` vs `catalogueFingerprint` is
-**UNCONFIRMED** as a product bug until verified — not asserted here.
+`attribute` shape is correct per research. The root checked the `PublishedDatasetManifest` contract in
+`packages/domain/src/published-dataset.ts`. The manifest and descriptor
+`checksum` values must match the actual published bundle SHA-256. The internal
+catalogue fingerprint is a separate FNV value used by the domain integrity
+model; it is not a replacement for the bundle SHA-256. The prepared publication
+satisfies this distinction, and the real adapter read returned the published
+manifest and descriptor. The domain contract is unchanged.
 
 ## Executed commands (owner/lead; this worker did not re-run cloud calls)
 
@@ -44,6 +48,8 @@ REST docs that show `"column"` are documentation drift; the adapter’s
 | `npx … storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`                                                                              | exit 0; `total` 0; `buckets` `[]`                                                                                                                                                                  | EXECUTED             |
 | `push`/`pull` buckets and tables with development/scratch config                                                                                                               | exit 0 after corrected `--all`; 4 buckets and 3 tables; declared-definition comparison has zero differences                                                                                        | EXECUTED             |
 | `push`/`pull` function and list variables                                                                                                                                      | exit 0; deployment ready; pull skipped source; variables total 0                                                                                                                                   | EXECUTED             |
+| Owner-approved synthetic publication + adapter metadata read                                                                                                                   | 10 fictional synthetic/guard objects created; manifest and descriptor available; sanitized record in `publication-live.json`                                                                       | PARTIAL              |
+| Development Sites push                                                                                                                                                         | Deployment `6ac61591ec43a84f8084` reported build failure: Node 22.23.2 vs required 24.21.0 (`EBADENGINE`); CLI exit 0                                                                              | FAILED (runtime)     |
 | `npx … functions list-runtimes` (same `--config-file`)                                                                                                                         | exit 0; lists `node-22` and `node-24` as **supported** runtimes (availability only)                                                                                                                | EXECUTED             |
 | Read-only shell `sites_list` (origin project `6ac4b25b0012379cf3d0`)                                                                                                           | site `6ac4b3550003a26eea02`: framework `other`, adapter `static`, `fallbackFile` `index.html`, `buildRuntime` `node-22`, empty install/build, output `./`, deployment `6ac4e58c6e620fd5dd84` ready | EXECUTED (read-only) |
 | Public HTTP probes of `https://intermed-shell-test.appwrite.network`                                                                                                           | see `site-probes/`; every path HTTP 200, TLS verify OK                                                                                                                                             | EXECUTED             |
@@ -51,13 +57,12 @@ REST docs that show `"column"` are documentation drift; the adapter’s
 
 ## Explicitly pending (NOT RUN)
 
-- Dataset publishing / synthetic row or file creation
-- Anonymous write probes and non-empty backend reads
-- Per-row/file permission matrix (runbook §5)
+- Corrected anonymous write probes and non-empty backend reads
+- Per-row/file permission matrix and cleanup (runbook §5)
 - Production project creation, billing/paid capacity changes
 - Backup/restore drill
 - Changing or redeploying shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02`
-- New development Sites deployment (local preparation only; no approval/deploy yet)
+- Successful new development Sites deployment with the pinned Node 24.21.0 runtime
 
 ## Rejected preflight findings (do not change code)
 

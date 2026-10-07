@@ -1,0 +1,21 @@
+{
+  "checksum": "sha256:guard",
+  "clinicalReviewReference": "guard",
+  "coverage": "Synthetic disposable guard only.",
+  "dataset": "synthetic-live-acceptance-guard",
+  "importedAt": "2026-10-07T09:53:59.731+00:00",
+  "minimumClientVersion": "0.0.0",
+  "recordCounts": "{}",
+  "rightsApprovalReference": "guard",
+  "schemaVersion": "medication-catalogue-1",
+  "sourceIds": ["guard-source"],
+  "status": "staging",
+  "version": "guard-0",
+  "$id": "guard-version",
+  "$permissions": ["read(\"any\")", "update(\"any\")", "delete(\"any\")"],
+  "$createdAt": "2026-10-07T09:54:57.509+00:00",
+  "$updatedAt": "2026-10-07T09:54:57.509+00:00",
+  "$sequence": "1",
+  "$databaseId": "intermed-datasets",
+  "$tableId": "dataset-versions"
+}

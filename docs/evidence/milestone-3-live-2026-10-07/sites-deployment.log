@@ -1,0 +1,10 @@
+deploymentId=6ac61591ec43a84f8084
+siteId=intermed-web-dev
+result=FAILED
+cliExitCode=0
+reportedError=Build failed with exit code 1
+observedNode=v22.23.2
+requiredNode=v24.21.0
+observedNpm=11.19.0
+failure=EBADENGINE during npm ci
+claim=No successful development Sites deployment

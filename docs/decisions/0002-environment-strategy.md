@@ -4,7 +4,9 @@
   project **`intermed-dev` provisioned** on 2026-10-07 (Frankfurt). Production
   project **not** created; capacity deferred. Development buckets, tables, and
   the Milestone 3 function stub were pushed and read back on 2026-10-07;
-  publication, production, and Sites deployment remain out of scope.
+  one fictional synthetic generation was published and read back by the
+  adapter; permission retries, successful Sites deployment, and production
+  remain out of scope.
 - **Scope:** Milestone 3 (requirements R11, R12, R13, R16, R125, R127). Defines
   development/production isolation, secret handling and the future
   deployment/rollback pipeline.
@@ -92,9 +94,11 @@ than sharing or falling back to that shell project.
 
 ## Consequences
 
-- Development project contains only the approved synthetic resource definitions
-  and the Milestone 3 function stub. No dataset rows/files were published and
-  no production resource was changed ([runbook](../APPWRITE_RUNBOOK.md)).
+- Development project contains the approved synthetic resource definitions, the
+  Milestone 3 function stub, one fictional published generation, and disposable
+  guard fixtures. The initial permission matrix was inconclusive; no clinical
+  approval is implied, and no production resource was changed
+  ([runbook](../APPWRITE_RUNBOOK.md)).
 - Production remains unprovisioned until capacity is decided and approved; both
   environments must still be monitored once both exist.
 - The duplicated resource arrays in the two files are deliberate. A drift check
