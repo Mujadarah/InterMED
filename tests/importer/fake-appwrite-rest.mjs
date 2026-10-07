@@ -91,9 +91,16 @@ export const FAKE_TABLES = {
       array: false,
     },
     {
+      key: 'datasetVersionId',
+      type: 'varchar',
+      size: 512,
+      required: false,
+      array: false,
+    },
+    {
       key: 'previousVersionId',
       type: 'varchar',
-      size: 64,
+      size: 512,
       required: false,
       array: false,
     },
@@ -110,7 +117,7 @@ export const FAKE_TABLES = {
     {
       key: 'datasetVersionId',
       type: 'varchar',
-      size: 64,
+      size: 512,
       required: true,
       array: false,
     },

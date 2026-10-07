@@ -1,22 +1,15 @@
 /**
- * Writer-to-reader public identity contract (RED: pending the core
- * public-identity repair and the bridge adaptation).
+ * Writer-to-reader public identity contract.
  *
- * One first-generation flow runs the REAL handler stage + publication against
- * the stateful fake of the real Appwrite REST surface (constrained to real row
- * id and column limits), then the REAL Appwrite published reader reads that
- * state back and the published bundle is checked with the REAL domain
- * deserializer and integrity checker. Nothing is mocked and no reader
- * projection is re-implemented: the reader's `datasetVersionId` is exactly the
- * manifest row `$id`, as an M3 consumer derives it.
+ * One first-generation and one second-generation flow run the REAL handler
+ * stage + publication against the stateful fake of the real Appwrite REST surface
+ * (constrained to real row id and column limits), then the REAL Appwrite published
+ * reader reads that state back and the published bundle is checked with the REAL
+ * domain deserializer and integrity checker. Nothing is mocked and no reader
+ * projection is re-implemented.
  *
- * The contract asserted here: the manifest row `$id` that the reader hands out
- * is the same public identity as the embedded `DatasetVersion.id` and every
- * provenance `datasetVersionId` inside the published bundle, and that identity
- * is a valid Appwrite row id (<= 36 chars, `[A-Za-z0-9._-]`). The current
- * bridge derives its own hashed row id while the sealed bundle keeps the
- * composite domain id, so these assertions fail until the repaired core hands
- * over one canonical public identity that the bridge uses directly.
+ * The canonical DatasetVersionId requires U+001F and remains in bundle/provenance/public
+ * fields, while physical Appwrite $id must be safe <= 36 chars.
  */
 import {
   createAppwritePublishedDatasetReader,
@@ -47,7 +40,7 @@ import {
   TRUSTED_RUNTIME,
   type IntentDocument,
 } from './handler-fixtures';
-import { bytesToText } from './fake-appwrite-rest.mjs';
+import { bytesToText, utf8Bytes } from './fake-appwrite-rest.mjs';
 import {
   BUCKETS,
   DATABASE_ID,
@@ -65,6 +58,7 @@ const PRESERVED_TOKEN_NOTES = new Set(['invalid-unit', 'ambiguous-decimal']);
 type Harness = ReturnType<typeof createHarness>;
 
 interface ReviewBinding {
+  stageOperationId: string;
   candidateVersionId: string;
   candidateSha256: string;
   rawSnapshotSha256: string;
@@ -72,42 +66,63 @@ interface ReviewBinding {
   baselineFingerprint: string | null;
 }
 
-function seedStageIntent(harness: Harness, bytes: Uint8Array): void {
-  harness.seedFile('raw-sources', RAW_FILE_ID, 'raw-snapshot.json', bytes);
+function seedStageIntent(
+  harness: Harness,
+  bytes: Uint8Array,
+  operationId: string = STAGE_OPERATION,
+  rawFileId: string = RAW_FILE_ID,
+): void {
+  harness.seedFile('raw-sources', rawFileId, 'raw-snapshot.json', bytes);
   harness.seedFile(
     'import-run-logs',
-    intentFileId(STAGE_OPERATION),
-    intentFileName(STAGE_OPERATION),
+    intentFileId(operationId),
+    intentFileName(operationId),
     JSON.stringify(
-      stageIntentDocument(STAGE_OPERATION, {
+      stageIntentDocument(operationId, {
+        rawSnapshotFileId: rawFileId,
         rawSnapshotSha256: sha256Hex(bytes),
       }),
     ),
   );
 }
 
-function writtenReview(harness: Harness): ReviewBinding {
+function writtenReview(harness: Harness, stageOpId?: string): ReviewBinding {
   for (const stored of harness.rest.files.get('import-run-logs')?.values() ??
     []) {
     if (stored.name.startsWith('stage-review-v1.')) {
-      return JSON.parse(bytesToText(stored.bytes)) as ReviewBinding;
+      const parsed = JSON.parse(bytesToText(stored.bytes)) as ReviewBinding;
+      if (!stageOpId || parsed.stageOperationId === stageOpId) {
+        return parsed;
+      }
     }
   }
   throw new Error('staging wrote no private review');
 }
 
-function seedPublishIntent(harness: Harness, review: ReviewBinding): void {
-  const intent: IntentDocument = publishIntentDocument(PUBLISH_OPERATION, {
-    candidateVersionId: review.candidateVersionId,
-    candidateSha256: review.candidateSha256,
-    rawSnapshotSha256: review.rawSnapshotSha256,
-    baselineVersionId: review.baselineVersionId,
-    baselineFingerprint: review.baselineFingerprint,
-  });
+function seedPublishIntent(
+  harness: Harness,
+  review: ReviewBinding,
+  operationId: string = PUBLISH_OPERATION,
+  overrides: Record<string, unknown> = {},
+): void {
+  const intent: IntentDocument = publishIntentDocument(
+    operationId,
+    {
+      candidateVersionId: review.candidateVersionId,
+      candidateSha256: review.candidateSha256,
+      rawSnapshotSha256: review.rawSnapshotSha256,
+      baselineVersionId: review.baselineVersionId,
+      baselineFingerprint: review.baselineFingerprint,
+    },
+    {
+      stageOperationId: review.stageOperationId,
+      ...overrides,
+    },
+  );
   harness.seedFile(
     'import-run-logs',
-    intentFileId(PUBLISH_OPERATION),
-    intentFileName(PUBLISH_OPERATION),
+    intentFileId(operationId),
+    intentFileName(operationId),
     JSON.stringify(intent),
   );
 }
@@ -115,11 +130,15 @@ function seedPublishIntent(harness: Harness, review: ReviewBinding): void {
 /** Stage and publish one generation through the real handler entrypoint. */
 async function publishFirstGeneration(harness: Harness): Promise<void> {
   const bytes = snapshotBytes();
-  seedStageIntent(harness, bytes);
+  seedStageIntent(harness, bytes, STAGE_OPERATION);
   const staged = await harness.call({ bodyJson: envelope(STAGE_OPERATION) });
   expect(staged.status).toBe(200);
   expect(staged.body.code).toBe('staged');
-  seedPublishIntent(harness, writtenReview(harness));
+  seedPublishIntent(
+    harness,
+    writtenReview(harness, STAGE_OPERATION),
+    PUBLISH_OPERATION,
+  );
   const published = await harness.call({
     bodyJson: envelope(PUBLISH_OPERATION),
   });
@@ -196,48 +215,149 @@ function provenanceVersionIds(snapshot: MedicationCatalogueSnapshot): string[] {
 }
 
 describe('writer-to-reader public identity (handler -> REST -> M3 reader)', () => {
-  it('keeps one public identity from the manifest row id to the embedded catalogue', async () => {
+  it('keeps canonical public identity across first and second generation publication, REST storage, and reader verification', async () => {
     const harness = createHarness({ publishEnabled: true });
     try {
+      // 1. First generation: stage and publish
       await publishFirstGeneration(harness);
-      const generation = await readPublishedGeneration(harness);
-      const { manifest, descriptor, bytes, snapshot } = generation;
-      const embeddedVersionId = snapshot.datasetVersions[0]?.id ?? null;
+      const gen1 = await readPublishedGeneration(harness);
+      const embeddedVersionId1 = gen1.snapshot.datasetVersions[0]?.id ?? null;
 
-      // Real transport integrity: the reader's manifest and descriptor agree
-      // with the actual published bytes.
-      expect(manifest.checksum).toBe(descriptor.checksum);
-      expect(manifest.checksum).toBe(`sha256:${sha256Hex(bytes)}`);
-      expect(descriptor.byteSize).toBe(bytes.length);
+      // Transport integrity: reader manifest and descriptor agree with actual published bytes
+      expect(gen1.manifest.checksum).toBe(gen1.descriptor.checksum);
+      expect(gen1.manifest.checksum).toBe(`sha256:${sha256Hex(gen1.bytes)}`);
+      expect(gen1.descriptor.byteSize).toBe(gen1.bytes.length);
 
-      // Real domain integrity of the published bundle.
-      const structural = validateReferentialIntegrity(snapshot).filter(
+      // Domain integrity
+      const structural1 = validateReferentialIntegrity(gen1.snapshot).filter(
         (issue) => !PRESERVED_TOKEN_NOTES.has(issue.code),
       );
-      expect(structural).toEqual([]);
+      expect(structural1).toEqual([]);
 
-      // THE CONTRACT: one public identity everywhere, Appwrite-safe.
-      expect(manifest.datasetVersionId).toMatch(APPWRITE_ID);
-      expect
-        .soft(
-          embeddedVersionId,
-          'the embedded DatasetVersion.id must be the manifest row $id',
-        )
-        .toBe(manifest.datasetVersionId);
-      expect
-        .soft(
-          embeddedVersionId,
-          'the embedded DatasetVersion.id must itself be a valid Appwrite row id',
-        )
-        .toMatch(APPWRITE_ID);
-      for (const id of provenanceVersionIds(snapshot)) {
-        expect
-          .soft(
-            id,
-            'every provenance datasetVersionId must be the manifest row $id',
-          )
-          .toBe(manifest.datasetVersionId);
+      // PHYSICAL row $id constraints: safe <= 36 characters
+      const manifestRows1 = [
+        ...(harness.rest.rows.get(TABLES.publishedVersions)?.entries() ?? []),
+      ];
+      expect(manifestRows1.length).toBe(1);
+      const [manifestRowId1, storedManifest1] = manifestRows1[0]!;
+      expect(manifestRowId1).toMatch(APPWRITE_ID);
+      expect(storedManifest1.datasetVersionId).toBe(
+        gen1.manifest.datasetVersionId,
+      );
+
+      const bundleRows1 = [
+        ...(harness.rest.rows.get(TABLES.publishedBundles)?.entries() ?? []),
+      ];
+      expect(bundleRows1.length).toBe(1);
+      const [bundleRowId1, storedBundle1] = bundleRows1[0]!;
+      expect(bundleRowId1).toMatch(APPWRITE_ID);
+      expect(gen1.descriptor.id).toBe(bundleRowId1);
+      expect(storedBundle1.datasetVersionId).toBe(
+        gen1.descriptor.datasetVersionId,
+      );
+
+      // CANONICAL domain identity: contains \u001f delimiter and matches across all entities
+      expect(gen1.manifest.datasetVersionId).toContain('\u001f');
+      expect(embeddedVersionId1).toBe(gen1.manifest.datasetVersionId);
+      expect(gen1.descriptor.datasetVersionId).toBe(
+        gen1.manifest.datasetVersionId,
+      );
+      for (const id of provenanceVersionIds(gen1.snapshot)) {
+        expect(id).toBe(gen1.manifest.datasetVersionId);
       }
+      expect(gen1.manifest.previousVersionId).toBeNull();
+      expect(gen1.snapshot.datasetVersions[0]?.previousVersionId.status).toBe(
+        'missing',
+      );
+
+      // 2. Second generation: explicit previousVersionKey from prior manifest.version
+      const STAGE_OP_2 = 'op-stage-0002';
+      const PUBLISH_OP_2 = 'op-publish-0002';
+      const RAW_FILE_ID_2 = 'raw-src-0002';
+
+      const doc2 = JSON.parse(bytesToText(snapshotBytes())) as Record<
+        string,
+        unknown
+      >;
+      const products2 = doc2.products as Record<string, unknown>[];
+      (products2[0] as Record<string, unknown>).commercialName =
+        'Placebex Renamed';
+      const versionDoc2 = doc2.datasetVersion as Record<string, unknown>;
+      versionDoc2.version = 'synthetic-2';
+      versionDoc2.previousVersionKey = {
+        status: 'present',
+        value: gen1.manifest.version,
+      };
+      const rawBytes2 = utf8Bytes(JSON.stringify(doc2));
+
+      seedStageIntent(harness, rawBytes2, STAGE_OP_2, RAW_FILE_ID_2);
+      const staged2 = await harness.call({ bodyJson: envelope(STAGE_OP_2) });
+      expect(staged2.status).toBe(200);
+      expect(staged2.body.code).toBe('staged');
+
+      const review2 = writtenReview(harness, STAGE_OP_2);
+      expect(review2.baselineVersionId).toBe(gen1.manifest.datasetVersionId);
+      expect(review2.baselineFingerprint).toBe(gen1.manifest.checksum);
+
+      seedPublishIntent(harness, review2, PUBLISH_OP_2, {
+        approvedAt: '2026-10-07T11:00:00Z',
+      });
+      const published2 = await harness.call({
+        bodyJson: envelope(PUBLISH_OP_2),
+      });
+      expect(published2.status).toBe(200);
+      expect(published2.body.code).toBe('published');
+
+      // Read back second generation via reader
+      const gen2 = await readPublishedGeneration(harness);
+      expect(gen2.manifest.datasetVersionId).toContain('\u001f');
+      expect(gen2.manifest.datasetVersionId).not.toBe(
+        gen1.manifest.datasetVersionId,
+      );
+      expect(gen2.manifest.previousVersionId).toBe(
+        gen1.manifest.datasetVersionId,
+      );
+      expect(gen2.descriptor.datasetVersionId).toBe(
+        gen2.manifest.datasetVersionId,
+      );
+
+      const embeddedVersionId2 = gen2.snapshot.datasetVersions[0]?.id ?? null;
+      expect(embeddedVersionId2).toBe(gen2.manifest.datasetVersionId);
+      const embeddedPrev2 = gen2.snapshot.datasetVersions[0]?.previousVersionId;
+      expect(embeddedPrev2?.status).toBe('present');
+      expect((embeddedPrev2 as { value: string }).value).toBe(
+        gen1.manifest.datasetVersionId,
+      );
+
+      for (const id of provenanceVersionIds(gen2.snapshot)) {
+        expect(id).toBe(gen2.manifest.datasetVersionId);
+      }
+
+      // 3. Advancing clock retry: same private intent with pinned approvedAt
+      const retryPublish = await harness.call({
+        bodyJson: envelope(PUBLISH_OP_2),
+      });
+      expect(retryPublish.status).toBe(200);
+      expect(retryPublish.body.code).toBe('already-published');
+      // No duplicate rows or files
+      expect(harness.rest.rows.get(TABLES.publishedVersions)?.size).toBe(2);
+      expect(harness.rest.rows.get(TABLES.publishedBundles)?.size).toBe(2);
+
+      // 4. Active = self restage: zero duplicates, candidate bytes unchanged
+      const restaged = await harness.call({ bodyJson: envelope(STAGE_OP_2) });
+      expect(restaged.status).toBe(200);
+      expect(restaged.body.code).toBe('staged');
+
+      // 5. Tampered baseline: rejected with 403
+      const PUBLISH_OP_TAMPER = 'op-publish-tamper';
+      seedPublishIntent(harness, review2, PUBLISH_OP_TAMPER, {
+        baselineVersionId: 'dv\u001fsource.synthetic\u001ffabricated',
+      });
+      const tampered = await harness.call({
+        bodyJson: envelope(PUBLISH_OP_TAMPER),
+      });
+      expect(tampered.status).toBe(403);
+      expect(tampered.body.code).toBe('operation-rejected');
     } finally {
       harness.dispose();
     }

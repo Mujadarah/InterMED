@@ -215,16 +215,16 @@ function buildRunRow(options) {
   return row;
 }
 
-function buildDescriptorRow(publicId, descriptor, fileId) {
+function buildDescriptorRow(descriptor, fileId) {
   const row = {
-    datasetVersionId: publicId,
+    datasetVersionId: descriptor.datasetVersionId,
     fileId,
     fileName: descriptor.fileName,
     contentType: descriptor.contentType,
     byteSize: descriptor.byteSize,
     checksum: descriptor.checksum,
   };
-  assertText(row.datasetVersionId, 64, 'datasetVersionId');
+  assertText(row.datasetVersionId, 512, 'datasetVersionId');
   assertText(row.fileId, 64, 'fileId');
   assertText(row.fileName, 255, 'fileName');
   assertText(row.contentType, 100, 'contentType');
@@ -253,6 +253,12 @@ function buildManifestRow(manifest) {
     clinicalReviewReference: manifest.clinicalReviewReference,
     status: 'published',
   };
+  if (
+    manifest.datasetVersionId !== null &&
+    manifest.datasetVersionId !== undefined
+  ) {
+    row.datasetVersionId = manifest.datasetVersionId;
+  }
   if (
     manifest.upstreamVersion !== null &&
     manifest.upstreamVersion !== undefined
@@ -285,17 +291,20 @@ function buildManifestRow(manifest) {
   assertText(row.minimumClientVersion, 50, 'minimumClientVersion');
   assertText(row.rightsApprovalReference, 500, 'rightsApprovalReference');
   assertText(row.clinicalReviewReference, 500, 'clinicalReviewReference');
+  if (row.datasetVersionId !== undefined) {
+    assertText(row.datasetVersionId, 512, 'datasetVersionId');
+  }
   if (row.upstreamVersion !== undefined) {
     assertText(row.upstreamVersion, 200, 'upstreamVersion');
   }
   if (row.previousVersionId !== undefined) {
-    assertText(row.previousVersionId, 64, 'previousVersionId');
+    assertText(row.previousVersionId, 512, 'previousVersionId');
   }
   for (const sourceId of row.sourceIds) assertText(sourceId, 100, 'sourceId');
   return row;
 }
 
-function projectManifestRow(row, datasetVersionId) {
+function projectManifestRow(row, fallbackDatasetVersionId) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'manifest row invalid');
   }
@@ -305,6 +314,10 @@ function projectManifestRow(row, datasetVersionId) {
   } catch {
     throw new BridgeError('row-invalid', 'manifest counts invalid');
   }
+  const datasetVersionId =
+    typeof row.datasetVersionId === 'string' && row.datasetVersionId.length > 0
+      ? row.datasetVersionId
+      : (fallbackDatasetVersionId ?? row.$id);
   return {
     dataset: row.dataset,
     datasetVersionId,
@@ -325,10 +338,14 @@ function projectManifestRow(row, datasetVersionId) {
   };
 }
 
-function projectDescriptorRow(row, datasetVersionId, publicBaseUrl) {
+function projectDescriptorRow(row, publicUrl, fallbackDatasetVersionId) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'descriptor row invalid');
   }
+  const datasetVersionId =
+    typeof row.datasetVersionId === 'string' && row.datasetVersionId.length > 0
+      ? row.datasetVersionId
+      : (fallbackDatasetVersionId ?? row.$id);
   return {
     id: row.$id,
     datasetVersionId,
@@ -336,7 +353,7 @@ function projectDescriptorRow(row, datasetVersionId, publicBaseUrl) {
     contentType: row.contentType,
     byteSize: Number(row.byteSize),
     checksum: row.checksum,
-    url: `${publicBaseUrl}/${row.fileName}`,
+    url: publicUrl,
   };
 }
 
@@ -384,6 +401,16 @@ function createSharedPorts(options) {
     } catch (error) {
       if (!isConflict(error)) throw error;
       const existing = await store.getRow(tableId, rowId);
+      if (
+        tableId === TABLES.runs &&
+        existing &&
+        existing.sourceId === data.sourceId &&
+        existing.snapshotVersion === data.snapshotVersion &&
+        existing.importerVersion === data.importerVersion &&
+        existing.completenessStatus === data.completenessStatus
+      ) {
+        return 'reused';
+      }
       if (!rowMatches(existing, data)) {
         throw new BridgeError(
           'private-collision',
@@ -487,11 +514,11 @@ function createSharedPorts(options) {
       };
       return { baselineVersionId: null, baselineFingerprint: null };
     }
-    const publicId = String(newest.$id);
-    const manifest = projectManifestRow(newest, publicId);
+    const manifest = projectManifestRow(newest);
+    const canonicalVersionId = manifest.datasetVersionId;
     const descriptorRows = rowsOf(
       await store.listRows(TABLES.publishedBundles, [
-        queryEqual('datasetVersionId', publicId),
+        queryEqual('datasetVersionId', canonicalVersionId),
         queryLimit(1),
       ]),
     );
@@ -511,11 +538,11 @@ function createSharedPorts(options) {
     }
     verifyBaselineCounts(manifest.recordCounts, decoded.snapshot);
     journal.baseline = {
-      baselineVersionId: publicId,
+      baselineVersionId: canonicalVersionId,
       baselineFingerprint: manifest.checksum,
     };
     return {
-      baselineVersionId: publicId,
+      baselineVersionId: canonicalVersionId,
       baselineFingerprint: manifest.checksum,
       recordCounts: manifest.recordCounts,
       catalogue: decoded.snapshot,
@@ -621,11 +648,12 @@ export function createPublishBridge(options) {
     publicationTimestamp,
   } = options;
   const { journal } = shared;
-  const fileId = bundleFileId(sha256, candidateVersionId);
-  // The core composes descriptor URLs as `${publicBaseUrl}/${fileName}`; the
-  // base carries the real download URL and a fragment marker so the composed
-  // value stays the real resolvable Appwrite URL and a retry compares equal.
-  const publicBaseUrl = `${publicBundleDownloadUrl(fileId)}#`;
+  function resolvePublicUrl(versionId, fileName) {
+    void fileName;
+    const targetFileId = bundleFileId(sha256, versionId);
+    return publicBundleDownloadUrl(targetFileId);
+  }
+  const publicBaseUrl = `${TRUSTED_ENDPOINT}/storage/buckets/${BUCKETS.published}/files`;
   let activeLease = null;
 
   function assertLease(lease) {
@@ -651,6 +679,7 @@ export function createPublishBridge(options) {
     log: shared.filteredLog,
     readBaseline: shared.readBaseline,
     publicationTimestamp,
+    resolvePublicUrl,
     publicBaseUrl,
     async readCandidate(versionId) {
       return downloadOrNull(BUCKETS.logs, candidateFileId(sha256, versionId));
@@ -694,13 +723,17 @@ export function createPublishBridge(options) {
     async readPublishedDescriptor(versionId) {
       const rows = rowsOf(
         await store.listRows(TABLES.publishedBundles, [
-          queryEqual('datasetVersionId', publicationRowId(sha256, versionId)),
+          queryEqual('datasetVersionId', versionId),
           queryLimit(1),
         ]),
       );
       const row = rows[0];
       if (!row) return null;
-      return projectDescriptorRow(row, versionId, publicBaseUrl);
+      return projectDescriptorRow(
+        row,
+        publicBundleDownloadUrl(row.fileId),
+        versionId,
+      );
     },
     async readPublishedManifest(versionId) {
       let row = null;
@@ -753,7 +786,6 @@ export function createPublishBridge(options) {
     async writeDescriptorRow(lease, versionId, descriptor) {
       assertLease(lease);
       const row = buildDescriptorRow(
-        publicationRowId(sha256, versionId),
         descriptor,
         bundleFileId(sha256, versionId),
       );

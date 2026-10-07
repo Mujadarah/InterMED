@@ -62,6 +62,18 @@ function isSafeId(value) {
   );
 }
 
+function isVersionId(value) {
+  if (typeof value !== 'string') return false;
+  if (value.length === 0 || value.length > 512) return false;
+  for (const char of value) {
+    const code = char.codePointAt(0);
+    if (code === undefined) return false;
+    if (code < 0x20 && code !== 0x1f) return false;
+    if (code === 0x7f) return false;
+  }
+  return true;
+}
+
 function isInstant(value) {
   return (
     typeof value === 'string' &&
@@ -233,12 +245,12 @@ function validatePublishIntent(intent) {
   if (!isRecordKey(intent.dataset, 100)) return false;
   if (!OPERATION_PATTERN.test(intent.stageOperationId)) return false;
   if (!intent.stageOperationId.startsWith('op-stage-')) return false;
-  if (!isBoundedString(intent.candidateVersionId, 1, 256)) return false;
+  if (!isVersionId(intent.candidateVersionId)) return false;
   if (!SHA256_PATTERN.test(intent.candidateSha256)) return false;
   if (!SHA256_PATTERN.test(intent.rawSnapshotSha256)) return false;
   if (
     intent.baselineVersionId !== null &&
-    !isSafeId(intent.baselineVersionId)
+    !isVersionId(intent.baselineVersionId)
   ) {
     return false;
   }
@@ -308,13 +320,10 @@ export function parseReviewDocument(text) {
   if (review.purpose !== REVIEW_PURPOSE) return { ok: false };
   if (!OPERATION_PATTERN.test(review.stageOperationId)) return { ok: false };
   if (!isRecordKey(review.dataset, 100)) return { ok: false };
-  if (typeof review.candidateVersionId !== 'string') return { ok: false };
-  if (review.candidateVersionId.length === 0) return { ok: false };
+  if (!isVersionId(review.candidateVersionId)) return { ok: false };
   if (
     review.baselineVersionId !== null &&
-    (typeof review.baselineVersionId !== 'string' ||
-      review.baselineVersionId.length === 0 ||
-      review.baselineVersionId.length > ID_LIMIT)
+    !isVersionId(review.baselineVersionId)
   ) {
     return { ok: false };
   }

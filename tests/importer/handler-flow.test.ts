@@ -254,9 +254,17 @@ describe('stage flows', () => {
       string,
       unknown
     >;
+    const priorManifest = [
+      ...harness.rest.rows.get('dataset-versions')!.values(),
+    ][0]! as { version: string };
     const products = mutated.products as Record<string, unknown>[];
     (products[0] as Record<string, unknown>).commercialName =
       'Placebex Renamed';
+    (mutated.datasetVersion as Record<string, unknown>).previousVersionKey = {
+      status: 'present',
+      value: priorManifest.version,
+    };
+    (mutated.datasetVersion as Record<string, unknown>).version = 'synthetic-2';
     const secondBytes = new TextEncoder().encode(JSON.stringify(mutated));
     harness.seedFile(
       'raw-sources',

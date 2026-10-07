@@ -271,7 +271,7 @@ function descriptorFixture(byteSize: number): PublishedBundleDescriptor {
     contentType: 'application/json',
     byteSize,
     checksum: `sha256:${'b'.repeat(64)}`,
-    url: `${publicBundleDownloadUrl(bundleFileId(sha256, CANDIDATE_ID))}#/bundle-${CANDIDATE_ID}.json`,
+    url: publicBundleDownloadUrl(bundleFileId(sha256, CANDIDATE_ID)),
   };
 }
 
@@ -689,7 +689,7 @@ describe('publication retry reads', () => {
     expect(descriptor).not.toBeNull();
     expect(descriptor?.id).toBe('d'.repeat(36));
     expect(descriptor?.url).toBe(
-      `${publicBundleDownloadUrl(bundleFileId(sha256, CANDIDATE_ID))}#/bundle-${CANDIDATE_ID}.json`,
+      publicBundleDownloadUrl(bundleFileId(sha256, CANDIDATE_ID)),
     );
     const manifest = await bridge.ports.readPublishedManifest(CANDIDATE_ID);
     expect(manifest?.datasetVersionId).toBe(CANDIDATE_ID);
