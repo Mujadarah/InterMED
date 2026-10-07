@@ -7,9 +7,13 @@ interface InstallPrompt extends Event {
 /**
  * Create a browser shell controller; activation requests and reloads require
  * calls to its explicit actions.
- * With production enabled, register the root worker when supported and attach
- * page-lifetime readiness, update and installation listeners. Otherwise, start
- * in development state without registering a worker or attaching those listeners.
+ * With production enabled, listen for installation events and, in a secure
+ * context with service workers, register the root worker and track readiness
+ * and updates for the page lifetime. Otherwise report unsupported availability.
+ * With production disabled, start in development state without registration
+ * or listeners. Reload still reloads the page. Repair still messages a
+ * controlling worker or retries registration. Check, activate and install do
+ * nothing until a registration or install prompt exists.
  */
 export function createBrowserShell(production: boolean): ShellController {
   let state: ShellState = {
@@ -188,6 +192,7 @@ export function createBrowserShell(production: boolean): ShellController {
     /**
      * Clear reload consent and request cache repair from the controlling worker,
      * or retry registration if none controls the page. Completion is reported in state.
+     * Requires service worker support. Subscriber and worker messaging errors propagate.
      */
     repair: () => {
       requestedReload = false;

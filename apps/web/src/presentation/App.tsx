@@ -8,6 +8,7 @@ import { ShellStatus } from './ShellStatus';
 /**
  * Render the nonclinical navigation shell using the supplied services.
  * Require a router context and focus main content when the pathname changes.
+ * Always render shell status for the supplied controller.
  */
 export function App({
   services,

@@ -1,0 +1,5 @@
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (40 source files; dependency-free domain).
