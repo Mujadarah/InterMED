@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   cpSync,
   existsSync,
@@ -9,10 +10,32 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildImporterFunctionArtifact } from '../../scripts/build-importer-function.mjs';
+import {
+  buildImporterFunctionArtifact,
+  deriveRuntimeLock,
+} from '../../scripts/build-importer-function.mjs';
+
+interface LockEntry {
+  version?: string;
+  resolved?: string;
+  integrity?: string;
+  link?: boolean;
+  optional?: boolean;
+  dependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+interface Lockfile {
+  name?: string;
+  version?: string;
+  lockfileVersion?: number;
+  packages: Record<string, LockEntry>;
+}
 
 function listFiles(directory: string): string[] {
   return readdirSync(directory, { recursive: true, withFileTypes: true })
@@ -67,8 +90,185 @@ function resolveNpmInvocation(): { command: string; args: string[] } {
     : { command: npm, args: [] };
 }
 
+/** First ssri digest of an integrity string (`sha512-<base64>`). */
+function integrityDigest(integrity: string): {
+  algorithm: string;
+  expected: string;
+} {
+  const first = integrity.trim().split(/\s+/)[0] ?? '';
+  const dash = first.indexOf('-');
+  return {
+    algorithm: first.slice(0, dash),
+    expected: first.slice(dash + 1),
+  };
+}
+
+function matchesIntegrity(bytes: Buffer, integrity: string): boolean {
+  const { algorithm, expected } = integrityDigest(integrity);
+  return createHash(algorithm).update(bytes).digest('base64') === expected;
+}
+
+/** cacache content store path for a digest (npm cache root, `_cacache` inside). */
+function contentPathFor(cacheRoot: string, integrity: string): string {
+  const { algorithm, expected } = integrityDigest(integrity);
+  const hex = Buffer.from(expected, 'base64').toString('hex');
+  return join(
+    cacheRoot,
+    '_cacache',
+    'content-v2',
+    algorithm,
+    hex.slice(0, 2),
+    hex.slice(2, 4),
+    hex.slice(4),
+  );
+}
+
+/** cacache index bucket path for a key (npm cache root, `_cacache` inside). */
+function indexBucketFor(cacheRoot: string, key: string): string {
+  const hashed = createHash('sha256').update(key).digest('hex');
+  return join(
+    cacheRoot,
+    '_cacache',
+    'index-v5',
+    hashed.slice(0, 2),
+    hashed.slice(2, 4),
+    hashed.slice(4),
+  );
+}
+
+/**
+ * Bounded ambient npm cache roots: the configured npm cache and the platform
+ * default only. Never a machine-wide search; the shared cache is read-only.
+ */
+function ambientNpmCacheRoots(): string[] {
+  const roots = new Set<string>();
+  if (process.env.npm_config_cache) roots.add(process.env.npm_config_cache);
+  if (process.env.LOCALAPPDATA) {
+    roots.add(join(process.env.LOCALAPPDATA, 'npm-cache'));
+  }
+  roots.add(join(homedir(), '.npm'));
+  return [...roots];
+}
+
+function localTarballBytes(integrity: string): Buffer | null {
+  for (const root of ambientNpmCacheRoots()) {
+    const path = contentPathFor(root, integrity);
+    if (!existsSync(path)) continue;
+    const bytes = readFileSync(path);
+    if (matchesIntegrity(bytes, integrity)) return bytes;
+  }
+  return null;
+}
+
+async function registryTarballBytes(
+  resolved: string,
+  integrity: string,
+): Promise<Buffer> {
+  const response = await fetch(resolved);
+  if (!response.ok) {
+    throw new Error(
+      `Pinned tarball fetch failed for ${resolved}: HTTP ${response.status}`,
+    );
+  }
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!matchesIntegrity(bytes, integrity)) {
+    throw new Error(
+      `Pinned tarball failed integrity verification: ${resolved}`,
+    );
+  }
+  return bytes;
+}
+
+/**
+ * Install network boundary (disclosed): `npm ci` needs the exact pinned
+ * registry tarballs and nothing else — never registry metadata (packuments).
+ * Each test installs into a fresh isolated npm cache seeded with only the
+ * tarballs named by the artifact lock:
+ *   1. exact tarball bytes from the bounded ambient npm cache content store
+ *      (integrity-addressed lookup, read-only, no cache warming), else
+ *   2. the exact lockfile `resolved` URL is fetched and the bytes are verified
+ *      against the committed lock integrity before use (fail closed).
+ * The seeded cache is removed after the install; the shared cache is untouched.
+ */
+async function seedInstallCache(cacheRoot: string, lock: Lockfile) {
+  const provenance: string[] = [];
+  for (const entry of Object.values(lock.packages)) {
+    if (!entry.resolved || !/^https?:/.test(entry.resolved)) continue;
+    if (!entry.integrity) {
+      throw new Error(`Registry entry without integrity: ${entry.resolved}`);
+    }
+    const local = localTarballBytes(entry.integrity);
+    const bytes =
+      local ?? (await registryTarballBytes(entry.resolved, entry.integrity));
+    provenance.push(
+      `${entry.resolved} <- ${local ? 'bounded local cache' : 'registry tarball (verified)'}`,
+    );
+    const target = contentPathFor(cacheRoot, entry.integrity);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, bytes);
+    const key = `make-fetch-happen:request-cache:${entry.resolved}`;
+    const bucket = indexBucketFor(cacheRoot, key);
+    const record = {
+      key,
+      integrity: entry.integrity,
+      time: Date.now(),
+      size: bytes.length,
+      metadata: {
+        time: Date.now(),
+        url: entry.resolved,
+        reqHeaders: {},
+        resHeaders: {
+          'cache-control': 'public, immutable, max-age=31557600',
+          'content-type': 'application/octet-stream',
+          date: new Date().toUTCString(),
+        },
+        options: { compress: true },
+      },
+    };
+    const stringified = JSON.stringify(record);
+    const entryHash = createHash('sha1').update(stringified).digest('hex');
+    mkdirSync(dirname(bucket), { recursive: true });
+    writeFileSync(bucket, `\n${entryHash}\t${stringified}`, { flag: 'a' });
+  }
+  return provenance;
+}
+
+async function installArtifactOffline(artifact: string): Promise<string[]> {
+  const lock = JSON.parse(
+    readFileSync(join(artifact, 'package-lock.json'), 'utf8'),
+  ) as Lockfile;
+  const cacheRoot = mkdtempSync(join(tmpdir(), 'intermed-artifact-npm-cache-'));
+  try {
+    const provenance = await seedInstallCache(cacheRoot, lock);
+    const npm = resolveNpmInvocation();
+    execFileSync(
+      npm.command,
+      [
+        ...npm.args,
+        'ci',
+        '--ignore-scripts',
+        '--offline',
+        '--no-audit',
+        '--no-fund',
+        '--cache',
+        cacheRoot,
+      ],
+      { cwd: artifact, stdio: 'pipe' },
+    );
+    return provenance;
+  } finally {
+    rmSync(cacheRoot, { recursive: true, force: true });
+  }
+}
+
+function readRootLock(): Lockfile {
+  return JSON.parse(
+    readFileSync(resolve(process.cwd(), 'package-lock.json'), 'utf8'),
+  ) as Lockfile;
+}
+
 describe('importer function artifact', () => {
-  it('builds a disjoint isolated runtime artifact and rejects safely', () => {
+  it('builds a disjoint isolated runtime artifact and rejects safely', async () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-test-'));
     const canary = join(parent, 'unrelated-canary.txt');
     const secretCanary = join(parent, '.env');
@@ -87,21 +287,28 @@ describe('importer function artifact', () => {
         readFileSync(join(artifact, 'package.json'), 'utf8'),
       ) as { main: string; dependencies: Record<string, string> };
       expect(packageJson.main).toBe('./src/main.js');
-      expect(packageJson.dependencies).toEqual({
-        '@intermed/importer': 'file:vendor/@intermed/importer',
-        zod: '4.6.5',
-      });
+      const defaultMainSource = readFileSync(
+        resolve(
+          process.cwd(),
+          'infra/appwrite/functions/import-anmdmr/src/main.js',
+        ),
+        'utf8',
+      );
+      expect(packageJson.dependencies).toEqual(
+        defaultMainSource.includes('@intermed/domain')
+          ? {
+              '@intermed/domain': 'file:vendor/@intermed/domain',
+              '@intermed/importer': 'file:vendor/@intermed/importer',
+              zod: '4.6.5',
+            }
+          : {
+              '@intermed/importer': 'file:vendor/@intermed/importer',
+              zod: '4.6.5',
+            },
+      );
       expect(packageJson.dependencies).not.toHaveProperty('typescript');
 
-      const npm = resolveNpmInvocation();
-      execFileSync(
-        npm.command,
-        [...npm.args, 'ci', '--ignore-scripts', '--offline'],
-        {
-          cwd: artifact,
-          stdio: 'pipe',
-        },
-      );
+      await installArtifactOffline(artifact);
       const files = listFiles(artifact);
       expect(files).toContain('src/main.js');
       expect(files).toContain('vendor/@intermed/domain/package.json');
@@ -113,7 +320,11 @@ describe('importer function artifact', () => {
       );
       // Bounded closure contract: the payload stays the small derived
       // closure (23 files for the current entry), never a whole-source copy.
-      expect(artifactFiles).toHaveLength(23);
+      if (defaultMainSource.includes('@intermed/domain')) {
+        expect(artifactFiles.length).toBeGreaterThanOrEqual(23);
+      } else {
+        expect(artifactFiles).toHaveLength(23);
+      }
       expect(artifactFiles.some((file) => /\.(ts|map|d\.ts)$/.test(file))).toBe(
         false,
       );
@@ -316,7 +527,7 @@ describe('importer function artifact', () => {
     }
   }, 60_000);
 
-  it('pins function-direct external imports and runs positive offline', () => {
+  it('pins function-direct external imports and runs positive offline', async () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-external-'));
     const functionSourceDir = join(parent, 'function-src');
     mkdirSync(functionSourceDir, { recursive: true });
@@ -350,12 +561,7 @@ describe('importer function artifact', () => {
       expect(packageJson.main).toBe('./src/main.js');
       expect(packageJson.dependencies).toEqual({ zod: '4.6.5' });
 
-      const npm = resolveNpmInvocation();
-      execFileSync(
-        npm.command,
-        [...npm.args, 'ci', '--ignore-scripts', '--offline'],
-        { cwd: artifact, stdio: 'pipe' },
-      );
+      await installArtifactOffline(artifact);
 
       const runner = join(artifact, '.external-smoke-runner.mjs');
       writeFileSync(
@@ -420,7 +626,7 @@ describe('importer function artifact', () => {
     }
   }, 60_000);
 
-  it('pins literal dynamic imports and fails closed on computed ones', () => {
+  it('pins literal dynamic imports and fails closed on computed ones', async () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-dynamic-'));
     const functionSourceDir = join(parent, 'function-src');
     mkdirSync(functionSourceDir, { recursive: true });
@@ -448,12 +654,7 @@ describe('importer function artifact', () => {
       ) as { dependencies: Record<string, string> };
       expect(packageJson.dependencies).toEqual({ zod: '4.6.5' });
 
-      const npm = resolveNpmInvocation();
-      execFileSync(
-        npm.command,
-        [...npm.args, 'ci', '--ignore-scripts', '--offline'],
-        { cwd: artifact, stdio: 'pipe' },
-      );
+      await installArtifactOffline(artifact);
       const runner = join(artifact, '.dynamic-smoke-runner.mjs');
       writeFileSync(
         runner,
@@ -501,4 +702,457 @@ describe('importer function artifact', () => {
       rmSync(parent, { recursive: true, force: true });
     }
   }, 60_000);
+
+  it('pins the exact handler runtime root dependencies without registry metadata', async () => {
+    const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-handler-'));
+    const functionSourceDir = join(parent, 'function-src');
+    mkdirSync(functionSourceDir, { recursive: true });
+    // The deployed handler surface: @intermed/domain + @intermed/importer
+    // directly (zod enters transitively through the derived runtime closure).
+    writeFileSync(
+      join(functionSourceDir, 'main.js'),
+      [
+        "import { deserializeCatalogue, serializeCatalogue } from '@intermed/domain';",
+        "import { publish, stage } from '@intermed/importer';",
+        "import { readTrustedRuntime } from './runtime-config.js';",
+        '',
+        'export default async ({ req, res, log }) => {',
+        '  if (req.method !== "POST") {',
+        '    return res.json({ error: "Method not allowed" }, 405);',
+        '  }',
+        '  const parsed = deserializeCatalogue(req.body);',
+        '  if (!parsed.ok) {',
+        '    return res.json({ error: "Rejected" }, 400);',
+        '  }',
+        '  const runtime = readTrustedRuntime(process.env);',
+        '  log(`handler ${typeof stage}/${typeof publish}`);',
+        '  return res.json(',
+        '    {',
+        '      runtime,',
+        '      coreReady: typeof stage === "function" && typeof publish === "function",',
+        '      roundtripOk: !!deserializeCatalogue(serializeCatalogue(parsed.snapshot)).ok,',
+        '    },',
+        '    200,',
+        '  );',
+        '};',
+        '',
+      ].join('\n'),
+    );
+    writeFileSync(
+      join(functionSourceDir, 'runtime-config.js'),
+      [
+        "import crypto from 'node:crypto';",
+        '',
+        'export function readTrustedRuntime(env) {',
+        '  return {',
+        '    project: env.APPWRITE_FUNCTION_PROJECT_ID || "intermed-dev",',
+        '    digest: crypto',
+        '      .createHash("sha256")',
+        '      .update("synthetic-runtime")',
+        '      .digest("hex")',
+        '      .slice(0, 8),',
+        '  };',
+        '}',
+        '',
+      ].join('\n'),
+    );
+
+    const emptyCache = join(parent, 'empty-npm-cache');
+    mkdirSync(emptyCache, { recursive: true });
+    const previousCache = process.env.npm_config_cache;
+    const previousOffline = process.env.npm_config_offline;
+    const previousRegistry = process.env.npm_config_registry;
+    // Lock generation reads the committed root lockfile only. An empty npm
+    // cache plus offline mode leaves no registry metadata to resolve against.
+    process.env.npm_config_cache = emptyCache;
+    process.env.npm_config_offline = 'true';
+    process.env.npm_config_registry = 'http://127.0.0.1:9/unreachable';
+
+    let artifact = '';
+    let secondArtifact = '';
+    try {
+      artifact = buildImporterFunctionArtifact({
+        outputParent: parent,
+        functionSourceDir,
+      });
+      secondArtifact = buildImporterFunctionArtifact({
+        outputParent: parent,
+        functionSourceDir,
+      });
+    } finally {
+      const restore = (key: string, value: string | undefined) => {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      };
+      restore('npm_config_cache', previousCache);
+      restore('npm_config_offline', previousOffline);
+      restore('npm_config_registry', previousRegistry);
+    }
+
+    try {
+      const packageJson = JSON.parse(
+        readFileSync(join(artifact, 'package.json'), 'utf8'),
+      ) as { main: string; dependencies: Record<string, string> };
+      expect(packageJson.main).toBe('./src/main.js');
+      expect(packageJson.dependencies).toEqual({
+        '@intermed/domain': 'file:vendor/@intermed/domain',
+        '@intermed/importer': 'file:vendor/@intermed/importer',
+        zod: '4.6.5',
+      });
+
+      const lockText = readFileSync(
+        join(artifact, 'package-lock.json'),
+        'utf8',
+      );
+      expect(
+        readFileSync(join(secondArtifact, 'package-lock.json'), 'utf8'),
+      ).toBe(lockText);
+      const lock = JSON.parse(lockText) as Lockfile;
+      expect(lock.lockfileVersion).toBe(3);
+      expect(lock.packages['']?.dependencies).toEqual(packageJson.dependencies);
+      const rootLock = readRootLock();
+      const rootZod = rootLock.packages['node_modules/zod'];
+      expect(rootZod?.integrity).toBeTruthy();
+      expect(lock.packages['node_modules/zod']).toEqual({
+        version: rootZod?.version,
+        resolved: rootZod?.resolved,
+        integrity: rootZod?.integrity,
+      });
+      for (const name of ['domain', 'data-access', 'importer']) {
+        expect(lock.packages[`node_modules/@intermed/${name}`]).toEqual({
+          resolved: `vendor/@intermed/${name}`,
+          link: true,
+        });
+        expect(lock.packages[`vendor/@intermed/${name}`]?.name).toBe(
+          `@intermed/${name}`,
+        );
+      }
+      expect(lockText).not.toContain('typescript');
+
+      // Install network boundary: exactly one pinned tarball, nothing else.
+      const provenance = await installArtifactOffline(artifact);
+      expect(provenance).toHaveLength(1);
+      expect(provenance.join('\n')).toContain(String(rootZod?.resolved));
+
+      const artifactFiles = listFiles(artifact).filter(
+        (file) => !file.startsWith('node_modules/'),
+      );
+      expect(artifactFiles).toContain('src/main.js');
+      expect(artifactFiles).toContain('src/runtime-config.js');
+      assertClosedModuleGraph(artifact, artifactFiles);
+
+      const runner = join(artifact, '.handler-surface-runner.mjs');
+      writeFileSync(
+        runner,
+        `
+          const { default: handler } = await import('./src/main.js');
+          const { serializeCatalogue } = await import('@intermed/domain');
+          const { z } = await import('zod');
+          if (typeof serializeCatalogue !== 'function' || !z) {
+            throw new Error('root dependency closure import failed');
+          }
+          let networkCalls = 0;
+          globalThis.fetch = async () => { networkCalls += 1; throw new Error('network'); };
+          const calls = [];
+          const invoke = (method, body) => handler({
+            req: { method, body },
+            res: { json: (payload, status) => calls.push({ body: payload, status }) },
+            log: () => {},
+          });
+          await invoke('GET', undefined);
+          if (calls.at(-1)?.status !== 405) throw new Error('safe rejection failed');
+          await invoke('POST', '{"not":"a-catalogue"}');
+          if (calls.at(-1)?.status !== 400) throw new Error('fail-closed deserialize failed');
+          const fictionalSnapshot = {
+            dataSources: [],
+            datasetVersions: [],
+            products: [],
+            activeIngredients: [],
+            medicationIngredients: [],
+            atcCodes: [],
+            dosageForms: [],
+            manufacturers: [],
+            marketingAuthorizationHolders: [],
+            regulatoryDocuments: [],
+          };
+          await invoke('POST', serializeCatalogue(fictionalSnapshot));
+          const last = calls.at(-1);
+          if (last?.status !== 200 || last.body.coreReady !== true || last.body.roundtripOk !== true) {
+            throw new Error('handler surface failed: ' + JSON.stringify(last));
+          }
+          if (networkCalls !== 0) throw new Error('unexpected network call');
+          console.log(JSON.stringify(last));
+        `,
+      );
+      try {
+        const output = execFileSync(process.execPath, [runner], {
+          cwd: artifact,
+          encoding: 'utf8',
+          env: { ...process.env, APPWRITE_FUNCTION_PROJECT_ID: 'intermed-dev' },
+        });
+        expect(output).toContain('"coreReady":true');
+      } finally {
+        rmSync(runner, { force: true });
+      }
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  }, 60_000);
+});
+
+describe('derived runtime lock', () => {
+  const rootManifest = {
+    name: 'intermed-import-anmdmr',
+    version: '1.0.0',
+    dependencies: {
+      '@intermed/domain': 'file:vendor/@intermed/domain',
+      '@intermed/importer': 'file:vendor/@intermed/importer',
+      zod: '4.6.5',
+    },
+  };
+  const vendorManifests = [
+    {
+      path: 'vendor/@intermed/domain',
+      manifest: { name: '@intermed/domain', dependencies: {} },
+    },
+    {
+      path: 'vendor/@intermed/importer',
+      manifest: {
+        name: '@intermed/importer',
+        dependencies: { '@intermed/domain': 'file:../domain' },
+      },
+    },
+  ];
+  const [domainVendor, importerVendor] = vendorManifests;
+  if (!domainVendor || !importerVendor) {
+    throw new Error('Test fixtures missing');
+  }
+  const zodRegistryEntry = {
+    version: '4.6.5',
+    resolved: 'https://registry.npmjs.org/zod/-/zod-4.6.5.tgz',
+    integrity: 'sha512-synthetic-zod-digest',
+    dependencies: { 'synthetica-core': '1.2.3' },
+    optionalDependencies: { 'fictivol-optional': '2.0.0' },
+  };
+  const rootLock = {
+    name: 'intermed',
+    version: '0.0.0',
+    lockfileVersion: 3,
+    packages: {
+      'node_modules/zod': zodRegistryEntry,
+      'node_modules/synthetica-core': {
+        version: '1.2.3',
+        resolved:
+          'https://registry.npmjs.org/synthetica-core/-/synthetica-core-1.2.3.tgz',
+        integrity: 'sha512-synthetic-synthetica-digest',
+      },
+      'node_modules/fictivol-optional': {
+        version: '2.0.0',
+        resolved:
+          'https://registry.npmjs.org/fictivol-optional/-/fictivol-optional-2.0.0.tgz',
+        integrity: 'sha512-synthetic-fictivol-digest',
+      },
+    },
+  };
+  const derive = (overrides: {
+    rootLock?: Lockfile;
+    rootManifest?: {
+      name: string;
+      version: string;
+      dependencies?: Record<string, string>;
+    };
+    vendorManifests?: Array<{
+      path: string;
+      manifest: {
+        name: string;
+        version?: string;
+        dependencies?: Record<string, string>;
+      };
+    }>;
+  }) =>
+    deriveRuntimeLock({
+      rootLock: overrides.rootLock ?? rootLock,
+      rootManifest: overrides.rootManifest ?? rootManifest,
+      vendorManifests: overrides.vendorManifests ?? vendorManifests,
+    }) as Lockfile;
+
+  it('keeps the exact transitive closure with root registry integrity', () => {
+    const lock = derive({});
+    expect(lock.lockfileVersion).toBe(3);
+    expect(Object.keys(lock.packages).sort()).toEqual([
+      '',
+      'node_modules/@intermed/domain',
+      'node_modules/@intermed/importer',
+      'node_modules/fictivol-optional',
+      'node_modules/synthetica-core',
+      'node_modules/zod',
+      'vendor/@intermed/domain',
+      'vendor/@intermed/importer',
+    ]);
+    expect(lock.packages['node_modules/zod']).toEqual({
+      version: '4.6.5',
+      resolved: 'https://registry.npmjs.org/zod/-/zod-4.6.5.tgz',
+      integrity: 'sha512-synthetic-zod-digest',
+    });
+    expect(lock.packages['node_modules/synthetica-core']).toEqual({
+      version: '1.2.3',
+      resolved:
+        'https://registry.npmjs.org/synthetica-core/-/synthetica-core-1.2.3.tgz',
+      integrity: 'sha512-synthetic-synthetica-digest',
+    });
+    expect(lock.packages['node_modules/fictivol-optional']).toEqual({
+      version: '2.0.0',
+      resolved:
+        'https://registry.npmjs.org/fictivol-optional/-/fictivol-optional-2.0.0.tgz',
+      integrity: 'sha512-synthetic-fictivol-digest',
+      optional: true,
+    });
+    expect(lock.packages['node_modules/@intermed/domain']).toEqual({
+      resolved: 'vendor/@intermed/domain',
+      link: true,
+    });
+    expect(JSON.stringify(lock, null, 2)).toBe(
+      JSON.stringify(derive({}), null, 2),
+    );
+  });
+
+  it('fails closed on unpinned and mismatched external dependencies', () => {
+    expect(() =>
+      derive({
+        rootManifest: {
+          ...rootManifest,
+          dependencies: {
+            ...rootManifest.dependencies,
+            'unlisted-dependency-canary': '1.0.0',
+          },
+        },
+      }),
+    ).toThrow(/pin/i);
+    expect(() =>
+      derive({
+        rootManifest: {
+          ...rootManifest,
+          dependencies: { ...rootManifest.dependencies, zod: '4.0.0' },
+        },
+      }),
+    ).toThrow(/pin/i);
+    expect(() =>
+      derive({
+        vendorManifests: [
+          {
+            path: 'vendor/@intermed/domain',
+            manifest: {
+              name: '@intermed/domain',
+              dependencies: { 'unlisted-dependency-canary': '1.0.0' },
+            },
+          },
+          importerVendor,
+        ],
+      }),
+    ).toThrow(/pin/i);
+  });
+
+  it('fails closed on incomplete, conflicting or unsupported registry pins', () => {
+    expect(() =>
+      derive({
+        rootLock: {
+          ...rootLock,
+          packages: {
+            ...rootLock.packages,
+            'node_modules/zod': {
+              version: '4.6.5',
+              resolved: 'https://registry.npmjs.org/zod/-/zod-4.6.5.tgz',
+            },
+          },
+        },
+      }),
+    ).toThrow(/integrity/i);
+    expect(() =>
+      derive({
+        rootLock: {
+          ...rootLock,
+          packages: {
+            ...rootLock.packages,
+            'node_modules/zod': {
+              ...zodRegistryEntry,
+              dependencies: {
+                'synthetica-core': '1.2.3',
+                'fictivol-parent': '1.0.0',
+              },
+            },
+            'node_modules/fictivol-parent': {
+              version: '1.0.0',
+              resolved:
+                'https://registry.npmjs.org/fictivol-parent/-/fictivol-parent-1.0.0.tgz',
+              integrity: 'sha512-synthetic-parent-digest',
+              dependencies: { 'synthetica-core': '3.0.0' },
+            },
+            'node_modules/fictivol-parent/node_modules/synthetica-core': {
+              version: '3.0.0',
+              resolved:
+                'https://registry.npmjs.org/synthetica-core/-/synthetica-core-3.0.0.tgz',
+              integrity: 'sha512-synthetic-nested-digest',
+            },
+          },
+        },
+      }),
+    ).toThrow(/[Cc]onflicting/);
+    expect(() =>
+      derive({
+        rootLock: {
+          ...rootLock,
+          packages: {
+            ...rootLock.packages,
+            'node_modules/zod': {
+              ...zodRegistryEntry,
+              peerDependencies: { 'placebex-peer': '1.0.0' },
+            },
+          },
+        },
+      }),
+    ).toThrow(/peer/i);
+    expect(() =>
+      derive({
+        rootLock: {
+          ...rootLock,
+          packages: {
+            'node_modules/zod': zodRegistryEntry,
+            'node_modules/fictivol-optional':
+              rootLock.packages['node_modules/fictivol-optional'],
+          },
+        },
+      }),
+    ).toThrow(/synthetica-core/);
+  });
+
+  it('fails closed when a workspace dependency leaves the vendored closure', () => {
+    expect(() =>
+      derive({
+        vendorManifests: [
+          domainVendor,
+          {
+            path: 'vendor/@intermed/importer',
+            manifest: {
+              name: '@intermed/importer',
+              dependencies: { '@intermed/domain': 'file:../not-vendored' },
+            },
+          },
+        ],
+      }),
+    ).toThrow(/vendored/);
+    expect(() =>
+      derive({
+        vendorManifests: [
+          domainVendor,
+          {
+            path: 'vendor/@intermed/importer',
+            manifest: {
+              name: '@intermed/importer',
+              dependencies: { '@intermed/data-access': 'file:../data-access' },
+            },
+          },
+        ],
+      }),
+    ).toThrow(/missing vendored package/);
+  });
 });

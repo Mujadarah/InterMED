@@ -9,7 +9,6 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { isBuiltin } from 'node:module';
 import {
   dirname,
@@ -1004,31 +1003,294 @@ function writeRootPackage(staging, closure, functionFacts, packagesInClosure) {
   );
 }
 
-function installRuntimeLock(staging) {
-  const configuredNpm = process.env.npm_execpath;
-  const bundledNpm = join(
-    dirname(process.execPath),
-    'node_modules',
-    'npm',
-    'bin',
-    'npm-cli.js',
+/**
+ * Normalize a `file:` relative target of a vendored package manifest against
+ * its vendored path (POSIX separators, `..` and `.` resolved lexically).
+ */
+function normalizeVendoredPath(base, relative) {
+  const parts = [];
+  for (const part of `${base}/${relative}`.split('/')) {
+    if (part === '' || part === '.') continue;
+    if (part === '..') parts.pop();
+    else parts.push(part);
+  }
+  return parts.join('/');
+}
+
+/**
+ * Resolve one registry dependency against the root lockfile exactly like Node
+ * resolves `node_modules` (nested under the requiring package first, then up).
+ */
+function resolveRegistryEntry(registryPackages, name, requiredBy) {
+  let prefix = requiredBy;
+  for (;;) {
+    const key = prefix
+      ? `${prefix}/node_modules/${name}`
+      : `node_modules/${name}`;
+    const entry = registryPackages[key];
+    if (entry && entry.link !== true) return { key, entry };
+    if (!prefix) break;
+    const stripped = prefix.replace(
+      /(^|\/)node_modules\/((@[^/]+\/)?[^/]+)$/,
+      '',
+    );
+    if (stripped === prefix) break;
+    prefix = stripped;
+  }
+  throw new Error(
+    `Root package-lock.json has no registry entry for runtime dependency '${name}' (required by '${requiredBy || 'root'})`,
   );
-  const npm = configuredNpm ?? (existsSync(bundledNpm) ? bundledNpm : 'npm');
-  const command = npm.endsWith('.js') ? process.execPath : npm;
-  const args = npm.endsWith('.js') ? [npm] : [];
-  execFileSync(
-    command,
-    [
-      ...args,
-      'install',
-      '--package-lock-only',
-      '--ignore-scripts',
-      '--offline',
-    ],
-    {
-      cwd: staging,
-      stdio: 'pipe',
+}
+
+/**
+ * Derive the artifact's `package-lock.json` deterministically from the
+ * committed root `package-lock.json`, the exact staged workspace package
+ * manifests and the derived runtime closure.
+ *
+ * No npm invocation and no registry metadata: external packages carry the root
+ * lockfile's exact registry `resolved`/`integrity` pins (fail closed when those
+ * are absent, unpinned or conflicting), workspace packages are `file:` links
+ * into `vendor/@intermed/*`, and the full transitive dependency closure is
+ * walked through the root lockfile. The result is byte-stable.
+ *
+ * @param {{
+ *   rootLock: { packages: Record<string, Record<string, unknown>> },
+ *   rootManifest: { name: string, version: string, dependencies?: Record<string, string> },
+ *   vendorManifests: Array<{ path: string, manifest: { name: string, version?: string, dependencies?: Record<string, string> } }>,
+ * }} input
+ * @returns {{ name: string, version: string, lockfileVersion: number, requires: boolean, packages: Record<string, Record<string, unknown>> }}
+ */
+export function deriveRuntimeLock({ rootLock, rootManifest, vendorManifests }) {
+  const registryPackages = rootLock?.packages;
+  if (!registryPackages || typeof registryPackages !== 'object') {
+    throw new Error('Root package-lock.json has no packages map');
+  }
+
+  const vendorByPath = new Map();
+  const vendorByName = new Map();
+  for (const { path, manifest } of vendorManifests) {
+    if (vendorByPath.has(path) || vendorByName.has(manifest.name)) {
+      throw new Error(`Duplicate vendored package '${manifest.name}'`);
+    }
+    vendorByPath.set(path, manifest);
+    vendorByName.set(manifest.name, path);
+  }
+
+  const linkEntries = {};
+  const vendorEntries = {};
+  const registerWorkspaceDependency = (
+    dependent,
+    dependentPath,
+    name,
+    spec,
+  ) => {
+    if (!spec.startsWith('file:')) {
+      throw new Error(
+        `Workspace dependency '${name}' of '${dependent}' must be a file: link (got '${spec}')`,
+      );
+    }
+    const target = normalizeVendoredPath(
+      dependentPath,
+      spec.slice('file:'.length),
+    );
+    const vendoredPath = vendorByName.get(name);
+    if (!vendoredPath) {
+      throw new Error(
+        `'${dependent}' depends on missing vendored package '${name}'`,
+      );
+    }
+    if (target !== vendoredPath) {
+      throw new Error(
+        `'${dependent}' depends on '${name}' via '${spec}', which resolves outside the vendored closure`,
+      );
+    }
+    linkEntries[`node_modules/${name}`] = {
+      resolved: vendoredPath,
+      link: true,
+    };
+  };
+
+  for (const [name, spec] of Object.entries(rootManifest.dependencies ?? {})) {
+    if (spec.startsWith('file:') || name.startsWith('@intermed/')) {
+      registerWorkspaceDependency('root', '', name, spec);
+    }
+  }
+  for (const [path, manifest] of vendorByPath) {
+    for (const [name, spec] of Object.entries(manifest.dependencies ?? {})) {
+      if (spec.startsWith('file:') || name.startsWith('@intermed/')) {
+        registerWorkspaceDependency(manifest.name, path, name, spec);
+      }
+    }
+    vendorEntries[path] = {
+      name: manifest.name,
+      version: manifest.version ?? '0.0.0',
+      dependencies: manifest.dependencies ?? {},
+    };
+  }
+
+  const externals = new Map();
+  const requiredExternals = new Set();
+  const pending = [];
+  const queueExternal = (name, spec, label) => {
+    const pin = runtimeDependencyPins[name];
+    if (typeof pin !== 'string') {
+      throw new Error(`No exact runtime pin for external dependency '${name}'`);
+    }
+    if (pin !== spec) {
+      throw new Error(
+        `Runtime pin mismatch for external dependency '${name}': '${spec}' is not the pinned '${pin}'`,
+      );
+    }
+    // Declared dependencies are hoisted to the artifact's top level.
+    pending.push({ name, requiredBy: '', label, optional: false });
+  };
+  const queueRegistryDependencies = (entry, requiredBy, optionalEdge) => {
+    for (const name of Object.keys(entry.dependencies ?? {})) {
+      if (name.startsWith('@intermed/')) {
+        throw new Error(
+          `Registry entry '${requiredBy}' unexpectedly depends on workspace package '${name}'`,
+        );
+      }
+      pending.push({ name, requiredBy, optional: optionalEdge });
+    }
+    for (const name of Object.keys(entry.optionalDependencies ?? {})) {
+      pending.push({ name, requiredBy, optional: true });
+    }
+  };
+
+  for (const [name, spec] of Object.entries(rootManifest.dependencies ?? {})) {
+    if (name.startsWith('@intermed/') || spec.startsWith('file:')) continue;
+    queueExternal(name, spec, '');
+  }
+  for (const { manifest } of vendorManifests) {
+    for (const [name, spec] of Object.entries(manifest.dependencies ?? {})) {
+      if (name.startsWith('@intermed/') || spec.startsWith('file:')) continue;
+      queueExternal(name, spec, `vendor package '${manifest.name}'`);
+    }
+  }
+
+  while (pending.length > 0) {
+    const { name, requiredBy, label, optional } = pending.shift();
+    let resolved;
+    try {
+      resolved = resolveRegistryEntry(registryPackages, name, requiredBy);
+    } catch (error) {
+      if (!label) throw error;
+      throw new Error(
+        `Root package-lock.json has no registry entry for runtime dependency '${name}' (required by ${label})`,
+      );
+    }
+    const { key, entry } = resolved;
+    if (!optional) requiredExternals.add(name);
+    const existing = externals.get(name);
+    if (existing) {
+      if (existing.version !== entry.version) {
+        throw new Error(
+          `Conflicting transitive runtime dependency '${name}' (${existing.version} vs ${entry.version})`,
+        );
+      }
+      continue;
+    }
+    if (
+      !entry.version ||
+      typeof entry.resolved !== 'string' ||
+      typeof entry.integrity !== 'string'
+    ) {
+      throw new Error(
+        `Root lock entry '${key}' lacks version/resolved/integrity; refusing to derive an unpinned runtime lock`,
+      );
+    }
+    if (Object.keys(entry.peerDependencies ?? {}).length > 0) {
+      throw new Error(
+        `External runtime dependency '${name}' declares peer dependencies; refusing to derive the runtime lock`,
+      );
+    }
+    externals.set(name, {
+      name,
+      version: entry.version,
+      resolved: entry.resolved,
+      integrity: entry.integrity,
+    });
+    queueRegistryDependencies(entry, key, optional);
+  }
+
+  const externalEntries = {};
+  for (const name of [...externals.keys()].sort()) {
+    const record = externals.get(name);
+    externalEntries[`node_modules/${name}`] = requiredExternals.has(name)
+      ? {
+          version: record.version,
+          resolved: record.resolved,
+          integrity: record.integrity,
+        }
+      : {
+          version: record.version,
+          resolved: record.resolved,
+          integrity: record.integrity,
+          optional: true,
+        };
+  }
+
+  const packages = {
+    '': {
+      name: rootManifest.name,
+      version: rootManifest.version,
+      dependencies: rootManifest.dependencies ?? {},
     },
+    ...linkEntries,
+    ...vendorEntries,
+    ...externalEntries,
+  };
+  const ordered = {};
+  for (const key of Object.keys(packages).sort((a, b) =>
+    a === '' ? -1 : b === '' ? 1 : a.localeCompare(b),
+  )) {
+    ordered[key] = packages[key];
+  }
+
+  return {
+    name: rootManifest.name,
+    version: rootManifest.version,
+    lockfileVersion: 3,
+    requires: true,
+    packages: ordered,
+  };
+}
+
+/**
+ * Write the artifact's `package-lock.json` by projection from the committed
+ * root `package-lock.json` (see {@link deriveRuntimeLock}). Never invokes npm:
+ * lock generation needs no registry metadata and no network.
+ */
+function writeRuntimeLock(staging) {
+  const rootManifest = JSON.parse(
+    readFileSync(join(staging, 'package.json'), 'utf8'),
+  );
+  const vendorRoot = join(staging, 'vendor', '@intermed');
+  const vendorManifests = [];
+  if (existsSync(vendorRoot)) {
+    for (const entry of readdirSync(vendorRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const path = `vendor/@intermed/${entry.name}`;
+      vendorManifests.push({
+        path,
+        manifest: JSON.parse(
+          readFileSync(
+            join(staging, 'vendor', '@intermed', entry.name, 'package.json'),
+            'utf8',
+          ),
+        ),
+      });
+    }
+    vendorManifests.sort((a, b) => a.path.localeCompare(b.path));
+  }
+  const rootLock = JSON.parse(
+    readFileSync(join(rootDir, 'package-lock.json'), 'utf8'),
+  );
+  const lock = deriveRuntimeLock({ rootLock, rootManifest, vendorManifests });
+  writeFileSync(
+    join(staging, 'package-lock.json'),
+    `${JSON.stringify(lock, null, 2)}\n`,
   );
 }
 
@@ -1079,7 +1341,7 @@ export function buildImporterFunctionArtifact(options = {}) {
     }
 
     writeRootPackage(staging, closure, functionFacts, packagesInClosure);
-    installRuntimeLock(staging);
+    writeRuntimeLock(staging);
     assertInside(compileDir, staging);
     rmSync(compileDir, { recursive: true, force: true });
     return staging;
