@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+ RUN  v4.1.11 <repo>-wt/m4
 
  ❯ tests/domain/serialize.test.ts (2 tests | 2 failed) 6ms
    × round-trips catalogue JSON without an Appwrite dependency 5ms

@@ -1,5 +1,9 @@
 # Milestone 3 live evidence — development project (2026-10-07)
 
+Machine-specific path segments in retained command output are redacted to
+repository-neutral placeholders; commands, results, warnings, and synthetic
+evidence are otherwise preserved.
+
 Evidence for Milestone 3 **live verification against the new development
 project only**. Baseline commit
 `f167d439fe3d608b99fb130ee314b2bbf68798f1` (= `origin/main` at capture). This

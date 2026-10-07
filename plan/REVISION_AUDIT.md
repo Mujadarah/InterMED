@@ -4,7 +4,7 @@
 
 Revision date: 2026-10-01. Branch: plan/pwa-appwrite-revision. Baseline: fetched main fdcb56f3f2b93289887780026d7a717962ba5e31. The initial revision was local/documentation-only. Subsequent maintainer authorization published PR #2, configured automated reviews and permitted corrections to its review findings. No React scaffolding, application implementation, cloud provisioning, merge, tag or release is performed by this revision or review correction.
 
-Work is isolated at C:/Users/rabia/.codex/worktrees/intermed-pwa-plan/InterMED. This document records the PWA revision and the subsequent 2026-10-01 maintainer instruction to permanently discard native application work. Native-only future plans/SDK references are removed; useful clinical, web and interoperability references remain. The obsolete untracked native-first source guide in the original checkout is superseded by the committed PWA guide.
+Work is isolated at `<worktree>`. This document records the PWA revision and the subsequent 2026-10-01 maintainer instruction to permanently discard native application work. Native-only future plans/SDK references are removed; useful clinical, web and interoperability references remain. The obsolete untracked native-first source guide in the original checkout is superseded by the committed PWA guide.
 
 ## Product decisions
 

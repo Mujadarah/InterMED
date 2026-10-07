@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ apps/web/src/config.test.ts (11 tests | 3 failed) 6ms
      × accepts the public endpoint, project ID and bucket ID together 2ms

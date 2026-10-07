@@ -1,5 +1,14 @@
 # CodeRabbit port evidence — 2026-10-07
 
+Machine-specific path segments in retained command output are redacted to
+repository-neutral placeholders; commands, results, warnings, and assertion
+context are otherwise preserved.
+
+All committed text output in this evidence folder is UTF-8 with LF line
+endings. Only exact machine-path prefixes are replaced with placeholders;
+results, counts, durations, exit codes, warnings, and prose are not otherwise
+changed.
+
 Cherry-picks of the unique CodeRabbit commits onto `main` at `12630af`, branch
 `codex/port-coderabbit-tests-docs`. Both patches applied with no conflicts.
 Application and worker behaviour was not changed. Node used for every gate:

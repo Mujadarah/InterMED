@@ -1,0 +1,73 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/repository-path-hygiene.test.ts (3 tests | 2 failed) 766ms
+   × rejects machine-specific paths in tracked text while allowing excluded M6 evidence 4ms
+   × keeps the tracked repository documentation free of machine paths 376ms
+node.exe :
+At line:2 char:1
++ & '<toolchain>\node.exe' 'no ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/repository-path-hygiene.test.ts > rejects machine-specific paths in tracked text while allowing excluded
+M6 evidence
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/repository-path-hygiene.test.ts:86:57
+     84|   expect(isExcluded(excludedPaths[0])).toBe(true);
+     85|   expect(isExcluded(`${excludedPaths[1]}2026-10-07/README.md`)).toBe(t…
+     86|   expect(isExcluded(`${excludedPaths[2]}src/index.ts`)).toBe(true);
+       |                                                         ^
+     87|   expect(isExcluded('packages/local-storehouse/src/index.ts')).toBe(fa…
+     88| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/repository-path-hygiene.test.ts > keeps the tracked repository documentation free of machine paths
+AssertionError: expected [ { …(2) }, { …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "findings": [
++       "owner username",
++       "absolute user path",
++     ],
++     "path": "docs/evidence/milestone-3-live-2026-10-07/publication-live/create-results.jsonl",
++   },
++   {
++     "findings": [
++       "absolute user path",
++     ],
++     "path": "tests/repository-path-hygiene.test.ts",
++   },
++ ]
+
+ ❯ tests/repository-path-hygiene.test.ts:104:33
+    102|
+    103| it('keeps the tracked repository documentation free of machine paths',…
+    104|   expect(trackedPathFindings()).toEqual([]);
+       |                                 ^
+    105| });
+    106|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  17:06:58
+   Duration  892ms (transform 12ms, setup 0ms, import 24ms, tests 766ms, environment 0ms)

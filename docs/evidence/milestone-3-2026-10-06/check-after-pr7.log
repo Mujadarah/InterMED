@@ -28,7 +28,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  12 passed (12)
@@ -76,7 +76,7 @@ dist/assets/index-DIue9c3R.js   361.22 kB │ gzip: 111.12 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m3\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 ## npm run check
 ## exit code: 0
@@ -103,7 +103,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  12 passed (12)
@@ -139,7 +139,7 @@ dist/assets/index-DIue9c3R.js   361.22 kB │ gzip: 111.12 kB
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m3\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test

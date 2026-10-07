@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3-sites
+ RUN  v4.1.11 <worktree>-sites
 
  Γ¥» tests/appwrite-sites-install.test.ts (3 tests | 2 failed) 8ms
      ├ù resolves concrete site settings correctly in development 5ms

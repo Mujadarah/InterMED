@@ -1,5 +1,9 @@
 # Milestone 3 evidence — Appwrite infrastructure as code (2026-10-06)
 
+Machine-specific path segments in retained command output are redacted to
+repository-neutral placeholders; commands, results, warnings, and assertion
+context are otherwise preserved.
+
 Logs in this folder are UTF-8 with LF line endings and trailing whitespace
 stripped. Each `*-red.txt` was produced before its implementation existed and
 each `*-green.txt` after it; `gates-*.txt` and `check-final.txt` were captured on
