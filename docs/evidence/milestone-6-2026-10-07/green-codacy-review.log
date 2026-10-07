@@ -149,3 +149,181 @@ $ npx vitest run packages/local-store
 
 [exit code: 0]
 
+---
+
+## Codacy 7 - shell status locator disambiguated (spec run 5x per project)
+
+$ npx playwright test tests/browser/local-store.spec.ts --repeat-each=5
+
+Running 75 tests using 3 workers
+
+(node:24860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:35020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:60804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  3 [chromium-desktop] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (438ms)
+  ok  1 [chromium-desktop] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (487ms)
+  ok  5 [chromium-desktop] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (18ms)
+  ok  2 [chromium-desktop] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (640ms)
+(node:59720) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  4 [chromium-desktop] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (376ms)
+(node:49768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55164) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  7 [chromium-desktop] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (418ms)
+  ok  6 [chromium-desktop] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (619ms)
+  ok 10 [chromium-desktop] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (18ms)
+  ok  8 [chromium-desktop] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (453ms)
+  ok  9 [chromium-desktop] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (390ms)
+(node:29888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:14836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 12 [chromium-desktop] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (418ms)
+  ok 11 [chromium-desktop] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (622ms)
+  ok 15 [chromium-desktop] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (18ms)
+  ok 13 [chromium-desktop] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (444ms)
+(node:27356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 14 [chromium-desktop] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (382ms)
+(node:64052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 17 [chromium-desktop] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (407ms)
+  ok 16 [chromium-desktop] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (610ms)
+  ok 20 [chromium-desktop] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (19ms)
+  ok 18 [chromium-desktop] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (477ms)
+  ok 19 [chromium-desktop] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (405ms)
+(node:50876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54160) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 22 [chromium-desktop] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (412ms)
+  ok 21 [chromium-desktop] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (612ms)
+  ok 25 [chromium-desktop] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (16ms)
+  ok 23 [chromium-desktop] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (478ms)
+(node:51968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 24 [chromium-desktop] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (399ms)
+(node:17984) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 26 [webkit-phone] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (792ms)
+  ok 29 [webkit-phone] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.4s)
+  ok 30 [webkit-phone] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (15ms)
+  ok 27 [webkit-phone] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+(node:15660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 31 [webkit-phone] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (792ms)
+  ok 28 [webkit-phone] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
+(node:21192) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 32 [webkit-phone] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 35 [webkit-phone] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+(node:62316) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 34 [webkit-phone] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.5s)
+(node:44772) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 36 [webkit-phone] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (761ms)
+  ok 33 [webkit-phone] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.3s)
+(node:28908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 37 [webkit-phone] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 40 [webkit-phone] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+(node:57608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 39 [webkit-phone] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.4s)
+(node:38056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 41 [webkit-phone] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (745ms)
+  ok 38 [webkit-phone] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.3s)
+(node:9192) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 42 [webkit-phone] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 45 [webkit-phone] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+  ok 44 [webkit-phone] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.5s)
+(node:30460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 46 [webkit-phone] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (789ms)
+  ok 43 [webkit-phone] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.3s)
+(node:27588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 47 [webkit-phone] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 50 [webkit-phone] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (17ms)
+(node:41964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 49 [webkit-phone] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.5s)
+(node:23360) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 51 [webkit-tablet] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (759ms)
+  ok 48 [webkit-phone] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.3s)
+(node:30524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 52 [webkit-tablet] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 55 [webkit-tablet] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (19ms)
+(node:51996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 54 [webkit-tablet] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.6s)
+(node:13768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 56 [webkit-tablet] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (763ms)
+  ok 53 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.5s)
+(node:33396) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 59 [webkit-tablet] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.6s)
+  ok 60 [webkit-tablet] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+  ok 57 [webkit-tablet] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.7s)
+(node:620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 61 [webkit-tablet] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (785ms)
+  ok 58 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
+(node:18108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 62 [webkit-tablet] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.3s)
+  ok 65 [webkit-tablet] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+(node:7160) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 64 [webkit-tablet] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.6s)
+(node:20048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 66 [webkit-tablet] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (762ms)
+  ok 63 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
+(node:33516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 67 [webkit-tablet] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.3s)
+  ok 70 [webkit-tablet] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (14ms)
+(node:35480) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 69 [webkit-tablet] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.5s)
+(node:53420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 71 [webkit-tablet] › tests\browser\local-store.spec.ts:42:1 › shows never-downloaded in default mode and downloads nothing (803ms)
+  ok 68 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
+(node:24496) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 72 [webkit-tablet] › tests\browser\local-store.spec.ts:99:1 › reads a staged generation after a restart and while offline (3.2s)
+  ok 75 [webkit-tablet] › tests\browser\local-store.spec.ts:289:1 › the production bundle contains no test-only harness code (13ms)
+  ok 74 [webkit-tablet] › tests\browser\local-store.spec.ts:245:1 › an old tab reports reload-required instead of losing data on an upgrade (2.6s)
+  ok 73 [webkit-tablet] › tests\browser\local-store.spec.ts:153:1 › two tabs evaluating during an activation each see one coherent generation (4.4s)
+
+  75 passed (51.9s)
+
+[exit code: 0]
+

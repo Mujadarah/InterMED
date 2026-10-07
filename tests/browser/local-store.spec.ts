@@ -103,7 +103,13 @@ test('reads a staged generation after a restart and while offline', async ({
   server.revision('harness');
   try {
     await page.goto(`${server.url}/status`);
-    await expect(page.getByText('Shell available offline')).toBeVisible();
+    // Scoped to the shell status region and exact text: the dataset note on
+    // the same page quotes this status sentence and matches a loose lookup.
+    await expect(
+      page
+        .getByRole('complementary', { name: 'Application shell' })
+        .getByText('Shell available offline', { exact: true }),
+    ).toBeVisible();
     await harnessReady(page);
     const staged = await page.evaluate(async () => {
       const harness = (window as unknown as HarnessWindow)
