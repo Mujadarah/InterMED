@@ -1,0 +1,42 @@
+## Greptile round 2 #1 - superseded reconciliation retry (RED against 544f1c5)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t superseded reconciliation retry
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (12 tests | 1 failed | 11 skipped) 54ms
+   × drops a superseded reconciliation retry instead of overwriting newer favorites 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > drops a superseded reconciliation retry instead of overwriting newer favorites
+AssertionError: expected { …(5) } to match object { status: 'available', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "lastKnownDisplayName": "Fictivol gamma",
+-   "status": "available",
++   "status": "removed",
+  }
+
+ ❯ packages/local-store/src/preferences.test.ts:359:56
+    357|   // write beta's tombstones and names over gamma's reconciliation.
+    358|   await store.maintenance.retry();
+    359|   expect((await store.preferences.listFavorites())[0]).toMatchObject({
+       |                                                        ^
+    360|     status: 'available',
+    361|     lastKnownDisplayName: 'Fictivol gamma',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  20:42:35
+   Duration  308ms (transform 90ms, setup 0ms, import 146ms, tests 54ms, environment 0ms)
+
+[exit code: 1]
+

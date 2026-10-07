@@ -60,6 +60,13 @@ export function createPreferences(deps: PreferencesDeps): Preferences {
       'rw',
       [db.favorites, db.tombstones, db.products, db.meta],
       async (transaction) => {
+        // The target is re-read inside the transaction: a queued retry for a
+        // superseded generation must never write its older view over the
+        // reconciliation of the generation that replaced it (Greptile round 2
+        // finding 1).
+        const meta = await transaction.meta.get('dataset-state');
+        const active = meta?.activeGenerationId ?? null;
+        if (active !== generationId) return;
         const favorites = await transaction.favorites.toArray();
         for (const favorite of favorites) {
           // One product's failure must never stop the others (Codacy item 3).

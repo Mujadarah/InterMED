@@ -316,6 +316,54 @@ it('clears the tombstone when a tombstoned product comes back', async () => {
   });
 });
 
+it('drops a superseded reconciliation retry instead of overwriting newer favorites', async () => {
+  const alpha = bundle('alpha');
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
+  });
+  const gamma = bundle('gamma');
+  let failBeta = false;
+  const store = testStore({
+    onMaintenance: (task) => {
+      if (
+        failBeta &&
+        task.kind === 'preference-reconciliation' &&
+        task.generationId === beta.generationId
+      )
+        throw new Error('Synthetic interruption');
+    },
+  });
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  // Beta drops the product and its reconciliation fails, so it stays queued.
+  failBeta = true;
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(store.maintenance.getStatus().pending).toBe(true);
+
+  // Gamma publishes the product again and reconciles it as available.
+  failBeta = false;
+  await store.updates.stageAndActivate(gamma.manifest, gamma.text);
+  expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    status: 'available',
+    lastKnownDisplayName: 'Fictivol gamma',
+  });
+
+  // The queued retry belongs to a superseded generation: running it must not
+  // write beta's tombstones and names over gamma's reconciliation.
+  await store.maintenance.retry();
+  expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    status: 'available',
+    lastKnownDisplayName: 'Fictivol gamma',
+  });
+  expect(await store.preferences.listProductTombstones()).toEqual([]);
+  expect(store.maintenance.getStatus().pending).toBe(false);
+});
+
 it('keeps reconciling other favorites when one product fails', async () => {
   const name = uniqueName();
   const alpha = bundle('alpha');
