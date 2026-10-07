@@ -51,8 +51,8 @@
       "id": 3,
       "title": "Unauthenticated writer refused on published resources",
       "commandOrProbe": "Unauth POST/PATCH/DELETE on published tables and bucket files",
-      "results": "The initial 39-check matrix was executed but failed/inconclusive and is not evidence of authorization or refusal: descriptor PATCH returned HTTP 200 with identical before/after data, storage update attempts returned HTTP 404 because the probe used PATCH instead of the official PUT method, and the helper continued after an unexpected 200. Corrected probes were not approved or executed.",
-      "status": "FAILED (inconclusive)"
+      "results": "The initial 39-check matrix remains failed/inconclusive: descriptor PATCH returned HTTP 200 with identical before/after data, storage update attempts used PATCH instead of PUT, and the helper continued after an unexpected 200. Corrected probes passed 39/39. The exact seven approved cleanup deletes then exited 0; the owner-side repeat exited 1 with only requested-row/file-not-found CLI messages.",
+      "status": "PASS (corrected, bounded)"
     },
     {
       "id": 4,
@@ -65,8 +65,8 @@
       "id": 5,
       "title": "Effective permissions at every resource level",
       "commandOrProbe": "Live additive table/row and bucket/file denial matrix (runbook §5)",
-      "results": "The bounded empty-resource matrix remains valid for its original scope. The initial guard matrix did not prove row/file authorization: private guard GETs returned HTTP 404 row_not_found, masking existence, and the descriptor PATCH was an identical no-op with HTTP 200. Corrected guard checks and cleanup remain pending.",
-      "status": "PARTIAL (failed probe)"
+      "results": "The bounded empty-resource matrix remains valid for its original scope. Corrected guard checks passed 39/39. Owner-approved cleanup executed all seven exact deletes; the owner-side repeat contains only requested-row/file-not-found messages. The final saved-script adapter read returned the expected version in both manifest and descriptor, selected no guard, and recorded two REST calls. The private 404 remains a masked refusal, not a strict status proof.",
+      "status": "PASS (bounded)"
     },
     {
       "id": 6,
@@ -101,7 +101,7 @@
         "region": "PASS — fra; regional API https://fra.cloud.appwrite.io/v1",
         "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
         "scope": "Frankfurt region and GitHub Student Pack confirmation only; production capacity and backup/restore are outside this task",
-        "siteDeployment": "Attempted development deployment failed in the cloud build image on Node 22.23.2 versus required Node 24.21.0; no successful deployment claimed"
+        "siteDeployment": "Latest approved retry deployment 6ac6226495b5ff1a3249 failed: host npm 12.0.2; pinned Node 24.21.0 never started because fcntl64 was not found; no successful deployment claimed"
       },
       "status": "PASS",
       "statusDetail": "Development Frankfurt region and GitHub Student Pack confirmed; wider production and backup/restore roadmap remains deferred"
@@ -166,9 +166,8 @@
     }
   ],
   "pendingApprovals": [
-    "corrected unauthenticated write probes and per-row/file permission checks",
-    "guard cleanup after separately approved verification",
     "anonymous non-empty list/get/download and CRUD verification",
-    "successful new development site deployment with Node 24.21.0"
+    "successful new development site deployment; retry fix is implementing and fresh cloud approval is pending",
+    "production bootstrap package integrity pinning (production untouched)"
   ]
 }

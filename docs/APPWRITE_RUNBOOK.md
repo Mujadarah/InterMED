@@ -26,8 +26,8 @@ login. Lead used `npx --yes appwrite-cli@28.1.0` (not the unsigned global
 | `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                                                | EXECUTED                                        |
 | Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                                                    | EXECUTED                                        |
 | `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`                                    | EXECUTED                                        |
-| Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; manifest + descriptor available; evidence `publication-live.json` | **PARTIAL**                                     |
-| Unauthenticated writes / non-empty CRUD matrix                                              | Initial matrix failed/inconclusive; corrected probes passed 39/39; cleanup approval remains pending      | **PASS (corrected, bounded) / CLEANUP PENDING** |
+| Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; final post-cleanup adapter read passed                            | **PASS (bounded)**                              |
+| Unauthenticated writes / non-empty CRUD matrix                                              | Initial matrix failed/inconclusive; corrected probes passed 39/39; exact seven approved deletes exited 0 | **PASS (corrected, bounded); CLEANUP EXECUTED** |
 | Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`                            | **PARTIAL**                                     |
 | Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`                               | PASS (bounded)                                  |
 | Production project / billing / paid capacity                                                | —                                                                                                        | **NOT DONE**                                    |
@@ -219,19 +219,19 @@ private 2xx and no successful create/delete. All seven guard objects were
 unchanged on parsed-field comparison, including permissions and timestamps.
 This is bounded evidence, not complete live acceptance.
 
-### 5.1 Guard cleanup — approval-gated, not executed
+### 5.1 Guard cleanup — executed with owner approval
 
-After the corrected probes and evidence review, obtain **separate owner
+After the corrected probes and evidence review, the owner gave **separate
 approval** for the exact seven-object cleanup plan at
-`publication-live/cleanup-plan.md` and `.json`. Use the pinned CLI syntax
-shown there; it was checked against cached `appwrite-cli@28.1.0 --help`
-output and makes no cloud call until explicitly executed. Do not broaden the
-scope. The published version, bundle, and file
-`aba05ea1b8fc3e49f18d517b` must remain untouched. After cleanup, perform the
-final real-adapter read and assert that
-`version-aba05ea1b8fc3e49f18d517b` is never a guard object. Until those
-approval, cleanup, and final-read gates are complete, mark `cleanup` and
-`finalread` **PENDING OWNER APPROVAL**.
+`publication-live/cleanup-plan.md` and `.json`. The seven exact commands
+exited 0; the owner-side repeat exited 1 with only the CLI's requested-row/
+file-not-found messages. Do not infer HTTP statuses or error types from those
+messages. The published version, bundle, and file
+`aba05ea1b8fc3e49f18d517b` remained untouched, as shown by the preserved
+readbacks in `cleanup-live/`. The final saved-script real-adapter read passed:
+the expected version appeared in both manifest and descriptor, no guard was
+selected, and two REST requests were recorded. The inline multiline `npx eval`
+attempt exited 0 without records due to Windows argument loss and is not proof.
 
 ## 6. Deploy the web shell
 
@@ -248,13 +248,21 @@ manifest/SW scopes, observed cache headers) are recorded in
 Those probes do **not** prove the monorepo Sites build runner and are not a new
 real-device acceptance.
 
-> **Development Sites deploy attempted 2026-10-07; failed in the cloud build**
+> **Latest approved development Sites retry attempted 2026-10-07; failed in the cloud build**
 
-The deployment created `6ac61591ec43a84f8084`, but the Appwrite build image ran
-Node `22.23.2` while the repository requires Node `24.21.0`; `npm ci` failed
-with `EBADENGINE`. The CLI reported the failure but exited 0. Treat this as a
-failed deployment, not a successful rollout. A retry using the pinned runtime
-requires separate approval. Production remains not attempted.
+The retry deployment is `6ac6226495b5ff1a3249`. The host reported npm `12.0.2`;
+the pinned Node `24.21.0` binary never started because
+`fcntl64: symbol not found`. The CLI reported the failure but exited 0. Treat
+this as a failed deployment, not a successful rollout. The retry fix remains
+**IMPLEMENTING** and fresh cloud approval is pending. Production remains
+untouched.
+
+The official Node `24.21.0` Linux x64 musl archive and primary checksum are
+recorded in `evidence/milestone-3-live-2026-10-07/site-retry/`. This is
+research/integrity evidence only, not compatibility or deployment proof.
+Before production, every bootstrap package must be pinned by integrity hash;
+the Linux artifact is hash-verified, while npm and Windows bootstrap integrity
+remain follow-up gates.
 
 ```powershell
 npm ci --no-fund

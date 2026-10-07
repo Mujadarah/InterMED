@@ -1,0 +1,8 @@
+{
+  "url": "https://fra.cloud.appwrite.io/v1/tablesdb/intermed-datasets/tables/dataset-bundles/rows?queries[0]=%7B%22method%22%3A%22equal%22%2C%22attribute%22%3A%22datasetVersionId%22%2C%22values%22%3A%5B%22version-aba05ea1b8fc3e49f18d517b%22%5D%7D&queries[1]=%7B%22method%22%3A%22limit%22%2C%22values%22%3A%5B1%5D%7D",
+  "method": "GET",
+  "credentials": "omit",
+  "headers": {
+    "x-appwrite-project": "intermed-dev"
+  }
+}

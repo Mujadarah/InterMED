@@ -1,0 +1,49 @@
+{
+  "projectId": "intermed-dev",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "dataset": "synthetic-medication-catalogue",
+  "manifest": {
+    "status": "available",
+    "value": {
+      "dataset": "synthetic-medication-catalogue",
+      "datasetVersionId": "version-aba05ea1b8fc3e49f18d517b",
+      "version": "synthetic-2026-10-06",
+      "sourceIds": ["ds\u001fintermed\u001fsource.synthetic"],
+      "upstreamVersion": null,
+      "upstreamPublishedAt": null,
+      "publishedAt": "2026-10-07T09:53:59.731+00:00",
+      "importedAt": "2026-10-06T00:00:00.000+00:00",
+      "checksum": "sha256:91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b",
+      "schemaVersion": "medication-catalogue-1",
+      "minimumClientVersion": "0.0.0",
+      "recordCounts": {
+        "dataSources": 1,
+        "datasetVersions": 1,
+        "products": 10,
+        "activeIngredients": 7,
+        "medicationIngredients": 10,
+        "atcCodes": 2,
+        "dosageForms": 2,
+        "manufacturers": 1,
+        "marketingAuthorizationHolders": 1,
+        "regulatoryDocuments": 1
+      },
+      "coverage": "Fictional coverage only. Not for clinical use.",
+      "rightsApprovalReference": "not-approved",
+      "clinicalReviewReference": "not-reviewed",
+      "previousVersionId": null
+    }
+  },
+  "descriptor": {
+    "status": "available",
+    "value": {
+      "id": "bundle-aba05ea1b8fc3e49f18d517b",
+      "datasetVersionId": "version-aba05ea1b8fc3e49f18d517b",
+      "fileName": "synthetic-medication-catalogue-synthetic-2026-10-06.json",
+      "contentType": "application/json",
+      "byteSize": 25959,
+      "checksum": "sha256:91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b",
+      "url": "https://fra.cloud.appwrite.io/v1/storage/buckets/published-datasets/files/file-aba05ea1b8fc3e49f18d517b/view?project=intermed-dev"
+    }
+  }
+}

@@ -25,6 +25,9 @@ Companion summary:
 | `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs, corrected probe records, approval-gated cleanup plan, and REST/query recordings; the source bundle archive is excluded |
 | `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                                                                        |
 | `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                                                                             |
+| `cleanup-live/`                                        | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                   |
+| `adapter-final-after-cleanup/`                         | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                        |
+| `site-retry/`                                          | Latest approved Sites retry failure, source audit, and official Node 24.21.0 musl checksum evidence; binary archive excluded                                        |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.
@@ -47,17 +50,21 @@ are not part of this pack.
   matrix passed 39/39 with no abort, while the private `import-runs` GET
   remains a masked 404 rather than a strict 401/403 proof.
 - The owner's first repeat was conditional rather than an anonymous write/private
-  read pass: it observed only an identical public descriptor 200 no-op, with no
-  private 2xx and no successful creates/deletes. All seven guard objects were
-  unchanged on parsed-field comparison, including permissions and timestamps.
-  Cleanup is documented in `publication-live/cleanup-plan.md` and `.json` but
-  was not approved or executed. The published version/bundle/file
-  `aba05ea1b8fc3e49f18d517b` is excluded; the final adapter read remains pending.
-- The development Sites push was attempted and failed in the Appwrite build
-  image because it ran Node `22.23.2` while the repository requires Node
-  `24.21.0`; the CLI reported the failure but exited 0. This is not a
-  successful deployment. The source archive audit is retained separately and
-  does not change that result.
+  read pass. A later owner-approved cleanup executed the exact seven-object
+  plan: all seven delete commands exited 0, while the owner-side repeat
+  recorded exit 1 with only requested-row/file-not-found messages. No HTTP
+  status or error type is inferred. The published
+  version/bundle/file `aba05ea1b8fc3e49f18d517b` remained present.
+- The final real-adapter read is an actual saved-script run: it returned the
+  expected version in both manifest and descriptor, selected no guard object,
+  made two REST recordings, used `credentials: "omit"`, and passed verification.
+  An earlier inline multiline `npx eval` exited 0 without records because
+  Windows argument handling lost the script; it is not proof of the final read.
+- The latest approved development Sites retry failed in the cloud build. The
+  host reported npm `12.0.2`; the pinned Node `24.21.0` binary never started
+  because `fcntl64: symbol not found`. The CLI exited 0 while deployment
+  status was failed, so no successful deployment or actual pinned Node/npm
+  runtime pair is claimed.
 - Shell-site observations do not prove the recorded monorepo Sites build
   settings from [SITES.md](../../../infra/appwrite/SITES.md).
 - Plan/org confirmation is **GitHub Student Pack** (`auto-1`), not Free plan.
@@ -73,3 +80,9 @@ are not part of this pack.
 - A separate sanitized review copy of the deployed bundle scanned cleanly, but
   the original strict scan still exited 1; both results are retained without
   collapsing them into a single pass.
+- The official Node `24.21.0` Linux x64 musl archive checksum is recorded in
+  `site-retry/` as follow-up evidence, not deployment proof. The retry fix
+  remains **IMPLEMENTING** with fresh cloud approval pending. Production is
+  untouched; production bootstrap packages must be pinned by integrity hash.
+  The Linux artifact is hash-verified, while npm and Windows bootstrap
+  integrity remain follow-up gates.
