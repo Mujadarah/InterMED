@@ -135,8 +135,8 @@
     {
       "field": "REST row list shape { total, rows } with flattened columns",
       "commandOrProbe": "live unauthenticated TablesDB read",
-      "results": "Public empty table reads returned { total: 0, rows: [] }. The adapter read obtained a non-empty published manifest and descriptor, but the list-row shape and full anonymous non-empty CRUD matrix remain unverified.",
-      "status": "PARTIAL"
+      "results": "The root adapter recordings obtained non-empty published manifest and descriptor responses with { total: 1, rows: [...] } and flattened columns; see adapter-published-recording/rest-1.json and rest-2.json. Public empty table reads also returned { total: 0, rows: [] }. The full anonymous non-empty CRUD matrix remains bounded by the corrected probe record.",
+      "status": "PASS (recorded shape; CRUD remains bounded)"
     }
   ],
   "rejectedFindings": [

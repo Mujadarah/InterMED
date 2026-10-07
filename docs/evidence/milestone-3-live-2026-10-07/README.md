@@ -41,10 +41,11 @@ are not part of this pack.
   probe, not a pass: the descriptor PATCH was a no-op with HTTP 200, storage
   update attempts used the wrong method and returned 404, and private guard
   GETs returned `row_not_found` rather than an authorization proof. The helper
-  continued after an unexpected 200. Each first-run failure is linked to the
-  corrected probe. The corrected matrix passed 39/39 with no abort, while the
-  private `import-runs` GET remains a masked 404 rather than a strict 401/403
-  proof.
+  continued after an unexpected 200. The concrete six-row mapping is in
+  [`publication-live/first-to-corrected-probes.md`](publication-live/first-to-corrected-probes.md),
+  with links to both the first and corrected JSON for every row. The corrected
+  matrix passed 39/39 with no abort, while the private `import-runs` GET
+  remains a masked 404 rather than a strict 401/403 proof.
 - The owner's first repeat was conditional rather than an anonymous write/private
   read pass: it observed only an identical public descriptor 200 no-op, with no
   private 2xx and no successful creates/deletes. All seven guard objects were
