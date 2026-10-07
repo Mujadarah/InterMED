@@ -1,0 +1,177 @@
+{
+  "evidenceDate": "2026-10-07",
+  "baselineCommit": "f167d439fe3d608b99fb130ee314b2bbf68798f1",
+  "overallMilestone3LiveAcceptance": "NOT CLAIMED",
+  "developmentProject": {
+    "projectId": "intermed-dev",
+    "name": "InterMED Development",
+    "organizationId": "6abdb0c92ffbb4c7fdf6",
+    "region": "fra",
+    "regionalEndpoint": "https://fra.cloud.appwrite.io/v1",
+    "createdAt": "2026-10-07T08:35:00.440+00:00",
+    "status": "active",
+    "resourcesAtCreation": {
+      "tablesdb": 0,
+      "storage": 0,
+      "functions": 0,
+      "sites": 0,
+      "users": 0
+    }
+  },
+  "organizationPlan": {
+    "name": "GitHub Student Pack",
+    "id": "auto-1",
+    "projectsLimit": 2,
+    "projectsUsed": 2,
+    "price": 0,
+    "note": "Audit text saying Free plan was wrong. Development fills the second included slot; production needs a separate capacity decision. No billing/paid/production changes."
+  },
+  "shellProjectUnchanged": {
+    "projectId": "6ac4b25b0012379cf3d0",
+    "siteId": "6ac4b3550003a26eea02",
+    "origin": "https://intermed-shell-test.appwrite.network",
+    "authorization": "read-only origin checks only; owner keeps shell unchanged"
+  },
+  "acceptanceItems": [
+    {
+      "id": 1,
+      "title": "Authorized test deployment with recorded SITES.md settings",
+      "commandOrProbe": "sites_list on shell site 6ac4b3550003a26eea02; no new monorepo Sites deploy",
+      "results": "Shell site uses framework other, adapter static, fallbackFile index.html, buildRuntime node-22, empty install/build commands, output ./, deployment 6ac4e58c6e620fd5dd84 ready. That proves prebuilt static hosting only. Recorded monorepo install npm ci --prefix ../.. --no-fund / build npm run build / output ./dist is NOT proven. Separate new development site locally prepared only; no approval or deployment yet.",
+      "status": "NOT RUN"
+    },
+    {
+      "id": 2,
+      "title": "Unauthenticated reader reads only published resources",
+      "commandOrProbe": "Anonymous GET against dataset-versions / dataset-bundles / published-datasets and denials for private resources",
+      "results": "Empty published tables and published-datasets bucket returned HTTP 200 with zero rows/files; private tables and buckets returned HTTP 401. No non-empty resource was created.",
+      "status": "PARTIAL"
+    },
+    {
+      "id": 3,
+      "title": "Unauthenticated writer refused on published resources",
+      "commandOrProbe": "Unauth POST/PATCH/DELETE on published tables and bucket files",
+      "results": "No unauthenticated write probes were authorized; create/update/delete remains not run.",
+      "status": "NOT RUN"
+    },
+    {
+      "id": 4,
+      "title": "Admin importer execution refused; stub reveals no key",
+      "commandOrProbe": "Unauth POST plus approved CLI stub execution",
+      "results": "Unauthenticated POST returned HTTP 401 user_unauthorized. Approved CLI execution returned responseStatusCode 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.",
+      "status": "PASS (bounded)"
+    },
+    {
+      "id": 5,
+      "title": "Effective permissions at every resource level",
+      "commandOrProbe": "Live additive table/row and bucket/file denial matrix (runbook §5)",
+      "results": "Empty-resource GET matrix recorded: public tables and published bucket readable; private tables and buckets denied. Per-row/file guards and real adapter CRUD remain not run.",
+      "status": "PARTIAL"
+    },
+    {
+      "id": 6,
+      "title": "No server key in deployed bundle / function vars / logs / config",
+      "commandOrProbe": "node scripts/scan-dist-secrets.mjs plus provenance review",
+      "results": "Scanner exit 1 on two 40-character candidates in public JS; both equal the public HTML revision and resolve to Git commits. No API-key assignment was found; manual classification is recorded and a strict scanner pass is not claimed.",
+      "status": "PARTIAL"
+    },
+    {
+      "id": 7,
+      "title": "Deep-link SPA fallback, manifest scope, SW root scope, TLS, cache headers",
+      "commandOrProbe": "curl GET https://intermed-shell-test.appwrite.network paths /status /manifest.webmanifest /sw.js / /assets/index-DNcJQcXH.js /assets/index-kdzZSpSC.css; Playwright /status + serviceWorker.getRegistrations",
+      "results": {
+        "http": "every curl exit 0, HTTP 200, ssl_verify_result 0, no bypass/cookies/credentials",
+        "tls": "PASS (default validation; HSTS max-age=63072000; includeSubDomains; preload)",
+        "deepLinkStatus": "PASS (HTTP 200 HTML with InterMED Development title / SPA shell)",
+        "manifest": "PASS (Content-Type application/manifest+json; id/start_url/scope all '/'; display standalone)",
+        "serviceWorker": "PASS (Content-Type text/javascript; browser secureContext true; controller https://intermed-shell-test.appwrite.network/sw.js; activated registration scope https://intermed-shell-test.appwrite.network/; waiting null)",
+        "shellStatusText": "Shell version 77c816387c81001988b3; clinical capabilities unavailable",
+        "cacheControlObserved": "public, max-age=0, must-revalidate on all six probed paths (exact spacing as in site-probes/*.headers.txt)",
+        "cachePolicyComparison": "Matches prior Milestone 2 hosted observation on this origin. No immutable / long-max-age Cache-Control observed on hashed JS/CSS assets. DEVELOPMENT.md requires comparing observed headers to a reviewed deployment header policy rather than assuming values; unmet long-cache immutable hashed-asset expectation remains an open risk, not a silent pass.",
+        "limits": "Browser scope proof only; no new real-device/installed acceptance"
+      },
+      "status": "PASS",
+      "statusDetail": "PASS for TLS, deep-link /status, manifest root scope, SW root scope; cache headers OBSERVED with residual risk (no immutable hashed assets)"
+    },
+    {
+      "id": 8,
+      "title": "Region/plan confirmation, quotas/cost limits, backup/restore drill",
+      "commandOrProbe": "organization create-project / plan read / connector empty-resource confirmation",
+      "results": {
+        "region": "PASS — fra; regional API https://fra.cloud.appwrite.io/v1",
+        "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
+        "capacity": "Development uses second included slot; future production needs separate capacity decision; NO billing/paid/production changes",
+        "backupRestore": "NOT RUN",
+        "productionProject": "NOT CREATED / deferred"
+      },
+      "status": "PARTIAL",
+      "statusDetail": "Development region+plan confirmed; backup/restore and production capacity remain open"
+    }
+  ],
+  "recordedFieldChecks": [
+    {
+      "field": "function runtime node-22 / site build runtime node-22",
+      "commandOrProbe": "functions list-runtimes; shell sites_list buildRuntime",
+      "results": "Deployed function readback reports runtime node-22 and ready deployment; shell buildRuntime is node-22. Supported runtimes also include node-24.",
+      "status": "PASS (development function)"
+    },
+    {
+      "field": "site framework other, adapter static, fallbackFile index.html",
+      "commandOrProbe": "shell sites_list",
+      "results": "Observed on existing shell site. Does not prove recorded monorepo Git-connected build settings.",
+      "status": "PARTIAL"
+    },
+    {
+      "field": "column types text/bigint, enum elements, indexes columns/orders",
+      "commandOrProbe": "push tables / pull / live schema inspect",
+      "results": "Three tables pushed and pulled; every declared table, column, and index property compares with difference count 0.",
+      "status": "PASS"
+    },
+    {
+      "field": "bucket antivirus/encryption/compression/max size bounds",
+      "commandOrProbe": "push buckets / pull",
+      "results": "Four buckets pushed and pulled; expected declared fields compare with zero differences.",
+      "status": "PASS"
+    },
+    {
+      "field": "REST row list shape { total, rows } with flattened columns",
+      "commandOrProbe": "live unauthenticated TablesDB read",
+      "results": "Public empty table reads returned { total: 0, rows: [] }; non-empty row shape remains unverified.",
+      "status": "PARTIAL"
+    }
+  ],
+  "rejectedFindings": [
+    {
+      "source": "preflight-review",
+      "claim": "Config $permissions must be renamed to permissions or CLI ignores grants",
+      "judgment": "FALSE — official CLI pushsimple.go maps $permissions => permissions; resource.go uses $permissions JSON tag",
+      "action": "no code change"
+    },
+    {
+      "source": "preflight-review",
+      "claim": "function path functions/import-anmdmr fails because CLI resolves only from cwd",
+      "judgment": "FALSE as stated — CLI ResolveResourcePath joins via ResourceDirname relative to config",
+      "action": "no code change this stage"
+    },
+    {
+      "source": "replacement-audit wording",
+      "claim": "Free plan quota",
+      "judgment": "FALSE for this org — live plan is GitHub Student Pack auto-1",
+      "action": "record Student Pack in evidence/ADR/runbook"
+    },
+    {
+      "source": "research.log open issue",
+      "claim": "PublishedDatasetManifest.checksum vs catalogueFingerprint mismatch is a confirmed bug",
+      "judgment": "UNCONFIRMED — do not assert until verified; no M6 contract change this stage",
+      "action": "leave open"
+    }
+  ],
+  "pendingApprovals": [
+    "dataset publishing and synthetic row/file creation",
+    "unauthenticated write probes and per-row/file permission checks",
+    "non-empty adapter reads and CRUD verification",
+    "new development site deployment",
+    "production capacity decision / intermed-prod creation",
+    "backup/restore drill"
+  ]
+}

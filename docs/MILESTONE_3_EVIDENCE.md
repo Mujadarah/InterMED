@@ -12,9 +12,12 @@ scope: no `MedicationProduct`, `ActiveIngredient`, `MedicationIngredient` or any
 other Milestone 4 entity was created here, and no clinical fact appears in any
 fixture (all fixtures are synthetic and flagged as such).
 
-Live acceptance therefore remains **pending maintainer approval**; the exact
-checks that still need a live project are listed under
-[pending live verification](#pending-live-verification).
+Through 2026-10-06 this milestone was configuration-as-code only (no
+provisioning). On **2026-10-07** the owner approved creation of a separate
+Frankfurt development project and limited read-only checks; the honest status of
+each live acceptance item is under
+[Live verification (development project)](#live-verification-development-project-2026-10-07).
+**Milestone 3 live acceptance is not claimed.**
 
 ## Scope and requirement IDs
 
@@ -326,50 +329,83 @@ environments; offline permission model and its tests; secret scanning;
 injected reader contract, mock and Appwrite adapter with Zod boundary
 validation; public configuration validation; decision records and runbook.
 
-### Pending live verification
+### Live verification (development project) — 2026-10-07
 
-These Milestone 3 acceptance checks **cannot** be completed without provisioning
-and remain open until the maintainer approves live work. They are the exact list
-from the build-plan acceptance text plus what the offline tests cannot prove:
+Evidence pack:
+[`docs/evidence/milestone-3-live-2026-10-07/`](evidence/milestone-3-live-2026-10-07/README.md)
+(`observations.json`, `cli-preflight.md`, `markdown-inventory.md`,
+`buckets/**`, `tables/**`, `function-checks/**`, `scanner-review/**`,
+`site-probes/**`). Baseline
+`f167d439fe3d608b99fb130ee314b2bbf68798f1` (= live `origin/main`). **No overall
+Milestone 3 live acceptance claim.**
 
-1. An authorized test deployment works with the exact recorded settings
-   (Sites build settings from `SITES.md`, including the monorepo install command
-   variant actually accepted by the build runner).
-2. An unauthenticated reader (no account, **no anonymous session**) reads the
-   published manifest/bundle resources and **only** those: live read of
-   `dataset-versions`, `dataset-bundles` and `published-datasets` succeeds while
-   `import-runs`, `raw-sources`, `quarantine` and `import-run-logs` are refused.
-3. The same reader cannot write: create/update/delete on published tables and
-   bucket files are refused, including table-level create attempts.
-4. The reader cannot execute the admin importer (`import-anmdmr` execution
-   refused without authorization), and the stub's response/logs contain no key.
-5. Effective permissions are tested live at every resource level, including the
-   additive table/row and bucket/file behavior described in
-   [APPWRITE.md](../plan/APPWRITE.md), and the refusal results are recorded.
-6. No server key appears in the built frontend bundle, in function variables, in
-   function/site logs or in configuration (bundle inspection of the deployed
-   artifact, not only of local `apps/web/dist`).
-7. Deep-link SPA fallback (`/status`), manifest scope, `/sw.js` root scope, TLS
-   and cache headers verified on the deployed origin.
-8. Region/plan confirmation for both projects, quota and cost limits, and a
-   backup/restore drill into a scratch project (R15).
+#### Verified lead/owner facts (public ids only)
 
-### Pending live verification of recorded field values
+- Owner approved development project creation on 2026-10-07. Lead ran
+  `npx --yes appwrite-cli@28.1.0 organization create-project --organization-id 6abdb0c92ffbb4c7fdf6 --project-id intermed-dev --name "InterMED Development" --region fra --json`
+  → **exit 0**; active `intermed-dev`, `$createdAt`
+  `2026-10-07T08:35:00.440+00:00` (11:35 Bucharest). Connector confirmed
+  name/region/active and **zero** tablesdb/storage/functions/sites/users.
+  Regional API `https://fra.cloud.appwrite.io/v1`.
+- Org plan `organizations_get_plan` → name **GitHub Student Pack**, id
+  `auto-1`, projects limit **2**, price **0**. Shell project already occupied
+  one slot; `intermed-dev` fills the second. **No** billing/paid/production
+  changes. Future production needs a separate capacity decision. No fallback
+  sharing of the shell project.
+- Owner keeps shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02`
+  unchanged; only read-only origin checks authorized.
+- Owner approved the development resource checks. Bucket push/pull, TablesDB
+  push/pull, the function stub deployment, the bounded anonymous GET matrix,
+  and the two approved function checks are recorded in the evidence pack.
+  Dataset publication and unauthenticated writes were not run.
+- `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`
+  → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
+  → exit 0, lists **node-22** and **node-24** as supported (availability only,
+  not a deployed runtime on `intermed-dev`).
+- Shell `sites_list`: site `6ac4b3550003a26eea02` framework `other`, adapter
+  `static`, `fallbackFile` `index.html`, `buildRuntime` `node-22`, empty
+  install/build, output `./`, deployment `6ac4e58c6e620fd5dd84` ready — does
+  **not** prove the recorded monorepo Sites build. A separate new development
+  site is locally prepared only (no approval/deploy yet).
+- CLI: global 13.3.2 unsigned; work used `npx --yes appwrite-cli@28.1.0`. Owner
+  ran login; lead whoami saw console endpoint; no secrets recorded.
+- Markdown: Antigravity audited all **36** tracked Markdown files — no
+  controlling contradictions. Grok audit failed (usage exhausted); **not**
+  claimed passed.
+- Preflight “rename `$permissions`” finding is **FALSE** (official CLI maps
+  `$permissions` → `permissions`); see
+  [`cli-preflight.md`](evidence/milestone-3-live-2026-10-07/cli-preflight.md).
 
-Recorded from current documentation but not yet confirmed against a live
-project/CLI version; correct the configuration if `appwrite pull` output differs:
+#### Acceptance items 1–8
 
-- function runtime `node-22` and site build runtime `node-22`;
-- site `framework: "other"`, `adapter: "static"` and `fallbackFile` semantics;
-- column types `text` and `bigint`, enum columns with `elements`, and index
-  entries with `columns`/`orders` (multi-column unique in particular);
-- bucket fields `antivirus`, `encryption`, `compression` and the maximum-file-size
-  bounds as accepted values;
-- REST response shape assumed by the adapter: row lists as
-  `{ total, rows }` with columns flattened at the row's top level beside the
-  `$`-prefixed system fields. Verified against the REST documentation and SDK
-  type-safety examples on 2026-10-06; confirm on the first live read and adjust
-  `versionRowSchema`/`bundleRowSchema` if the live payload nests columns.
+| #   | Check                                                                        | Command / probe                                                                          | Results (summary)                                                                                                                                                                                                                                                                                                                                                                                 | Status                                                             |
+| --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; no monorepo Sites deploy                                             | Prebuilt shell settings only; monorepo install/build/output **unverified**; new dev site not deployed                                                                                                                                                                                                                                                                                             | **NOT RUN**                                                        |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs                                                          | Empty published tables/bucket return HTTP 200 with zero rows/files; private tables/buckets return HTTP 401. No published dataset or non-empty resource was created. | **PARTIAL**                                                        |
+| 3   | Unauthenticated writes refused                                               | Unauth create/update/delete                                                              | No write probes were authorized; create/update/delete remains **NOT RUN**.                                                                                                                                                                                                                                                                                                                        | **NOT RUN**                                                        |
+| 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                                             | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance. | **PASS (bounded)**                                                  |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource GET matrix recorded: public tables and published bucket are readable; private tables/buckets are denied. Per-row/file guards and real adapter CRUD remain **NOT RUN**. | **PARTIAL**                                                        |
+| 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                               | Scanner exit 1 on two 40-character candidates in public JS; both equal the public HTML revision and resolve to Git commits. No API-key assignment was found; manual classification is recorded and scanner strict-pass is not claimed. | **PARTIAL**                                                        |
+| 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on `https://intermed-shell-test.appwrite.network` (see `site-probes/`) | Every path HTTP **200**, TLS verify OK, HSTS present; manifest id/start_url/scope `/`; SW controller+scope root; shell version `77c816387c81001988b3`. Cache-Control **observed** `public, max-age=0, must-revalidate` on all paths — **no** `immutable` / long-max-age on hashed assets (residual risk vs reviewed long-cache policy). Browser proof only; not real-device/installed acceptance. | **PASS** (scopes/TLS/deep-link); cache OBSERVED with residual risk |
+| 8   | Region/plan, quotas/cost limits, backup/restore                              | `organization create-project`, plan read                                                 | Dev **fra** + Student Pack (`auto-1`, projects=2) confirmed. Backup/restore **NOT RUN**. Production project **not** created.                                                                                                                                                                                                                                                                      | **PARTIAL**                                                        |
+
+#### Recorded-field checks
+
+| Field / assumption                                                        | Command / probe                       | Results                                                                                                       | Status      |
+| ------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
+| Function runtime `node-22`; site build runtime `node-22`                  | function readback; shell site       | Deployed function readback reports runtime node-22 and ready deployment; shell `buildRuntime` node-22. Supported runtimes also include node-24. | **PASS (development function)** |
+| Site `framework: "other"`, `adapter: "static"`, `fallbackFile`            | Shell `sites_list`                    | Observed on shell site only; monorepo runner unproven                                                         | **PARTIAL** |
+| Column types `text`/`bigint`, enum `elements`, indexes `columns`/`orders` | push/pull tables                      | Three tables pushed and pulled; declared table, column, and index properties compare with difference count 0. | **PASS** |
+| Bucket `antivirus` / `encryption` / `compression` / max sizes             | push/pull buckets                     | Four buckets pushed and pulled; expected declared fields compare with zero differences.                      | **PASS** |
+| REST `{ total, rows }` with flattened columns                             | anonymous TablesDB read               | Public empty table reads returned `{ "total": 0, "rows": [] }`; non-empty row shape remains unverified.       | **PARTIAL** |
+
+#### Still pending after this capture
+
+Dataset publication and unauthenticated write probes; non-empty row/file reads;
+per-row/file permission checks; new development Sites deployment with recorded
+monorepo settings; production capacity decision; backup/restore drill. The
+deployed bundle scanner strict pass remains open because its two candidates were
+resolved by provenance review rather than by changing the scanner.
 
 ## PR #7 review fixes
 
@@ -480,20 +516,30 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   gate (with `frame-ancestors`, CSP on `/sw.js`, `Referrer-Policy`,
   `Permissions-Policy`) remains a Milestone 12 requirement on a header-capable
   host or edge. Nothing in this milestone changed the CSP.
-- All live checks in the two lists above are open; Milestone 3 acceptance is
-  **not** claimed. No production deployment is implied.
-- Field values listed above are documentation-derived and unverified live.
+- Live items 1–6 remain **NOT RUN**; item 7 is a shell-origin browser proof with
+  observed cache headers (no immutable hashed-asset caching); item 8 is
+  **PARTIAL** (dev region/plan only). Milestone 3 live acceptance is **not**
+  claimed. No production deployment is implied.
+- Most recorded field values remain unverified live; runtime/framework notes
+  above are availability or shell-site observations only.
 - Operational ownership (release approver, incident owner, retention, cost
   monitoring, alerting) is unassigned and required before production.
 - One bundle per dataset generation is assumed by the current descriptor table
   (`datasetVersionId` unique); deltas or multi-bundle generations would need a
   schema extension (deltas are explicitly deferred in the build plan).
-- Free-plan quotas and rate limits for future public functions are unmeasured.
+- Org capacity is **GitHub Student Pack** (`auto-1`, projects limit 2, both
+  slots used by shell + `intermed-dev`). Production needs a separate capacity
+  decision; rate limits for future public functions remain unmeasured.
+- Hashed shell assets on the existing origin serve
+  `Cache-Control: public, max-age=0, must-revalidate` with no `immutable`
+  long-cache — residual risk until a reviewed header policy is confirmed on the
+  intended development Sites deployment.
 
 ## Next gate
 
-Milestone 3 live acceptance requires a fresh, explicit maintainer authorization
-to provision the two Frankfurt projects and execute
-[the runbook](APPWRITE_RUNBOOK.md). Milestone 4 (medication domain model with
-synthetic fixtures) proceeds in parallel under the maintainer's ordering
-decision and is unaffected by these files.
+Development project `intermed-dev` exists; remaining Milestone 3 live acceptance
+still requires explicit maintainer authorization for push/pull, permission
+probes, publishing, and any Sites deployment that proves the recorded monorepo
+settings, plus a separate production capacity decision before `intermed-prod`.
+See [the runbook](APPWRITE_RUNBOOK.md). Milestone 4 proceeds under the
+maintainer's ordering decision and is unaffected by these files.

@@ -1,0 +1,28 @@
+ℹ Info: Validating functions ...
+ℹ Info: Checking for changes ...
+ℹ Info: Pushing functions ...
+ℹ Info: Pushing function ANMDMR runner (Milestone 3 stub) ( import-anmdmr ) ...
+ℹ Info: Creating function proxy rule for 6ac609c6003d1e01b208.appwrite.network ...
+ℹ Info: ANMDMR runner (Milestone 3 stub) ( import-anmdmr ) Deploying
+ℹ Info: ANMDMR runner (Milestone 3 stub) ( import-anmdmr ) Status: waiting
+
+Build logs
+
+[90m[08:58:48] [31m[[0mopen-runtimes[31m][97m Build cache miss. [0m
+[90m[08:58:48] [31m[[0mopen-runtimes[31m][97m Environment preparation started. [0m
+[90m[08:58:48] [31m[[0mopen-runtimes[31m][97m Environment preparation finished. [0m
+[90m[08:58:48] [31m[[0mopen-runtimes[31m][97m Build command execution started. [0m
+npm warn Unknown env config "store-dir". This will error in a future major version of npm. See `npm help npmrc` for supported config options.
+up to date in 938ms
+[90m[08:58:50] [31m[[0mopen-runtimes[31m][97m Build command execution finished. [0m
+[90m[08:58:50] [31m[[0mopen-runtimes[31m][97m Build packaging started. [0m
+[90m[08:58:50] [31m[[0mopen-runtimes[31m][97m Build packaging finished. [0m
+[90m[08:58:50] [31m[[0mopen-runtimes[31m][97m Build cache saved. (4096 bytes) [0m
+[90m[08:58:50] [31m[[0mopen-runtimes[31m][32m Build finished. [0m
+ℹ Info: ANMDMR runner (Milestone 3 stub) ( import-anmdmr ) Status: building
+[90m[08:58:53] [90m[[0mappwrite[90m][32m Deployment finished. [0m
+
+ℹ Info: ANMDMR runner (Milestone 3 stub) ( import-anmdmr ) Deployed
+ℹ Info: Preview link: https://6ac609c6003d1e01b208.appwrite.network
+ℹ Info: Deployment page: https://appwrite.io/projects/intermed-dev/functions/import-anmdmr/deployments/6ac609c6a82ddcf43394
+✓ Success: Successfully deployed 1 function in 9.9s.
