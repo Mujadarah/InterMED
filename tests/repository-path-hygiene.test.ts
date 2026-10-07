@@ -56,9 +56,16 @@ function decodeTrackedText(path: string, source: Buffer): string | undefined {
   if (source.length >= 2 && source[0] === 0xfe && source[1] === 0xff)
     return source.subarray(2).swap16().toString('utf16le');
   if (isKnownBinary(path, source)) return undefined;
+  if (
+    source.length >= 3 &&
+    source[0] === 0xef &&
+    source[1] === 0xbb &&
+    source[2] === 0xbf
+  )
+    throw new Error(`Tracked text is UTF-8 without BOM: ${path}`);
   try {
     const text = utf8Decoder.decode(source);
-    return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+    return text;
   } catch {
     throw new Error(`Tracked text is not UTF-8: ${path}`);
   }
@@ -132,6 +139,12 @@ it('detects UTF-8, escaped and UTF-16 paths without treating images as text', ()
   expect(() =>
     decodeTrackedText('fixture.txt', Buffer.from([0xc3, 0x28])),
   ).toThrow('not UTF-8');
+  expect(() =>
+    decodeTrackedText(
+      'fixture.log',
+      Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from('UTF-8')]),
+    ),
+  ).toThrow('UTF-8 without BOM');
 });
 
 it('uses exact boundaries for the three coordinated exclusions', () => {
@@ -177,6 +190,7 @@ it('scans tracked files in a fixture git repository, not untracked files', async
 
 it('keeps tracked text and logs UTF-8/LF and free of machine paths', () => {
   const root = resolve(import.meta.dirname, '..');
+  expect(trackedPathFindings(root)).toEqual([]);
   const paths = execFileSync('git', ['ls-files', '-z'], {
     cwd: root,
     encoding: 'utf8',
@@ -189,7 +203,6 @@ it('keeps tracked text and logs UTF-8/LF and free of machine paths', () => {
     const source = readFileSync(resolve(root, path));
     const text = decodeTrackedText(path, source);
     if (text === undefined) continue;
-    expect(findMachinePaths(text), path).toEqual([]);
     if (extname(path).toLowerCase() === '.log') {
       expect(source[0], path).not.toBe(0xff);
       expect(source[1], path).not.toBe(0xfe);
