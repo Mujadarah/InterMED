@@ -1,0 +1,12 @@
+{
+  "deploymentId": "6ac62b9286ef77aa3a78",
+  "sourceCommit": "ac848af0b48f92a4eb9ab03b8aa7841769165e33",
+  "status": "ready",
+  "archiveBytes": 5794268,
+  "entryCount": 401,
+  "forbiddenEntries": [],
+  "publicEnvExamples": ["apps/web/.env.example"],
+  "savedVariables": 0,
+  "cloudNodeVersion": "v24.21.0",
+  "cloudNpmVersion": "11.19.0"
+}

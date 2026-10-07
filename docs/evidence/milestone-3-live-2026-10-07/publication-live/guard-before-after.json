@@ -1,0 +1,51 @@
+[
+  {
+    "kind": "row",
+    "resource": "dataset-versions",
+    "id": "guard-version",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "row",
+    "resource": "dataset-bundles",
+    "id": "guard-bundle",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "row",
+    "resource": "import-runs",
+    "id": "guard-run",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "file",
+    "resource": "raw-sources",
+    "id": "guard-rawsources",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "file",
+    "resource": "quarantine",
+    "id": "guard-quarantine",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "file",
+    "resource": "import-run-logs",
+    "id": "guard-importrunlogs",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  },
+  {
+    "kind": "file",
+    "resource": "published-datasets",
+    "id": "guard-publisheddatasets",
+    "existsAfter": true,
+    "exactOwnerReadbackUnchanged": true
+  }
+]

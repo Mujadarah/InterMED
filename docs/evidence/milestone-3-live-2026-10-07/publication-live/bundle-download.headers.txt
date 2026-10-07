@@ -1,0 +1,28 @@
+HTTP/1.1 200 OK
+Connection: keep-alive
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: Accept, Origin, Cookie, Set-Cookie, Content-Type, Content-Range, X-Appwrite-Project, X-Appwrite-Key, X-Appwrite-Locale, X-Appwrite-Mode, X-Appwrite-JWT, X-Appwrite-Organization, X-Appwrite-Response-Format, X-Appwrite-Timeout, X-Appwrite-ID, X-Appwrite-Timestamp, X-Appwrite-Session, X-Appwrite-Platform, X-Appwrite-Impersonate-User-Id, X-Appwrite-Impersonate-User-Email, X-Appwrite-Impersonate-User-Phone, X-SDK-Version, X-SDK-Name, X-SDK-Language, X-SDK-Platform, X-SDK-GraphQL, X-SDK-Profile, Range, Cache-Control, Expires, Pragma, X-Fallback-Cookies, X-Requested-With, X-Forwarded-For, X-Forwarded-User-Agent, X-Appwrite-Console-Fingerprint, Authorization
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE
+Access-Control-Expose-Headers: X-Appwrite-Session, X-Fallback-Cookies, Date
+Access-Control-Max-Age: 86400
+Cache-Control: private, max-age=3888000
+Content-Disposition: attachment; filename="synthetic-medication-catalogue-synthetic-2026-10-06.json"
+Content-Type: application/json
+Server: Appwrite
+Strict-Transport-Security: max-age=10886400
+X-Content-Type-Options: nosniff
+X-Debug-Fallback: false
+X-Debug-Fallback: true
+X-Debug-Speed: 0.1011950969696
+X-Peak: 160952672
+X-Utopia-Compression: true
+Accept-Ranges: bytes
+Date: Wed, 07 Oct 2026 09:56:00 GMT
+Via: 1.1 varnish
+X-Served-By: cache-fra-etou8220150-FRA
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1791366961.830330,VS0,VE110
+Vary: Accept-Encoding
+transfer-encoding: chunked
+

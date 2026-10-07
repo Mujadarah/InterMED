@@ -1,0 +1,26 @@
+HTTP/1.1 401 Unauthorized
+Connection: keep-alive
+Content-Length: 114
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: Accept, Origin, Cookie, Set-Cookie, Content-Type, Content-Range, X-Appwrite-Project, X-Appwrite-Key, X-Appwrite-Locale, X-Appwrite-Mode, X-Appwrite-JWT, X-Appwrite-Organization, X-Appwrite-Response-Format, X-Appwrite-Timeout, X-Appwrite-ID, X-Appwrite-Timestamp, X-Appwrite-Session, X-Appwrite-Platform, X-Appwrite-Impersonate-User-Id, X-Appwrite-Impersonate-User-Email, X-Appwrite-Impersonate-User-Phone, X-SDK-Version, X-SDK-Name, X-SDK-Language, X-SDK-Platform, X-SDK-GraphQL, X-SDK-Profile, Range, Cache-Control, Expires, Pragma, X-Fallback-Cookies, X-Requested-With, X-Forwarded-For, X-Forwarded-User-Agent, X-Appwrite-Console-Fingerprint, Authorization
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE
+Access-Control-Expose-Headers: X-Appwrite-Session, X-Fallback-Cookies, Date
+Access-Control-Max-Age: 86400
+Cache-Control: no-cache, no-store, must-revalidate
+Content-Type: application/json; charset=UTF-8
+Expires: 0
+Pragma: no-cache
+Server: Appwrite
+Strict-Transport-Security: max-age=10886400
+X-Content-Type-Options: nosniff
+X-Debug-Fallback: false
+X-Debug-Fallback: true
+X-Debug-Speed: 0.016154050827026
+Accept-Ranges: bytes
+Date: Wed, 07 Oct 2026 09:05:41 GMT
+Via: 1.1 varnish
+X-Served-By: cache-fra-etou8220056-FRA
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1791363942.867721,VS0,VE21
+

@@ -12,16 +12,23 @@ scope: no `MedicationProduct`, `ActiveIngredient`, `MedicationIngredient` or any
 other Milestone 4 entity was created here, and no clinical fact appears in any
 fixture (all fixtures are synthetic and flagged as such).
 
-Live acceptance therefore remains **pending maintainer approval**; the exact
-checks that still need a live project are listed under
-[pending live verification](#pending-live-verification).
+Through 2026-10-06 this milestone was configuration-as-code only (no provisioning). On **2026-10-07** the owner approved creation of a separate
+Frankfurt development project and limited read-only checks; the honest status of
+each live acceptance item is under
+[Live verification (development project)](#live-verification-development-project-2026-10-07).
+**All requested Milestone 3 development live checks passed.** This dated
+evidence is a **pre-delivery snapshot captured 2026-10-07**: the final PR
+source includes reviewed offline helper/test fixes, but no new cloud deployment
+was made from that source. PR #9 checks are the authoritative final delivery
+state once CI completes. This is bounded development evidence, not a global
+release or clinical-product validation claim.
 
 ## Scope and requirement IDs
 
 | Requirement (REQUIREMENTS.md)                                                                           | How this milestone addresses it                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R10 — Appwrite Sites/Functions/database/Storage, Frankfurt                                              | Configuration as code for both environments at `https://fra.cloud.appwrite.io/v1`; provisioning pending                                            |
-| R11 — Sites GitHub branch/root/install/build/output/domain, tested SPA deep links                       | [infra/appwrite/SITES.md](../infra/appwrite/SITES.md) plus `sites` config entries; live deep-link test pending                                     |
+| R10 — Appwrite Sites/Functions/database/Storage, Frankfurt                                              | Configuration as code plus bounded development verification at `https://fra.cloud.appwrite.io/v1`; production provisioning remains separate        |
+| R11 — Sites GitHub branch/root/install/build/output/domain, tested SPA deep links                       | [infra/appwrite/SITES.md](../infra/appwrite/SITES.md) plus `sites` config entries; development deep-link checks recorded in the dated pack         |
 | R12 — preview/development separated from production                                                     | [decision 0002](decisions/0002-environment-strategy.md): separate projects, separate config files                                                  |
 | R13 — public access without account/anonymous session, no public writes                                 | `read("any")` on three published resources only; offline tests assert the complete grant set                                                       |
 | R14 — importer/raw/quarantine/logs/keys never public                                                    | Empty grants on private resources; function `execute: []`, `scopes: []`, `vars: []`; secret scan                                                   |
@@ -36,7 +43,7 @@ checks that still need a live project are listed under
 | R84 — immutable published generations, rollback                                                         | Publication/rollback model in decision 0001 and runbook §7.3                                                                                       |
 | R124 — reviewed CSP/security headers                                                                    | CSP **unchanged** by instruction; the future `connect-src` need is recorded under [open risks](#open-risks-and-gaps)                               |
 | R125 — Functions least privilege, bounded inputs, safe logs                                             | No execute permission, no scopes, no variables, bounded timeout; rate limits pending (no public function exists)                                   |
-| R126 — effective Appwrite permissions tested                                                            | Offline grant tests now; live denial matrix scripted in runbook §5                                                                                 |
+| R126 — effective Appwrite permissions tested                                                            | Offline grant tests and corrected 39/39 development denial matrix recorded in runbook §5 evidence                                                  |
 | R127 — pinning, lockfile, secret scanning in CI                                                         | `zod@4.6.5` pinned exactly, lockfile updated, `npm audit --audit-level=low` clean, secret scan runs inside `npm run test` (and therefore in CI)    |
 | R135/R136 — dependency-free domain, contributor mock mode                                               | Domain contract is types-only; mock reader serves flagged synthetic fixtures                                                                       |
 | R142/R145 — storage/replaceable providers behind interfaces                                             | Injected `FetchLike` transport and `PublishedDatasetReader` contract                                                                               |
@@ -326,50 +333,127 @@ environments; offline permission model and its tests; secret scanning;
 injected reader contract, mock and Appwrite adapter with Zod boundary
 validation; public configuration validation; decision records and runbook.
 
-### Pending live verification
+### Live verification (development project) — 2026-10-07
 
-These Milestone 3 acceptance checks **cannot** be completed without provisioning
-and remain open until the maintainer approves live work. They are the exact list
-from the build-plan acceptance text plus what the offline tests cannot prove:
+Evidence pack:
+[`docs/evidence/milestone-3-live-2026-10-07/`](evidence/milestone-3-live-2026-10-07/README.md)
+(`observations.json`, `cli-preflight.md`, `markdown-inventory.md`,
+`buckets/**`, `tables/**`, `function-checks/**`, `scanner-review/**`,
+`site-probes/**`). Baseline
+`f167d439fe3d608b99fb130ee314b2bbf68798f1` (= live `origin/main`). **Current
+status: all requested development live checks passed; this is the dated
+2026-10-07 pre-delivery snapshot.**
 
-1. An authorized test deployment works with the exact recorded settings
-   (Sites build settings from `SITES.md`, including the monorepo install command
-   variant actually accepted by the build runner).
-2. An unauthenticated reader (no account, **no anonymous session**) reads the
-   published manifest/bundle resources and **only** those: live read of
-   `dataset-versions`, `dataset-bundles` and `published-datasets` succeeds while
-   `import-runs`, `raw-sources`, `quarantine` and `import-run-logs` are refused.
-3. The same reader cannot write: create/update/delete on published tables and
-   bucket files are refused, including table-level create attempts.
-4. The reader cannot execute the admin importer (`import-anmdmr` execution
-   refused without authorization), and the stub's response/logs contain no key.
-5. Effective permissions are tested live at every resource level, including the
-   additive table/row and bucket/file behavior described in
-   [APPWRITE.md](../plan/APPWRITE.md), and the refusal results are recorded.
-6. No server key appears in the built frontend bundle, in function variables, in
-   function/site logs or in configuration (bundle inspection of the deployed
-   artifact, not only of local `apps/web/dist`).
-7. Deep-link SPA fallback (`/status`), manifest scope, `/sw.js` root scope, TLS
-   and cache headers verified on the deployed origin.
-8. Region/plan confirmation for both projects, quota and cost limits, and a
-   backup/restore drill into a scratch project (R15).
+#### Verified lead/owner facts (public ids only)
 
-### Pending live verification of recorded field values
+- Owner approved development project creation on 2026-10-07. Lead ran
+  `npx --yes appwrite-cli@28.1.0 organization create-project --organization-id 6abdb0c92ffbb4c7fdf6 --project-id intermed-dev --name "InterMED Development" --region fra --json`
+  → **exit 0**; active `intermed-dev`, `$createdAt`
+  `2026-10-07T08:35:00.440+00:00` (11:35 Bucharest). Connector confirmed
+  name/region/active and **zero** tablesdb/storage/functions/sites/users.
+  Regional API `https://fra.cloud.appwrite.io/v1`.
+- Org plan `organizations_get_plan` → name **GitHub Student Pack**, id
+  `auto-1`, projects limit **2**, price **0**. Shell project already occupied
+  one slot; `intermed-dev` fills the second. **No** billing/paid/production
+  changes. Future production needs a separate capacity decision. No fallback
+  sharing of the shell project.
+- Owner keeps shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02`
+  unchanged; only read-only origin checks authorized.
+- Owner approved the development resource checks. Bucket push/pull, TablesDB
+  push/pull, the function stub deployment, the bounded anonymous GET matrix,
+  and the two approved function checks are recorded in the evidence pack.
+  One fictional synthetic generation and ten total synthetic/guard objects
+  were also created; the real adapter read its manifest and descriptor.
+  The first 39-check permission matrix remains failed/inconclusive historical
+  evidence: it used
+  an invalid storage update method, accepted an unexpected descriptor 200
+  no-op, masked private guard existence with 404, and did not fail fast.
+  The corrected 39-check probes passed 39/39 without aborting; the private
+  `import-runs` GET remains a masked 404 rather than a strict 401/403 proof.
+  The owner's first repeat was conditional: it observed the public descriptor
+  as an identical-data 200 no-op, with no private 2xx and no successful
+  create/delete. A later owner-approved cleanup executed the exact seven-object
+  plan; all seven delete commands exited 0, and the owner-side repeat recorded
+  only requested-row/file-not-found messages with exit 1. The published
+  version/bundle/file `aba05ea1b8fc3e49f18d517b` remained present. The final
+  saved-script adapter read passed for the expected manifest and descriptor,
+  selected no guard, and recorded two REST requests.
+- `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`
+  → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
+  → exit 0, lists **node-22** and **node-24** as supported (availability only,
+  not a deployed runtime on `intermed-dev`).
+- The existing shell `sites_list` observation remains read-only historical
+  evidence. The separate development site deployment
+  `6ac62b9286ef77aa3a78` is ready and proves the recorded monorepo Sites build:
+  its live fields match the declaration with zero differences, and the pinned
+  Node `24.21.0` / npm `11.19.0` install and build completed successfully.
+  Earlier shell/runtime failures remain historical evidence; the existing shell
+  remains unchanged.
+- CLI: global 13.3.2 unsigned; work used `npx --yes appwrite-cli@28.1.0`. Owner
+  ran login; lead whoami saw console endpoint; no secrets recorded.
+- Markdown: Antigravity audited all **36** tracked Markdown files — no
+  controlling contradictions. Grok audit failed (usage exhausted); **not**
+  claimed passed.
+- Preflight “rename `$permissions`” finding is **FALSE** (official CLI maps
+  `$permissions` → `permissions`); see
+  [`cli-preflight.md`](evidence/milestone-3-live-2026-10-07/cli-preflight.md).
 
-Recorded from current documentation but not yet confirmed against a live
-project/CLI version; correct the configuration if `appwrite pull` output differs:
+#### Acceptance items 1–8
 
-- function runtime `node-22` and site build runtime `node-22`;
-- site `framework: "other"`, `adapter: "static"` and `fallbackFile` semantics;
-- column types `text` and `bigint`, enum columns with `elements`, and index
-  entries with `columns`/`orders` (multi-column unique in particular);
-- bucket fields `antivirus`, `encryption`, `compression` and the maximum-file-size
-  bounds as accepted values;
-- REST response shape assumed by the adapter: row lists as
-  `{ total, rows }` with columns flattened at the row's top level beside the
-  `$`-prefixed system fields. Verified against the REST documentation and SDK
-  type-safety examples on 2026-10-06; confirm on the first live read and adjust
-  `versionRowSchema`/`bundleRowSchema` if the live payload nests columns.
+| #   | Check                                                                        | Command / probe                                                       | Results (summary)                                                                                                                                                                                                                                                                                                         | Status   |
+| --- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Development Sites push, deployment readback, pinned-runtime build log | Deployment `6ac62b9286ef77aa3a78` is **ready**. Install and build succeeded with Node `v24.21.0` / npm `11.19.0`; edge distribution completed `6/6`. The live site fields and declared fields have zero differences; the pull export omits `enabled`, which was verified by direct GET.                                   | **PASS** |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                 | Adapter read returned the available synthetic manifest and descriptor; public reads and private-resource denials were recorded. The private `import-runs` masked 404 limitation is retained in the evidence; the published version/file remained untouched by cleanup.                                                    | **PASS** |
+| 3   | Unauthenticated writes refused                                               | Initial and corrected 39-check matrices                               | Initial run remains retained as failed/inconclusive historical evidence. Corrected probes passed 39/39 with no abort; the private 404 remains a masked refusal rather than a strict status proof.                                                                                                                         | **PASS** |
+| 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                          | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                      | **PASS** |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                       | Corrected probes passed 39/39; cleanup executed all seven exact deletes, and the final adapter read passed with the expected version in both manifest and descriptor and no guard selected. The private 404 remains a masked refusal, not a strict status proof.                                                          | **PASS** |
+| 6   | No server key in deployed bundle / vars / logs / config                      | Sanitized deployed-bundle scan plus deployment variables/readback     | The final scan covered 11 actual deployed HTML, manifest, service-worker, and referenced asset files and found no credential-shaped strings. Variables are empty; source archive entries contain only the public env example.                                                                                             | **PASS** |
+| 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on the successful development deployment            | Preview `/status` returned the Development status heading; TLS verification, manifest root scope, active/controller root service worker, and all recorded HTTP 200 checks passed. Cache-Control is `public, max-age=0, must-revalidate`; immutable long-cache remains a retained future policy risk, not a check blocker. | **PASS** |
+| 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                              | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                           | **PASS** |
+
+#### Recorded-field checks
+
+| Field / assumption                                                                 | Command / probe                                                | Results                                                                                                                                                                                                                                                                                                                                                                                                        | Status                    |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Function runtime `node-22`; site metadata `node-22`; actual pinned build `node-24` | function readback; development site readback; pinned build log | Deployed function metadata reports runtime node-22; the site metadata host reports buildRuntime node-22, while the successful deployment log records the actual pinned Node v24.21.0 / npm 11.19.0 build.                                                                                                                                                                                                      | **PASS (development)**    |
+| Site `framework: "other"`, `adapter: "static"`, `fallbackFile`                     | Development site readback, pull comparison, pinned build log   | Development site `site.json` and `live-field-comparison.json` show zero differences for the declared fields; the ready deployment log records the pinned monorepo install/build.                                                                                                                                                                                                                               | **PASS (development)**    |
+| Column types `text`/`bigint`, enum `elements`, indexes `columns`/`orders`          | push/pull tables                                               | Three tables pushed and pulled; declared table, column, and index properties compare with difference count 0.                                                                                                                                                                                                                                                                                                  | **PASS**                  |
+| Bucket `antivirus` / `encryption` / `compression` / max sizes                      | push/pull buckets                                              | Four buckets pushed and pulled; expected declared fields compare with zero differences.                                                                                                                                                                                                                                                                                                                        | **PASS**                  |
+| REST `{ total, rows }` with flattened columns                                      | anonymous TablesDB read and adapter recording                  | The root adapter recordings show non-empty `{ "total": 1, "rows": [...] }` responses with flattened manifest and descriptor columns; see [`rest-1.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-1.json) and [`rest-2.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-2.json). Public empty-table reads also returned `{ "total": 0, "rows": [] }`. | **PASS (recorded shape)** |
+
+#### Corrected probe and cleanup status
+
+The corrected probe pack is under
+[`publication-live/`](evidence/milestone-3-live-2026-10-07/publication-live/):
+`corrected-anonymous-probes.json` and its summary record 39/39 passed with no
+abort; the six first-run failures are mapped to their corrected probes in
+[`first-to-corrected-probes.md`](evidence/milestone-3-live-2026-10-07/publication-live/first-to-corrected-probes.md);
+and `corrected-run-owner-condition.json` records that the owner's first
+repeat was conditional, not an independent anonymous write/private-read pass;
+and `corrected-guard-before-after.json` records all seven guard objects
+unchanged after parsed-field comparison. The first matrix remains retained as
+failed/inconclusive evidence, with a corrected-probe link for each failure.
+
+Cleanup is executed. The exact seven-object plan is
+[`cleanup-plan.md`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.md)
+and [`cleanup-plan.json`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.json).
+It targets only the disposable guard rows/files in `intermed-dev`; the
+published version, bundle, and file `aba05ea1b8fc3e49f18d517b` were explicitly
+excluded and remain present in `cleanup-live/preserved-*.json`. The seven CLI
+deletes exited 0, while the owner-side repeat exited 1 with the exact
+requested-row/file-not-found messages. The final saved-script adapter read is
+in `adapter-final-after-cleanup/verification.json`; it passed, selected no
+guard, and recorded two REST calls. The earlier inline multiline invocation
+exited 0 without records because Windows argument handling lost the script and
+is not treated as evidence.
+
+The requested development live checks and final adapter read/cleanup passed.
+Production is untouched. Production bootstrap integrity, production capacity,
+backup/restore, real-device acceptance, immutable-cache policy, and clinical
+validation remain explicitly out of scope or future follow-ups; none blocks this
+development status. The final PR source contains reviewed offline helper/test
+changes, with no new cloud deployment from that source; PR #9 checks are
+authoritative for final delivery once CI completes.
 
 ## PR #7 review fixes
 
@@ -480,20 +564,50 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   gate (with `frame-ancestors`, CSP on `/sw.js`, `Referrer-Policy`,
   `Permissions-Policy`) remains a Milestone 12 requirement on a header-capable
   host or edge. Nothing in this milestone changed the CSP.
-- All live checks in the two lists above are open; Milestone 3 acceptance is
-  **not** claimed. No production deployment is implied.
-- Field values listed above are documentation-derived and unverified live.
+- Live items 1–7 are **PASS** in the development evidence pack; the corrected
+  permission matrix retains a masked private 404 limitation and the successful
+  Sites deployment retains the observed no-immutable-cache risk. Item 8 is
+  **PASS** for development region/plan confirmation only. No production
+  deployment is implied.
+- Current recorded live facts are verified in the dated pack: corrected
+  permission probes passed 39/39; all seven approved disposable guards were
+  deleted and the owner repeat confirmed them not-found; the published
+  version, bundle, and file `aba05ea1b8fc3e49f18d517b` were preserved; the
+  final real adapter selected that version; and development deployment
+  `6ac62b9286ef77aa3a78` is ready with pinned Node `24.21.0` / npm `11.19.0`.
+  Earlier first-run failures and failed deployments remain historical evidence.
 - Operational ownership (release approver, incident owner, retention, cost
   monitoring, alerting) is unassigned and required before production.
 - One bundle per dataset generation is assumed by the current descriptor table
   (`datasetVersionId` unique); deltas or multi-bundle generations would need a
   schema extension (deltas are explicitly deferred in the build plan).
-- Free-plan quotas and rate limits for future public functions are unmeasured.
+- Org capacity is **GitHub Student Pack** (`auto-1`, projects limit 2, both
+  slots used by shell + `intermed-dev`). Production capacity and future public
+  function rate limits remain deferred roadmap work.
+- Hashed shell assets on the existing origin serve
+  `Cache-Control: public, max-age=0, must-revalidate` with no `immutable`
+  long-cache — residual risk until a reviewed header policy is confirmed on the
+  intended development Sites deployment.
+
+### Review adjudications and pre-delivery CI state
+
+- A freshly executed pinned `appwrite-cli@28.1.0`
+  `tables-db delete-row --help` exited 0; canonical Usage is `tablesdb`.
+  The previously recorded alias-based publication/read/delete succeeded and
+  is not a plan failure.
+- The helper private-list masked-404 bug was fixed in the offline PR source.
+  The actual recorded private list HTTP 401 remains valid evidence.
+- CI for source `ac848af0b48f92a4eb9ab03b8aa7841769165e33` failed on the Ubuntu
+  fixture while Windows passed. PR #9 checks are authoritative for the final
+  exact head; this historical result does not replace that check.
 
 ## Next gate
 
-Milestone 3 live acceptance requires a fresh, explicit maintainer authorization
-to provision the two Frankfurt projects and execute
-[the runbook](APPWRITE_RUNBOOK.md). Milestone 4 (medication domain model with
-synthetic fixtures) proceeds in parallel under the maintainer's ordering
-decision and is unaffected by these files.
+Development project `intermed-dev` exists and all requested development live
+checks passed. This is a dated pre-delivery snapshot; PR #9 checks are
+authoritative for final delivery. Production
+capacity is a separate deferred roadmap decision before `intermed-prod`; other
+production, restore, real-device, immutable-cache, and clinical follow-ups are
+retained as future scope.
+See [the runbook](APPWRITE_RUNBOOK.md). Milestone 4 proceeds under the
+maintainer's ordering decision and is unaffected by these files.

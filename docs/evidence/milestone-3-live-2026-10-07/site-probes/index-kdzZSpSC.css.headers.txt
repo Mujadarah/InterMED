@@ -1,0 +1,27 @@
+HTTP/1.1 200 OK
+Connection: keep-alive
+Cache-Control: public, max-age=0, must-revalidate
+Content-Type: text/css; charset=utf-8
+Etag: "29ff6057f18a1eea6b7d23e2756824d5"
+Server: swoole-http-server
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Appwrite-Deployment-Id: 6ac4e58c6e620fd5dd84
+X-Appwrite-Project-Id: 6ac4b25b0012379cf3d0
+X-Appwrite-Traffic-Type: site
+X-Content-Type-Options: nosniff
+X-Debug-Speed: 0.11855792999268
+X-Edge-Location: fra
+X-Edge-Rule-Cache: hit
+X-Edge-Runtime-Cache: hit
+X-Utopia-Compression: true
+Accept-Ranges: bytes
+Date: Wed, 07 Oct 2026 08:32:44 GMT
+Via: 1.1 varnish
+X-Served-By: cache-fra-etou8220128-FRA
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1791361964.287451,VS0,VE124
+Vary: Accept-Encoding
+X-Appwrite-Edge-Server: 0bBHNYBByXcKOErbUf2l16--F_fra1
+transfer-encoding: chunked
+

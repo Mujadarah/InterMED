@@ -1,0 +1,226 @@
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json
+
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3-sites
+
+
+ Test Files  22 passed (22)
+      Tests  291 passed (291)
+   Start at  14:55:44
+   Duration  1.89s (transform 2.09s, setup 0ms, import 4.29s, tests 1.56s, environment 2.53s)
+
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (40 source files; dependency-free domain).
+found 0 vulnerabilities
+
+> intermed@0.0.0 build
+> npm run build --workspace @intermed/web
+
+
+> @intermed/web@0.0.0 build
+> vite build
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 140 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.58 kB │ gzip:   0.64 kB
+dist/assets/index-kdzZSpSC.css    2.80 kB │ gzip:   1.08 kB
+dist/assets/index-C8eOc21W.js   368.42 kB │ gzip: 113.81 kB
+
+✓ built in 195ms
+
+> intermed@0.0.0 scan:dist
+> node scripts/scan-dist-secrets.mjs
+
+scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m3-sites\apps\web\dist, no credential-shaped strings.
+
+> intermed@0.0.0 test:browser
+> playwright test
+
+[WebServer] (node:40296) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 135 tests using 3 workers
+
+(node:38636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:52520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:62328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok   1 [chromium-desktop] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell (581ms)
+  ok   4 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:4:1 › explicit caching retry recovers a transient registration failure (249ms)
+  ok   2 [chromium-desktop] › tests\browser\activation-failure.spec.ts:6:1 › failed activation cancels reload consent and a later controller change remains user-controlled (1.6s)
+  ok   6 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (307ms)
+  ok   5 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:34:1 › confirmed complete cache eviction permits a real replacement build (1.4s)
+  ok   3 [chromium-desktop] › tests\browser\activation-failure.spec.ts:142:1 › retains the actual prior active shell across three releases without cache-order assumptions (2.7s)
+  ok   9 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (405ms)
+  ok  10 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:52:1 › keeps prohibited responses, query variants and outside origins out of caches (285ms)
+  ok  11 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: asset (140ms)
+  ok  12 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: corrupt (144ms)
+  ok   8 [chromium-desktop] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell (1.4s)
+  ok   7 [chromium-desktop] › tests\browser\keyboard-update.spec.ts:47:1 › keyboard shell update waits, blocks other tabs, then reloads on request (1.8s)
+  ok  13 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: storage (148ms)
+  ok  14 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:135:1 › reports evicted cached assets instead of claiming permanent readiness (260ms)
+  ok  16 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: asset (423ms)
+  ok  17 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: corrupt (423ms)
+  ok  18 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: storage (353ms)
+  ok  19 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: worker (300ms)
+  ok  20 [chromium-desktop] › tests\browser\pwa.spec.ts:4:1 › restricts document resources without blocking the same-origin shell (246ms)
+  ok  21 [chromium-desktop] › tests\browser\pwa.spec.ts:81:1 › does not apply the production CSP to the Vite development server (352ms)
+  ok  22 [chromium-desktop] › tests\browser\pwa.spec.ts:118:1 › provides install identity, metadata and decodable normal/maskable icons (196ms)
+  ok  24 [chromium-desktop] › tests\browser\pwa.spec.ts:236:1 › explains installation differences and browser storage limits (153ms)
+  ok  25 [chromium-desktop] › tests\browser\pwa.spec.ts:249:1 › reports registration failure without claiming offline readiness (152ms)
+  ok  23 [chromium-desktop] › tests\browser\pwa.spec.ts:190:1 › caches only the shell and launches/reloads existing deep links offline (420ms)
+  ok  26 [chromium-desktop] › tests\browser\pwa.spec.ts:266:1 › does not fabricate an app fallback for a brand-new offline visit (144ms)
+  ok  15 [chromium-desktop] › tests\browser\pwa-lifecycle.spec.ts:155:1 › two real builds wait for user action, block multiple tabs and preserve synthetic storage (1.9s)
+  ok  29 [chromium-desktop] › tests\browser\review-regressions.spec.ts:4:1 › a failed network update check preserves an already waiting usable release (1.5s)
+  ok  30 [chromium-desktop] › tests\browser\review-regressions.spec.ts:65:3 › cached html corruption loses readiness and can be explicitly repaired (373ms)
+  ok  31 [chromium-desktop] › tests\browser\review-regressions.spec.ts:65:3 › cached javascript corruption loses readiness and can be explicitly repaired (409ms)
+  ok  28 [chromium-desktop] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation (2.8s)
+  ok  32 [chromium-desktop] › tests\browser\review-regressions.spec.ts:124:1 › damaged waiting JavaScript refuses activation and preserves the usable active shell (460ms)
+  ok  34 [chromium-desktop] › tests\browser\review-regressions.spec.ts:235:3 › cached javascript with a misleading MIME substring is not ready (421ms)
+  ok  35 [chromium-desktop] › tests\browser\review-regressions.spec.ts:235:3 › cached html with a misleading MIME substring is not ready (370ms)
+  ok  36 [chromium-desktop] › tests\browser\shell.spec.ts:3:1 › launches a nonclinical shell without external requests or input forms (207ms)
+  ok  27 [chromium-desktop] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline (3.9s)
+  ok  38 [chromium-desktop] › tests\browser\shell.spec.ts:38:1 › recovers from an unknown route (240ms)
+  ok  37 [chromium-desktop] › tests\browser\shell.spec.ts:22:1 › navigates and reloads a deep link (268ms)
+  ok  39 [chromium-desktop] › tests\browser\shell.spec.ts:49:1 › supports keyboard skip navigation (172ms)
+  ok  33 [chromium-desktop] › tests\browser\review-regressions.spec.ts:178:1 › an evicted candidate cannot fall back to damaged prior HTML (1.5s)
+  ok  40 [chromium-desktop] › tests\browser\shell.spec.ts:62:1 › fits the viewport and records a synthetic shell screenshot (210ms)
+  ok  43 [chromium-desktop] › tests\browser\storage-recovery.spec.ts:33:1 › activation storage rejection reports failure and clears reload consent (400ms)
+  ok  44 [chromium-desktop] › tests\browser\storage-recovery.spec.ts:71:1 › active storage rejection permits an online network reload and reports offline unavailable (243ms)
+  ok  45 [chromium-desktop] › tests\browser\storage-recovery.spec.ts:102:1 › a replacement cannot remove the prior shell when active storage status is unavailable (307ms)
+  ok  41 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps status within the readiness deadline (1.0s)
+  ok  42 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps javascript within the readiness deadline (1.1s)
+(node:49180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  47 [webkit-phone] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell (1.1s)
+  ok  46 [webkit-phone] › tests\browser\activation-failure.spec.ts:6:1 › failed activation cancels reload consent and a later controller change remains user-controlled (1.4s)
+  ok  49 [webkit-phone] › tests\browser\eviction-recovery.spec.ts:4:1 › explicit caching retry recovers a transient registration failure (517ms)
+  ok  48 [webkit-phone] › tests\browser\activation-failure.spec.ts:142:1 › retains the actual prior active shell across three releases without cache-order assumptions (2.1s)
+  ok  51 [webkit-phone] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (801ms)
+  ok  50 [webkit-phone] › tests\browser\eviction-recovery.spec.ts:34:1 › confirmed complete cache eviction permits a real replacement build (1.0s)
+  ok  54 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (886ms)
+  ok  53 [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell (1.7s)
+  ok  52 [webkit-phone] › tests\browser\keyboard-update.spec.ts:47:1 › keyboard shell update waits, blocks other tabs, then reloads on request (2.1s)
+  ok  55 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:52:1 › keeps prohibited responses, query variants and outside origins out of caches (1.0s)
+  ok  56 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: asset (307ms)
+  ok  57 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: corrupt (314ms)
+  ok  58 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: storage (358ms)
+  ok  59 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:135:1 › reports evicted cached assets instead of claiming permanent readiness (670ms)
+  ok  61 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: asset (853ms)
+  ok  62 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: corrupt (843ms)
+  ok  63 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: storage (771ms)
+  ok  60 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:155:1 › two real builds wait for user action, block multiple tabs and preserve synthetic storage (2.1s)
+  ok  64 [webkit-phone] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: worker (815ms)
+  ok  65 [webkit-phone] › tests\browser\pwa.spec.ts:4:1 › restricts document resources without blocking the same-origin shell (475ms)
+  ok  66 [webkit-phone] › tests\browser\pwa.spec.ts:81:1 › does not apply the production CSP to the Vite development server (470ms)
+  ok  67 [webkit-phone] › tests\browser\pwa.spec.ts:118:1 › provides install identity, metadata and decodable normal/maskable icons (430ms)
+  ok  69 [webkit-phone] › tests\browser\pwa.spec.ts:236:1 › explains installation differences and browser storage limits (280ms)
+  ok  70 [webkit-phone] › tests\browser\pwa.spec.ts:249:1 › reports registration failure without claiming offline readiness (316ms)
+  ok  71 [webkit-phone] › tests\browser\pwa.spec.ts:266:1 › does not fabricate an app fallback for a brand-new offline visit (255ms)
+  ok  68 [webkit-phone] › tests\browser\pwa.spec.ts:190:1 › caches only the shell and launches/reloads existing deep links offline (1.0s)
+  ok  74 [webkit-phone] › tests\browser\review-regressions.spec.ts:4:1 › a failed network update check preserves an already waiting usable release (1.1s)
+  ok  75 [webkit-phone] › tests\browser\review-regressions.spec.ts:65:3 › cached html corruption loses readiness and can be explicitly repaired (1.0s)
+  ok  73 [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation (2.4s)
+  ok  72 [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline (3.0s)
+  ok  76 [webkit-phone] › tests\browser\review-regressions.spec.ts:65:3 › cached javascript corruption loses readiness and can be explicitly repaired (840ms)
+  ok  77 [webkit-phone] › tests\browser\review-regressions.spec.ts:124:1 › damaged waiting JavaScript refuses activation and preserves the usable active shell (1.2s)
+  ok  79 [webkit-phone] › tests\browser\review-regressions.spec.ts:235:3 › cached javascript with a misleading MIME substring is not ready (865ms)
+  ok  81 [webkit-phone] › tests\browser\shell.spec.ts:3:1 › launches a nonclinical shell without external requests or input forms (232ms)
+  ok  80 [webkit-phone] › tests\browser\review-regressions.spec.ts:235:3 › cached html with a misleading MIME substring is not ready (979ms)
+  ok  78 [webkit-phone] › tests\browser\review-regressions.spec.ts:178:1 › an evicted candidate cannot fall back to damaged prior HTML (1.9s)
+  ok  82 [webkit-phone] › tests\browser\shell.spec.ts:22:1 › navigates and reloads a deep link (628ms)
+  ok  84 [webkit-phone] › tests\browser\shell.spec.ts:49:1 › supports keyboard skip navigation (347ms)
+  ok  83 [webkit-phone] › tests\browser\shell.spec.ts:38:1 › recovers from an unknown route (498ms)
+  ok  85 [webkit-phone] › tests\browser\shell.spec.ts:62:1 › fits the viewport and records a synthetic shell screenshot (423ms)
+  ok  88 [webkit-phone] › tests\browser\storage-recovery.spec.ts:33:1 › activation storage rejection reports failure and clears reload consent (837ms)
+  ok  86 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  87 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps javascript within the readiness deadline (1.2s)
+(node:63380) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  89 [webkit-phone] › tests\browser\storage-recovery.spec.ts:71:1 › active storage rejection permits an online network reload and reports offline unavailable (580ms)
+(node:22304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  90 [webkit-phone] › tests\browser\storage-recovery.spec.ts:102:1 › a replacement cannot remove the prior shell when active storage status is unavailable (901ms)
+(node:57280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  91 [webkit-tablet] › tests\browser\activation-failure.spec.ts:6:1 › failed activation cancels reload consent and a later controller change remains user-controlled (1.5s)
+  ok  92 [webkit-tablet] › tests\browser\activation-failure.spec.ts:64:1 › bounds superseded waiting caches while retaining the active shell (1.2s)
+  ok  94 [webkit-tablet] › tests\browser\eviction-recovery.spec.ts:4:1 › explicit caching retry recovers a transient registration failure (502ms)
+  ok  95 [webkit-tablet] › tests\browser\eviction-recovery.spec.ts:34:1 › confirmed complete cache eviction permits a real replacement build (1.0s)
+  ok  96 [webkit-tablet] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (863ms)
+  ok  93 [webkit-tablet] › tests\browser\activation-failure.spec.ts:142:1 › retains the actual prior active shell across three releases without cache-order assumptions (2.1s)
+  ok  99 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (973ms)
+  ok  98 [webkit-tablet] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell (1.8s)
+  ok 101 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: asset (345ms)
+  ok 100 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:52:1 › keeps prohibited responses, query variants and outside origins out of caches (1.2s)
+  ok 102 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: corrupt (321ms)
+  ok 103 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:120:3 › reports unsuccessful initial caching: storage (298ms)
+  ok  97 [webkit-tablet] › tests\browser\keyboard-update.spec.ts:47:1 › keyboard shell update waits, blocks other tabs, then reloads on request (3.3s)
+  ok 104 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:135:1 › reports evicted cached assets instead of claiming permanent readiness (698ms)
+  ok 106 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: asset (924ms)
+  ok 107 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: corrupt (957ms)
+  ok 108 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: storage (876ms)
+  ok 109 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:280:3 › failed update retains the usable prior shell: worker (908ms)
+  ok 105 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:155:1 › two real builds wait for user action, block multiple tabs and preserve synthetic storage (2.6s)
+  ok 110 [webkit-tablet] › tests\browser\pwa.spec.ts:4:1 › restricts document resources without blocking the same-origin shell (639ms)
+  ok 111 [webkit-tablet] › tests\browser\pwa.spec.ts:81:1 › does not apply the production CSP to the Vite development server (579ms)
+  ok 112 [webkit-tablet] › tests\browser\pwa.spec.ts:118:1 › provides install identity, metadata and decodable normal/maskable icons (564ms)
+  ok 114 [webkit-tablet] › tests\browser\pwa.spec.ts:236:1 › explains installation differences and browser storage limits (352ms)
+  ok 115 [webkit-tablet] › tests\browser\pwa.spec.ts:249:1 › reports registration failure without claiming offline readiness (381ms)
+  ok 116 [webkit-tablet] › tests\browser\pwa.spec.ts:266:1 › does not fabricate an app fallback for a brand-new offline visit (264ms)
+  ok 113 [webkit-tablet] › tests\browser\pwa.spec.ts:190:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok 119 [webkit-tablet] › tests\browser\review-regressions.spec.ts:4:1 › a failed network update check preserves an already waiting usable release (1.2s)
+  ok 120 [webkit-tablet] › tests\browser\review-regressions.spec.ts:65:3 › cached html corruption loses readiness and can be explicitly repaired (886ms)
+  ok 118 [webkit-tablet] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation (2.7s)
+  ok 117 [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline (3.1s)
+  ok 121 [webkit-tablet] › tests\browser\review-regressions.spec.ts:65:3 › cached javascript corruption loses readiness and can be explicitly repaired (979ms)
+  ok 122 [webkit-tablet] › tests\browser\review-regressions.spec.ts:124:1 › damaged waiting JavaScript refuses activation and preserves the usable active shell (1.1s)
+  ok 124 [webkit-tablet] › tests\browser\review-regressions.spec.ts:235:3 › cached javascript with a misleading MIME substring is not ready (960ms)
+  ok 125 [webkit-tablet] › tests\browser\review-regressions.spec.ts:235:3 › cached html with a misleading MIME substring is not ready (845ms)
+  ok 126 [webkit-tablet] › tests\browser\shell.spec.ts:3:1 › launches a nonclinical shell without external requests or input forms (344ms)
+  ok 123 [webkit-tablet] › tests\browser\review-regressions.spec.ts:178:1 › an evicted candidate cannot fall back to damaged prior HTML (1.9s)
+  ok 129 [webkit-tablet] › tests\browser\shell.spec.ts:49:1 › supports keyboard skip navigation (381ms)
+  ok 127 [webkit-tablet] › tests\browser\shell.spec.ts:22:1 › navigates and reloads a deep link (750ms)
+  ok 128 [webkit-tablet] › tests\browser\shell.spec.ts:38:1 › recovers from an unknown route (537ms)
+  ok 130 [webkit-tablet] › tests\browser\shell.spec.ts:62:1 › fits the viewport and records a synthetic shell screenshot (469ms)
+  ok 133 [webkit-tablet] › tests\browser\storage-recovery.spec.ts:33:1 › activation storage rejection reports failure and clears reload consent (795ms)
+  ok 132 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps javascript within the readiness deadline (1.3s)
+  ok 131 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok 134 [webkit-tablet] › tests\browser\storage-recovery.spec.ts:71:1 › active storage rejection permits an online network reload and reports offline unavailable (586ms)
+  ok 135 [webkit-tablet] › tests\browser\storage-recovery.spec.ts:102:1 › a replacement cannot remove the prior shell when active storage status is unavailable (844ms)
+
+  135 passed (47.2s)

@@ -1,0 +1,6 @@
+{
+  "message": "No permissions provided for action 'execute'",
+  "code": 401,
+  "type": "user_unauthorized",
+  "version": "2.3.0"
+}

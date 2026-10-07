@@ -1,0 +1,31 @@
+{
+  "projectId": "intermed-dev",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "dataset": "synthetic-medication-catalogue",
+  "versionId": "version-aba05ea1b8fc3e49f18d517b",
+  "bundleId": "bundle-aba05ea1b8fc3e49f18d517b",
+  "fileId": "file-aba05ea1b8fc3e49f18d517b",
+  "publishedAt": "2026-10-07T09:53:59.731Z",
+  "bundleBytes": 25959,
+  "bundleSha256": "91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b",
+  "adapterRead": {
+    "manifestStatus": "available",
+    "descriptorStatus": "available",
+    "requests": 2,
+    "verifiedGeneration": true
+  },
+  "objectsCreated": {
+    "total": 10,
+    "publishedBundle": 1,
+    "publishedDescriptorRow": 1,
+    "publishedVersionRow": 1,
+    "guardRows": 3,
+    "guardFiles": 4
+  },
+  "safety": {
+    "coverage": "Fictional coverage only. Not for clinical use.",
+    "rightsApprovalReference": "not-approved",
+    "clinicalReviewReference": "not-reviewed",
+    "permissionMatrix": "Corrected probes passed 39/39; seven approved disposable guard rows/files were deleted and owner repeat confirmed not-found; published version, bundle, and file were preserved."
+  }
+}

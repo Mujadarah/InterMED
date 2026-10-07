@@ -1,0 +1,9 @@
+{
+  "originalMatrixChecks": 39,
+  "privateSuccessfulReads": 0,
+  "successfulCreatesOrDeletes": 0,
+  "onlyUnexpected200": "public descriptor identical-data PATCH",
+  "responseMatchesPreProbeGuard": true,
+  "allSevenOwnerReadbacksUnchanged": true,
+  "conditionSatisfied": true
+}

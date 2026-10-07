@@ -1,0 +1,11 @@
+{
+  "projectId": "intermed-dev",
+  "functionId": "import-anmdmr",
+  "executionStatus": "failed",
+  "responseStatusCode": 501,
+  "responseBody": "{\"status\":\"stub-not-implemented\",\"plannedMilestone\":5,\"note\":\"No source ingestion runs before the Milestone 5 implementation and its approvals.\"}",
+  "responseBodySource": "create-execution response; readback omitted responseBody",
+  "logs": "import-anmdmr stub received POST\n",
+  "errors": null,
+  "executionReadbackExit": 0
+}

@@ -1,0 +1,10 @@
+{"step":1,"action":"storage-create-guard-file","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-01.json"}
+{"step":2,"action":"storage-create-guard-file","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-02.json"}
+{"step":3,"action":"storage-create-guard-file","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-03.json"}
+{"step":4,"action":"storage-create-guard-file","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-04.json"}
+{"step":5,"action":"table-create-guard-row","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-05.json"}
+{"step":6,"action":"table-create-guard-row","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-06.json"}
+{"step":7,"action":"table-create-guard-row","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-07.json"}
+{"step":8,"action":"storage-create-bundle-file","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-08.json"}
+{"step":9,"action":"table-create-descriptor-row","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-09.json"}
+{"step":10,"action":"table-create-manifest-row-last","exit":0,"log":"C:\\Users\\rabia\\AppData\\Local\\Temp\\intermed-m3-orchestration\\publication-live\\create-10.json"}
