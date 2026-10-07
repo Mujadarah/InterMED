@@ -27,12 +27,15 @@ export {
   createNoopEventBus,
 } from './events';
 export type { DatasetEventBus, DatasetStoreEvent } from './events';
-export { createWebWriterLock } from './locks';
+export { createMarkerWriterLock, createWebWriterLock } from './locks';
 export type {
   DatasetWriterLock,
   LockManagerLike,
+  MarkerLockOptions,
+  WriterLease,
   WriterLockOutcome,
 } from './locks';
+export { MARKER_RENEW_MS, MARKER_TTL_MS } from './locks';
 export { attachConnectionLifecycle } from './lifecycle';
 export type { ConnectionLifecycle } from './lifecycle';
 export { openSchemaUpgradeProbe } from './probe';

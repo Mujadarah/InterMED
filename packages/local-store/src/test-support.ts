@@ -12,6 +12,8 @@ import {
   serializeCatalogue,
 } from '@intermed/domain';
 import { createMemoryEventBus, type DatasetEventBus } from './events';
+import { createMarkerWriterLock, type DatasetWriterLock } from './locks';
+import { LocalDatasetDatabase } from './schema';
 import {
   buildSyntheticCatalogueBundle,
   SYNTHETIC_DATASET,
@@ -85,6 +87,59 @@ export function testStore(
 /** A shared in-memory event bus, standing in for BroadcastChannel between tabs. */
 export function sharedBus(): DatasetEventBus {
   return createMemoryEventBus();
+}
+
+/** A direct connection to one test database, for row-level assertions. */
+export async function testDatabase(
+  name: string,
+): Promise<LocalDatasetDatabase> {
+  const db = new LocalDatasetDatabase(name);
+  await db.open();
+  return db;
+}
+
+export interface TestMarkerLock {
+  /** The fallback writer lock under test. */
+  readonly lock: DatasetWriterLock;
+  /** The connection the lock claims its marker on. */
+  readonly db: LocalDatasetDatabase;
+  /**
+   * Run the pending lease renewal. Never calling it models a stalled tab whose
+   * heartbeat stopped while its work continues.
+   */
+  beat(): Promise<void>;
+}
+
+/**
+ * A fallback marker writer lock on its own connection, with the lease
+ * heartbeat under test control and a pinned TTL, so lease expiry is simulated
+ * with the injected clock instead of wall time.
+ */
+export async function testMarkerLock(
+  name: string,
+  now: () => number,
+  options: { readonly ttlMs?: number } = {},
+): Promise<TestMarkerLock> {
+  const db = await testDatabase(name);
+  let beat: (() => void | Promise<void>) | null = null;
+  const lock = createMarkerWriterLock(db, {
+    now,
+    ttlMs: options.ttlMs ?? 60_000,
+    owner: `test-tab-${Math.random().toString(36).slice(2)}`,
+    schedule: (callback) => {
+      beat = callback;
+      return () => {
+        beat = null;
+      };
+    },
+  });
+  return {
+    lock,
+    db,
+    beat: async () => {
+      if (beat) await beat();
+    },
+  };
 }
 
 /**

@@ -18,12 +18,16 @@ import type {
   PublishedDatasetReader,
   RecentSearchEntry,
 } from '@intermed/domain';
-import type { Table } from 'dexie';
+import type { Table, Transaction } from 'dexie';
 import { createDefaultEventBus, type DatasetEventBus } from './events';
 import { foldForIndex } from './fold';
 import { isQuotaError, isVersionError, readOnDiskSchema } from './introspect';
 import { attachConnectionLifecycle } from './lifecycle';
-import { createWriterLock, type DatasetWriterLock } from './locks';
+import {
+  createWriterLock,
+  type DatasetWriterLock,
+  type WriterLease,
+} from './locks';
 import { atcKey, toCatalogueRows } from './rows';
 import {
   CATALOGUE_STORE_NAMES,
@@ -100,6 +104,14 @@ function catalogueTable(
   // Every catalogue table carries the same row envelope, so staging and
   // deletion can iterate store names without repeating per-store code.
   return database[name] as unknown as AnyCatalogueTable;
+}
+
+/** The same table, bound to one open transaction instead of the ambient one. */
+function scopedCatalogueTable(
+  transaction: Transaction,
+  name: CatalogueStoreName,
+): AnyCatalogueTable {
+  return transaction.table(name) as unknown as AnyCatalogueTable;
 }
 
 function toLocalGeneration(record: GenerationRecord): LocalDatasetGeneration {
@@ -311,7 +323,7 @@ export function createLocalDatasetStore(
   const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
 
   async function withWriter(
-    work: () => Promise<DatasetUpdateState>,
+    work: (lease: WriterLease) => Promise<DatasetUpdateState>,
   ): Promise<DatasetUpdateState> {
     await open();
     if (!database || !writerLock) return state;
@@ -359,6 +371,7 @@ export function createLocalDatasetStore(
   async function stageUnlocked(
     manifest: PublishedDatasetManifest,
     bundleText: string,
+    lease: WriterLease,
   ): Promise<StageOutcome> {
     const db = requireDatabase();
     const generationId = manifest.datasetVersionId;
@@ -392,13 +405,36 @@ export function createLocalDatasetStore(
       readyAt: null,
     };
     try {
-      await db.generations.put(record);
+      // Every staging write batch starts by revalidating the writer lease, so
+      // a writer whose lease was taken over stops writing at once instead of
+      // racing (or cleaning up after) the new owner.
+      const created = await db.transaction(
+        'rw',
+        db.writerLock,
+        db.generations,
+        async (transaction) => {
+          if (!(await lease.revalidate(transaction.writerLock))) return false;
+          await transaction.generations.put(record);
+          return true;
+        },
+      );
+      if (!created) return { ok: false, state: await fail('writer-busy') };
       for (const name of CATALOGUE_STORE_NAMES) {
         const items = rows[name];
-        if (items.length > 0)
-          await catalogueTable(db, name).bulkPut(
-            items as unknown as { generationId: string; id: string }[],
-          );
+        const written = await db.transaction(
+          'rw',
+          db.writerLock,
+          catalogueTable(db, name),
+          async (transaction) => {
+            if (!(await lease.revalidate(transaction.writerLock))) return false;
+            if (items.length > 0)
+              await scopedCatalogueTable(transaction, name).bulkPut(
+                items as unknown as { generationId: string; id: string }[],
+              );
+            return true;
+          },
+        );
+        if (!written) return { ok: false, state: await fail('writer-busy') };
         await options.onStaged?.({
           generationId,
           store: name,
@@ -424,6 +460,7 @@ export function createLocalDatasetStore(
 
   async function activateUnlocked(
     generationId: string,
+    lease: WriterLease,
   ): Promise<DatasetUpdateState> {
     const db = requireDatabase();
     const record = await db.generations.get(generationId);
@@ -431,30 +468,47 @@ export function createLocalDatasetStore(
     const active = await db.meta.get('dataset-state');
     if (active?.activeGenerationId === generationId) return refresh();
     const readyAt = new Date(now()).toISOString();
+    let leaseLost = false;
     try {
-      // One short transaction: mark the generation ready and switch the
-      // pointer. Nothing but IndexedDB work happens inside it.
-      await db.transaction('rw', db.generations, db.meta, async () => {
-        const meta = (await db.meta.get('dataset-state')) ?? emptyMeta();
-        const staged = await db.generations.get(generationId);
-        if (!staged) throw new Error('The staged generation is missing');
-        if (staged.status !== 'ready')
-          await db.generations.update(generationId, {
-            status: 'ready',
-            readyAt,
+      // One short transaction: revalidate the writer lease, mark the
+      // generation ready and switch the pointer. Nothing but IndexedDB work
+      // happens inside it.
+      await db.transaction(
+        'rw',
+        db.generations,
+        db.meta,
+        db.writerLock,
+        async (transaction) => {
+          if (!(await lease.revalidate(transaction.writerLock))) {
+            leaseLost = true;
+            throw new Error('The writer lease was lost');
+          }
+          const meta =
+            (await transaction.meta.get('dataset-state')) ?? emptyMeta();
+          const staged = await transaction.generations.get(generationId);
+          if (!staged) throw new Error('The staged generation is missing');
+          if (staged.status !== 'ready')
+            await transaction.generations.update(generationId, {
+              status: 'ready',
+              readyAt,
+            });
+          await transaction.meta.put({
+            ...meta,
+            activeGenerationId: generationId,
+            previousGenerationId:
+              meta.activeGenerationId &&
+              meta.activeGenerationId !== generationId
+                ? meta.activeGenerationId
+                : meta.previousGenerationId,
+            updateStatus: 'ready',
+            failureReason: null,
           });
-        await db.meta.put({
-          ...meta,
-          activeGenerationId: generationId,
-          previousGenerationId:
-            meta.activeGenerationId && meta.activeGenerationId !== generationId
-              ? meta.activeGenerationId
-              : meta.previousGenerationId,
-          updateStatus: 'ready',
-          failureReason: null,
-        });
-      });
+        },
+      );
     } catch {
+      // A writer that lost its lease leaves the database to its new owner: it
+      // stops and runs no cleanup over rows that may no longer be its own.
+      if (leaseLost) return fail('writer-busy');
       await cleanupPartial(generationId);
       return fail('interrupted');
     }
@@ -467,10 +521,11 @@ export function createLocalDatasetStore(
   async function stageAndActivateUnlocked(
     manifest: PublishedDatasetManifest,
     bundleText: string,
+    lease: WriterLease,
   ): Promise<DatasetUpdateState> {
-    const staged = await stageUnlocked(manifest, bundleText);
+    const staged = await stageUnlocked(manifest, bundleText, lease);
     if (!staged.ok) return staged.state;
-    return activateUnlocked(staged.generationId);
+    return activateUnlocked(staged.generationId, lease);
   }
 
   async function readManifest(): Promise<
@@ -521,7 +576,7 @@ export function createLocalDatasetStore(
     },
 
     downloadAndActivate: () =>
-      withWriter(async () => {
+      withWriter(async (lease) => {
         const loader = options.loader;
         const result = await readManifest();
         if (!result.ok) return result.state;
@@ -560,20 +615,22 @@ export function createLocalDatasetStore(
         if (bundle.status !== 'available') return fail('bundle-unavailable');
         if (bundleByteLength(bundle.text) !== descriptor.value.byteSize)
           return fail('invalid-bundle');
-        return stageAndActivateUnlocked(result.manifest, bundle.text);
+        return stageAndActivateUnlocked(result.manifest, bundle.text, lease);
       }),
 
     stageBundle: (manifest, bundleText) =>
-      withWriter(async () => {
-        const staged = await stageUnlocked(manifest, bundleText);
+      withWriter(async (lease) => {
+        const staged = await stageUnlocked(manifest, bundleText, lease);
         return staged.ok ? refresh() : staged.state;
       }),
 
     activate: (generationId) =>
-      withWriter(() => activateUnlocked(generationId)),
+      withWriter((lease) => activateUnlocked(generationId, lease)),
 
     stageAndActivate: (manifest, bundleText) =>
-      withWriter(() => stageAndActivateUnlocked(manifest, bundleText)),
+      withWriter((lease) =>
+        stageAndActivateUnlocked(manifest, bundleText, lease),
+      ),
   };
 
   async function reconcilePreferences(generationId: string): Promise<void> {

@@ -2,7 +2,17 @@ import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
 import type { LockManagerLike } from './locks';
 import { createWebWriterLock } from './locks';
-import { bundle, sharedBus, testStore, uniqueName } from './test-support';
+import {
+  bundle,
+  sharedBus,
+  testClock,
+  testMarkerLock,
+  testStore,
+  uniqueName,
+} from './test-support';
+
+/** Lease TTL the lease tests pin on their marker locks (see `testMarkerLock`). */
+const LEASE_TTL_MS = 60_000;
 
 it('refuses a concurrent update instead of racing another writer', async () => {
   const name = uniqueName();
@@ -121,4 +131,137 @@ it('lets other tabs switch at a safe boundary while pinned readers continue', as
   tabAPinned.release();
   tabBPinned.release();
   fresh.release();
+});
+
+it('renews the fallback writer lease while its work runs so no other writer can take it', async () => {
+  const clock = testClock();
+  const name = uniqueName();
+  const holder = await testMarkerLock(name, clock.now, { ttlMs: LEASE_TTL_MS });
+  const contender = await testMarkerLock(name, clock.now, {
+    ttlMs: LEASE_TTL_MS,
+  });
+  let release: () => void = () => {};
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const running = holder.lock.withExclusiveUpdate(async () => {
+    await blocked;
+    return 'holder';
+  });
+
+  // Three heartbeat renewals, each after more than a third of the lease TTL of
+  // simulated time. Without renewal the marker would expire in round two.
+  for (let round = 0; round < 3; round += 1) {
+    clock.tick(Math.floor(LEASE_TTL_MS / 2) + 1_000);
+    await holder.beat();
+    await expect(
+      contender.lock.withExclusiveUpdate(async () => 'contender'),
+    ).resolves.toEqual({ ok: false });
+  }
+
+  release();
+  await expect(running).resolves.toEqual({ ok: true, value: 'holder' });
+  await expect(
+    contender.lock.withExclusiveUpdate(async () => 'contender'),
+  ).resolves.toEqual({ ok: true, value: 'contender' });
+});
+
+it('aborts an activation whose writer lease was lost to another tab', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const stalled = await testMarkerLock(name, clock.now, {
+    ttlMs: LEASE_TTL_MS,
+  });
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    now: clock.now,
+    lock: stalled.lock,
+    onStaged: async ({ store }) => {
+      if (store === 'documents') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const other = testStore({ name, now: clock.now });
+  const alpha = bundle('alpha');
+  const beta = bundle('beta');
+
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+  // The stalled tab's lease expires and another tab takes over completely.
+  clock.tick(LEASE_TTL_MS + 1_000);
+  await other.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(other.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+
+  release();
+  await expect(running).resolves.toMatchObject({
+    status: 'update-failed',
+    reason: 'writer-busy',
+  });
+  expect((await other.openReader())?.generationId).toBe(beta.generationId);
+});
+
+it('stops staging and keeps the new writer rows when the lease is lost mid-staging', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const stalled = await testMarkerLock(name, clock.now, {
+    ttlMs: LEASE_TTL_MS,
+  });
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    now: clock.now,
+    lock: stalled.lock,
+    onStaged: async ({ store }) => {
+      if (store === 'ingredients') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const takeover = testStore({ name, now: clock.now });
+  const alpha = bundle('alpha');
+
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+  // The lease expires and a new writer stages and activates the very same
+  // generation with its own complete rows.
+  clock.tick(LEASE_TTL_MS + 1_000);
+  await takeover.updates.stageAndActivate(alpha.manifest, alpha.text);
+  release();
+
+  await expect(running).resolves.toMatchObject({
+    status: 'update-failed',
+    reason: 'writer-busy',
+  });
+  // The losing writer stopped writing and deleted nothing of the new owner.
+  expect(
+    await stalled.db.products
+      .where('generationId')
+      .equals(alpha.generationId)
+      .count(),
+  ).toBe(2);
+  const reader = (await takeover.openPinnedReader(alpha.generationId))!;
+  expect(reader).not.toBeNull();
+  expect(await reader.productIds()).toHaveLength(2);
+  reader.release();
 });

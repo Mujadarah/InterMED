@@ -1,0 +1,112 @@
+## Codex #1 + G1 - writer lease heartbeat and lost-lease abort (GREEN)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/multitab.test.ts (6 tests | 2 failed) 10070ms
+   × aborts an activation whose writer lease was lost to another tab 5009ms
+   × stops staging and keeps the new writer rows when the lease is lost mid-staging 5005ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > aborts an activation whose writer lease was lost to another tab
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/local-store/src/multitab.test.ts:169:1
+    167| });
+    168|
+    169| it('aborts an activation whose writer lease was lost to another tab', …
+       | ^
+    170|   const name = uniqueName();
+    171|   const clock = testClock();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > stops staging and keeps the new writer rows when the lease is lost mid-staging
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/local-store/src/multitab.test.ts:214:1
+    212| });
+    213|
+    214| it('stops staging and keeps the new writer rows when the lease is lost…
+       | ^
+    215|   const name = uniqueName();
+    216|   const clock = testClock();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  15:58:11
+   Duration  10.32s (transform 83ms, setup 0ms, import 139ms, tests 10.07s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #1 + G1 - writer lease heartbeat and lost-lease abort (GREEN, after moving the marker revalidation onto the caller transaction)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/multitab.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts [ packages/local-store/src/multitab.test.ts ]
+Error: Transform failed with 2 errors:
+
+[PARSE_ERROR] Missing catch or finally clause
+     ╭─[ packages/local-store/src/locks.ts:223:6 ]
+     │
+ 223 │     },
+     │      │
+     │      ╰─
+     │
+     │ Help: Either unwrap this try block or add catch / finally clause
+─────╯
+
+[PARSE_ERROR] Unexpected token
+     ╭─[ packages/local-store/src/locks.ts:223:6 ]
+     │
+ 223 │     },
+     │      ┬
+     │      ╰──
+─────╯
+
+  Plugin: vite:oxc
+  File: D:/Proiecte AI/InterMED-wt/m6/packages/local-store/src/locks.ts
+ ❯ transformWithOxc ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7581:19
+ ❯ TransformPluginContext.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7653:26
+ ❯ EnvironmentPluginContainer.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8545:51
+ ❯ loadAndTransform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:19988:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  16:08:10
+   Duration  171ms (transform 18ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #1 + G1 - writer lease heartbeat and lost-lease abort (GREEN, marker revalidation on the caller transaction)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  16:08:29
+   Duration  333ms (transform 84ms, setup 0ms, import 139ms, tests 87ms, environment 0ms)
+
+[exit code: 0]
+
