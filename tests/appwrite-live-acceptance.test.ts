@@ -211,6 +211,164 @@ describe('Appwrite live acceptance preparation', () => {
 });
 
 describe('anonymous Appwrite probe', () => {
+  it('uses materially different valid updates and Appwrite Storage PUT semantics', async () => {
+    const calls: Array<{
+      url: string;
+      options: ProbeFetchOptions | undefined;
+    }> = [];
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async (
+        url: string,
+        options?: ProbeFetchOptions,
+      ): Promise<ProbeFetchResponse> => {
+        calls.push({ url, options });
+        const privateRequest =
+          options?.method !== undefined ||
+          url.includes('import-runs') ||
+          url.includes('raw-sources') ||
+          url.includes('quarantine') ||
+          url.includes('import-run-logs');
+        return {
+          ok: !privateRequest,
+          status: privateRequest ? 403 : 200,
+          headers: {},
+          text: async () => '{}',
+          json: async () => ({}),
+        };
+      },
+      guard: {
+        rows: [
+          {
+            tableId: 'dataset-versions',
+            rowId: 'guard-version',
+            data: {
+              dataset: 'guard',
+              status: 'published',
+              coverage: 'original',
+            },
+          },
+          {
+            tableId: 'dataset-bundles',
+            rowId: 'guard-bundle',
+            data: {
+              datasetVersionId: 'guard-version',
+              fileName: 'live-acceptance-guard.json',
+            },
+          },
+          {
+            tableId: 'import-runs',
+            rowId: 'guard-run',
+            data: {
+              sourceId: 'guard-source',
+              publicationStatus: 'staging',
+              approvalReference: 'guard',
+            },
+          },
+        ],
+        files: [{ bucketId: 'published-datasets', fileId: 'guard-file' }],
+      },
+    });
+
+    expect(result.failed).toBe(0);
+    const rowPatches = calls.filter(
+      ({ url, options }) =>
+        url.includes('/tables/') && options?.method === 'PATCH',
+    );
+    expect(rowPatches).toHaveLength(3);
+    expect(
+      rowPatches.map(({ options }) => JSON.parse(String(options?.body)).data),
+    ).toEqual([
+      { dataset: 'guard', status: 'staging', coverage: expect.any(String) },
+      {
+        datasetVersionId: 'guard-version',
+        fileName: expect.stringContaining('updated'),
+      },
+      {
+        sourceId: 'guard-source',
+        publicationStatus: 'staging',
+        approvalReference: expect.stringContaining('updated'),
+      },
+    ]);
+    expect(
+      calls.some(
+        ({ url, options }) =>
+          url.includes('/buckets/published-datasets/files/guard-file') &&
+          options?.method === 'PUT',
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ({ url, options }) =>
+          url.includes('/buckets/') && options?.method === 'PATCH',
+      ),
+    ).toBe(false);
+  });
+
+  it('aborts immediately after an unexpected private success', async () => {
+    const calls: string[] = [];
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async (url: string): Promise<ProbeFetchResponse> => {
+        calls.push(url);
+        return {
+          ok: true,
+          status: 200,
+          headers: {},
+          text: async () => '{}',
+          json: async () => ({}),
+        };
+      },
+      guard: {
+        rows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+        files: [{ bucketId: 'raw-sources', fileId: 'guard-raw' }],
+      },
+    });
+
+    expect(result.aborted).toBe(true);
+    expect(result.failed).toBe(1);
+    expect(result.checks).toHaveLength(1);
+    expect(result.remainingNotRun.length).toBeGreaterThan(0);
+    expect(calls).toHaveLength(1);
+  });
+
+  it('only masks a verified private row_not_found as a refusal', async () => {
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async (
+        _url: string,
+        options?: ProbeFetchOptions,
+      ): Promise<ProbeFetchResponse> =>
+        options?.method === undefined
+          ? {
+              ok: false,
+              status: 404,
+              headers: { 'content-type': 'application/json' },
+              text: async () => JSON.stringify({ type: 'row_not_found' }),
+              json: async () => ({ type: 'row_not_found' }),
+            }
+          : {
+              ok: false,
+              status: 403,
+              headers: {},
+              text: async () => '{}',
+              json: async () => ({}),
+            },
+      guard: {
+        rows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+        files: [],
+      },
+      verifiedPrivateRows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+    });
+
+    expect(result.failed).toBe(0);
+    expect(result.checks[1]).toMatchObject({
+      maskedRefusal: true,
+      originalPass: false,
+      pass: true,
+    });
+  });
+
   it('records public success and private 401/403 denial without credentials', async () => {
     const calls: Array<{
       url: string;
@@ -251,6 +409,7 @@ describe('anonymous Appwrite probe', () => {
         const privateRequest =
           options?.method === 'POST' ||
           options?.method === 'PATCH' ||
+          options?.method === 'PUT' ||
           options?.method === 'DELETE' ||
           url.includes('import-runs') ||
           url.includes('raw-sources') ||
