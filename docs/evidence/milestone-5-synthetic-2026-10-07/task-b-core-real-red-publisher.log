@@ -1,0 +1,571 @@
+== npx vitest run tests/importer/publisher.test.ts ==
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/importer/publisher.test.ts (41 tests | 36 failed) 59ms
+     ├ù rejects an approval without operational identity and references 5ms
+     ├ù rejects a missing review 1ms
+     ├ù rejects a review that does not bind config, raw, candidate and baseline 1ms
+     ├ù rejects an incomplete review 1ms
+     ├ù rejects review record counts that do not match the real candidate 1ms
+     ├ù never publishes an empty catalogue even with fabricated approval 0ms
+     ├ù rejects a candidate whose inner dataset version id is not the candidate id 2ms
+     ├ù rejects candidate entity provenance that references another generation 2ms
+     ├ù writes the manifest last and binds real descriptor and manifest fields 2ms
+     ├ù rejects unapproved large removals and publishes with threshold approval 3ms
+     ├ù recognizes a fully identical publication before the baseline check 1ms
+     ├ù retries twice without duplicate rows while the baseline advanced 1ms
+     ├ù resumes an interrupted publication creating only the missing components 3ms
+     ├ù resumes after a lost manifest write by creating only the manifest 1ms
+     ├ù keeps an existing public orphan immutable and unadvertised 1ms
+     ├ù rejects publication collisions without updates or deletes 1ms
+     ├ù ignores REST metadata and datetime formatting when comparing publications 1ms
+     ├ù treats a different publication datetime as a different publication 1ms
+     ├ù requires a non-empty lease from the publication lock 1ms
+     ├ù rejects when the baseline moved before the lock 1ms
+     ├ù rejects when the baseline changes after acquiring the lock 1ms
+     ├ù fails closed when readReview fails 1ms
+     ├ù fails closed when readBaseline fails 1ms
+     ├ù fails closed when readPublishedBundleFile fails 1ms
+     ├ù fails closed when readPublishedDescriptor fails 1ms
+     ├ù fails closed when readPublishedManifest fails 1ms
+     ├ù fails closed when acquirePublicationLock fails 1ms
+     ├ù keeps prior published generations unchanged when writeBundleFile fails 1ms
+     ├ù keeps prior published generations unchanged when writeDescriptorRow fails 1ms
+     ├ù keeps prior published generations unchanged when writeManifestRow fails 1ms
+     ├ù reports a committed publication when the lock release fails 1ms
+     ├ù reports a committed publication when the post-commit log fails 1ms
+     ├ù read verifies the commit after an ambiguous manifest write 1ms
+     ├ù read verifies the commit with code-based ambiguity classification 1ms
+     ├ù read verifies and resumes after an ambiguous bundle write 1ms
+     ├ù resumes when an ambiguous manifest write did not land 1ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 36 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects an approval without
+operational identity and references
+AssertionError: expected 'tampered-approval' to be 'invalid-approval' // Object.is equality
+
+Expected: "invalid-approval"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:92:29
+     90|       });
+     91|       expect(result.status).toBe('rejected');
+     92|       expect(result.reason).toBe('invalid-approval');
+       |                             ^
+     93|     }
+     94|     expect(store.publicState()).toBe(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects a missing review
+AssertionError: expected 'tampered-approval' to be 'missing-review' // Object.is equality
+
+Expected: "missing-review"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:139:27
+    137|     const result = await publishRequest(store, generation);
+    138|     expect(result.status).toBe('rejected');
+    139|     expect(result.reason).toBe('missing-review');
+       |                           ^
+    140|   });
+    141|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects a review that does not bind
+config, raw, candidate and baseline
+AssertionError: expected 'tampered-approval' to be 'tampered-review' // Object.is equality
+
+Expected: "tampered-review"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:161:29
+    159|       const result = await publishRequest(store, generation);
+    160|       expect(result.status).toBe('rejected');
+    161|       expect(result.reason).toBe('tampered-review');
+       |                             ^
+    162|     }
+    163|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects an incomplete review
+AssertionError: expected 'tampered-approval' to be 'incomplete-review' // Object.is equality
+
+Expected: "incomplete-review"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:176:27
+    174|     const result = await publishRequest(store, generation);
+    175|     expect(result.status).toBe('rejected');
+    176|     expect(result.reason).toBe('incomplete-review');
+       |                           ^
+    177|   });
+    178|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects review record counts that do
+not match the real candidate
+TypeError: Cannot read properties of undefined (reading 'products')
+ Γ¥» tests/importer/publisher.test.ts:188:50
+    186|       recordCounts: {
+    187|         ...generation.review.recordCounts,
+    188|         products: generation.review.recordCounts.products + 1,
+       |                                                  ^
+    189|       },
+    190|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > never publishes an empty catalogue
+even with fabricated approval
+TypeError: validateSyntheticSource is not a function
+ Γ¥» tests/importer/publisher.test.ts:199:23
+    197|     const store = new FakeStore();
+    198|     const raw = buildRawDocument({ products: [] });
+    199|     const validated = validateSyntheticSource({
+       |                       ^
+    200|       synthetic: true,
+    201|       dataSource: raw.dataSource,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects a candidate whose inner
+dataset version id is not the candidate id
+AssertionError: expected 'stale-baseline' to be 'candidate-identity-mismatch' // Object.is equality
+
+Expected: "candidate-identity-mismatch"
+Received: "stale-baseline"
+
+ Γ¥» tests/importer/publisher.test.ts:277:27
+    275|     });
+    276|     expect(result.status).toBe('rejected');
+    277|     expect(result.reason).toBe('candidate-identity-mismatch');
+       |                           ^
+    278|   });
+    279|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish approval and review binding > rejects candidate entity provenance
+that references another generation
+AssertionError: expected 'tampered-approval' to be 'provenance-mismatch' // Object.is equality
+
+Expected: "provenance-mismatch"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:312:27
+    310|     });
+    311|     expect(result.status).toBe('rejected');
+    312|     expect(result.reason).toBe('provenance-mismatch');
+       |                           ^
+    313|     expect(store.manifests.size).toBe(0);
+    314|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish success contract > writes the manifest last and binds real
+descriptor and manifest fields
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:324:27
+    322|     });
+    323|     const result = await publishRequest(store, generation);
+    324|     expect(result.status).toBe('published');
+       |                           ^
+    325|
+    326|     const writes = store.calls.filter((name) => name.startsWith('writeΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish success contract > rejects unapproved large removals and publishes
+with threshold approval
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» stageGeneration tests/importer/support/harness.ts:67:18
+ Γ¥» tests/importer/publisher.test.ts:376:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > recognizes a fully identical
+publication before the baseline check
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:402:62
+    400|       products: [fictivolProduct()],
+    401|     });
+    402|     expect((await publishRequest(store, generation)).status).toBe('pubΓÇª
+       |                                                              ^
+    403|
+    404|     store.baseline = {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > retries twice without duplicate
+rows while the baseline advanced
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:419:62
+    417|       products: [fictivolProduct()],
+    418|     });
+    419|     expect((await publishRequest(store, generation)).status).toBe('pubΓÇª
+       |                                                              ^
+    420|     advanceBaseline(store, generation.candidateVersionId, generation.sΓÇª
+    421|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > resumes an interrupted
+publication creating only the missing components
+AssertionError: promise resolved "{ ΓÇª(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "datasetVersionId": "6cbdb55815d49146",
++   "reason": "tampered-approval",
++   "status": "rejected",
+  }
+
+ Γ¥» tests/importer/publisher.test.ts:443:52
+    441|       transportFault('injected descriptor failure'),
+    442|     );
+    443|     await expect(publishRequest(store, generation)).rejects.toThrow(
+       |                                                    ^
+    444|       'injected descriptor failure',
+    445|     );
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > resumes after a lost manifest
+write by creating only the manifest
+AssertionError: promise resolved "{ ΓÇª(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "datasetVersionId": "6cbdb55815d49146",
++   "reason": "tampered-approval",
++   "status": "rejected",
+  }
+
+ Γ¥» tests/importer/publisher.test.ts:468:52
+    466|       transportFault('injected manifest failure'),
+    467|     );
+    468|     await expect(publishRequest(store, generation)).rejects.toThrow(
+       |                                                    ^
+    469|       'injected manifest failure',
+    470|     );
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > keeps an existing public orphan
+immutable and unadvertised
+AssertionError: expected 'tampered-approval' to be 'publication-collision' // Object.is equality
+
+Expected: "publication-collision"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:493:27
+    491|     const result = await publishRequest(store, generation);
+    492|     expect(result.status).toBe('rejected');
+    493|     expect(result.reason).toBe('publication-collision');
+       |                           ^
+    494|     expect(store.publicState()).toBe(before);
+    495|     expect(store.descriptors.size).toBe(0);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[15/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > rejects publication collisions
+without updates or deletes
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:504:62
+    502|       products: [fictivolProduct()],
+    503|     });
+    504|     expect((await publishRequest(store, generation)).status).toBe('pubΓÇª
+       |                                                              ^
+    505|     const manifest = store.manifests.get(generation.candidateVersionIdΓÇª
+    506|     store.manifests.set(generation.candidateVersionId, {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[16/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > ignores REST metadata and
+datetime formatting when comparing publications
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:523:62
+    521|       products: [fictivolProduct()],
+    522|     });
+    523|     expect((await publishRequest(store, generation)).status).toBe('pubΓÇª
+       |                                                              ^
+    524|
+    525|     store.restNoise = true;
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[17/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish idempotency, resume and collisions > treats a different publication
+datetime as a different publication
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:536:62
+    534|       products: [fictivolProduct()],
+    535|     });
+    536|     expect((await publishRequest(store, generation)).status).toBe('pubΓÇª
+       |                                                              ^
+    537|     const manifest = store.manifests.get(generation.candidateVersionIdΓÇª
+    538|     store.manifests.set(generation.candidateVersionId, {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[18/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish locking and baseline recheck > requires a non-empty lease from the
+publication lock
+AssertionError: expected undefined to be an instance of PublicationLeaseError
+ Γ¥» tests/importer/publisher.test.ts:567:20
+    565|       caught = error;
+    566|     }
+    567|     expect(caught).toBeInstanceOf(PublicationLeaseError);
+       |                    ^
+    568|     expect((caught as PublicationLeaseError).code).toBe('invalid-leaseΓÇª
+    569|     expect(store.publicState()).toBe(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[19/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish locking and baseline recheck > rejects when the baseline moved
+before the lock
+AssertionError: expected 'tampered-approval' to be 'stale-baseline' // Object.is equality
+
+Expected: "stale-baseline"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:585:27
+    583|     const result = await publishRequest(store, generation);
+    584|     expect(result.status).toBe('rejected');
+    585|     expect(result.reason).toBe('stale-baseline');
+       |                           ^
+    586|     expect(store.manifests.size).toBe(0);
+    587|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[20/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish locking and baseline recheck > rejects when the baseline changes
+after acquiring the lock
+AssertionError: expected 'tampered-approval' to be 'stale-baseline' // Object.is equality
+
+Expected: "stale-baseline"
+Received: "tampered-approval"
+
+ Γ¥» tests/importer/publisher.test.ts:606:27
+    604|     const result = await publishRequest(store, generation, ports);
+    605|     expect(result.status).toBe('rejected');
+    606|     expect(result.reason).toBe('stale-baseline');
+       |                           ^
+    607|     expect(store.manifests.size).toBe(0);
+    608|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[21/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when readReview fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when readBaseline
+fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when
+readPublishedBundleFile fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when
+readPublishedDescriptor fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when
+readPublishedManifest fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails closed when
+acquirePublicationLock fails
+AssertionError: promise resolved "{ ΓÇª(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "datasetVersionId": "6cbdb55815d49146",
++   "reason": "tampered-approval",
++   "status": "rejected",
+  }
+
+ Γ¥» tests/importer/publisher.test.ts:627:52
+    625|     });
+    626|     store.setFault(name, transportFault(`injected ${name} failure`));
+    627|     await expect(publishRequest(store, generation)).rejects.toThrow(
+       |                                                    ^
+    628|       `injected ${name} failure`,
+    629|     );
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[22/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > keeps prior published generations
+unchanged when writeBundleFile fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > keeps prior published generations
+unchanged when writeDescriptorRow fails
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > keeps prior published generations
+unchanged when writeManifestRow fails
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:642:59
+    640|         products: [fictivolProduct()],
+    641|       });
+    642|       expect((await publishRequest(store, first)).status).toBe('publisΓÇª
+       |                                                           ^
+    643|       advanceBaseline(store, first.candidateVersionId, first.snapshot);
+    644|       const prior = {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[23/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > reports a committed publication
+when the lock release fails
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:682:27
+    680|     store.setFault('release', transportFault('injected release failureΓÇª
+    681|     const result = await publishRequest(store, generation);
+    682|     expect(result.status).toBe('published');
+       |                           ^
+    683|     expect(result.warnings).toContain('lock-release-failed');
+    684|     expect(store.manifests.size).toBe(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[24/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > reports a committed publication
+when the post-commit log fails
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:694:27
+    692|     store.setFault('log', transportFault('injected log failure'));
+    693|     const result = await publishRequest(store, generation);
+    694|     expect(result.status).toBe('published');
+       |                           ^
+    695|     expect(result.warnings).toContain('log-failed');
+    696|     expect(store.manifests.size).toBe(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[25/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > read verifies the commit after an
+ambiguous manifest write
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:706:27
+    704|     store.setFault('writeManifestRow', ambiguousFault(true));
+    705|     const result = await publishRequest(store, generation);
+    706|     expect(result.status).toBe('published');
+       |                           ^
+    707|     expect(result.warnings).toContain('post-commit-read-verified');
+    708|     expect(store.manifests.size).toBe(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[26/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > read verifies the commit with
+code-based ambiguity classification
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:718:27
+    716|     store.setFault('writeManifestRow', codedAmbiguousFault(true));
+    717|     const result = await publishRequest(store, generation);
+    718|     expect(result.status).toBe('published');
+       |                           ^
+    719|     expect(result.warnings).toContain('post-commit-read-verified');
+    720|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[27/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > read verifies and resumes after
+an ambiguous bundle write
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:729:27
+    727|     store.setFault('writeBundleFile', ambiguousFault(true));
+    728|     const result = await publishRequest(store, generation);
+    729|     expect(result.status).toBe('published');
+       |                           ^
+    730|     expect(result.warnings).toContain('resumed-interrupted-publicationΓÇª
+    731|     expect(store.manifests.size).toBe(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[28/36]ΓÄ»
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > resumes when an ambiguous
+manifest write did not land
+AssertionError: expected 'rejected' to be 'published' // Object.is equality
+
+Expected: "published"
+Received: "rejected"
+
+ Γ¥» tests/importer/publisher.test.ts:741:27
+    739|     store.setFault('writeManifestRow', ambiguousFault(false));
+    740|     const result = await publishRequest(store, generation);
+    741|     expect(result.status).toBe('published');
+       |                           ^
+    742|     expect(result.warnings).toContain('resumed-interrupted-publicationΓÇª
+    743|     expect(store.callsTo('writeManifestRow')).toBe(2);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[29/36]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  36 failed | 5 passed (41)
+   Start at  21:05:06
+   Duration  357ms (transform 95ms, setup 0ms, import 183ms, tests 59ms, environment 0ms)
+
+EXIT=1

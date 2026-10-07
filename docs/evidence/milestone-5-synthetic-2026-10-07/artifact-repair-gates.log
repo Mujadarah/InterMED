@@ -1,0 +1,42 @@
+=== format:check ===
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+
+=== lint ===
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+EXIT=0
+
+=== typecheck ===
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json
+
+EXIT=0
+
+=== check:boundaries ===
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (48 source files; dependency-free domain).
+EXIT=0
+
+=== artifact-test ===
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  18:53:50
+   Duration  5.72s (transform 52ms, setup 0ms, import 189ms, tests 5.43s, environment 0ms)
+
+EXIT=0

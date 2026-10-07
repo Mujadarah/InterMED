@@ -1,0 +1,27 @@
+# Independent Core Review (6ad7009be6b61430a45fac532144d9e1ca0cad81)
+
+## Architecture & Scope
+* **Domain Integrity:** Confirmed `packages/domain` was not modified. The public contract and data models remain completely intact and unpolluted.
+* **Mocks/Fake Bypasses:** Inspected tests in `tests/importer/core-stage-to-publish.test.ts`. Verified that there are no mock bypasses; the tests invoke the actual `validateSyntheticSource`, `serializeCatalogue`, and `deserializeCatalogue` functions end-to-end.
+
+## Core Matrix Verification
+1. **Unmocked Domain Pipeline:** Verified real stage-to-publish execution. Data properly routes through domain validators and builders.
+2. **Parser Config & Encoding:** Implemented strict, finite config bounds via `configIssues` in `packages/importer/src/core.ts` (e.g. `maxRows`, `maxRawBytes`, size checks, integer validation). The canonical encoding (`parserEncoding`) is explicitly bound into the generation identity; requests with mismatched/unsupported encodings (like UTF-8 vs CP1250) are correctly quarantined.
+3. **Deterministic Staging & Identity:** The generated domain ID precisely matches the derived identity from the sealed candidate blob and snapshot SHA-256 (`deriveGenerationVersionKey`).
+4. **Stable Product Diffing:** Verified the `diffProducts` module accurately calculates net products, matching by stable product key (`sourceId` + `sourceProductId`).
+5. **Private Rejection & Quarantine:** Empty drops correctly reject. Large removals crossing the configured thresholds result in a quarantine reason (`large-removal`), successfully blocked during publish unless explicitly approved in the typed review signature.
+6. **Typed Approvals & Validation:** The review object carries cryptographic bindings (`configSha256`, `candidateSha256`, `rawSnapshotSha256`) and baseline verification. Validated thoroughly against tampering during publication.
+7. **Idempotency & Resiliency:**
+    * Orphan retries safely resume (writing only missing public components).
+    * Immutable collision checks accurately reject if content differs.
+    * Post-manifest failures safely return `published` but attach warnings (`resumed-interrupted-publication`, `lock-release-failed`).
+    * Pre-manifest (interrupted) write failures safely retry without duplication or corrupting the previous baseline.
+8. **Publication Timestamp Semantics:** Correctly bound to `ports.publicationTimestamp ?? null` ensuring an explicit, intent-pinned time on retry, bypassing local/current clock dependency.
+
+## Quality Gates Status
+- All code boundaries are honored (`dependency-free domain` output confirmed).
+- 422 tests ran natively and successfully.
+- No blockers or matrix gaps found in the implementation logic.
+
+## Verdict
+**ACCEPTED.** The implementation robustly satisfies the importer core specifications without domain pollution or fake test shortcuts.

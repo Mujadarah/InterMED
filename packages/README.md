@@ -20,3 +20,17 @@ Imports between workspaces use only their public package names. Dependencies poi
 The architecture sketch named a future `packages/medication` package. Milestone 4 keeps the medication catalogue in `@intermed/domain` and does not create that package. Interactions, clinical-calculators, ui and test-fixtures remain documented extension points. Create them when their milestone needs an actual public contract. Presentation remains in the app until shared UI is needed. Appwrite Functions/configuration begin in Milestone 3 with separate authority.
 
 No React, Appwrite, Dexie, browser persistence, vendor transport object or clinical rule enters domain. Zod validates the public app configuration and, in `@intermed/data-access` only, synthetic medication source documents and Appwrite transport responses; domain does not import Zod. The published-dataset reader contract in domain is read-only and vendor-neutral; its Appwrite adapter takes an injected `fetch`-like function and is tested with fakes only. Appwrite Functions/configuration live in `infra/appwrite` with separate authority and are not provisioned by this repository's tooling.
+
+Milestone 5's importer core is a separate dependency-light boundary:
+`@intermed/importer` in the Milestone 5 implementation branch (port-injected
+`stage`/`publish` with a real, unmocked domain pipeline), plus the thin
+Appwrite store client and artifact builder under
+`infra/appwrite/functions/import-anmdmr`. It consumes domain public exports but
+does not change the domain or published-dataset contracts (verified offline
+2026-10-07). File, network, Appwrite, credential, clock, and logging behavior
+belongs behind injected ports; the Function adapter is not a domain dependency.
+Synthetic source validation and private staging remain outside the browser
+shell. The Function handler/authority layer and final integration are still
+pending. See
+[the Milestone 5 evidence record](../docs/MILESTONE_5_EVIDENCE.md) and its
+[evidence pack](../docs/evidence/milestone-5-synthetic-2026-10-07/README.md).

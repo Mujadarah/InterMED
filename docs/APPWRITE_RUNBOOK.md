@@ -351,3 +351,51 @@ secret scan (`npx vitest run tests/appwrite-config-secrets.test.ts`), and record
 the incident with dates, scope and approver. Software rollback cannot erase
 copies already distributed. Never commit recovered key material into evidence
 logs.
+
+## 10. Milestone 5 synthetic importer — future, separately approved changes
+
+This section is a control boundary, not a live procedure. As of 2026-10-07 the
+importer core, the Appwrite store client, and the Function artifact builder are
+verified **offline** only (see
+[the Milestone 5 evidence record](MILESTONE_5_EVIDENCE.md) and its
+[evidence pack](evidence/milestone-5-synthetic-2026-10-07/README.md)); the
+Function handler/authority worker is **pending**, and the deployed Function
+remains the deliberate 501 stub until a separately approved deployment.
+**No M5 live action was authorized or executed**: no raw operation intent, no
+private staging/import, no Function execution, no deployment, no publication,
+and no cleanup. Never request, paste, store, or expose credentials.
+
+**Every future live step below requires its own written owner approval** —
+approval for deployment does not authorize staging, and staging never grants
+publication. Each approval names the environment (development only), scope,
+exact revision/artifact, and approver, and is recorded separately.
+
+1. **Deploy (separate owner approval):** deploy only the reviewed importer
+   revision to `intermed-dev`. Production does not exist for this scope. The
+   generated Node 22-compatible artifact must be produced outside the
+   repository from the reviewed source and smoke-tested locally with fakes. The
+   exact build/smoke/deploy commands stay **pending the final handler report**;
+   the draft handler report may still change and this runbook deliberately
+   records no unverified command.
+2. **Private staging/import (separate owner approval):** use only a fictional
+   synthetic snapshot and the synthetic placeholder source format, which is
+   explicitly to be replaced after source-rights approval and review. Read raw
+   material through the approved private port, write only private
+   quarantine/run-log/candidate staging resources, and inspect the complete
+   diff, counts, provenance, encoding, and SHA-256 before any publication
+   decision. No network retrieval or real source layout is allowed.
+3. **Publication (separate owner approval):** one bounded publication after
+   review. Create immutable bundle first, descriptor second, and manifest last.
+   `execute=[]` remains publicly denied. The exact operation-intent schema and
+   invocation commands are **pending the final handler report** — do not treat
+   any draft schema as executable and do not invent commands.
+4. **Post-read-only verification (separate owner approval):** after an approved
+   publication, perform only read-only manifest/descriptor/bundle checks and
+   record exact bytes, sizes, checksums, counts, and provenance. Do not alter or
+   delete a prior generation.
+
+Concrete environment, scope, approver, function configuration, and future
+least-privilege variables/scopes remain pending handler closure and
+implementation review. Do not add a saved key or environment example. No
+production project, billing change, Shell Test change, CSP change, or client
+grant is part of M5.

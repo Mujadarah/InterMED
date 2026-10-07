@@ -55,6 +55,21 @@ npx vitest run packages/data-access
 
 No Appwrite CLI invocation is part of any repository script. Provisioning, deployment and rollback commands live in [the Appwrite runbook](APPWRITE_RUNBOOK.md) and remain **NOT YET EXECUTED — requires maintainer approval**.
 
+Milestone 5 importer work is synthetic-only. As of 2026-10-07 the importer core,
+the Appwrite store client, and the Function artifact builder are verified
+offline (tests and logs only), while the Function handler and final integration
+remain pending; no M5 live action was authorized or executed. Do not add source
+credentials, real source material, network retrieval, or generated Function
+artifacts to the repository. The acceptance/evidence matrix, the recorded root
+test counts, and the separate approval sequence are in
+[MILESTONE_5_EVIDENCE.md](MILESTONE_5_EVIDENCE.md) and
+[APPWRITE_RUNBOOK.md](APPWRITE_RUNBOOK.md); the bounded copied logs and their
+copy/redaction policy are in
+[docs/evidence/milestone-5-synthetic-2026-10-07/](evidence/milestone-5-synthetic-2026-10-07/README.md).
+The implementation workers' focused offline suite is `npx vitest run
+tests/importer` in the implementation worktree; integrated gate runs stay with
+the lead.
+
 The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever that build output already exists, and `npm run scan:dist` (`scripts/scan-dist-secrets.mjs`) scans it unconditionally as the `npm run check` step directly after `npm run build`, failing when the build output is missing instead of skipping. Both use the detector in `tests/support/secret-scan.ts` and report file names and pattern labels only, never matched values.
 
 ## Dependencies and API decisions

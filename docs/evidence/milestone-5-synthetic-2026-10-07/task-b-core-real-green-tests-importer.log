@@ -1,0 +1,11 @@
+== npx vitest run tests/importer ==
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  6 passed (6)
+      Tests  116 passed (116)
+   Start at  21:32:35
+   Duration  419ms (transform 472ms, setup 0ms, import 935ms, tests 223ms, environment 0ms)
+
+EXIT=0

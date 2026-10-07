@@ -1,0 +1,33 @@
+probe node (orchestrator): v24.21.0
+node22 candidate exists: true
+node22 child version: v22.23.2
+artifact: <temp>\intermed-artifact-probe-aUrXu7\intermed-importer-function-9mt0ei
+npm ci --ignore-scripts --offline: ok
+node24 artifact child smoke: {"node":"v24.21.0","status":405,"deserializeOk":false,"roundtripOk":true,"networkCalls":0}
+node22 artifact child smoke: {"node":"v22.23.2","status":405,"deserializeOk":false,"roundtripOk":true,"networkCalls":0}
+inventory files (node_modules excluded): 23
+function-entry/main.js
+package-lock.json
+package.json
+vendor/@intermed/data-access/package.json
+vendor/@intermed/data-access/src/index.js
+vendor/@intermed/data-access/src/validate-synthetic-source.js
+vendor/@intermed/domain/package.json
+vendor/@intermed/domain/src/catalogue.js
+vendor/@intermed/domain/src/checksum.js
+vendor/@intermed/domain/src/field.js
+vendor/@intermed/domain/src/identity.js
+vendor/@intermed/domain/src/ids.js
+vendor/@intermed/domain/src/index.js
+vendor/@intermed/domain/src/issues.js
+vendor/@intermed/domain/src/quantity.js
+vendor/@intermed/domain/src/serialize.js
+vendor/@intermed/importer/package.json
+vendor/@intermed/importer/src/identity.js
+vendor/@intermed/importer/src/index.js
+vendor/@intermed/importer/src/normalize.js
+vendor/@intermed/importer/src/parser-facade.js
+vendor/@intermed/importer/src/parser.js
+vendor/@intermed/importer/src/stage.js
+mock/fixture/in-memory paths in inventory: 0
+PROBE OK
