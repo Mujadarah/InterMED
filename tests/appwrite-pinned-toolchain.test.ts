@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   LINUX_X64_MUSL_ARTIFACT,
@@ -8,16 +10,25 @@ import {
   resolveToolchainPaths,
 } from '../infra/appwrite/pinned-toolchain.mjs';
 
+const fixtureNodePath = join(tmpdir(), 'intermed-toolchain', 'node');
+const fixtureNpmCliPath = join(
+  tmpdir(),
+  'intermed-toolchain',
+  'npm',
+  'bin',
+  'npm-cli.js',
+);
+
 describe('Appwrite pinned toolchain launcher', () => {
   it('accepts absolute injected node and npm paths', () => {
     expect(
       resolvePinnedPaths({
-        APPWRITE_PINNED_NODE: 'C:\\toolchain\\node.exe',
-        APPWRITE_PINNED_NPM_CLI: 'C:\\toolchain\\npm\\bin\\npm-cli.js',
+        APPWRITE_PINNED_NODE: fixtureNodePath,
+        APPWRITE_PINNED_NPM_CLI: fixtureNpmCliPath,
       }),
     ).toEqual({
-      nodePath: 'C:\\toolchain\\node.exe',
-      npmCliPath: 'C:\\toolchain\\npm\\bin\\npm-cli.js',
+      nodePath: fixtureNodePath,
+      npmCliPath: fixtureNpmCliPath,
     });
   });
 
@@ -25,7 +36,7 @@ describe('Appwrite pinned toolchain launcher', () => {
     expect(() =>
       resolvePinnedPaths({
         APPWRITE_PINNED_NODE: 'node',
-        APPWRITE_PINNED_NPM_CLI: 'C:\\toolchain\\npm\\bin\\npm-cli.js',
+        APPWRITE_PINNED_NPM_CLI: fixtureNpmCliPath,
       }),
     ).toThrow(/absolute/i);
   });
@@ -33,8 +44,8 @@ describe('Appwrite pinned toolchain launcher', () => {
   it('rejects a requested version that is not the declared engine', () => {
     expect(() =>
       resolvePinnedPaths({
-        APPWRITE_PINNED_NODE: 'C:\\toolchain\\node.exe',
-        APPWRITE_PINNED_NPM_CLI: 'C:\\toolchain\\npm\\bin\\npm-cli.js',
+        APPWRITE_PINNED_NODE: fixtureNodePath,
+        APPWRITE_PINNED_NPM_CLI: fixtureNpmCliPath,
         APPWRITE_NODE_VERSION: '22.23.2',
       }),
     ).toThrow(/24\.21\.0/);
@@ -68,6 +79,47 @@ describe('Appwrite pinned toolchain launcher', () => {
     expect(spec.nodePath).toMatch(
       /node-v24\.21\.0-linux-x64-musl[/\\]bin[/\\]node$/,
     );
+  });
+
+  it('rejects a prefix in the repository whose relative path starts with two dots', () => {
+    const originalPrefix = process.env.APPWRITE_TOOLCHAIN_PREFIX;
+    process.env.APPWRITE_TOOLCHAIN_PREFIX = resolve(
+      process.cwd(),
+      '..m3-prefix-probe',
+    );
+
+    try {
+      expect(() => bootstrapInstallSpec('win32', 'x64')).toThrow(
+        /outside the repository/i,
+      );
+    } finally {
+      if (originalPrefix === undefined) {
+        delete process.env.APPWRITE_TOOLCHAIN_PREFIX;
+      } else {
+        process.env.APPWRITE_TOOLCHAIN_PREFIX = originalPrefix;
+      }
+    }
+  });
+
+  it('allows a prefix in an outside sibling directory and restores the environment', () => {
+    const originalPrefix = process.env.APPWRITE_TOOLCHAIN_PREFIX;
+    process.env.APPWRITE_TOOLCHAIN_PREFIX = resolve(
+      process.cwd(),
+      '..',
+      'm3-prefix-probe',
+    );
+
+    try {
+      expect(() => bootstrapInstallSpec('win32', 'x64')).not.toThrow();
+    } finally {
+      if (originalPrefix === undefined) {
+        delete process.env.APPWRITE_TOOLCHAIN_PREFIX;
+      } else {
+        process.env.APPWRITE_TOOLCHAIN_PREFIX = originalPrefix;
+      }
+    }
+
+    expect(process.env.APPWRITE_TOOLCHAIN_PREFIX).toBe(originalPrefix);
   });
 
   it('refuses Linux arm64 without an exact verified official musl artifact', () => {

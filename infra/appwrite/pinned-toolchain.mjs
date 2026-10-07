@@ -221,10 +221,12 @@ function toolchainPrefix() {
       join(tmpdir(), `intermed-node-${NODE_VERSION}-npm-${NPM_VERSION}`),
   );
   const relativePrefix = relative(repositoryRoot, prefix);
-  if (
-    !relativePrefix ||
-    (!relativePrefix.startsWith('..') && !isAbsolute(relativePrefix))
-  ) {
+  const parentPrefix = `..${process.platform === 'win32' ? '\\' : '/'}`;
+  const isOutsideRepository =
+    relativePrefix === '..' ||
+    relativePrefix.startsWith(parentPrefix) ||
+    isAbsolute(relativePrefix);
+  if (!isOutsideRepository) {
     throw new Error('APPWRITE_TOOLCHAIN_PREFIX must be outside the repository');
   }
   return prefix;
