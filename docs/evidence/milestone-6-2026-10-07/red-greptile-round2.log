@@ -1,0 +1,204 @@
+## Greptile round 2 #1 - superseded reconciliation retry (RED against 544f1c5)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t superseded reconciliation retry
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (12 tests | 1 failed | 11 skipped) 54ms
+   × drops a superseded reconciliation retry instead of overwriting newer favorites 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > drops a superseded reconciliation retry instead of overwriting newer favorites
+AssertionError: expected { …(5) } to match object { status: 'available', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "lastKnownDisplayName": "Fictivol gamma",
+-   "status": "available",
++   "status": "removed",
+  }
+
+ ❯ packages/local-store/src/preferences.test.ts:359:56
+    357|   // write beta's tombstones and names over gamma's reconciliation.
+    358|   await store.maintenance.retry();
+    359|   expect((await store.preferences.listFavorites())[0]).toMatchObject({
+       |                                                        ^
+    360|     status: 'available',
+    361|     lastKnownDisplayName: 'Fictivol gamma',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  20:42:35
+   Duration  308ms (transform 90ms, setup 0ms, import 146ms, tests 54ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (RED against d3cae0a)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 3ms
+   × keeps a generation that becomes active while startup cleanup runs 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a generation that becomes active while startup cleanup runs
+ReferenceError: testClock is not defined
+ ❯ packages/local-store/src/staging.test.ts:483:17
+    481| it('keeps a generation that becomes active while startup cleanup runs'…
+    482|   const name = uniqueName();
+    483|   const clock = testClock();
+       |                 ^
+    484|   const writerLease = await testMarkerLock(name, clock.now, {
+    485|     ttlMs: 3_600_000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  20:43:59
+   Duration  252ms (transform 92ms, setup 0ms, import 146ms, tests 3ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (RED against d3cae0a)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 38ms
+   × keeps a generation that becomes active while startup cleanup runs 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a generation that becomes active while startup cleanup runs
+AssertionError: expected undefined to be 'dv\u001fsource.synthetic\u001fsynthet…' // Object.is equality
+
+- Expected:
+"dvsource.syntheticsynthetic-alpha"
+
++ Received:
+undefined
+
+ ❯ packages/local-store/src/staging.test.ts:529:54
+    527|
+    528|   await running;
+    529|   expect((await cleaner.openReader())?.generationId).toBe(alpha.genera…
+       |                                                      ^
+    530|   expect(await cleaner.openPinnedReader(alpha.generationId)).not.toBeN…
+    531| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  20:44:11
+   Duration  294ms (transform 95ms, setup 0ms, import 151ms, tests 38ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #3 - partial manifest counts (RED against 30d4ee9)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t declares only some counts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (24 tests | 1 failed | 23 skipped) 42ms
+   × installs a manifest that declares only some counts 41ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > installs a manifest that declares only some counts
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(22 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
++     "generationId": "dvsource.syntheticsynthetic-alpha",
+    },
+-   "status": "ready",
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:494:28
+    492|     beta.text,
+    493|   );
+    494|   expect(store.getState()).toMatchObject({
+       |                            ^
+    495|     status: 'ready',
+    496|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 23 skipped (24)
+   Start at  20:45:57
+   Duration  295ms (transform 95ms, setup 0ms, import 151ms, tests 42ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #4 - rollback to an incomplete previous generation (RED against cbd804a)
+
+$ npx vitest run packages/local-store/src/readers.test.ts -t incomplete previous generation
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (11 tests | 1 failed | 10 skipped) 54ms
+   × refuses to roll back to an incomplete previous generation 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses to roll back to an incomplete previous generation
+AssertionError: expected true to deeply equal { ok: false, …(1) }
+
+- Expected:
+{
+  "ok": false,
+  "reason": "previous-incomplete",
+}
+
++ Received:
+true
+
+ ❯ packages/local-store/src/readers.test.ts:292:33
+    290|     .delete();
+    291|
+    292|   await expect(store.rollback()).resolves.toEqual({
+       |                                 ^
+    293|     ok: false,
+    294|     reason: 'previous-incomplete',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 skipped (11)
+   Start at  20:47:53
+   Duration  387ms (transform 128ms, setup 0ms, import 208ms, tests 54ms, environment 0ms)
+
+[exit code: 1]

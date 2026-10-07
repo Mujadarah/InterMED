@@ -1,0 +1,14 @@
+{
+  "name": "@intermed/local-store",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@intermed/domain": "0.0.0",
+    "dexie": "4.4.6"
+  }
+}

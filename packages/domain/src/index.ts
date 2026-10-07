@@ -94,3 +94,23 @@ export type {
   PublishedDatasetUnavailable,
   PublishedDatasetUnavailableReason,
 } from './published-dataset';
+export type {
+  ClearLocalDataResult,
+  DatasetGenerationRepository,
+  DatasetStateSource,
+  DatasetUpdateFailureReason,
+  DatasetUpdatePipeline,
+  DatasetUpdateState,
+  FavoriteEntry,
+  FavoriteStatus,
+  GenerationReader,
+  LocalCatalogueStore,
+  LocalDatasetCandidate,
+  LocalDatasetGeneration,
+  LocalPreferencesStore,
+  ProductTombstone,
+  PublishedBundleLoader,
+  PublishedBundleRead,
+  RecentSearchEntry,
+  RollbackResult,
+} from './local-store';

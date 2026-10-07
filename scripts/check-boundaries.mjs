@@ -26,6 +26,23 @@ const browserGlobals = new Set([
 ]);
 
 /**
+ * `@intermed/local-store` holds the Dexie repositories and the update
+ * pipeline. It may use browser storage globals, but only the application
+ * composition root and the test-only browser harness may construct it.
+ */
+const localStoreConsumers = [
+  'apps/web/src/Bootstrap.tsx',
+  'apps/web/src/dev/',
+  'packages/local-store/',
+];
+
+function isLocalStoreConsumer(path) {
+  return localStoreConsumers.some(
+    (allowed) => path === allowed || path.startsWith(allowed),
+  );
+}
+
+/**
  * Inspect source records with repository-relative paths for boundary violations.
  * Return diagnostics for private package imports, outward domain imports,
  * computed imports and browser/network identifiers in domain code.
@@ -50,6 +67,13 @@ export function inspectBoundary(files) {
       ) {
         report(`use the public package export: ${specifier}`);
       }
+      if (
+        specifier === '@intermed/local-store' &&
+        !isLocalStoreConsumer(normalized)
+      )
+        report(
+          'local-store is reserved for the app composition root and the test-only harness',
+        );
       if (specifier.startsWith('.')) {
         const target = relative(
           root,
@@ -141,6 +165,6 @@ if (
     process.exitCode = 1;
   } else
     console.log(
-      `Architecture boundaries passed (${files.length} source files; dependency-free domain).`,
+      `Architecture boundaries passed (${files.length} source files; dependency-free domain; local-store confined to the composition root).`,
     );
 }

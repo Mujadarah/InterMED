@@ -113,7 +113,7 @@ self.addEventListener('message', event => {
   return {
     url: `http://127.0.0.1:${address.port}`,
     requests,
-    revision: (value: 'a' | 'b' | 'c') => {
+    revision: (value: 'a' | 'b' | 'c' | 'harness') => {
       revision = value;
     },
     failure: (value: typeof failure) => {

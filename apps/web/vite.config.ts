@@ -38,7 +38,49 @@ function productionShellCsp(): Plugin {
   };
 }
 
+/**
+ * Test-only local-store harness entry.
+ *
+ * The harness script is added to the HTML only in the explicit `harness` mode
+ * with `INTERMED_LOCAL_STORE_HARNESS=1`. The mode guard prevents an inherited
+ * environment variable from changing a production build.
+ */
+export function localStoreHarnessPlugin(
+  mode: string,
+  environment: NodeJS.ProcessEnv = process.env,
+): Plugin {
+  const enabled =
+    mode === 'harness' && environment['INTERMED_LOCAL_STORE_HARNESS'] === '1';
+  return {
+    name: 'intermed-local-store-harness',
+    enforce: 'pre',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: () =>
+        enabled
+          ? [
+              {
+                tag: 'script',
+                attrs: {
+                  type: 'module',
+                  src: '/src/dev/local-store-harness.ts',
+                },
+                injectTo: 'head-prepend',
+              },
+            ]
+          : [],
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   parseConfig(loadEnv(mode, process.cwd(), 'VITE_'));
-  return { plugins: [react(), shellBuild(), productionShellCsp()] };
+  return {
+    plugins: [
+      react(),
+      shellBuild(),
+      productionShellCsp(),
+      localStoreHarnessPlugin(mode),
+    ],
+  };
 });

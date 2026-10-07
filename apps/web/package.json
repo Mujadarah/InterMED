@@ -12,6 +12,7 @@
   "dependencies": {
     "@intermed/data-access": "0.0.0",
     "@intermed/domain": "0.0.0",
+    "@intermed/local-store": "0.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "7.18.4",

@@ -1,0 +1,450 @@
+## Codex #1 + G1 - writer lease heartbeat and lost-lease abort (RED against 277ba16)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/multitab.test.ts (6 tests | 3 failed) 90ms
+   × renews the fallback writer lease while its work runs so no other writer can take it 7ms
+   × aborts an activation whose writer lease was lost to another tab 23ms
+   × stops staging and keeps the new writer rows when the lease is lost mid-staging 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > renews the fallback writer lease while its work runs so no other writer can take it
+AssertionError: expected { ok: true, value: 'contender' } to deeply equal { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
++   "value": "contender",
+  }
+
+ ❯ packages/local-store/src/multitab.test.ts:159:6
+    157|     await expect(
+    158|       contender.lock.withExclusiveUpdate(async () => 'contender'),
+    159|     ).resolves.toEqual({ ok: false });
+       |      ^
+    160|   }
+    161|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > aborts an activation whose writer lease was lost to another tab
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'update-failed', …(1) }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "writer-busy",
+-   "status": "update-failed",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/multitab.test.ts:207:24
+    205|
+    206|   release();
+    207|   await expect(running).resolves.toMatchObject({
+       |                        ^
+    208|     status: 'update-failed',
+    209|     reason: 'writer-busy',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > stops staging and keeps the new writer rows when the lease is lost mid-staging
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'update-failed', …(1) }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "writer-busy",
+-   "status": "update-failed",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/multitab.test.ts:248:24
+    246|   release();
+    247|
+    248|   await expect(running).resolves.toMatchObject({
+       |                        ^
+    249|     status: 'update-failed',
+    250|     reason: 'writer-busy',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 3 passed (6)
+   Start at  15:53:47
+   Duration  1.36s (transform 264ms, setup 0ms, import 817ms, tests 90ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #2 + G6 - post-commit maintenance isolation and recoverable reconciliation (RED against 041f4bb, fault-injection seam absent)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (16 tests | 3 failed) 213ms
+   × keeps a committed activation successful when preference reconciliation fails 13ms
+   × keeps a committed activation successful when post-commit collection fails 14ms
+   × finishes a preference reconciliation that a crash interrupted 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when preference reconciliation fails
+TypeError: Cannot read properties of undefined (reading 'getStatus')
+ ❯ packages/local-store/src/staging.test.ts:351:28
+    349|   });
+    350|   // The maintenance failure is reported separately, never as a failed…
+    351|   expect(store.maintenance.getStatus()).toMatchObject({
+       |                            ^
+    352|     pending: true,
+    353|     lastFailure: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when post-commit collection fails
+TypeError: Cannot read properties of undefined (reading 'getStatus')
+ ❯ packages/local-store/src/staging.test.ts:397:28
+    395|     generation: { generationId: beta.generationId },
+    396|   });
+    397|   expect(store.maintenance.getStatus()).toMatchObject({
+       |                            ^
+    398|     pending: true,
+    399|     lastFailure: { task: { kind: 'generation-gc' }, reason: 'storage-q…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > finishes a preference reconciliation that a crash interrupted
+AssertionError: expected [] to match object [ Array(1) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "productId": "mpsource.syntheticSP-FICTIVOL",
+-   },
+- ]
++ []
+
+ ❯ packages/local-store/src/staging.test.ts:439:62
+    437|   const reopened = testStore({ name });
+    438|   await reopened.open();
+    439|   expect(await reopened.preferences.listProductTombstones()).toMatchOb…
+       |                                                              ^
+    440|     { productId: alpha.productIds['SP-FICTIVOL'] },
+    441|   ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 13 passed (16)
+   Start at  16:14:36
+   Duration  472ms (transform 87ms, setup 0ms, import 145ms, tests 213ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #2 + G6 - same suite with only the onMaintenance fault-injection seam added (RED: the injected QuotaExceededError rejects the committed activation)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (16 tests | 3 failed) 197ms
+   × keeps a committed activation successful when preference reconciliation fails 14ms
+   × keeps a committed activation successful when post-commit collection fails 12ms
+   × finishes a preference reconciliation that a crash interrupted 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when preference reconciliation fails
+QuotaExceededError: Synthetic quota
+ ❯ Object.onMaintenance packages/local-store/src/staging.test.ts:318:29
+    316|     onMaintenance: (task) => {
+    317|       if (failMaintenance && task.kind === 'preference-reconciliation')
+    318|         throw Object.assign(new Error('Synthetic quota'), {
+       |                             ^
+    319|           name: 'QuotaExceededError',
+    320|         });
+ ❯ reconcilePreferences packages/local-store/src/store.ts:656:19
+ ❯ activateUnlocked packages/local-store/src/store.ts:534:11
+ ❯ Object.withExclusiveUpdate packages/local-store/src/locks.ts:208:35
+ ❯ withWriter packages/local-store/src/store.ts:349:21
+ ❯ packages/local-store/src/staging.test.ts:337:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when post-commit collection fails
+QuotaExceededError: Synthetic quota
+ ❯ Object.onMaintenance packages/local-store/src/staging.test.ts:378:29
+    376|     onMaintenance: (task) => {
+    377|       if (failCollection && task.kind === 'generation-gc')
+    378|         throw Object.assign(new Error('Synthetic quota'), {
+       |                             ^
+    379|           name: 'QuotaExceededError',
+    380|         });
+ ❯ collectGenerations packages/local-store/src/store.ts:852:19
+ ❯ activateUnlocked packages/local-store/src/store.ts:536:11
+ ❯ Object.withExclusiveUpdate packages/local-store/src/locks.ts:208:35
+ ❯ withWriter packages/local-store/src/store.ts:349:21
+ ❯ packages/local-store/src/staging.test.ts:388:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > finishes a preference reconciliation that a crash interrupted
+AssertionError: expected [] to match object [ Array(1) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "productId": "mpsource.syntheticSP-FICTIVOL",
+-   },
+- ]
++ []
+
+ ❯ packages/local-store/src/staging.test.ts:439:62
+    437|   const reopened = testStore({ name });
+    438|   await reopened.open();
+    439|   expect(await reopened.preferences.listProductTombstones()).toMatchOb…
+       |                                                              ^
+    440|     { productId: alpha.productIds['SP-FICTIVOL'] },
+    441|   ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 13 passed (16)
+   Start at  16:15:14
+   Duration  439ms (transform 82ms, setup 0ms, import 135ms, tests 197ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #3 - rollback refreshes the retention anchor (RED against 5ad1e69)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (7 tests | 1 failed) 161ms
+   × restarts the retention window when a rollback reactivates a generation 29ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts the retention window when a rollback reactivates a generation
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:127:63
+    125|   clock.tick(60 * 60 * 1000);
+    126|   expect(await tabA.collect()).not.toContain(alpha.generationId);
+    127|   expect(await tabB.openPinnedReader(alpha.generationId)).not.toBeNull…
+       |                                                               ^
+    128|
+    129|   // The window is not endless: one window after the rollback it expir…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:22:04
+   Duration  401ms (transform 83ms, setup 0ms, import 137ms, tests 161ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #4 + G4 - clear-all takes the writer lease, staging aborts cleanly, clear epoch (RED against 92751fe)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (8 tests | 3 failed) 110ms
+   × refuses clear-all while another tab is staging instead of racing it 12ms
+   × aborts staging cleanly when the local data is cleared underneath it 9ms
+   × never lets a download resume into a completed clear 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > refuses clear-all while another tab is staging instead of racing it
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/preferences.test.ts:209:29
+    207|   release();
+    208|   await running;
+    209|   expect(writer.getState()).toMatchObject({
+       |                             ^
+    210|     status: 'ready',
+    211|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > aborts staging cleanly when the local data is cleared underneath it
+AssertionError: expected undefined to deeply equal { status: 'cleared' }
+
+- Expected:
+{
+  "status": "cleared",
+}
+
++ Received:
+undefined
+
+ ❯ packages/local-store/src/preferences.test.ts:257:57
+    255|   // and complete while staging is between two write batches.
+    256|   clock.tick(LEASE_TTL_MS + 1_000);
+    257|   expect(await clearer.preferences.clearAllLocalData()).toEqual({
+       |                                                         ^
+    258|     status: 'cleared',
+    259|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > never lets a download resume into a completed clear
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'never-downloaded' }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "never-downloaded",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/preferences.test.ts:317:24
+    315|   releaseBundle();
+    316|
+    317|   await expect(running).resolves.toMatchObject({ status: 'never-downlo…
+       |                        ^
+    318|   expect(writer.getState()).toMatchObject({ status: 'never-downloaded'…
+    319|   expect(await stalled.db.generations.toArray()).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  16:26:23
+   Duration  349ms (transform 82ms, setup 0ms, import 134ms, tests 110ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #4 - abort reason and orphaned rows after a clear lands mid-staging (RED against 92751fe, focused rerun)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t aborts staging cleanly
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (8 tests | 1 failed | 7 skipped) 33ms
+   × aborts staging cleanly when the local data is cleared underneath it 32ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > aborts staging cleanly when the local data is cleared underneath it
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "local-data-cleared",
++   "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/preferences.test.ts:260:24
+    258|   release();
+    259|
+    260|   await expect(running).resolves.toMatchObject({
+       |                        ^
+    261|     status: 'update-failed',
+    262|     reason: 'local-data-cleared',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 skipped (2)
+      Tests  1 failed | 23 skipped (24)
+   Start at  16:26:55
+   Duration  283ms (transform 159ms, setup 0ms, import 276ms, tests 33ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codex #5 - cross-tab notification after a clear (RED against 7c6edea)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/multitab.test.ts (7 tests | 1 failed) 1115ms
+   × tells other tabs when one tab clears the local data 1026ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > tells other tabs when one tab clears the local data
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'never-downloaded' }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "never-downloaded",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/multitab.test.ts:290:31
+    288|     await tabA.preferences.clearAllLocalData();
+    289|     await vi.waitFor(() =>
+    290|       expect(tabB.getState()).toMatchObject({ status: 'never-downloade…
+       |                               ^
+    291|     );
+    292|     expect(await tabB.openReader()).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:35:41
+   Duration  1.36s (transform 85ms, setup 0ms, import 138ms, tests 1.11s, environment 0ms)
+
+[exit code: 1]

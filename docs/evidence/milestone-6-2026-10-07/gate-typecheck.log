@@ -1,0 +1,7 @@
+$ npm.cmd run typecheck
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json
+
+
+exit code: 0

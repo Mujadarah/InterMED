@@ -83,3 +83,63 @@ it('rejects private workspace imports from presentation', () => {
     ]),
   ).not.toHaveLength(0);
 });
+
+it.each([
+  'apps/web/src/presentation/View.ts',
+  'apps/web/src/application/services.ts',
+  'apps/web/src/infrastructure/browser-shell.ts',
+  'packages/data-access/src/reader.ts',
+  'packages/local-store-consumer.ts',
+])('rejects a local-store import outside the composition root: %s', (path) => {
+  expect(
+    inspectBoundary([
+      {
+        path,
+        source:
+          "import { createLocalDatasetStore } from '@intermed/local-store';",
+      },
+    ]),
+  ).not.toHaveLength(0);
+});
+
+it.each([
+  'apps/web/src/Bootstrap.tsx',
+  'apps/web/src/dev/local-store-harness.ts',
+])(
+  'allows the composition root and the test-only harness to import local-store: %s',
+  (path) => {
+    expect(
+      inspectBoundary([
+        {
+          path,
+          source:
+            "import { createLocalDatasetStore } from '@intermed/local-store';",
+        },
+      ]),
+    ).toEqual([]);
+  },
+);
+
+it('allows local-store to use browser storage globals', () => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'packages/local-store/src/db.ts',
+        source:
+          "const request = indexedDB.open('intermed-local');\nconst locks = navigator.locks;\nconst channel = new BroadcastChannel('intermed-dataset-events');\n",
+      },
+    ]),
+  ).toEqual([]);
+});
+
+it('keeps the domain package free of local-store types', () => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'packages/domain/src/rules.ts',
+        source:
+          "import type { GenerationReader } from '@intermed/local-store';",
+      },
+    ]),
+  ).not.toHaveLength(0);
+});

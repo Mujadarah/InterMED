@@ -1,0 +1,7 @@
+$ npm.cmd run lint
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+exit code: 0

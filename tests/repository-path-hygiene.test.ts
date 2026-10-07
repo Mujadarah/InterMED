@@ -13,14 +13,6 @@ const projectPrefix = ['D:', 'Proiecte AI', 'InterMED'].join(windowsSlash);
 const projectPrefixForward = ['D:', 'Proiecte AI', 'InterMED'].join('/');
 const escapedWindowsSlash = windowsSlash + windowsSlash;
 
-const excludedPaths = [
-  // M6 evidence is coordinated separately and retains its approved fixtures.
-  'docs/MILESTONE_6_EVIDENCE.md',
-  'docs/evidence/milestone-6-',
-  // Claude PR10 owns this package until its shared allowlist lands.
-  'packages/local-store/',
-] as const;
-
 const binaryExtensions = new Set([
   '.gif',
   '.ico',
@@ -30,15 +22,6 @@ const binaryExtensions = new Set([
   '.webp',
 ]);
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
-
-function isExcluded(path: string): boolean {
-  return (
-    path === excludedPaths[0] ||
-    (path.startsWith(excludedPaths[1]) &&
-      path.slice(excludedPaths[1].length).includes('/')) ||
-    path.startsWith(excludedPaths[2])
-  );
-}
 
 function isKnownBinary(path: string, source: Buffer): boolean {
   if (binaryExtensions.has(extname(path).toLowerCase())) return true;
@@ -101,14 +84,12 @@ function trackedPathFindings(
   })
     .split('\0')
     .filter(Boolean);
-  return paths
-    .filter((path) => !isExcluded(path))
-    .flatMap((path) => {
-      const source = readFileSync(resolve(repositoryRoot, path));
-      const text = decodeTrackedText(path, source);
-      const findings = text ? findMachinePaths(text) : [];
-      return findings.length ? [{ path, findings }] : [];
-    });
+  return paths.flatMap((path) => {
+    const source = readFileSync(resolve(repositoryRoot, path));
+    const text = decodeTrackedText(path, source);
+    const findings = text ? findMachinePaths(text) : [];
+    return findings.length ? [{ path, findings }] : [];
+  });
 }
 
 it('detects UTF-8, escaped and UTF-16 paths without treating images as text', () => {
@@ -145,14 +126,6 @@ it('detects UTF-8, escaped and UTF-16 paths without treating images as text', ()
       Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from('UTF-8')]),
     ),
   ).toThrow('UTF-8 without BOM');
-});
-
-it('uses exact boundaries for the three coordinated exclusions', () => {
-  expect(isExcluded(excludedPaths[0])).toBe(true);
-  expect(isExcluded(`${excludedPaths[1]}2026-10-07/README.md`)).toBe(true);
-  expect(isExcluded(`${excludedPaths[2]}src/index.ts`)).toBe(true);
-  expect(isExcluded('docs/evidence/milestone-6-foo.md')).toBe(false);
-  expect(isExcluded('packages/local-storehouse/src/index.ts')).toBe(false);
 });
 
 it('scans tracked files in a fixture git repository, not untracked files', async () => {
@@ -199,7 +172,6 @@ it('keeps tracked text and logs UTF-8/LF and free of machine paths', () => {
     .filter(Boolean);
 
   for (const path of paths) {
-    if (isExcluded(path)) continue;
     const source = readFileSync(resolve(root, path));
     const text = decodeTrackedText(path, source);
     if (text === undefined) continue;
