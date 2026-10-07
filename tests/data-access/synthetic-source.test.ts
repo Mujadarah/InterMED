@@ -212,6 +212,55 @@ it('swaps an in-memory catalogue source without changing domain code', () => {
   expect(names(first)).not.toEqual(names(second));
 });
 
+it('round-trips padded source text from a catalogue the validator accepted', () => {
+  const document = structuredClone(syntheticMedicationFixture);
+  const row = document.products.find(
+    (item) => item.sourceProductId === 'SP-FICTIVOL',
+  );
+  expect(row).toBeDefined();
+  if (!row) return;
+  const paddedName = 'Fictivol ';
+  const paddedDci = ' Fictivolinum ';
+  const editable = row as {
+    commercialName: string;
+    originalDciText: { status: 'present'; value: string };
+  };
+  editable.commercialName = paddedName;
+  editable.originalDciText = { status: 'present', value: paddedDci };
+  const validated = validateSyntheticSource(document);
+  expect(validated.ok).toBe(true);
+  if (!validated.ok) return;
+  const stored = validated.snapshot.products.find(
+    (item) => item.sourceProductId === 'SP-FICTIVOL',
+  );
+  expect(stored?.commercialName).toBe(paddedName);
+  expect(stored?.originalDciText).toEqual({
+    status: 'present',
+    value: paddedDci,
+  });
+  const parsed = deserializeCatalogue(serializeCatalogue(validated.snapshot));
+  expect(parsed.ok).toBe(true);
+  if (!parsed.ok) return;
+  const restored = parsed.snapshot.products.find(
+    (item) => item.sourceProductId === 'SP-FICTIVOL',
+  );
+  expect(restored?.commercialName).toBe(paddedName);
+  expect(restored?.originalDciText).toEqual({
+    status: 'present',
+    value: paddedDci,
+  });
+  expect(parsed.snapshot).toEqual(validated.snapshot);
+});
+
+it('rejects an empty required commercial name', () => {
+  const document = structuredClone(syntheticMedicationFixture);
+  const row = document.products[0];
+  expect(row).toBeDefined();
+  if (!row) return;
+  (row as { commercialName: string }).commercialName = '';
+  expect(validateSyntheticSource(document).ok).toBe(false);
+});
+
 it('rejects a non-synthetic document and an ATC row that claims an official code system', () => {
   const notSynthetic = structuredClone(syntheticMedicationFixture) as {
     synthetic: boolean;

@@ -22,7 +22,11 @@ import type {
   RightsStatus,
   SourceUse,
 } from './entities';
-import type { FieldState, UnknownReason } from './field';
+import {
+  isPreservedSourceText,
+  type FieldState,
+  type UnknownReason,
+} from './field';
 import { parseStableId, type EntityKind, type IdByKind } from './ids';
 import { catalogueIssue, type CatalogueIssue } from './issues';
 import type { UnitField } from './quantity';
@@ -100,12 +104,8 @@ function readArray<T>(readItem: Read<T>): Read<readonly T[]> {
 }
 
 function readString(value: unknown, path: string): Result<string> {
-  if (
-    typeof value !== 'string' ||
-    value.trim() === '' ||
-    value !== value.trim()
-  )
-    return problem(path, 'A non-blank string is required.');
+  if (!isPreservedSourceText(value))
+    return problem(path, 'A non-empty string is required.');
   return { ok: true, value };
 }
 

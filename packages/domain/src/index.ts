@@ -1,5 +1,10 @@
 export type { FieldState, UnknownReason } from './field';
-export { MISSING, presentField, unknownField } from './field';
+export {
+  isPreservedSourceText,
+  MISSING,
+  presentField,
+  unknownField,
+} from './field';
 export type {
   ActiveIngredientId,
   AtcCodeId,

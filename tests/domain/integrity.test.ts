@@ -12,6 +12,7 @@ import {
   join,
   mustId,
   product,
+  sourceId,
   SOURCE_KEY,
   SOURCE_NAMESPACE,
 } from './builders';
@@ -291,4 +292,70 @@ it('rejects 29 February outside a leap year and accepts it in a leap year', () =
     'DatasetVersion:importedAt',
   ]);
   expect(timestampIssues('2024-02-29T00:00:00Z')).toEqual([]);
+});
+
+it('reports a dangling external mapping source', () => {
+  const substance = ingredient('AI-FICTIVOLINUM', 'Fictivolinum', {
+    externalMappings: [
+      {
+        sourceId: mustId('DataSource', SOURCE_NAMESPACE, 'source.missing-map'),
+        sourceIngredientId: 'EXT-FICT-MISSING',
+        mappingVersion: 'map-synthetic-1',
+        reviewStatus: 'unreviewed',
+      },
+      {
+        sourceId,
+        sourceIngredientId: 'EXT-FICT-KEPT',
+        mappingVersion: 'map-synthetic-1',
+        reviewStatus: 'reviewed',
+      },
+    ],
+  });
+  const issues = validateReferentialIntegrity(
+    sealCatalogue(emptyCatalogue({ activeIngredients: [substance] })),
+  );
+  expect(issues).toEqual([
+    {
+      code: 'dangling-source',
+      entity: 'ActiveIngredient',
+      entityId: substance.id,
+      field: 'externalMappings[0].sourceId',
+      detail: 'The referenced record is not in this snapshot.',
+    },
+  ]);
+});
+
+it('accepts an external mapping source that is in the snapshot', () => {
+  const base = emptyCatalogue();
+  const primary = base.dataSources[0];
+  if (!primary) throw new Error('synthetic catalogue has no data source');
+  const companionId = mustId(
+    'DataSource',
+    SOURCE_NAMESPACE,
+    'source.companion',
+  );
+  const substance = ingredient('AI-PLACEBEXIUM', 'Placebexium', {
+    externalMappings: [
+      {
+        sourceId: companionId,
+        sourceIngredientId: 'EXT-PLACEBEXIUM',
+        mappingVersion: 'map-synthetic-1',
+        reviewStatus: 'reviewed',
+      },
+    ],
+  });
+  const snapshot = sealCatalogue({
+    ...base,
+    dataSources: [
+      primary,
+      {
+        ...primary,
+        id: companionId,
+        sourceKey: 'source.companion',
+        name: 'Companion synthetic fixture',
+      },
+    ],
+    activeIngredients: [substance],
+  });
+  expect(validateReferentialIntegrity(snapshot)).toEqual([]);
 });
