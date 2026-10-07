@@ -1,0 +1,689 @@
+## G2 - collection under the writer lease, pins honoured at delete time, pin refreshes retention (GREEN)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+(node:53056) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 2)
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 2 failed) 306ms
+   × refuses collection while another tab is staging instead of deleting under it 14ms
+   × honours a pin taken while collection is running 94ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "dvsource.syntheticsynthetic-alpha",
++ ]
+
+ ❯ packages/local-store/src/readers.test.ts:169:33
+    167|   // The staging run is long enough to look abandoned to a stale snaps…
+    168|   clock.tick(STALE_STAGING_MS + 1_000);
+    169|   expect(await other.collect()).toEqual([]);
+       |                                 ^
+    170|
+    171|   release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ ❯ new NotFoundError ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5
+ ❯ FDBTransaction.objectStore ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13
+ ❯ node_modules/dexie/src/dbcore/dbcore-indexeddb.ts:448:50
+ ❯ executePromiseTask node_modules/dexie/src/helpers/promise.js:405:4
+ ❯ new DexiePromise node_modules/dexie/src/helpers/promise.js:138:2
+ ❯ Object.get node_modules/dexie/src/dbcore/dbcore-indexeddb.ts:446:15
+ ❯ Object.tableClone.<computed> [as get] node_modules/dexie/src/live-query/observability-middleware.ts:346:35
+ ❯ node_modules/dexie/src/classes/table/table.ts:138:9
+ ❯ checkTableInTransaction node_modules/dexie/src/classes/table/table.ts:77:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ ❯ new DOMException node:internal/per_context/domexception:76:18
+ ❯ new NotFoundError ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5
+ ❯ FDBTransaction.objectStore ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13
+ ❯ node_modules/dexie/dist/dexie.js:3625:41
+ ❯ executePromiseTask node_modules/dexie/dist/dexie.js:835:11
+ ❯ new DexiePromise node_modules/dexie/dist/dexie.js:644:7
+ ❯ Object.get node_modules/dexie/dist/dexie.js:3623:26
+ ❯ Object.tableClone.<computed> [as get] node_modules/dexie/dist/dexie.js:5352:48
+ ❯ node_modules/dexie/dist/dexie.js:1485:20
+ ❯ checkTableInTransaction node_modules/dexie/dist/dexie.js:1452:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { inner: { stack: 'NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at new NotFoundError (file:///D:/Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5)\n    at FDBTransaction.objectStore (file:///D:/Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13)\n    at <worktree>\node_modules\dexie\dist\dexie.js:3625:41\n    at executePromiseTask (<worktree>\node_modules\dexie\dist\dexie.js:835:11)\n    at new DexiePromise (<worktree>\node_modules\dexie\dist\dexie.js:644:7)\n    at Object.get (<worktree>\node_modules\dexie\dist\dexie.js:3623:26)\n    at Object.tableClone.<computed> [as get] (<worktree>\node_modules\dexie\dist\dexie.js:5352:48)\n    at <worktree>\node_modules\dexie\dist\dexie.js:1485:20\n    at checkTableInTransaction (<worktree>\node_modules\dexie\dist\dexie.js:1452:22)', constructor: 'Function<NotFoundError>', name: 'NotFoundError', message: 'The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.', code: 8, INDEX_SIZE_ERR: 1, DOMSTRING_SIZE_ERR: 2, HIERARCHY_REQUEST_ERR: 3, WRONG_DOCUMENT_ERR: 4, INVALID_CHARACTER_ERR: 5, NO_DATA_ALLOWED_ERR: 6, NO_MODIFICATION_ALLOWED_ERR: 7, NOT_FOUND_ERR: 8, NOT_SUPPORTED_ERR: 9, INUSE_ATTRIBUTE_ERR: 10, INVALID_STATE_ERR: 11, SYNTAX_ERR: 12, INVALID_MODIFICATION_ERR: 13, NAMESPACE_ERR: 14, INVALID_ACCESS_ERR: 15, VALIDATION_ERR: 16, TYPE_MISMATCH_ERR: 17, SECURITY_ERR: 18, NETWORK_ERR: 19, ABORT_ERR: 20, URL_MISMATCH_ERR: 21, QUOTA_EXCEEDED_ERR: 22, TIMEOUT_ERR: 23, INVALID_NODE_TYPE_ERR: 24, DATA_CLONE_ERR: 25, toString: 'Function<toString>' } }
+This error originated in "packages/local-store/src/readers.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "honours a pin taken while collection is running". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 passed (10)
+     Errors  1 error
+   Start at  17:02:53
+   Duration  649ms (transform 92ms, setup 0ms, import 149ms, tests 306ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G2 - collection under the writer lease, pins honoured at delete time, pin refreshes retention (GREEN)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 1 failed) 270ms
+   × refuses collection while another tab is staging instead of deleting under it 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+ReferenceError: testMarkerLock is not defined
+ ❯ packages/local-store/src/readers.test.ts:158:7
+    156|     // so the writer keeps a lease that outlives it.
+    157|     lock: (
+    158|       await testMarkerLock(name, clock.now, { ttlMs: 4 * 60 * 60 * 100…
+       |       ^
+    159|     ).lock,
+    160|     onStaged: async ({ store }) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 passed (10)
+   Start at  17:32:03
+   Duration  507ms (transform 83ms, setup 0ms, import 137ms, tests 270ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G2 - collection under the writer lease, pins honoured at delete time, pin refreshes retention (GREEN)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  17:32:14
+   Duration  528ms (transform 83ms, setup 0ms, import 137ms, tests 277ms, environment 0ms)
+
+[exit code: 0]
+
+---
+
+## G3 - staging completion marker and count verification before activation (GREEN)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (19 tests | 14 failed) 244ms
+   × stages and activates a bundle, then reads the same generation after a restart 36ms
+   × keeps staged rows invisible until one atomic pointer switch 19ms
+   × is idempotent when the same generation is staged twice 20ms
+   × rejects a corrupted bundle, keeps the previous generation and stages nothing 13ms
+   × rejects a bundle that fails referential integrity 15ms
+   × keeps the old active generation when staging is interrupted 16ms
+   × keeps the old active generation on a quota error and reports storage-quota 18ms
+   × downloads through the injected published source and reports size mismatches 11ms
+   × reports update-available after a background check and fails without touching data 8ms
+   × keeps a committed activation successful when preference reconciliation fails 16ms
+   × keeps a committed activation successful when post-commit collection fails 15ms
+   × finishes a preference reconciliation that a crash interrupted 14ms
+   × refuses to activate a generation whose staging never completed 10ms
+   × re-verifies the stored row counts before switching the pointer 10ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > stages and activates a bundle, then reads the same generation after a restart
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "dataset": "synthetic-medication-catalogue",
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-     "synthetic": true,
+-     "version": "synthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:48:28
+     46|   const alpha = bundle('alpha');
+     47|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+     48|   expect(store.getState()).toMatchObject({
+       |                            ^
+     49|     status: 'ready',
+     50|     generation: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps staged rows invisible until one atomic pointer switch
+AssertionError: expected { status: 'never-downloaded' } to match object { status: 'ready', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "status": "never-downloaded",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:78:28
+     76|
+     77|   await store.updates.stageBundle(beta.manifest, beta.text);
+     78|   expect(store.getState()).toMatchObject({
+       |                            ^
+     79|     status: 'ready',
+     80|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > is idempotent when the same generation is staged twice
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:102:28
+    100|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+    101|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+    102|   expect(store.getState()).toMatchObject({
+       |                            ^
+    103|     status: 'ready',
+    104|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a corrupted bundle, keeps the previous generation and stages nothing
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "checksum-mismatch",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:118:28
+    116|
+    117|   await store.updates.stageBundle(beta.manifest, corrupted);
+    118|   expect(store.getState()).toMatchObject({
+       |                            ^
+    119|     status: 'update-failed',
+    120|     reason: 'checksum-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle that fails referential integrity
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "integrity-failed",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:135:28
+    133|
+    134|   await store.updates.stageBundle(broken.manifest, broken.text);
+    135|   expect(store.getState()).toMatchObject({
+       |                            ^
+    136|     status: 'update-failed',
+    137|     reason: 'integrity-failed',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation when staging is interrupted
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:232:28
+    230|
+    231|   await store.updates.stageBundle(beta.manifest, beta.text);
+    232|   expect(store.getState()).toMatchObject({
+       |                            ^
+    233|     status: 'update-failed',
+    234|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation on a quota error and reports storage-quota
+AssertionError: expected { status: 'storage-quota', …(1) } to match object { status: 'storage-quota', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "status": "storage-quota",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:260:28
+    258|
+    259|   await store.updates.stageBundle(beta.manifest, beta.text);
+    260|   expect(store.getState()).toMatchObject({
+       |                            ^
+    261|     status: 'storage-quota',
+    262|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > downloads through the injected published source and reports size mismatches
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:274:28
+    272|   const store = testStore(healthy);
+    273|   await store.updates.downloadAndActivate();
+    274|   expect(store.getState()).toMatchObject({
+       |                            ^
+    275|     status: 'ready',
+    276|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > reports update-available after a background check and fails without touching data
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready' }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "ready",
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:296:28
+    294|   const store = testStore(fakePublishedSource(alpha));
+    295|   await store.updates.downloadAndActivate();
+    296|   expect(store.getState()).toMatchObject({ status: 'ready' });
+       |                            ^
+    297|
+    298|   await store.updates.checkForUpdate();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when preference reconciliation fails
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:367:17
+    365|
+    366|   const state = await store.updates.stageAndActivate(beta.manifest, be…
+    367|   expect(state).toMatchObject({
+       |                 ^
+    368|     status: 'ready',
+    369|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when post-commit collection fails
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:418:17
+    416|
+    417|   const state = await store.updates.stageAndActivate(beta.manifest, be…
+    418|   expect(state).toMatchObject({
+       |                 ^
+    419|     status: 'ready',
+    420|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > finishes a preference reconciliation that a crash interrupted
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/local-store/src/staging.test.ts:450:59
+    448|   });
+    449|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    450|   expect(await store.preferences.listProductTombstones()).toHaveLength…
+       |                                                           ^
+    451|
+    452|   // Rewind to the state a crash before reconciliation leaves behind: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > refuses to activate a generation whose staging never completed
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:486:28
+    484|
+    485|   await store.updates.activate('planted-staging');
+    486|   expect(store.getState()).toMatchObject({
+       |                            ^
+    487|     status: 'update-failed',
+    488|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > re-verifies the stored row counts before switching the pointer
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "count-mismatch",
++   "generation": null,
++   "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:506:28
+    504|
+    505|   await store.updates.activate('short-generation');
+    506|   expect(store.getState()).toMatchObject({
+       |                            ^
+    507|     status: 'update-failed',
+    508|     reason: 'count-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed | 5 passed (19)
+   Start at  17:36:14
+   Duration  497ms (transform 91ms, setup 0ms, import 147ms, tests 244ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G3 - staging completion marker and count verification before activation (GREEN, catalogue tables added to the verifying transactions)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  5 passed (5)
+      Tests  54 passed (54)
+   Start at  17:39:21
+   Duration  688ms (transform 353ms, setup 0ms, import 778ms, tests 1.15s, environment 0ms)
+
+[exit code: 0]
+
+---
+
+## G7 - evicted generation recovery by re-download and row replacement (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+(node:4728) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 1)
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ packages/local-store/src/staging.test.ts (20 tests | 1 failed) 335ms
+   × recovers an evicted generation by re-downloading and replacing its rows 28ms
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 1 failed) 393ms
+   × honours a pin taken while collection is running 83ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ ❯ new NotFoundError ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5
+ ❯ FDBTransaction.objectStore ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13
+ ❯ node_modules/dexie/src/dbcore/dbcore-indexeddb.ts:462:50
+ ❯ executePromiseTask node_modules/dexie/src/helpers/promise.js:405:4
+ ❯ new DexiePromise node_modules/dexie/src/helpers/promise.js:138:2
+ ❯ Object.count node_modules/dexie/src/dbcore/dbcore-indexeddb.ts:461:15
+ ❯ Object.tableClone.<computed> [as count] node_modules/dexie/src/live-query/observability-middleware.ts:346:35
+ ❯ Object.count node_modules/dexie/src/dbcore/virtual-index-middleware.ts:161:23
+ ❯ node_modules/dexie/src/classes/collection/collection.ts:148:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > recovers an evicted generation by re-downloading and replacing its rows
+AssertionError: expected { status: 'evicted', …(1) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "status": "evicted",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:561:31
+    559|   // rows instead of skipping the download as already present.
+    560|   await reopened.updates.downloadAndActivate();
+    561|   expect(reopened.getState()).toMatchObject({
+       |                               ^
+    562|     status: 'ready',
+    563|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+ ❯ new DOMException node:internal/per_context/domexception:76:18
+ ❯ new NotFoundError ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5
+ ❯ FDBTransaction.objectStore ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13
+ ❯ node_modules/dexie/dist/dexie.js:3637:41
+ ❯ executePromiseTask node_modules/dexie/dist/dexie.js:835:11
+ ❯ new DexiePromise node_modules/dexie/dist/dexie.js:644:7
+ ❯ Object.count node_modules/dexie/dist/dexie.js:3636:26
+ ❯ Object.tableClone.<computed> [as count] node_modules/dexie/dist/dexie.js:5352:48
+ ❯ Object.count node_modules/dexie/dist/dexie.js:4834:36
+ ❯ node_modules/dexie/dist/dexie.js:2119:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { inner: { stack: 'NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at new NotFoundError (file:///D:/Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/lib/errors.js:59:5)\n    at FDBTransaction.objectStore (file:///D:/Proiecte%20AI/InterMED-wt/m6/node_modules/fake-indexeddb/build/esm/FDBTransaction.js:135:13)\n    at <worktree>\node_modules\dexie\dist\dexie.js:3637:41\n    at executePromiseTask (<worktree>\node_modules\dexie\dist\dexie.js:835:11)\n    at new DexiePromise (<worktree>\node_modules\dexie\dist\dexie.js:644:7)\n    at Object.count (<worktree>\node_modules\dexie\dist\dexie.js:3636:26)\n    at Object.tableClone.<computed> [as count] (<worktree>\node_modules\dexie\dist\dexie.js:5352:48)\n    at Object.count (<worktree>\node_modules\dexie\dist\dexie.js:4834:36)\n    at <worktree>\node_modules\dexie\dist\dexie.js:2119:24', constructor: 'Function<NotFoundError>', name: 'NotFoundError', message: 'The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.', code: 8, INDEX_SIZE_ERR: 1, DOMSTRING_SIZE_ERR: 2, HIERARCHY_REQUEST_ERR: 3, WRONG_DOCUMENT_ERR: 4, INVALID_CHARACTER_ERR: 5, NO_DATA_ALLOWED_ERR: 6, NO_MODIFICATION_ALLOWED_ERR: 7, NOT_FOUND_ERR: 8, NOT_SUPPORTED_ERR: 9, INUSE_ATTRIBUTE_ERR: 10, INVALID_STATE_ERR: 11, SYNTAX_ERR: 12, INVALID_MODIFICATION_ERR: 13, NAMESPACE_ERR: 14, INVALID_ACCESS_ERR: 15, VALIDATION_ERR: 16, TYPE_MISMATCH_ERR: 17, SECURITY_ERR: 18, NETWORK_ERR: 19, ABORT_ERR: 20, URL_MISMATCH_ERR: 21, QUOTA_EXCEEDED_ERR: 22, TIMEOUT_ERR: 23, INVALID_NODE_TYPE_ERR: 24, DATA_CLONE_ERR: 25, toString: 'Function<toString>' } }
+This error originated in "packages/local-store/src/readers.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "honours a pin taken while collection is running". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  2 failed | 53 passed (55)
+     Errors  1 error
+   Start at  17:44:25
+   Duration  673ms (transform 329ms, setup 0ms, import 741ms, tests 1.20s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G7 - evicted generation recovery by re-download and row replacement (GREEN, plus the G2 pin handover in openPinnedReader)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  5 passed (5)
+      Tests  55 passed (55)
+   Start at  18:02:40
+   Duration  644ms (transform 337ms, setup 0ms, import 705ms, tests 1.21s, environment 0ms)
+
+[exit code: 0]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  5 passed (5)
+      Tests  56 passed (56)
+   Start at  18:33:33
+   Duration  620ms (transform 322ms, setup 0ms, import 656ms, tests 1.18s, environment 0ms)
+
+[exit code: 0]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  5 passed (5)
+      Tests  57 passed (57)
+   Start at  19:19:07
+   Duration  622ms (transform 302ms, setup 0ms, import 657ms, tests 1.17s, environment 0ms)
+
+[exit code: 0]
+
+---
+
+## G9 - embedded dataset version checked against its manifest (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  5 passed (5)
+      Tests  59 passed (59)
+   Start at  19:21:45
+   Duration  615ms (transform 321ms, setup 0ms, import 676ms, tests 1.16s, environment 0ms)
+
+[exit code: 0]

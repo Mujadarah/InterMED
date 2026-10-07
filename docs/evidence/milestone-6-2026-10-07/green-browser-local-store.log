@@ -1,0 +1,48 @@
+node.exe : [WebServer] (node:68188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:64228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 15 tests using 3 workers
+
+(node:65636) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16160) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  2 [chromium-desktop] ΓÇ║ tests\browser\local-store.spec.ts:93:1 ΓÇ║ reads a staged generation after a restart and while offline (973ms)
+  ok  3 [chromium-desktop] ΓÇ║ tests\browser\local-store.spec.ts:42:1 ΓÇ║ shows never-downloaded in default mode and downloads nothing (904ms)
+  ok  5 [chromium-desktop] ΓÇ║ tests\browser\local-store.spec.ts:277:1 ΓÇ║ the production bundle contains no test-only harness code (27ms)
+  ok  1 [chromium-desktop] ΓÇ║ tests\browser\local-store.spec.ts:141:1 ΓÇ║ two tabs evaluating during an activation each see one coherent generation (1.1s)
+  ok  4 [chromium-desktop] ΓÇ║ tests\browser\local-store.spec.ts:233:1 ΓÇ║ an old tab reports reload-required instead of losing data on an upgrade (940ms)
+(node:52640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49980) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  6 [webkit-phone] ΓÇ║ tests\browser\local-store.spec.ts:42:1 ΓÇ║ shows never-downloaded in default mode and downloads nothing (1.5s)
+  ok  7 [webkit-phone] ΓÇ║ tests\browser\local-store.spec.ts:93:1 ΓÇ║ reads a staged generation after a restart and while offline (3.3s)
+  ok 10 [webkit-phone] ΓÇ║ tests\browser\local-store.spec.ts:277:1 ΓÇ║ the production bundle contains no test-only harness code (95ms)
+(node:17160) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  8 [webkit-phone] ΓÇ║ tests\browser\local-store.spec.ts:141:1 ΓÇ║ two tabs evaluating during an activation each see one coherent generation (4.1s)
+  ok  9 [webkit-phone] ΓÇ║ tests\browser\local-store.spec.ts:233:1 ΓÇ║ an old tab reports reload-required instead of losing data on an upgrade (3.5s)
+(node:36284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 11 [webkit-tablet] ΓÇ║ tests\browser\local-store.spec.ts:42:1 ΓÇ║ shows never-downloaded in default mode and downloads nothing (1.4s)
+  ok 12 [webkit-tablet] ΓÇ║ tests\browser\local-store.spec.ts:93:1 ΓÇ║ reads a staged generation after a restart and while offline (3.5s)
+  ok 15 [webkit-tablet] ΓÇ║ tests\browser\local-store.spec.ts:277:1 ΓÇ║ the production bundle contains no test-only harness code (308ms)
+  ok 13 [webkit-tablet] ΓÇ║ tests\browser\local-store.spec.ts:233:1 ΓÇ║ an old tab reports reload-required instead of losing data on an upgrade (5.9s)
+  ok 14 [webkit-tablet] ΓÇ║ tests\browser\local-store.spec.ts:141:1 ΓÇ║ two tabs evaluating during an activation each see one coherent generation (7.7s)
+
+  15 passed (31.2s)

@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useEffect, useRef } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
+import { DatasetStatus } from './DatasetStatus';
 import { ShellStatus } from './ShellStatus';
 
 /**
@@ -103,6 +104,7 @@ export function App({
                     <dd>No collection or storage</dd>
                   </div>
                 </dl>
+                <DatasetStatus dataset={services.dataset} />
                 <p>
                   This build uses contributor mock mode without accounts or
                   cloud connections. Future clinical content requires permitted

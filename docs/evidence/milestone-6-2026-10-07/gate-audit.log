@@ -1,0 +1,4 @@
+$ npm.cmd audit --audit-level=low
+found 0 vulnerabilities
+
+exit code: 0

@@ -1,0 +1,14 @@
+Command: node.exe ./node_modules/vitest/vitest.mjs run tests/web-vite-config.test.ts
+Node: v24.21.0
+Exit code: 1
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/web-vite-config.test.ts (2 tests | 2 failed)
+   × local-store harness Vite plugin > does not include the harness in a production build even when the flag is inherited
+     TypeError: localStoreHarnessPlugin is not a function
+   × local-store harness Vite plugin > includes the harness only for the explicit harness mode
+     TypeError: localStoreHarnessPlugin is not a function
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)

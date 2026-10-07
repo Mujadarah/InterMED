@@ -1,0 +1,23 @@
+Review-fix validation
+
+Pinned Node verification:
+  node -v: v24.21.0
+
+Direct gate commands with pinned Node:
+  prettier --check .                         exit 0
+  eslint . --max-warnings 0                  exit 0
+  tsc -p tsconfig.json                       exit 0
+  tsc -p packages/domain/tsconfig.json      exit 0
+  vitest run                                 exit 0 (28 files, 344 tests)
+  scripts/check-boundaries.mjs               exit 0 (62 source files)
+  scripts/scan-dist-secrets.mjs              exit 0 (9 files)
+
+The workspace npm launcher was blocked by the execution environment when
+invoked with the pinned toolchain path. The required `npm run check` was then
+run once through the available runner and passed:
+  npm run check                              exit 0
+  Node v25.6.1, npm 11.9.0
+  Unit tests: 28 files, 344 tests
+  Browser tests: 150 passed
+  npm audit --audit-level=low: exit 0 (0 vulnerabilities)
+  npm run build: exit 0

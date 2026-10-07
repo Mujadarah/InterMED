@@ -1,10 +1,24 @@
 import { mockBootstrapProvider } from '@intermed/data-access';
+import type { DatasetStateSource } from '@intermed/domain';
+import { createLocalDatasetStore } from '@intermed/local-store';
 import { createServices } from './application/services';
 import { App } from './presentation/App';
 import { parseConfig } from './config';
 import type { AppConfig } from './config';
 import type { ShellController } from './application/shell';
 import { developmentShell } from './application/shell';
+
+/**
+ * Composition root: the only production module allowed to construct the local
+ * dataset store (enforced by scripts/check-boundaries.mjs). The store is opened
+ * once per page and never downloads anything by itself.
+ */
+let browserDataset: DatasetStateSource | undefined;
+
+function browserDatasetSource(): DatasetStateSource {
+  browserDataset ??= createLocalDatasetStore();
+  return browserDataset;
+}
 
 /**
  * Validate the public environment and render the shell with mock services.
@@ -14,9 +28,11 @@ import { developmentShell } from './application/shell';
 export function Bootstrap({
   env,
   shell = developmentShell,
+  dataset,
 }: {
   env: Record<string, unknown>;
   shell?: ShellController;
+  dataset?: DatasetStateSource;
 }) {
   let config: AppConfig;
   try {
@@ -39,7 +55,11 @@ export function Bootstrap({
   }
   return (
     <App
-      services={createServices(config, mockBootstrapProvider)}
+      services={createServices(
+        config,
+        mockBootstrapProvider,
+        dataset ?? browserDatasetSource(),
+      )}
       shell={shell}
     />
   );

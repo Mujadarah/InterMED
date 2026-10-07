@@ -1,0 +1,202 @@
+## Codacy 1 - unpredictable UUIDs for writer tokens and tab ids (RED against e19602a + merge 502b194)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts -t unpredictable UUIDs
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/multitab.test.ts (8 tests | 1 failed | 7 skipped) 4ms
+   × uses unpredictable UUIDs for writer tokens and tab ids 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > uses unpredictable UUIDs for writer tokens and tab ids
+AssertionError: expected 'web-lock-vgm5jfuszcd' to match /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-…/
+
+- Expected:
+/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
++ Received:
+"web-lock-vgm5jfuszcd"
+
+ ❯ packages/local-store/src/multitab.test.ts:325:17
+    323|     return true;
+    324|   });
+    325|   expect(token).toMatch(uuid);
+       |                 ^
+    326|
+    327|   // The tab id is what the fallback marker records while a writer is …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  19:45:44
+   Duration  242ms (transform 82ms, setup 0ms, import 134ms, tests 4ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codacy 2 - stale tombstones are cleared when the product returns (RED against 06ec3be)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t comes back
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (10 tests | 1 failed | 9 skipped) 51ms
+   × clears the tombstone when a tombstoned product comes back 50ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > clears the tombstone when a tombstoned product comes back
+AssertionError: expected [ { …(3) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "lastKnownDisplayName": "Fictivol alpha",
++     "productId": "mpsource.syntheticSP-FICTIVOL",
++     "removedAt": "2026-10-07T16:49:08.818Z",
++   },
++ ]
+
+ ❯ packages/local-store/src/preferences.test.ts:310:59
+    308|   });
+    309|   await store.updates.stageAndActivate(gamma.manifest, gamma.text);
+    310|   expect(await store.preferences.listProductTombstones()).toEqual([]);
+       |                                                           ^
+    311|   expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    312|     status: 'available',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  19:49:08
+   Duration  289ms (transform 83ms, setup 0ms, import 136ms, tests 51ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codacy 3 - one failing product does not abort the rest of reconciliation (RED against 234c3b4)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t one product fails
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (11 tests | 1 failed | 8 skipped) 99ms
+   × keeps reconciling other favorites when one product fails 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps reconciling other favorites when one product fails
+AssertionError: expected [ [ …(2) ], [ …(2) ] ] to deeply equal [ [ …(2) ], [ …(2) ] ]
+
+- Expected
++ Received
+
+@@ -3,8 +3,8 @@
+      "mpsource.syntheticSP-FICTIVOL",
+      "available",
+    ],
+    [
+      "mpsource.syntheticSP-PLACEBEX",
+-     "removed",
++     "available",
+    ],
+  ]
+
+ ❯ packages/local-store/src/preferences.test.ts:363:5
+    361|       entry.status,
+    362|     ]),
+    363|   ).toEqual([
+       |     ^
+    364|     [alpha.productIds['SP-FICTIVOL'], 'available'],
+    365|     [alpha.productIds['SP-PLACEBEX'], 'removed'],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed | 8 skipped (11)
+   Start at  19:50:53
+   Duration  351ms (transform 89ms, setup 0ms, import 144ms, tests 99ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codacy 4 - rejected background refresh surfaces a diagnostic, not an unhandled rejection (RED against 0f993c1)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts -t unhandled rejection
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/multitab.test.ts (9 tests | 1 failed | 8 skipped) 1036ms
+   × reports a failed background refresh instead of an unhandled rejection 1036ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > reports a failed background refresh instead of an unhandled rejection
+AssertionError: expected null to match object { task: { kind: 'background', …(1) } }
+
+- Expected:
+{
+  "task": {
+    "kind": "background",
+    "label": "cross-tab refresh",
+  },
+}
+
++ Received:
+null
+
+ ❯ packages/local-store/src/multitab.test.ts:317:55
+    315|   events.post({ type: 'activated', generationId: alpha.generationId });
+    316|   await vi.waitFor(() =>
+    317|     expect(store.maintenance.getStatus().lastFailure).toMatchObject({
+       |                                                       ^
+    318|       task: { kind: 'background', label: 'cross-tab refresh' },
+    319|     }),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of null (reading 'dataSources')
+ ❯ packages/local-store/src/store.ts:532:33
+    530|     return Dexie.ignoreTransaction(async () => {
+    531|       for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTION…
+    532|         const expected = record.recordCounts[key] ?? 0;
+       |                                 ^
+    533|         const actual = await table(name)
+    534|           .where('generationId')
+ ❯ Dexie.ignoreTransaction node_modules/dexie/dist/dexie.js:6408:17
+ ❯ countsMatch packages/local-store/src/store.ts:530:18
+ ❯ baseState packages/local-store/src/store.ts:341:17
+ ❯ refresh packages/local-store/src/store.ts:347:14
+
+This error originated in "packages/local-store/src/multitab.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "reports a failed background refresh instead of an unhandled rejection". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+     Errors  1 error
+   Start at  19:53:00
+   Duration  1.28s (transform 86ms, setup 0ms, import 140ms, tests 1.04s, environment 0ms)
+
+[exit code: 1]

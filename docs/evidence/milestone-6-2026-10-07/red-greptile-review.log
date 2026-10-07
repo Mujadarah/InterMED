@@ -1,0 +1,1229 @@
+## G2 - collection under the writer lease, pins honoured at delete time, pin refreshes retention (RED against 519c113)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 1239ms
+   × refuses collection while another tab is staging instead of deleting under it 13ms
+   × honours a pin taken while collection is running 1037ms
+   × restarts a generation retention window when a reader pins it 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "dvsource.syntheticsynthetic-alpha",
++ ]
+
+ ❯ packages/local-store/src/readers.test.ts:169:33
+    167|   // The staging run is long enough to look abandoned to a stale snaps…
+    168|   clock.tick(STALE_STAGING_MS + 1_000);
+    169|   expect(await other.collect()).toEqual([]);
+       |                                 ^
+    170|
+    171|   release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:207:46
+    205|   armed = true;
+    206|   const collecting = store.collect();
+    207|   await vi.waitFor(() => expect(pinning).not.toBeNull());
+       |                                              ^
+    208|   const pinned = (await pinning)!;
+    209|   expect(pinned).not.toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts a generation retention window when a reader pins it
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:230:22
+    228|   // Another tab reads alpha: its pin extends this tab's retention win…
+    229|   const pinned = (await tabB.openPinnedReader(alpha.generationId))!;
+    230|   expect(pinned).not.toBeNull();
+       |                      ^
+    231|   pinned.release();
+    232|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 7 passed (10)
+   Start at  16:53:57
+   Duration  1.49s (transform 86ms, setup 0ms, import 142ms, tests 1.24s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G2 - same three tests with the setups pinned down (RED against 519c113)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 277ms
+   × refuses collection while another tab is staging instead of deleting under it 15ms
+   × honours a pin taken while collection is running 78ms
+   × restarts a generation retention window when a reader pins it 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "dvsource.syntheticsynthetic-alpha",
++ ]
+
+ ❯ packages/local-store/src/readers.test.ts:169:33
+    167|   // The staging run is long enough to look abandoned to a stale snaps…
+    168|   clock.tick(STALE_STAGING_MS + 1_000);
+    169|   expect(await other.collect()).toEqual([]);
+       |                                 ^
+    170|
+    171|   release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+AssertionError: expected [ …(2) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    "dvsource.syntheticsynthetic-alpha",
++   "dvsource.syntheticsynthetic-beta",
+  ]
+
+ ❯ packages/local-store/src/readers.test.ts:215:28
+    213|
+    214|   // Alpha is collected; beta was pinned after the snapshot and must s…
+    215|   expect(await collecting).toEqual([alpha.generationId]);
+       |                            ^
+    216|   expect((await store.openPinnedReader(beta.generationId))!).not.toBeN…
+    217|   pinned!.release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts a generation retention window when a reader pins it
+AssertionError: expected [ Array(1) ] to not include 'dv\u001fsource.synthetic\u001fsynthet…'
+ ❯ packages/local-store/src/readers.test.ts:239:36
+    237|
+    238|   clock.tick(60 * 60 * 1000);
+    239|   expect(await tabA.collect()).not.toContain(alpha.generationId);
+       |                                    ^
+    240|   clock.tick(RETAIN_READY_FOR_MS);
+    241|   expect(await tabA.collect()).toContain(alpha.generationId);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 7 passed (10)
+   Start at  16:58:41
+   Duration  521ms (transform 86ms, setup 0ms, import 139ms, tests 277ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G3 - staging completion marker and count verification before activation (RED against d50cdc7)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (19 tests | 3 failed) 222ms
+   × refuses to activate a generation whose staging never completed 11ms
+   × re-verifies the stored row counts before switching the pointer 8ms
+   × removes an incomplete staging generation on the next open 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > refuses to activate a generation whose staging never completed
+AssertionError: expected { status: 'evicted', …(1) } to match object { status: 'update-failed', …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "interrupted",
+-   "status": "update-failed",
++   "status": "evicted",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:486:28
+    484|
+    485|   await store.updates.activate('planted-staging');
+    486|   expect(store.getState()).toMatchObject({
+       |                            ^
+    487|     status: 'update-failed',
+    488|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > re-verifies the stored row counts before switching the pointer
+AssertionError: expected { status: 'evicted', …(1) } to match object { status: 'update-failed', …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "count-mismatch",
+-   "status": "update-failed",
++   "status": "evicted",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:506:28
+    504|
+    505|   await store.updates.activate('short-generation');
+    506|   expect(store.getState()).toMatchObject({
+       |                            ^
+    507|     status: 'update-failed',
+    508|     reason: 'count-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > removes an incomplete staging generation on the next open
+AssertionError: expected { …(16) } to be undefined
+
+- Expected:
+undefined
+
++ Received:
+{
+  "checksum": "planted-by-test",
+  "coverage": "Synthetic development fixture (not for clinical use)",
+  "dataset": "synthetic-medication-catalogue",
+  "downloadedAt": "2026-06-01T00:00:00.000Z",
+  "generationId": "crashed-staging",
+  "importedAt": "2026-06-01T00:00:00.000Z",
+  "lastUsedAt": null,
+  "publishedAt": null,
+  "readyAt": null,
+  "recordCounts": {
+    "products": 2,
+  },
+  "schemaVersion": "medication-catalogue-1",
+  "sourceIds": [
+    "source.synthetic",
+  ],
+  "stagedAt": "2026-06-01T00:00:00.000Z",
+  "status": "staging",
+  "synthetic": true,
+  "version": "synthetic-planted",
+}
+
+ ❯ packages/local-store/src/staging.test.ts:524:57
+    522|   const reopened = testStore({ name });
+    523|   await reopened.open();
+    524|   expect(await rows.generations.get('crashed-staging')).toBeUndefined(…
+       |                                                         ^
+    525|   expect(reopened.getState()).toMatchObject({ status: 'never-downloade…
+    526| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 16 passed (19)
+   Start at  17:34:56
+   Duration  460ms (transform 84ms, setup 0ms, import 136ms, tests 222ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G7 - evicted generation recovery by re-download and row replacement (RED against e0927ca)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t recovers an evicted generation
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (20 tests | 1 failed | 19 skipped) 43ms
+   × recovers an evicted generation by re-downloading and replacing its rows 43ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > recovers an evicted generation by re-downloading and replacing its rows
+AssertionError: expected { …(10) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "generation": {
+    "checksum": "11d91352ceb67547",
+    "coverage": "Synthetic development fixture. Not for clinical use.",
+    "dataset": "synthetic-medication-catalogue",
+    "downloadedAt": "2026-10-07T14:40:38.295Z",
+    "generationId": "dvsource.syntheticsynthetic-alpha",
+    "importedAt": "2026-01-01T00:00:00Z",
+    "publishedAt": "2026-01-01T00:00:00Z",
+    "recordCounts": {
+      "activeIngredients": 4,
+      "atcCodes": 2,
+      "dataSources": 1,
+      "datasetVersions": 1,
+      "dosageForms": 1,
+      "manufacturers": 1,
+      "marketingAuthorizationHolders": 1,
+      "medicationIngredients": 4,
+      "products": 2,
+      "regulatoryDocuments": 2,
+    },
+    "schemaVersion": "medication-catalogue-1",
+    "sourceIds": [
+      "dsintermedsource.synthetic",
+    ],
+    "synthetic": true,
+    "version": "synthetic-alpha",
+  },
+  "generationId": "dvsource.syntheticsynthetic-alpha",
+  "ingredient": [Function ingredient],
+  "ingredientsByDciPrefix": [Function ingredientsByDciPrefix],
+  "product": [Function product],
+  "productIds": [Function productIds],
+  "productIngredients": [Function productIngredients],
+  "productsByAtcCode": [Function productsByAtcCode],
+  "productsByNamePrefix": [Function productsByNamePrefix],
+  "release": [Function release],
+}
+
+ ❯ packages/local-store/src/staging.test.ts:558:39
+    556|     generationId: alpha.generationId,
+    557|   });
+    558|   expect(await reopened.openReader()).toBeNull();
+       |                                       ^
+    559|   expect(await reopened.openPinnedReader(alpha.generationId)).toBeNull…
+    560|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 skipped (4)
+      Tests  1 failed | 38 skipped (39)
+   Start at  17:40:38
+   Duration  289ms (transform 199ms, setup 0ms, import 311ms, tests 43ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 83ms
+   × keeps a favorite removed that was deleted while reconciliation ran 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+ReferenceError: sharedBus is not defined
+ ❯ packages/local-store/src/preferences.test.ts:297:18
+    295|     return clock.now();
+    296|   };
+    297|   const events = sharedBus();
+       |                  ^
+    298|   events.subscribe(() => {
+    299|     armed = true;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:10:37
+   Duration  13.55s (transform 2.18s, setup 0ms, import 17.93s, tests 703ms, environment 40.88s)
+
+[exit code: 1]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 112ms
+   × keeps a favorite removed that was deleted while reconciliation ran 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+AssertionError: expected [] to match object [ Array(1) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "productId": "mpsource.syntheticSP-FICTIVOL",
+-   },
+- ]
++ []
+
+ ❯ packages/local-store/src/preferences.test.ts:312:59
+    310|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    311|   expect(await store.preferences.listFavorites()).toEqual([]);
+    312|   expect(await store.preferences.listProductTombstones()).toMatchObjec…
+       |                                                           ^
+    313|     { productId: alpha.productIds['SP-FICTIVOL'] },
+    314|   ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:16:12
+   Duration  1.46s (transform 1.78s, setup 0ms, import 4.71s, tests 732ms, environment 3.15s)
+
+[exit code: 1]
+
+---
+
+## G5 - preference reconciliation is one read-modify-write transaction (RED against 45555f9)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t keeps a favorite removed
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/preferences.test.ts (9 tests | 1 failed | 7 skipped) 129ms
+   × keeps a favorite removed that was deleted while reconciliation ran 33ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps a favorite removed that was deleted while reconciliation ran
+AssertionError: expected [ { …(5) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "createdAt": "2026-06-01T00:00:00.000Z",
++     "lastKnownDatasetVersionId": "dvsource.syntheticsynthetic-alpha",
++     "lastKnownDisplayName": "Fictivol alpha",
++     "productId": "mpsource.syntheticSP-FICTIVOL",
++     "status": "removed",
++   },
++ ]
+
+ ❯ packages/local-store/src/preferences.test.ts:315:51
+    313|
+    314|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    315|   expect(await store.preferences.listFavorites()).toEqual([]);
+       |                                                   ^
+    316|   expect(await store.preferences.listProductTombstones()).toMatchObjec…
+    317|     { productId: alpha.productIds['SP-FICTIVOL'] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed | 10 skipped (27)
+      Tests  1 failed | 28 passed | 332 skipped (361)
+   Start at  18:30:40
+   Duration  1.66s (transform 2.41s, setup 0ms, import 5.39s, tests 787ms, environment 3.35s)
+
+[exit code: 1]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  11 passed | 16 skipped (27)
+      Tests  31 passed | 330 skipped (361)
+   Start at  19:08:13
+   Duration  1.52s (transform 2.19s, setup 0ms, import 4.95s, tests 372ms, environment 2.97s)
+
+[exit code: 0]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 67ms
+   × reports a failed startup write and lets a later open retry 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports a failed startup write and lets a later open retry
+TypeError: Cannot read properties of undefined (reading 'prototype')
+ ❯ packages/local-store/src/migrations.test.ts:207:27
+    205| it('reports a failed startup write and lets a later open retry', async…
+    206|   const name = uniqueName();
+    207|   const put = Dexie.Table.prototype.put;
+       |                           ^
+    208|   const quota = Object.assign(new Error('Synthetic quota'), {
+    209|     name: 'QuotaExceededError',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed | 16 skipped (27)
+      Tests  1 failed | 31 passed | 330 skipped (362)
+   Start at  19:09:25
+   Duration  1.43s (transform 2.48s, setup 0ms, import 5.06s, tests 356ms, environment 2.80s)
+
+[exit code: 1]
+
+---
+
+## G8 - startup write failures report a state and the open stays retryable (RED against ba0d8ff)
+
+$ npx vitest run packages/local-store/src/migrations.test.ts -t reports a failed startup write
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/migrations.test.ts (11 tests | 1 failed | 6 skipped) 65ms
+   × reports a failed startup write and lets a later open retry 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports a failed startup write and lets a later open retry
+QuotaExceededError: Synthetic quota
+ ❯ packages/local-store/src/migrations.test.ts:207:31
+    205| it('reports a failed startup write and lets a later open retry', async…
+    206|   const name = uniqueName();
+    207|   const quota = Object.assign(new Error('Synthetic quota'), {
+       |                               ^
+    208|     name: 'QuotaExceededError',
+    209|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed | 16 skipped (27)
+      Tests  1 failed | 31 passed | 330 skipped (362)
+   Start at  19:15:46
+   Duration  1.48s (transform 2.34s, setup 0ms, import 5.01s, tests 350ms, environment 2.84s)
+
+[exit code: 1]
+
+---
+
+## G9 - embedded dataset version checked against its manifest (RED against c72650d)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t embedded
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/staging.test.ts (22 tests | 2 failed | 20 skipped) 53ms
+   × rejects a bundle whose embedded dataset version disagrees with its manifest 42ms
+   × applies the manifest compatibility checks to the embedded version too 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle whose embedded dataset version disagrees with its manifest
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+    "generation": {
+      "generationId": "dvsource.syntheticsynthetic-alpha",
+    },
+-   "reason": "invalid-bundle",
+-   "status": "update-failed",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:586:28
+    584|
+    585|   await store.updates.stageBundle(mismatched.manifest, mismatched.text…
+    586|   expect(store.getState()).toMatchObject({
+       |                            ^
+    587|     status: 'update-failed',
+    588|     reason: 'invalid-bundle',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > applies the manifest compatibility checks to the embedded version too
+AssertionError: expected { ok: true, snapshot: { …(10) }, …(1) } to deeply equal { ok: false, reason: 'invalid-bundle' }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
+-   "reason": "invalid-bundle",
++   "ok": true,
++   "snapshot": {
++     "activeIngredients": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Fictivolinum beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-FICTIVOLINUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-FICTIVOLINUM",
++         "originalNames": [
++           "Fictivolinum beta",
++         ],
++         "preferredName": "Fictivolinum beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-FICTIVOLINUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Placebexium beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-PLACEBEXIUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-PLACEBEXIUM",
++         "originalNames": [
++           "Placebexium beta",
++         ],
++         "preferredName": "Placebexium beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-PLACEBEXIUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Synthetinum beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-SYNTHETINUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-SYNTHETINUM",
++         "originalNames": [
++           "Synthetinum beta",
++         ],
++         "preferredName": "Synthetinum beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-SYNTHETINUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Fictovolol beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-FICTOVOL",
++           },
++         ],
++         "id": "aisource.syntheticAI-FICTOVOL",
++         "originalNames": [
++           "Fictovolol beta",
++         ],
++         "preferredName": "Fictovolol beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-FICTOVOL",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++     ],
++     "atcCodes": [
++       {
++         "classificationVersion": {
++           "status": "missing",
++         },
++         "code": "SYN-SP-FICTIVOL",
++         "codeSystem": "synthetic-illustrative",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": {
++           "status": "present",
++           "value": "Synthetic illustrative class beta",
++         },
++         "id": "atcsource.syntheticATC-SP-FICTIVOL",
++         "illustrative": true,
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "ATC-SP-FICTIVOL",
++       },
++       {
++         "classificationVersion": {
++           "status": "missing",
++         },
++         "code": "SYN-SP-PLACEBEX",
++         "codeSystem": "synthetic-illustrative",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": {
++           "status": "present",
++           "value": "Synthetic illustrative class beta",
++         },
++         "id": "atcsource.syntheticATC-SP-PLACEBEX",
++         "illustrative": true,
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "ATC-SP-PLACEBEX",
++       },
++     ],
++     "dataSources": [
++       {
++         "allowedUses": [
++           "automated-test",
++         ],
++         "attributionRequirements": {
++           "status": "present",
++           "value": "Synthetic development data. Not for clinical use.",
++         },
++         "authority": "Fictional Test Authority",
++         "coverageDescription": "Fictional products for automated tests. Not for clinical use.",
++         "expectedUpdateCadence": {
++           "status": "missing",
++         },
++         "id": "dsintermedsource.synthetic",
++         "importMethod": "synthetic-inline",
++         "jurisdiction": {
++           "status": "present",
++           "value": "fictional",
++         },
++         "licenseOrPermissionReference": {
++           "status": "present",
++           "value": "synthetic-no-rights-granted",
++         },
++         "name": "Synthetic development catalogue",
++         "permissionExpiresAt": {
++           "status": "missing",
++         },
++         "prohibitedUses": [
++           "retrieval",
++           "server-storage",
++           "transformation",
++           "display",
++           "redistribution",
++           "offline-cache",
++           "commercial-use",
++         ],
++         "reviewOwner": "none",
++         "reviewedAt": "2026-01-01T00:00:00Z",
++         "rightsStatus": "unresolved",
++         "sourceKey": "source.synthetic",
++         "url": "https://example.invalid/intermed/synthetic-medication-catalogue",
++       },
++     ],
++     "datasetVersions": [
++       {
++         "checksum": "21a5df44aedca0fa",
++         "clinicalReviewReference": "not-reviewed",
++         "coverage": "Synthetic development fixture. Not for clinical use.",
++         "dataset": "synthetic-medication-catalogue",
++         "id": "dvsource.syntheticsynthetic-beta",
++         "importedAt": "2026-01-01T00:00:00Z",
++         "minimumClientVersion": "0.0.0",
++         "previousVersionId": {
++           "status": "missing",
++         },
++         "publishedAt": {
++           "status": "present",
++           "value": "2026-01-01T00:00:00Z",
++         },
++         "recordCounts": {
++           "activeIngredients": 4,
++           "atcCodes": 2,
++           "dataSources": 1,
++           "datasetVersions": 1,
++           "dosageForms": 1,
++           "manufacturers": 1,
++           "marketingAuthorizationHolders": 1,
++           "medicationIngredients": 4,
++           "products": 2,
++           "regulatoryDocuments": 2,
++         },
++         "rightsApprovalReference": "not-approved",
++         "schemaVersion": "medication-catalogue-2",
++         "sourceIds": [
++           "dsintermedsource.synthetic",
++         ],
++         "status": "published",
++         "upstreamPublishedAt": {
++           "status": "missing",
++         },
++         "upstreamVersion": {
++           "status": "missing",
++         },
++         "version": "synthetic-beta",
++       },
++     ],
++     "dosageForms": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": "fictional tablet beta",
++         "externalCode": {
++           "status": "missing",
++         },
++         "id": "dfsource.syntheticDF-TABLET",
++         "originalSourceText": "fictional tablet beta",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "DF-TABLET",
++       },
++     ],
++     "manufacturers": [
++       {
++         "country": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "id": "mfsource.syntheticMF-SYNTHETICA",
++         "name": "Synthetica Laboratories",
++         "sourceEntityId": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "MF-SYNTHETICA",
++       },
++     ],
++     "marketingAuthorizationHolders": [
++       {
++         "country": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "id": "mahsource.syntheticMAH-PLACEBO",
++         "name": "Placebo Holding",
++         "sourceEntityId": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "MAH-PLACEBO",
++       },
++     ],
++     "medicationIngredients": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-FICTIVOL+AI-FICTIVOLINUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-FICTIVOLINUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-FICTIVOL",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Fictivolinum beta",
++         "sourceRecordKey": "SP-FICTIVOL+AI-FICTIVOLINUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-PLACEBEXIUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-PLACEBEXIUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Placebexium beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-PLACEBEXIUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-SYNTHETINUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-SYNTHETINUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Synthetinum beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-SYNTHETINUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-FICTOVOL",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-FICTOVOL",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Fictovolol beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-FICTOVOL",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++     ],
++     "products": [
++       {
++         "atcCodeIds": [
++           "atcsource.syntheticATC-SP-FICTIVOL",
++         ],
++         "authorizationDate": {
++           "status": "missing",
++         },
++         "authorizationNumber": {
++           "status": "present",
++           "value": "AUTH-SYN-SP-FICTIVOL",
++         },
++         "authorizationStatus": {
++           "status": "missing",
++         },
++         "cim": {
++           "status": "missing",
++         },
++         "commercialName": "Fictivol beta",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dosageFormId": {
++           "status": "present",
++           "value": "dfsource.syntheticDF-TABLET",
++         },
++         "firstSeenAt": "2026-01-01T00:00:00Z",
++         "id": "mpsource.syntheticSP-FICTIVOL",
++         "lastSeenAt": "2026-01-01T00:00:00Z",
++         "manufacturerIds": [
++           "mfsource.syntheticMF-SYNTHETICA",
++         ],
++         "marketingAuthorizationHolderId": {
++           "status": "present",
++           "value": "mahsource.syntheticMAH-PLACEBO",
++         },
++         "originalDciText": {
++           "status": "missing",
++         },
++         "presentationOrPackDescription": {
++           "status": "missing",
++         },
++         "regulatoryDocumentIds": [
++           "rdsource.syntheticRD-SP-FICTIVOL",
++         ],
++         "route": {
++           "status": "present",
++           "value": "oral-fictional",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceProductId": "SP-FICTIVOL",
++         "sourceVersion": "synthetic-1",
++         "status": "active",
++         "strengthText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++       },
++       {
++         "atcCodeIds": [
++           "atcsource.syntheticATC-SP-PLACEBEX",
++         ],
++         "authorizationDate": {
++           "status": "missing",
++         },
++         "authorizationNumber": {
++           "status": "present",
++           "value": "AUTH-SYN-SP-PLACEBEX",
++         },
++         "authorizationStatus": {
++           "status": "missing",
++         },
++         "cim": {
++           "status": "missing",
++         },
++         "commercialName": "Placebex beta",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dosageFormId": {
++           "status": "present",
++           "value": "dfsource.syntheticDF-TABLET",
++         },
++         "firstSeenAt": "2026-01-01T00:00:00Z",
++         "id": "mpsource.syntheticSP-PLACEBEX",
++         "lastSeenAt": "2026-01-01T00:00:00Z",
++         "manufacturerIds": [
++           "mfsource.syntheticMF-SYNTHETICA",
++         ],
++         "marketingAuthorizationHolderId": {
++           "status": "present",
++           "value": "mahsource.syntheticMAH-PLACEBO",
++         },
++         "originalDciText": {
++           "status": "missing",
++         },
++         "presentationOrPackDescription": {
++           "status": "missing",
++         },
++         "regulatoryDocumentIds": [
++           "rdsource.syntheticRD-SP-PLACEBEX",
++         ],
++         "route": {
++           "status": "present",
++           "value": "oral-fictional",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceProductId": "SP-PLACEBEX",
++         "sourceVersion": "synthetic-1",
++         "status": "active",
++         "strengthText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++       },
++     ],
++     "regulatoryDocuments": [
++       {
++         "cacheRightsStatus": "not-assessed",
++         "cachedContentReference": {
++           "status": "missing",
++         },
++         "checksum": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "documentVersion": {
++           "status": "missing",
++         },
++         "id": "rdsource.syntheticRD-SP-FICTIVOL",
++         "language": {
++           "status": "present",
++           "value": "ro",
++         },
++         "lastCheckedAt": "2026-01-01T00:00:00Z",
++         "productId": "mpsource.syntheticSP-FICTIVOL",
++         "publishedAt": {
++           "status": "missing",
++         },
++         "retrievedAt": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "RD-SP-FICTIVOL",
++         "sourceVersion": "synthetic-1",
++         "title": {
++           "status": "present",
++           "value": "Fictional Fictivol note",
++         },
++         "type": "other",
++         "url": "https://example.invalid/intermed/synthetic-document",
++       },
++       {
++         "cacheRightsStatus": "not-assessed",
++         "cachedContentReference": {
++           "status": "missing",
++         },
++         "checksum": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "documentVersion": {
++           "status": "missing",
++         },
++         "id": "rdsource.syntheticRD-SP-PLACEBEX",
++         "language": {
++           "status": "present",
++           "value": "ro",
++         },
++         "lastCheckedAt": "2026-01-01T00:00:00Z",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "publishedAt": {
++           "status": "missing",
++         },
++         "retrievedAt": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "RD-SP-PLACEBEX",
++         "sourceVersion": "synthetic-1",
++         "title": {
++           "status": "present",
++           "value": "Fictional Placebex note",
++         },
++         "type": "other",
++         "url": "https://example.invalid/intermed/synthetic-document",
++       },
++     ],
++   },
++   "synthetic": true,
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:601:69
+    599|     schemaVersion: 'medication-catalogue-2',
+    600|   });
+    601|   expect(checkBundle(schemaMismatch.manifest, schemaMismatch.text)).to…
+       |                                                                     ^
+    602|     ok: false,
+    603|     reason: 'invalid-bundle',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 20 skipped (22)
+   Start at  19:21:23
+   Duration  290ms (transform 82ms, setup 0ms, import 134ms, tests 53ms, environment 0ms)
+
+[exit code: 1]

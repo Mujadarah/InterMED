@@ -76,7 +76,7 @@ The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever
 
 ## Dependencies and API decisions
 
-Exact direct versions are authoritative in root/web manifests and the lockfile. Node LTS/npm were confirmed from the official release index. React/Vite/Router/Vitest contracts were checked with Context7 and official documentation on 2026-10-01. Router uses its declarative `BrowserRouter`/`Routes` API. Milestone 2 selects a build-only Vite plugin and browser-native service worker, with no additional dependency; see the tooling decision below. TanStack Query, Dexie and React Hook Form are deferred until remote metadata, storage and forms are implemented; Tailwind is unnecessary for this shell.
+Exact direct versions are authoritative in root/web manifests and the lockfile. Node LTS/npm were confirmed from the official release index. React/Vite/Router/Vitest contracts were checked with Context7 and official documentation on 2026-10-01. Router uses its declarative `BrowserRouter`/`Routes` API. Milestone 2 selects a build-only Vite plugin and browser-native service worker, with no additional dependency; see the tooling decision below. Milestone 6 adds Dexie 4.4.6 for local dataset storage in `@intermed/local-store`, plus `fake-indexeddb` 6.2.5 as a root dev dependency for the Vitest suites. TanStack Query and React Hook Form remain deferred until remote metadata and forms are implemented; Tailwind is unnecessary for this shell.
 
 TypeScript 5.9.3 stays within typescript-eslint's `<6.1` peer range. ESLint 9.39.5 satisfies jsx-a11y's current supported peer range; npm reports that ESLint major as unsupported. That maintenance limitation is recorded, not hidden with an override. Reassess the accessible lint stack before future dependency upgrades. The initial full dependency audit reported zero vulnerabilities; that is time-specific evidence, not a future guarantee.
 
@@ -95,6 +95,25 @@ Development on port 5173 registers no worker and shows caching disabled. Product
 Only `/` and `/status` have cached navigation fallback. A first-ever offline visitor without a worker cannot load the app; the browser shows its own offline error and no rendered fallback is promised (amended R67, 2026-10-06). Storage denial, failed downloads and eviction are reported honestly once the page can load. Updates require an explicit finish-work/activation action and refuse with multiple open in-scope windows. Complete current/prior public shells are retained; IndexedDB, preferences and unrelated caches are untouched. See [Milestone 2 evidence](MILESTONE_2_EVIDENCE.md) for exact cache rules, recovery and tests.
 
 For optional local TLS smoke, run `node scripts/check-local-https.mjs` after `npm run build`. It needs OpenSSL (`INTERMED_OPENSSL` can supply its path) and creates ignored temporary certificate/key files in `artifacts/local-https/`. It changes no trust store. Test-only certificate bypass is explicit; this is not trusted hosted/installable validation. Production browser tests build real A/B/C release fixtures into ignored `artifacts/` and use a test-only controlled origin, never an application admin endpoint.
+
+## Local dataset storage (Milestone 6)
+
+`@intermed/local-store` holds the IndexedDB/Dexie repositories and the dataset update pipeline; `packages/domain` defines only the vendor-neutral ports it implements. The composition root (`apps/web/src/Bootstrap.tsx`) constructs the store once per page. In the default mock mode the app **never downloads a dataset**: `/status` shows the real local state (`never-downloaded` on a fresh browser) and nothing else. Downloading is exercised by tests only.
+
+Storage state is visible on `/status` in plain wording: `opening`, `never-downloaded`, `ready` (with dataset version and age), `checking`, `update-available`, `downloading`, `staging`, `update-failed` (with the reason and the retained previous generation), `storage-unavailable`, `storage-restricted`, `storage-quota`, `evicted`, `unsupported-schema` and `reload-required`. A synthetic active generation is labelled **"Synthetic development data — not for clinical use"**. `navigator.storage.persist()` is requested as best effort and permanence is never claimed.
+
+Unit/integration coverage runs in Vitest with `fake-indexeddb`:
+
+```powershell
+npx vitest run packages/local-store
+```
+
+Browser coverage drives real IndexedDB through a **test-only harness**. The harness module (`apps/web/src/dev/local-store-harness.ts`) is injected into the HTML only when a build runs with `INTERMED_LOCAL_STORE_HARNESS=1`; `npm run build` never sets it, and `tests/browser/local-store.spec.ts` asserts that the production `apps/web/dist` contains no harness code. Playwright builds a dedicated `artifacts/pwa-harness` fixture with that flag (`scripts/build-pwa-fixtures.mjs`) and serves it through the existing test-only production server as revision `harness`:
+
+```powershell
+npm run build        # production output without the harness
+npm run test:browser # builds artifacts/pwa-a|b|c|harness, then runs every spec
+```
 
 ## Browser and device limits
 
@@ -242,6 +261,8 @@ Limitations or unobserved fields:
 | ----------------------------- | -------------------- |
 | `@intermed/data-access`       | `0.0.0`              |
 | `@intermed/domain`            | `0.0.0`              |
+| `@intermed/local-store`       | `0.0.0`              |
+| `dexie`                       | `4.4.6`              |
 | `react`                       | `19.3.0`             |
 | `react-dom`                   | `19.3.0`             |
 | `react-router`                | `7.18.4`             |
@@ -260,6 +281,7 @@ Limitations or unobserved fields:
 | `eslint-plugin-jsx-a11y`      | `6.10.2`             |
 | `eslint-plugin-react-hooks`   | `7.1.1`              |
 | `eslint-plugin-react-refresh` | `0.5.7`              |
+| `fake-indexeddb`              | `6.2.5`              |
 | `globals`                     | `17.13.0`            |
 | `jsdom`                       | `30.1.1`             |
 | `prettier`                    | `3.9.9`              |
