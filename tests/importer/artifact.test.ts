@@ -85,7 +85,8 @@ describe('importer function artifact', () => {
 
       const packageJson = JSON.parse(
         readFileSync(join(artifact, 'package.json'), 'utf8'),
-      ) as { dependencies: Record<string, string> };
+      ) as { main: string; dependencies: Record<string, string> };
+      expect(packageJson.main).toBe('./src/main.js');
       expect(packageJson.dependencies).toEqual({
         '@intermed/importer': 'file:vendor/@intermed/importer',
         zod: '4.6.5',
@@ -102,7 +103,7 @@ describe('importer function artifact', () => {
         },
       );
       const files = listFiles(artifact);
-      expect(files).toContain('function-entry/main.js');
+      expect(files).toContain('src/main.js');
       expect(files).toContain('vendor/@intermed/domain/package.json');
       expect(files).toContain('vendor/@intermed/data-access/package.json');
       expect(files).toContain('vendor/@intermed/importer/package.json');
@@ -110,6 +111,9 @@ describe('importer function artifact', () => {
       const artifactFiles = files.filter(
         (file) => !file.startsWith('node_modules/'),
       );
+      // Bounded closure contract: the payload stays the small derived
+      // closure (23 files for the current entry), never a whole-source copy.
+      expect(artifactFiles).toHaveLength(23);
       expect(artifactFiles.some((file) => /\.(ts|map|d\.ts)$/.test(file))).toBe(
         false,
       );
@@ -148,10 +152,7 @@ describe('importer function artifact', () => {
       expect(artifactFiles.join('\n')).not.toContain('fake-secret-canary');
 
       const machinePath = /([A-Za-z]:\\|\/(?:Users|home|tmp)\/)/;
-      const mainSource = readFileSync(
-        join(artifact, 'function-entry/main.js'),
-        'utf8',
-      );
+      const mainSource = readFileSync(join(artifact, 'src/main.js'), 'utf8');
       expect(mainSource).not.toMatch(machinePath);
       for (const relative of artifactFiles.filter((file) =>
         file.endsWith('.js'),
@@ -171,7 +172,7 @@ describe('importer function artifact', () => {
       // Runner lives inside the artifact so package resolution uses its node_modules,
       // not the parent temp dir or the repository workspace.
       const runnerContent = `
-        const { default: handler } = await import('./function-entry/main.js');
+        const { default: handler } = await import('./src/main.js');
         const { serializeCatalogue, deserializeCatalogue } = await import('@intermed/domain');
         const { validateSyntheticSource } = await import('@intermed/data-access');
         const { generateCandidate } = await import('@intermed/importer');
@@ -247,7 +248,7 @@ describe('importer function artifact', () => {
     }
   }, 60_000);
 
-  it('copies function relative JS helpers transitively into function-entry', () => {
+  it('copies function relative JS helpers transitively into src/', () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-helpers-'));
     const functionSourceDir = join(parent, 'function-src');
     mkdirSync(join(functionSourceDir, 'helpers'), { recursive: true });
@@ -294,9 +295,9 @@ describe('importer function artifact', () => {
         functionSourceDir,
       });
       const files = listFiles(artifact);
-      expect(files).toContain('function-entry/main.js');
-      expect(files).toContain('function-entry/appwrite-store.js');
-      expect(files).toContain('function-entry/helpers/store-client.js');
+      expect(files).toContain('src/main.js');
+      expect(files).toContain('src/appwrite-store.js');
+      expect(files).toContain('src/helpers/store-client.js');
 
       const artifactFiles = files.filter(
         (file) => !file.startsWith('node_modules/'),
@@ -310,6 +311,192 @@ describe('importer function artifact', () => {
           machinePath,
         );
       }
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('pins function-direct external imports and runs positive offline', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-external-'));
+    const functionSourceDir = join(parent, 'function-src');
+    mkdirSync(functionSourceDir, { recursive: true });
+    writeFileSync(
+      join(functionSourceDir, 'main.js'),
+      [
+        "import { z } from 'zod';",
+        '',
+        'const payloadSchema = z.object({ sourceKey: z.string() });',
+        '',
+        'export default async ({ req, res, log }) => {',
+        "  if (req.method !== 'POST') {",
+        "    return res.json({ error: 'Method not allowed' }, 405);",
+        '  }',
+        '  const parsed = payloadSchema.parse(req.body);',
+        '  log(`validated ${parsed.sourceKey}`);',
+        '  return res.json({ ok: true, sourceKey: parsed.sourceKey }, 200);',
+        '};',
+        '',
+      ].join('\n'),
+    );
+
+    try {
+      const artifact = buildImporterFunctionArtifact({
+        outputParent: parent,
+        functionSourceDir,
+      });
+      const packageJson = JSON.parse(
+        readFileSync(join(artifact, 'package.json'), 'utf8'),
+      ) as { main: string; dependencies: Record<string, string> };
+      expect(packageJson.main).toBe('./src/main.js');
+      expect(packageJson.dependencies).toEqual({ zod: '4.6.5' });
+
+      const npm = resolveNpmInvocation();
+      execFileSync(
+        npm.command,
+        [...npm.args, 'ci', '--ignore-scripts', '--offline'],
+        { cwd: artifact, stdio: 'pipe' },
+      );
+
+      const runner = join(artifact, '.external-smoke-runner.mjs');
+      writeFileSync(
+        runner,
+        `
+          const { default: handler } = await import('./src/main.js');
+          const calls = [];
+          await handler({
+            req: { method: 'POST', body: { sourceKey: 'Synthetica' } },
+            res: { json: (body, status) => calls.push({ body, status }) },
+            log: () => {},
+          });
+          const last = calls.at(-1);
+          if (last?.status !== 200) throw new Error('positive import path failed');
+          if (last.body.sourceKey !== 'Synthetica') throw new Error('zod parse failed');
+          console.log(JSON.stringify(last));
+        `,
+      );
+      try {
+        const output = execFileSync(process.execPath, [runner], {
+          cwd: artifact,
+          encoding: 'utf8',
+          env: { ...process.env, APPWRITE_FUNCTION_PROJECT_ID: undefined },
+        });
+        expect(output).toContain('"status":200');
+      } finally {
+        rmSync(runner, { force: true });
+      }
+
+      expect(
+        listFiles(artifact).filter((file) => !file.startsWith('node_modules/')),
+      ).toEqual(['package-lock.json', 'package.json', 'src/main.js']);
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('fails closed on unpinned function dependencies', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-unpinned-'));
+    const functionSourceDir = join(parent, 'function-src');
+    mkdirSync(functionSourceDir, { recursive: true });
+    writeFileSync(
+      join(functionSourceDir, 'main.js'),
+      [
+        "import 'unlisted-dependency-canary';",
+        '',
+        'export default async ({ res }) => res.json({ ok: true }, 200);',
+        '',
+      ].join('\n'),
+    );
+
+    try {
+      expect(() =>
+        buildImporterFunctionArtifact({
+          outputParent: parent,
+          functionSourceDir,
+        }),
+      ).toThrow(/pin/i);
+      expect(listFiles(parent)).toEqual(['function-src/main.js']);
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('pins literal dynamic imports and fails closed on computed ones', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-dynamic-'));
+    const functionSourceDir = join(parent, 'function-src');
+    mkdirSync(functionSourceDir, { recursive: true });
+    writeFileSync(
+      join(functionSourceDir, 'main.js'),
+      [
+        'export default async ({ req, res }) => {',
+        "  if (req.method !== 'POST') {",
+        "    return res.json({ error: 'Method not allowed' }, 405);",
+        '  }',
+        "  const { z } = await import('zod');",
+        "  return res.json({ ok: z.string().parse('Synthetica') }, 200);",
+        '};',
+        '',
+      ].join('\n'),
+    );
+
+    try {
+      const artifact = buildImporterFunctionArtifact({
+        outputParent: parent,
+        functionSourceDir,
+      });
+      const packageJson = JSON.parse(
+        readFileSync(join(artifact, 'package.json'), 'utf8'),
+      ) as { dependencies: Record<string, string> };
+      expect(packageJson.dependencies).toEqual({ zod: '4.6.5' });
+
+      const npm = resolveNpmInvocation();
+      execFileSync(
+        npm.command,
+        [...npm.args, 'ci', '--ignore-scripts', '--offline'],
+        { cwd: artifact, stdio: 'pipe' },
+      );
+      const runner = join(artifact, '.dynamic-smoke-runner.mjs');
+      writeFileSync(
+        runner,
+        `
+          const { default: handler } = await import('./src/main.js');
+          const calls = [];
+          await handler({
+            req: { method: 'POST', body: {} },
+            res: { json: (body, status) => calls.push({ body, status }) },
+          });
+          const last = calls.at(-1);
+          if (last?.status !== 200 || last.body.ok !== 'Synthetica') {
+            throw new Error('dynamic literal import path failed');
+          }
+          console.log(JSON.stringify(last));
+        `,
+      );
+      try {
+        const output = execFileSync(process.execPath, [runner], {
+          cwd: artifact,
+          encoding: 'utf8',
+        });
+        expect(output).toContain('"status":200');
+      } finally {
+        rmSync(runner, { force: true });
+      }
+      rmSync(artifact, { recursive: true, force: true });
+
+      writeFileSync(
+        join(functionSourceDir, 'main.js'),
+        [
+          "const specifier = 'zod';",
+          'const loaded = await import(specifier);',
+          'export default async ({ res }) => res.json({ ok: !!loaded }, 200);',
+          '',
+        ].join('\n'),
+      );
+      expect(() =>
+        buildImporterFunctionArtifact({
+          outputParent: parent,
+          functionSourceDir,
+        }),
+      ).toThrow(/[Cc]omputed dynamic import/);
     } finally {
       rmSync(parent, { recursive: true, force: true });
     }

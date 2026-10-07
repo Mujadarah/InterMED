@@ -144,6 +144,7 @@ function collectModuleFacts(sourceFile) {
     reexports: [],
     imports: [],
     dynamicImports: [],
+    computedDynamicImports: [],
   };
 
   sourceFile.statements.forEach((statement, statementIndex) => {
@@ -272,11 +273,15 @@ function collectModuleFacts(sourceFile) {
   const collectDynamic = (node) => {
     if (
       ts.isCallExpression(node) &&
-      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-      node.arguments.length > 0 &&
-      ts.isStringLiteral(node.arguments[0])
+      node.expression.kind === ts.SyntaxKind.ImportKeyword
     ) {
-      facts.dynamicImports.push(node.arguments[0].text);
+      if (node.arguments.length > 0 && ts.isStringLiteral(node.arguments[0])) {
+        facts.dynamicImports.push(node.arguments[0].text);
+      } else {
+        // Computed specifiers cannot be closed over; they are rejected at
+        // build time instead of being silently omitted.
+        facts.computedDynamicImports.push(true);
+      }
     }
     ts.forEachChild(node, collectDynamic);
   };
@@ -704,11 +709,24 @@ function analyzeRuntimeClosure({ program, functionFacts }) {
       if (edge.names === null) demandAll(resolved.file);
       else for (const name of edge.names) demand(resolved.file, name);
     }
+    for (const specifier of facts.dynamicImports) {
+      if (isRelativeSpecifier(specifier)) continue;
+      const resolved = resolveSpecifier(facts.file, specifier);
+      if (resolved.kind !== 'workspace') continue;
+      include(resolved.file);
+      demandAll(resolved.file);
+    }
   }
 
   while (pending.length > 0) {
     const [file, name] = pending.shift();
     resolveProvider(file, name);
+  }
+
+  for (const file of included) {
+    if (factsOf(file).computedDynamicImports.length > 0) {
+      throw new Error(`Unsupported computed dynamic import in ${file}`);
+    }
   }
 
   return { included, factsOf, resolveSpecifier, demands };
@@ -747,6 +765,9 @@ function keptBareSpecifiers(facts) {
   for (const edge of facts.imports) {
     if (!isRelativeSpecifier(edge.specifier)) specifiers.add(edge.specifier);
   }
+  for (const specifier of facts.dynamicImports) {
+    if (!isRelativeSpecifier(specifier)) specifiers.add(specifier);
+  }
   for (const record of facts.reexports) {
     if (record.keep && !isRelativeSpecifier(record.specifier)) {
       specifiers.add(record.specifier);
@@ -760,6 +781,9 @@ function functionBareSpecifiers(facts) {
   const specifiers = new Set();
   for (const edge of facts.imports) {
     if (!isRelativeSpecifier(edge.specifier)) specifiers.add(edge.specifier);
+  }
+  for (const specifier of facts.dynamicImports) {
+    if (!isRelativeSpecifier(specifier)) specifiers.add(specifier);
   }
   for (const record of facts.reexports) {
     if (!isRelativeSpecifier(record.specifier))
@@ -792,6 +816,9 @@ function collectFunctionGraph(functionSourceDir) {
       ts.ScriptKind.JS,
     );
     const facts = collectModuleFacts(sourceFile);
+    if (facts.computedDynamicImports.length > 0) {
+      throw new Error(`Unsupported computed dynamic import in ${file}`);
+    }
     factsList.push(facts);
     const relativeSpecifiers = [
       ...facts.imports.map((edge) => edge.specifier),
@@ -941,6 +968,9 @@ function writeRootPackage(staging, closure, functionFacts, packagesInClosure) {
           throw new Error(`Function needs missing @intermed/${packageName}`);
         }
         dependencies[specifier] = `file:vendor/@intermed/${packageName}`;
+      } else if (!isBuiltin(specifier) && !specifier.startsWith('node:')) {
+        // Function-direct external imports need an exact root pin (W3).
+        dependencies[specifier] = pinOf(specifier);
       }
     }
   }
@@ -963,7 +993,7 @@ function writeRootPackage(staging, closure, functionFacts, packagesInClosure) {
         version: '1.0.0',
         private: true,
         type: 'module',
-        main: './function-entry/main.js',
+        main: './src/main.js',
         dependencies: Object.fromEntries(
           Object.entries(dependencies).sort(([a], [b]) => a.localeCompare(b)),
         ),
@@ -1034,7 +1064,7 @@ export function buildImporterFunctionArtifact(options = {}) {
     const closure = analyzeRuntimeClosure({ program, functionFacts });
     const packagesInClosure = emitVendorTree(staging, compileDir, closure);
 
-    const functionEntry = join(staging, 'function-entry');
+    const functionEntry = join(staging, 'src');
     mkdirSync(functionEntry, { recursive: true });
     const functionDestinations = [];
     for (const [rel, sourcePath] of functionFiles) {
