@@ -26,3 +26,11 @@ export function unknownField(reason: UnknownReason): FieldState<never> {
 export function presentField<T>(value: T): FieldState<T> {
   return { status: 'present', value };
 }
+
+/**
+ * Required source text. Padding, internal whitespace, diacritics, and legacy
+ * cedilla stay verbatim. A non-string or an empty string is rejected.
+ */
+export function isPreservedSourceText(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}

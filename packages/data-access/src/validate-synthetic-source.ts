@@ -1,9 +1,10 @@
 import {
   assessQuantity,
   deriveStableId,
+  isPreservedSourceText,
+  sealCatalogue,
   INTERMED_ID_NAMESPACE,
   MEDICATION_CATALOGUE_SCHEMA_VERSION,
-  sealCatalogue,
   type DataSource,
   type DatasetVersion,
   type EntityKind,
@@ -37,7 +38,9 @@ const recordKey = z
   .min(1)
   .refine(isRecordKey, 'blank or control character');
 
-const text = z.string().min(1);
+const text = z
+  .string()
+  .refine(isPreservedSourceText, 'A non-empty string is required.');
 const instant = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
 
 const stringField = z.discriminatedUnion('status', [

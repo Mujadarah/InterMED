@@ -104,3 +104,145 @@ it('returns issues for malformed JSON instead of throwing', () => {
   expect(missing.ok).toBe(false);
   if (!missing.ok) expect(missing.issues.length).toBeGreaterThan(0);
 });
+
+it('round-trips padded source text without trimming it', () => {
+  const paddedName = 'Fictivol ';
+  const leadingDci = ' Fictivolinum';
+  const paddedStrength = ' 500 mg ';
+  const paddedRoute = ' oral fictional ';
+  const whitespaceOnly = ' ';
+  const paddedComma = ` ${commaName} `;
+  const paddedCedilla = 'Fict\u0103\u015F\u0163 ';
+  const spacedPreferred = 'Fictivolinum  hydrochloride';
+  const row = product('SP-PADDED', paddedName, {
+    originalDciText: { status: 'present', value: leadingDci },
+    strengthText: { status: 'present', value: paddedStrength },
+    route: { status: 'present', value: paddedRoute },
+    authorizationNumber: { status: 'present', value: ' AUTH-FICT-0001 ' },
+    presentationOrPackDescription: {
+      status: 'present',
+      value: whitespaceOnly,
+    },
+    sourceVersion: ' synthetic-1 ',
+  });
+  const substance = ingredient('AI-PADDED', spacedPreferred, {
+    originalNames: [paddedCedilla],
+    synonyms: [paddedComma],
+    dci: { status: 'present', value: paddedCedilla },
+    saltOrForm: { status: 'present', value: ' hydrochloride ' },
+  });
+  const form = dosageForm('DF-PADDED', ' Fictional tablet ');
+  const maker = manufacturer('MF-PADDED', 'Synthetica Laboratories ');
+  const marketing = holder('MAH-PADDED', ' Placebo Holding');
+  const doc = document('RD-PADDED', row.id);
+  const titled = {
+    ...doc,
+    title: { status: 'present' as const, value: ' Synthetic note ' },
+  };
+  const linked = {
+    ...row,
+    dosageFormId: { status: 'present' as const, value: form.id },
+    manufacturerIds: [maker.id],
+    marketingAuthorizationHolderId: {
+      status: 'present' as const,
+      value: marketing.id,
+    },
+    regulatoryDocumentIds: [titled.id],
+  };
+  const snapshot = sealCatalogue(
+    emptyCatalogue({
+      products: [linked],
+      activeIngredients: [substance],
+      medicationIngredients: [
+        join('MI-PADDED', linked.id, ` ${leadingDci} `, {
+          ingredientId: { status: 'present', value: substance.id },
+          strengthOriginalText: { status: 'present', value: paddedStrength },
+          mappingVersion: ' map-synthetic-1 ',
+        }),
+      ],
+      dosageForms: [form],
+      manufacturers: [maker],
+      marketingAuthorizationHolders: [marketing],
+      regulatoryDocuments: [titled],
+    }),
+  );
+  const json = serializeCatalogue(snapshot);
+  expect(json).toContain('"commercialName":"Fictivol "');
+  expect(json).toContain(paddedCedilla);
+  expect(json).toContain(paddedComma);
+  const parsed = deserializeCatalogue(json);
+  expect(parsed.ok).toBe(true);
+  if (!parsed.ok) return;
+  const restored = parsed.snapshot.products[0];
+  expect(restored?.commercialName).toBe(paddedName);
+  expect(restored?.originalDciText).toEqual({
+    status: 'present',
+    value: leadingDci,
+  });
+  expect(restored?.strengthText).toEqual({
+    status: 'present',
+    value: paddedStrength,
+  });
+  expect(restored?.route).toEqual({ status: 'present', value: paddedRoute });
+  expect(restored?.presentationOrPackDescription).toEqual({
+    status: 'present',
+    value: whitespaceOnly,
+  });
+  expect(restored?.sourceVersion).toBe(' synthetic-1 ');
+  expect(parsed.snapshot.activeIngredients[0]?.preferredName).toBe(
+    spacedPreferred,
+  );
+  expect(parsed.snapshot.activeIngredients[0]?.originalNames[0]).toBe(
+    paddedCedilla,
+  );
+  expect(parsed.snapshot.activeIngredients[0]?.synonyms[0]).toBe(paddedComma);
+  expect(parsed.snapshot.activeIngredients[0]?.dci).toEqual({
+    status: 'present',
+    value: paddedCedilla,
+  });
+  expect(parsed.snapshot.dosageForms[0]?.displayName).toBe(
+    ' Fictional tablet ',
+  );
+  expect(parsed.snapshot.dosageForms[0]?.originalSourceText).toBe(
+    ' Fictional tablet ',
+  );
+  expect(parsed.snapshot.manufacturers[0]?.name).toBe(
+    'Synthetica Laboratories ',
+  );
+  expect(parsed.snapshot.marketingAuthorizationHolders[0]?.name).toBe(
+    ' Placebo Holding',
+  );
+  expect(parsed.snapshot.regulatoryDocuments[0]?.title).toEqual({
+    status: 'present',
+    value: ' Synthetic note ',
+  });
+  expect(parsed.snapshot.medicationIngredients[0]?.sourceIngredientText).toBe(
+    ` ${leadingDci} `,
+  );
+  expect(parsed.snapshot.medicationIngredients[0]?.mappingVersion).toBe(
+    ' map-synthetic-1 ',
+  );
+  expect(parsed.snapshot).toEqual(snapshot);
+});
+
+it('rejects a non-string and an empty required source string', () => {
+  const snapshot = sealCatalogue(
+    emptyCatalogue({ products: [product('SP-FICTIVOL', 'Fictivol')] }),
+  );
+  const parsed = JSON.parse(serializeCatalogue(snapshot)) as {
+    products: { commercialName: unknown; originalDciText: unknown }[];
+  };
+  const row = parsed.products[0];
+  expect(row).toBeDefined();
+  if (!row) return;
+  row.commercialName = '';
+  expect(deserializeCatalogue(JSON.stringify(parsed)).ok).toBe(false);
+  row.commercialName = 'Fictivol';
+  row.originalDciText = { status: 'present', value: '' };
+  expect(deserializeCatalogue(JSON.stringify(parsed)).ok).toBe(false);
+  row.originalDciText = { status: 'missing' };
+  row.commercialName = 12;
+  expect(deserializeCatalogue(JSON.stringify(parsed)).ok).toBe(false);
+  row.commercialName = null;
+  expect(deserializeCatalogue(JSON.stringify(parsed)).ok).toBe(false);
+});
