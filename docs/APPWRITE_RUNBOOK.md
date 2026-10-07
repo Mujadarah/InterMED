@@ -17,20 +17,20 @@ login. Lead used `npx --yes appwrite-cli@28.1.0` (not the unsigned global
 13.3.2). Evidence:
 [`docs/evidence/milestone-3-live-2026-10-07/`](evidence/milestone-3-live-2026-10-07/README.md).
 
-| Action                                                                                      | Result                                                                           | Status       |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------ |
-| Owner `login` + lead whoami / endpoint confirmation                                         | Console endpoint seen; **no secrets recorded here**                              | EXECUTED     |
-| `organization create-project … --project-id intermed-dev --region fra --json`               | exit 0; active project; `$createdAt` `2026-10-07T08:35:00.440+00:00`             | EXECUTED     |
-| Plan read                                                                                   | GitHub Student Pack `auto-1`; projects limit 2 (shell + `intermed-dev`); price 0 | EXECUTED     |
-| `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json` | exit 0; total 0                                                                  | EXECUTED     |
-| `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                        | EXECUTED     |
-| Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                            | EXECUTED     |
-| `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`           | EXECUTED     |
-| Dataset publishing / unauthenticated writes / non-empty CRUD matrix                         | —                                                                                | **PENDING**  |
-| Bounded anonymous empty-resource GET matrix                                                  | Public resources 200 empty; private resources 401; evidence `scanner-review/`   | **PARTIAL**  |
-| Admin stub execution + unauthenticated execution denial                                      | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`      | PASS (bounded) |
-| Production project / billing / paid capacity                                                | —                                                                                | **NOT DONE** |
-| Shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02` changes                  | Owner forbids changes; read-only checks only                                     | UNCHANGED    |
+| Action                                                                                      | Result                                                                           | Status         |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------- |
+| Owner `login` + lead whoami / endpoint confirmation                                         | Console endpoint seen; **no secrets recorded here**                              | EXECUTED       |
+| `organization create-project … --project-id intermed-dev --region fra --json`               | exit 0; active project; `$createdAt` `2026-10-07T08:35:00.440+00:00`             | EXECUTED       |
+| Plan read                                                                                   | GitHub Student Pack `auto-1`; projects limit 2 (shell + `intermed-dev`); price 0 | EXECUTED       |
+| `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json` | exit 0; total 0                                                                  | EXECUTED       |
+| `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                        | EXECUTED       |
+| Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                            | EXECUTED       |
+| `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`            | EXECUTED       |
+| Dataset publishing / unauthenticated writes / non-empty CRUD matrix                         | —                                                                                | **PENDING**    |
+| Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`    | **PARTIAL**    |
+| Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`       | PASS (bounded) |
+| Production project / billing / paid capacity                                                | —                                                                                | **NOT DONE**   |
+| Shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02` changes                  | Owner forbids changes; read-only checks only                                     | UNCHANGED      |
 
 Remaining sections below keep exact future commands. Blocks that have **not**
 run stay marked pending. Do not rewrite untested steps as verified.

@@ -1,1 +1,6 @@
-{"message":"The current user is not authorized to perform the requested action.","code":401,"type":"user_unauthorized","version":"2.3.0"}
+{
+  "message": "The current user is not authorized to perform the requested action.",
+  "code": 401,
+  "type": "user_unauthorized",
+  "version": "2.3.0"
+}

@@ -11,16 +11,16 @@ Companion summary:
 
 ## Contents
 
-| Path                    | Purpose                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------- |
-| `observations.json`     | Machine-readable status for acceptance items 1–8 and recorded-field checks                  |
-| `markdown-inventory.md` | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)        |
-| `cli-preflight.md`      | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings   |
-| `site-probes/`          | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7 |
-| `buckets/`                | Development bucket push/pull logs, including the corrected `--all` invocation           |
-| `tables/`                 | Development TablesDB push/pull logs and declared-definition diff                         |
-| `function-checks/`        | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial |
-| `scanner-review/`         | Bounded anonymous baseline responses and manual review of the public revision candidates  |
+| Path                    | Purpose                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| `observations.json`     | Machine-readable status for acceptance items 1–8 and recorded-field checks                   |
+| `markdown-inventory.md` | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)         |
+| `cli-preflight.md`      | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings    |
+| `site-probes/`          | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7  |
+| `buckets/`              | Development bucket push/pull logs, including the corrected `--all` invocation                |
+| `tables/`               | Development TablesDB push/pull logs and declared-definition diff                             |
+| `function-checks/`      | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial |
+| `scanner-review/`       | Bounded anonymous baseline responses and manual review of the public revision candidates     |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.
