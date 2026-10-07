@@ -14,6 +14,7 @@ export default function buildPwaFixtures() {
         'build',
         '--outDir',
         resolve(`artifacts/pwa-${revision}`),
+        ...(revision === 'harness' ? ['--mode', 'harness'] : []),
       ],
       {
         cwd: resolve('apps/web'),

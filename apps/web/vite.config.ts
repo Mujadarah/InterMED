@@ -41,13 +41,16 @@ function productionShellCsp(): Plugin {
 /**
  * Test-only local-store harness entry.
  *
- * The harness script is added to the HTML only when the build runs with
- * `INTERMED_LOCAL_STORE_HARNESS=1`, so production builds cannot contain it.
- * Playwright builds a dedicated fixture with that flag; `npm run build` never
- * sets it.
+ * The harness script is added to the HTML only in the explicit `harness` mode
+ * with `INTERMED_LOCAL_STORE_HARNESS=1`. The mode guard prevents an inherited
+ * environment variable from changing a production build.
  */
-function localStoreHarness(): Plugin {
-  const enabled = process.env['INTERMED_LOCAL_STORE_HARNESS'] === '1';
+export function localStoreHarnessPlugin(
+  mode: string,
+  environment: NodeJS.ProcessEnv = process.env,
+): Plugin {
+  const enabled =
+    mode === 'harness' && environment['INTERMED_LOCAL_STORE_HARNESS'] === '1';
   return {
     name: 'intermed-local-store-harness',
     enforce: 'pre',
@@ -73,6 +76,11 @@ function localStoreHarness(): Plugin {
 export default defineConfig(({ mode }) => {
   parseConfig(loadEnv(mode, process.cwd(), 'VITE_'));
   return {
-    plugins: [react(), shellBuild(), productionShellCsp(), localStoreHarness()],
+    plugins: [
+      react(),
+      shellBuild(),
+      productionShellCsp(),
+      localStoreHarnessPlugin(mode),
+    ],
   };
 });
