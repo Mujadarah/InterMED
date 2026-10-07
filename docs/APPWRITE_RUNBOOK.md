@@ -394,6 +394,14 @@ exact revision/artifact, and approver, and is recorded separately.
    record exact bytes, sizes, checksums, counts, and provenance. Do not alter or
    delete a prior generation.
 
+The exact owner workflow commands remain **pending the handler API**; do not
+treat any draft schema as executable and do not invent commands. One handler
+defect is still open: the storage bridge derives `publicationTimestamp` from
+the current clock instead of binding it to the immutable owner approval intent
+(for example `approvedAt`). Until that correction lands and a real handler
+retry test with an advanced clock passes, no handler retry or idempotent-retry
+behaviour may be described as verified.
+
 Concrete environment, scope, approver, function configuration, and future
 least-privilege variables/scopes remain pending handler closure and
 implementation review. Do not add a saved key or environment example. No

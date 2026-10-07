@@ -40,10 +40,38 @@ this pack.
 Unit and browser counts in [the Milestone 5 evidence
 record](../../MILESTONE_5_EVIDENCE.md) are taken from the root command logs in
 this pack (independent full `npm run check` runs per commit), never from review
-text. The independent Gemini core review is included as **report-only** material
-(`task-b-core-independent-review-6ad7009-report-only.txt`, extension changed to
-`.txt` so Prettier does not reflow it; content otherwise untouched). Its "29"
-refers to the whole suite's 29 test files, not to 29 importer files.
+text. Independent reviews are included as **report-only** material
+(`*-report-only.txt`; extension changed to `.txt` so Prettier does not reflow
+them, content otherwise untouched): the Gemini core review, the follow-up
+artifact review at `57eb71f`, and the store client review at `ad9303b`. The
+core review's "29" refers to the whole suite's 29 test files, not to 29
+importer files.
+
+## Log-name policy (collision avoidance)
+
+This worker writes only **`DOCS-`-prefixed logs of its own runs**
+(`DOCS-format-check-2026-10-07.log`, `DOCS-path-hygiene-2026-10-07.log`) and
+never writes to a root/author file name, in the shared orchestration temp store
+or here. Copied root/author logs keep their original names for traceability;
+they live only in this folder and cannot overwrite their sources.
+
+## Follow-up update — 2026-10-07 (late)
+
+Root recaptured and extended the gate evidence after the log-name collision
+described below. New bounded copies (same copy/redaction policy):
+
+| File                                                         | What it shows                                                                                                                                                     |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task-b-ROOT-client-ad9303b-FULL.log`                        | Root full `npm run check` at client `ad9303b`: 385 tests (29 files), 135 browser tests, exit 0                                                                    |
+| `task-b-ROOT-artifact-57eb71f-FULL.log`                      | Root full `npm run check` at artifact `57eb71f`: 328 tests (28 files), 135 browser tests, exit 0                                                                  |
+| `task-b-ROOT-core-reader-d1200c7-FULL.log`                   | Root full `npm run check` at core `d1200c7` (with reader proof): 431 tests (30 files), 135 browser tests, exit 0                                                  |
+| `task-b-ROOT-reader-d1200c7-focused.log`                     | Root focused reader-compatibility run: 9 tests passed                                                                                                             |
+| `task-b-ROOT-artifact-57eb71f-node22.log`                    | Root artifact smoke on v24.21.0 and official v22.23.2: GET 405 + real codec round-trip; artifact entry is now `src/main.js`                                       |
+| `task-b-reader-compatibility.log`                            | Author report for `d1200c7`: producer `publish` output projects into the M3 reader; explicitly no M6 acceptance and no cryptographic bundle-hash activation claim |
+| `task-b-artifact-independent-review-57eb71f-report-only.txt` | Follow-up review: W-2/W-3/W-4 closed (entry `src/main.js`, exact external pins, dynamic-import closure); W-1 stage/publish closure still pending; report-only     |
+| `task-b-store-independent-review-ad9303b-report-only.txt`    | Independent client review: 58/58 focused, no code blockers (minor N1/N2, N3 live-proof gap); report-only                                                          |
+| `task-b-handler-publication-time-finding.txt`                | Root defect finding: the handler bridge derives `publicationTimestamp` from `now()`; fix pending, so handler retries are **not** claimed                          |
+| `task-b-reviewer-client-ad9303b-focused.log`                 | The reviewer's focused 58-test run that caused the log-name collision (kept as the collision record)                                                              |
 
 ## Inventory
 
@@ -130,22 +158,29 @@ the root command logs.
   kept as recorded instead of being restaged as a fake red.
 - Every `*-red-*.log` keeps its original failing state.
 
-## Known limitation of this pack
+## Log-name collision (resolved by root recapture)
 
-`task-b-independent-store-ad9303b-check.log` — the root full check at store head
-`ad9303b` (29 test files, 385 tests, `135 passed (48.6s)`, exit 0) — was
-observed intact by this worker earlier in the session and was then **overwritten
-in the shared orchestration temp store at 22:02 by a focused 58-test re-run**, so
-no verbatim copy exists in this pack. The surviving full store check here is
-`task-b-independent-store-mimo-final-check.log` (375 tests, 29 files, 135
-browser tests); the ten additional tests at `ad9303b` are the query-protocol and
-bucket-context cycles whose red/green logs are listed above.
+`task-b-independent-store-ad9303b-check.log` originally held the root full check
+at client head `ad9303b` (29 test files, 385 tests, 135 browser tests, exit 0).
+A reviewer later reused that exact file name for a focused 58-test run and
+overwrote it in the shared orchestration temp store. Root recaptured the full
+check at the same head as **`task-b-ROOT-client-ad9303b-FULL.log`** (385 tests,
+29 files, `135 passed (46.8s)`, exit 0), which is the authoritative client log
+in this pack; the colliding focused run is preserved as
+`task-b-reviewer-client-ad9303b-focused.log`. The earlier full store checks here
+(`task-b-independent-store-mimo-final-check.log`, 375 tests) remain as history.
 
 ## Deliberately absent
 
-- Handler / Function-worker logs: the worker is still pending; the draft
+- Handler / Function-worker logs: the worker is still pending. The draft
   operation-intent schema and invocation commands may change and are not
-  recorded as executable anywhere in this pack.
+  recorded as executable anywhere in this pack, and the publication-timestamp
+  defect above is unfixed, so no handler retry result is claimed.
 - Positive compiled artifact handler flow: not yet run (only the GET 405 refusal
-  and real codec round-trip are proven).
-- Any live M5 operation evidence: none was authorized or executed.
+  and real codec round-trip are proven on `src/main.js`).
+- Duplicate older author red/green/gate logs and the large worker/steering debug
+  logs: not copied (bounded pack). The reader author report above summarizes its
+  own red/green cycle.
+- Any live M5 operation evidence: none was authorized or executed. Source rights
+  remain `not-approved` (blocked), no domain or public contract changed, and the
+  M6 FNV-only validator gap stays open.

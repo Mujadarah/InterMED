@@ -1,0 +1,38 @@
+# Follow-up Independent Review: Importer Function Artifact Builder (Commit 57eb71f)
+
+**Review Target:** `57eb71f` (and prior test commit `582d406`)
+**Worktree Location:** `<worktree>
+**Review Type:** Read-Only Follow-up Review
+
+## 1. Executive Summary
+
+This follow-up review evaluates the fixes applied in commits `582d406` and `57eb71f` to address findings W-2, W-3, and W-4 from the previous independent review (`6078537`). The author has correctly implemented the required changes, preserving the existing AST closure generation capabilities while strictly enforcing offline pinning for external function dependencies and fail-closed safety around dynamic imports.
+
+The builder now accurately respects architectural paths and rejects ambiguous closures. There are no test regressions; the symbol pruner, test isolation, mock exclusion, and exact locking behaviors remain robust. The final integration gap (W-1) correctly remains delegated to the handler task.
+
+## 2. Verification of Prior Findings
+
+### Finding W-2: Entrypoint Path Inconsistency (ADDRESSED)
+- **Status:** Verified.
+- **Details:** The artifact builder has been updated to emit the function entry as `src/main.js` and relative helpers under `src/`. The generated `package.json` correctly declares `"main": "./src/main.js"`. This layout perfectly aligns with the `entrypoint: "src/main.js"` configured in `infra/appwrite/appwrite.config.*.json`.
+
+### Finding W-3: External Dependencies Ignored (ADDRESSED)
+- **Status:** Verified.
+- **Details:** `writeRootPackage` now accurately derives exact pins for function-direct external imports (e.g., `zod: '4.6.5'`). An offline test child now runs successfully asserting a positive 200 HTTP response involving actual `zod` dependency validation from within the constructed closure. Unpinned external imports correctly trigger a build failure (`No exact runtime pin`).
+
+### Finding W-4: Dynamic Imports Ignored (ADDRESSED)
+- **Status:** Verified.
+- **Details:** The AST analyzer (`collectModuleFacts`) now extracts string literal dynamic imports (`await import('zod')`), correctly including them in the closure derivation and dependency list. Moreover, computed (non-literal) dynamic imports (`await import(varName)`) are explicitly tracked and rigorously rejected at build time (`Unsupported computed dynamic import`), ensuring a safe fail-closed behavior rather than silent omissions at runtime.
+
+### Finding W-1: Bounded Smoke Test / Stubbed Pipeline (PENDING FINAL INTEGRATION)
+- **Status:** Delegated / Acknowledged.
+- **Details:** The real `main.js` still utilizes the `generateCandidate` stub, and neither `stage()` nor `publish()` are within the generated artifact's closure yet. The author honestly noted that W-1 is delegated to the subsequent handler implementation task. This is an expected final integration dependency, not a code blocker for the artifact builder's scope.
+
+## 3. Regression Checks
+- **Symbols, Reexports, & Pruner:** The core closure extraction and non-demanded symbol pruning logic (including barrel files) remain unaffected. Tests passed.
+- **Mock Exclusion & Isolation:** Verified via `artifact.test.ts`. Mocks, test fixtures, and in-memory sources are still successfully excluded from the generated vendor output.
+- **Exact Lock & Offline Resolution:** The generated `package-lock.json` remains strictly reproducible without dev dependencies or workspace symlinks.
+- **Secret Paths & Leakage:** Failed builds clean up appropriately, no machine path leakage in bundled JS, and staging is properly scoped.
+
+## 4. Conclusion
+**Verdict:** **No Blockers.** The implementation is sound and the artifact builder is mathematically safe. The closure logic correctly fails closed upon ambiguity. Final integration (W-1) remains pending as expected for the handler pipeline implementation.

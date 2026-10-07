@@ -27,7 +27,11 @@ Milestone 5's importer core is a separate dependency-light boundary:
 Appwrite store client and artifact builder under
 `infra/appwrite/functions/import-anmdmr`. It consumes domain public exports but
 does not change the domain or published-dataset contracts (verified offline
-2026-10-07). File, network, Appwrite, credential, clock, and logging behavior
+2026-10-07). Producer/reader compatibility is also verified offline: core
+publication output projects into the `@intermed/data-access` Appwrite
+published-dataset reader, with no M6 acceptance and no cryptographic
+bundle-hash activation claim. File, network, Appwrite, credential, clock, and
+logging behavior
 belongs behind injected ports; the Function adapter is not a domain dependency.
 Synthetic source validation and private staging remain outside the browser
 shell. The Function handler/authority layer and final integration are still
