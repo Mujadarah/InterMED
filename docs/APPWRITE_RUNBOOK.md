@@ -17,21 +17,21 @@ login. Lead used `npx --yes appwrite-cli@28.1.0` (not the unsigned global
 13.3.2). Evidence:
 [`docs/evidence/milestone-3-live-2026-10-07/`](evidence/milestone-3-live-2026-10-07/README.md).
 
-| Action                                                                                      | Result                                                                                                   | Status                     |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------- |
-| Owner `login` + lead whoami / endpoint confirmation                                         | Console endpoint seen; **no secrets recorded here**                                                      | EXECUTED                   |
-| `organization create-project … --project-id intermed-dev --region fra --json`               | exit 0; active project; `$createdAt` `2026-10-07T08:35:00.440+00:00`                                     | EXECUTED                   |
-| Plan read                                                                                   | GitHub Student Pack `auto-1`; projects limit 2 (shell + `intermed-dev`); price 0                         | EXECUTED                   |
-| `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json` | exit 0; total 0                                                                                          | EXECUTED                   |
-| `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                                                | EXECUTED                   |
-| Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                                                    | EXECUTED                   |
-| `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`                                    | EXECUTED                   |
-| Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; manifest + descriptor available; evidence `publication-live.json` | **PARTIAL**                |
-| Unauthenticated writes / non-empty CRUD matrix                                              | Initial 39-check matrix failed/inconclusive; corrected probes not approved                               | **FAILED / PENDING RETRY** |
-| Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`                            | **PARTIAL**                |
-| Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`                               | PASS (bounded)             |
-| Production project / billing / paid capacity                                                | —                                                                                                        | **NOT DONE**               |
-| Shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02` changes                  | Owner forbids changes; read-only checks only                                                             | UNCHANGED                  |
+| Action                                                                                      | Result                                                                                                   | Status                                          |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Owner `login` + lead whoami / endpoint confirmation                                         | Console endpoint seen; **no secrets recorded here**                                                      | EXECUTED                                        |
+| `organization create-project … --project-id intermed-dev --region fra --json`               | exit 0; active project; `$createdAt` `2026-10-07T08:35:00.440+00:00`                                     | EXECUTED                                        |
+| Plan read                                                                                   | GitHub Student Pack `auto-1`; projects limit 2 (shell + `intermed-dev`); price 0                         | EXECUTED                                        |
+| `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json` | exit 0; total 0                                                                                          | EXECUTED                                        |
+| `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                                                | EXECUTED                                        |
+| Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                                                    | EXECUTED                                        |
+| `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`                                    | EXECUTED                                        |
+| Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; manifest + descriptor available; evidence `publication-live.json` | **PARTIAL**                                     |
+| Unauthenticated writes / non-empty CRUD matrix                                              | Initial matrix failed/inconclusive; corrected probes passed 39/39; cleanup approval remains pending      | **PASS (corrected, bounded) / CLEANUP PENDING** |
+| Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`                            | **PARTIAL**                                     |
+| Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`                               | PASS (bounded)                                  |
+| Production project / billing / paid capacity                                                | —                                                                                                        | **NOT DONE**                                    |
+| Shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02` changes                  | Owner forbids changes; read-only checks only                                                             | UNCHANGED                                       |
 
 Remaining sections below keep exact future commands. Blocks that have **not**
 run stay marked pending. Do not rewrite untested steps as verified.
@@ -195,15 +195,35 @@ development matrix passes. This is the live proof for R13, R14, R25 and R126.
 The executed bounded GET matrix is in `scanner-review/`: public
 `dataset-versions`, `dataset-bundles`, and `published-datasets` returned HTTP
 200 with empty results; private `import-runs`, `raw-sources`, `quarantine`, and
-`import-run-logs` returned HTTP 401. No anonymous write, non-empty read,
-or successful per-row/file authorization result is established by that
-baseline. A later owner-approved synthetic generation was created and the real
-adapter read its manifest and descriptor, but the initial 39-check guard/write
-matrix is retained as failed/inconclusive: descriptor PATCH was an identical
-HTTP 200 no-op, storage updates used PATCH and returned 404, private guard GETs
-returned `row_not_found`, and the helper continued after an unexpected 200.
-Corrected probes and guard cleanup remain pending separate approval. This
-section is not a complete acceptance.
+`import-run-logs` returned HTTP 401. The initial 39-check guard/write matrix is
+retained as failed/inconclusive: descriptor PATCH was an identical HTTP 200
+no-op, storage updates used PATCH and returned 404, private guard GETs returned
+`row_not_found`, and the helper continued after an unexpected 200.
+
+The corrected matrix is recorded in
+`publication-live/corrected-anonymous-probes.json` and its summary: **39/39
+checks passed, with no abort**. The corrected run proves expected
+unauthenticated denials where the response is available; the private
+`import-runs` GET remains a masked 404 and is not reclassified as a strict
+401/403 proof. The owner's first repeat was conditional, not an independent
+matrix pass: it saw only an identical public descriptor 200 no-op, with no
+private 2xx and no successful create/delete. All seven guard objects were
+unchanged on parsed-field comparison, including permissions and timestamps.
+This is bounded evidence, not complete live acceptance.
+
+### 5.1 Guard cleanup — approval-gated, not executed
+
+After the corrected probes and evidence review, obtain **separate owner
+approval** for the exact seven-object cleanup plan at
+`publication-live/cleanup-plan.md` and `.json`. Use the pinned CLI syntax
+shown there; it was checked against cached `appwrite-cli@28.1.0 --help`
+output and makes no cloud call until explicitly executed. Do not broaden the
+scope. The published version, bundle, and file
+`aba05ea1b8fc3e49f18d517b` must remain untouched. After cleanup, perform the
+final real-adapter read and assert that
+`version-aba05ea1b8fc3e49f18d517b` is never a guard object. Until those
+approval, cleanup, and final-read gates are complete, mark `cleanup` and
+`finalread` **PENDING OWNER APPROVAL**.
 
 ## 6. Deploy the web shell
 

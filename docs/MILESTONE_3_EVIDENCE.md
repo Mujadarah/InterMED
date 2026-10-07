@@ -359,10 +359,15 @@ Milestone 3 live acceptance claim.**
   and the two approved function checks are recorded in the evidence pack.
   One fictional synthetic generation and ten total synthetic/guard objects
   were also created; the real adapter read its manifest and descriptor.
-  Unauthenticated permission evidence remains inconclusive: the initial
-  39-check matrix used an invalid storage update method, accepted an
-  unexpected descriptor 200/no-op, masked private guard existence with 404,
-  and did not fail fast. Corrected probes and cleanup were not approved.
+  The first 39-check permission matrix remains failed/inconclusive: it used
+  an invalid storage update method, accepted an unexpected descriptor 200
+  no-op, masked private guard existence with 404, and did not fail fast.
+  The corrected 39-check probes passed 39/39 without aborting; the private
+  `import-runs` GET remains a masked 404 rather than a strict 401/403 proof.
+  The owner's first repeat was conditional: it observed the public descriptor
+  as an identical-data 200 no-op, with no private 2xx and no successful
+  create/delete. Guard cleanup and the final adapter read require separate
+  owner approval and remain pending.
 - `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`
   → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
   → exit 0, lists **node-22** and **node-24** as supported (availability only,
@@ -389,10 +394,10 @@ Milestone 3 live acceptance claim.**
 | #   | Check                                                                        | Command / probe                                                                          | Results (summary)                                                                                                                                                                                                                                                                                                                                                                                 | Status                                                             |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; development Sites push                                               | Existing shell is prebuilt-only. Development push `6ac61591ec43a84f8084` failed in the cloud build on Node 22.23.2 vs required Node 24.21.0 (`EBADENGINE`); CLI exit 0 does not convert the reported failure into a deployment.                                                                                                                                                                   | **FAILED (runtime)**                                               |
-| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                    | Approved fictional generation exists; adapter read returned available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. Anonymous non-empty list/get/download remains unverified.                                                                                                                                                                                           | **PARTIAL**                                                        |
-| 3   | Unauthenticated writes refused                                               | Initial 39-check matrix; corrected probes pending                                        | Initial run is failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200.                                                                                                                                                                                                             | **FAILED (inconclusive)**                                          |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                    | Corrected probes read public synthetic rows and recorded the private `import-runs` GET as a masked 404; adapter read returned the available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. The published version/file must remain untouched by cleanup.                                                                                                                  | **PARTIAL**                                                        |
+| 3   | Unauthenticated writes refused                                               | Initial and corrected 39-check matrices                                                  | Initial run remains failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200. Corrected probes passed 39/39 with no abort; the private 404 remains a masked refusal rather than a strict status proof.                                                                               | **PASS (corrected, bounded)**                                      |
 | 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                                             | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                                                                                              | **PASS (bounded)**                                                 |
-| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource baseline remains bounded. Private guard GETs returned `row_not_found` (existence masked), and the descriptor update was a no-op 200; corrected row/file checks and cleanup remain pending.                                                                                                                                                                                         | **PARTIAL (failed probe)**                                         |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Corrected probes passed 39/39 and all seven guard objects were unchanged on parsed-field comparison, including permissions and timestamps. The private guard GET is still `row_not_found` (existence masked), and cleanup plus the final adapter read are approval-gated.                                                                                                                         | **PARTIAL (corrected, bounded)**                                   |
 | 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Original deployed-bundle scan exited 1 on two public Git revision candidates; provenance matched both to HTML/Git. A separate sanitized 13-file review copy scanned cleanly. Strict original scanner pass is not claimed.                                                                                                                                                                         | **PARTIAL**                                                        |
 | 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on `https://intermed-shell-test.appwrite.network` (see `site-probes/`) | Every path HTTP **200**, TLS verify OK, HSTS present; manifest id/start_url/scope `/`; SW controller+scope root; shell version `77c816387c81001988b3`. Cache-Control **observed** `public, max-age=0, must-revalidate` on all paths — **no** `immutable` / long-max-age on hashed assets (residual risk vs reviewed long-cache policy). Browser proof only; not real-device/installed acceptance. | **PASS** (scopes/TLS/deep-link); cache OBSERVED with residual risk |
 | 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                                                 | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                                                                                                   | **PASS**                                                           |
@@ -407,14 +412,30 @@ Milestone 3 live acceptance claim.**
 | Bucket `antivirus` / `encryption` / `compression` / max sizes             | push/pull buckets             | Four buckets pushed and pulled; expected declared fields compare with zero differences.                                                         | **PASS**                        |
 | REST `{ total, rows }` with flattened columns                             | anonymous TablesDB read       | Public empty table reads returned `{ "total": 0, "rows": [] }`; non-empty row shape remains unverified.                                         | **PARTIAL**                     |
 
-#### Still pending after this capture
+#### Corrected probe and cleanup status
 
-Corrected unauthenticated write probes; non-empty anonymous row/file reads and
-CRUD; per-row/file permission checks; guard cleanup; and a successful
-development Sites deployment using Node 24.21.0 remain pending. Production
-capacity and backup/restore are deferred roadmap work outside this task. The
-deployed bundle scanner strict pass remains open because its two candidates were
-resolved by provenance review rather than by changing the scanner.
+The corrected probe pack is under
+[`publication-live/`](evidence/milestone-3-live-2026-10-07/publication-live/):
+`corrected-anonymous-probes.json` and its summary record 39/39 passed with no
+abort; `corrected-run-owner-condition.json` records that the owner's first
+repeat was conditional, not an independent anonymous write/private-read pass;
+and `corrected-guard-before-after.json` records all seven guard objects
+unchanged after parsed-field comparison. The first matrix remains retained as
+failed/inconclusive evidence, with a corrected-probe link for each failure.
+
+Cleanup is not executed. The exact seven-object plan is
+[`cleanup-plan.md`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.md)
+and [`cleanup-plan.json`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.json).
+It targets only the disposable guard rows/files in `intermed-dev`; the
+published version, bundle, and file `aba05ea1b8fc3e49f18d517b` are explicitly
+excluded. Separate owner approval is required after probes and evidence, then
+the final adapter read must assert that
+`version-aba05ea1b8fc3e49f18d517b` is never a guard object.
+
+The successful corrected probes do not make overall Milestone 3 live
+acceptance complete. A successful development Sites deployment using Node
+24.21.0 remains pending; the failed first deployment is preserved. Production
+capacity and backup/restore remain deferred roadmap work.
 
 ## PR #7 review fixes
 

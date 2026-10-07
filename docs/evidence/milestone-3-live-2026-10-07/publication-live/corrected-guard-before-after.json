@@ -1,0 +1,44 @@
+[
+  {
+    "object": "file-import-run-logs",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "file-published-datasets",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "file-quarantine",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "file-raw-sources",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "row-dataset-bundles",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "row-dataset-versions",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  },
+  {
+    "object": "row-import-runs",
+    "unchanged": true,
+    "changedProperties": [],
+    "comparison": "all parsed JSON properties, including permissions and timestamps; CLI line endings ignored"
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "status": "PENDING OWNER APPROVAL",
+  "environment": "development",
+  "projectId": "intermed-dev",
+  "configFile": "infra/appwrite/appwrite.config.development.json",
+  "approvalGate": "Separate owner approval after corrected probes and evidence review; no execution in this task.",
+  "cliVersion": "28.1.0",
+  "commandsVerifiedAgainst": "Cached appwrite-cli@28.1.0 --help output; no cloud operation was performed.",
+  "objects": [
+    {
+      "kind": "row",
+      "tableId": "dataset-bundles",
+      "rowId": "guard-bundle",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb delete-row --database-id intermed-datasets --table-id dataset-bundles --row-id guard-bundle --force"
+    },
+    {
+      "kind": "row",
+      "tableId": "dataset-versions",
+      "rowId": "guard-version",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb delete-row --database-id intermed-datasets --table-id dataset-versions --row-id guard-version --force"
+    },
+    {
+      "kind": "row",
+      "tableId": "import-runs",
+      "rowId": "guard-run",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb delete-row --database-id intermed-datasets --table-id import-runs --row-id guard-run --force"
+    },
+    {
+      "kind": "file",
+      "bucketId": "raw-sources",
+      "fileId": "guard-rawsources",
+      "command": "npx --yes appwrite-cli@28.1.0 storage delete-file --bucket-id raw-sources --file-id guard-rawsources --force"
+    },
+    {
+      "kind": "file",
+      "bucketId": "quarantine",
+      "fileId": "guard-quarantine",
+      "command": "npx --yes appwrite-cli@28.1.0 storage delete-file --bucket-id quarantine --file-id guard-quarantine --force"
+    },
+    {
+      "kind": "file",
+      "bucketId": "import-run-logs",
+      "fileId": "guard-importrunlogs",
+      "command": "npx --yes appwrite-cli@28.1.0 storage delete-file --bucket-id import-run-logs --file-id guard-importrunlogs --force"
+    },
+    {
+      "kind": "file",
+      "bucketId": "published-datasets",
+      "fileId": "guard-publisheddatasets",
+      "command": "npx --yes appwrite-cli@28.1.0 storage delete-file --bucket-id published-datasets --file-id guard-publisheddatasets --force"
+    }
+  ],
+  "immutableExclusions": [
+    "version-aba05ea1b8fc3e49f18d517b",
+    "bundle-aba05ea1b8fc3e49f18d517b",
+    "file-aba05ea1b8fc3e49f18d517b"
+  ],
+  "postCleanupGate": "Run the final real-adapter read and assert version-aba05ea1b8fc3e49f18d517b is never a guard object; keep finalread pending until verified."
+}

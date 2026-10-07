@@ -1,0 +1,19 @@
+{
+  "sourceId": "guard-source",
+  "snapshotVersion": "guard-0",
+  "importerVersion": "guard",
+  "startedAt": "2026-10-07T09:53:59.731+00:00",
+  "counts": "{}",
+  "validationFailures": "[]",
+  "diffSummary": "{}",
+  "completenessStatus": "guard",
+  "approvalReference": "guard",
+  "publicationStatus": "staging",
+  "$sequence": "1",
+  "$id": "guard-run",
+  "$createdAt": "2026-10-07T09:54:58.473+00:00",
+  "$updatedAt": "2026-10-07T09:54:58.473+00:00",
+  "$permissions": ["read(\"any\")", "update(\"any\")", "delete(\"any\")"],
+  "$databaseId": "intermed-datasets",
+  "$tableId": "import-runs"
+}
