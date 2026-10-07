@@ -198,6 +198,10 @@ describe('Sites configuration and install commands', () => {
       '**/.codex',
       '.agents',
       '**/.agents',
+      '.claude',
+      '**/.claude',
+      '.worktrees',
+      '**/.worktrees',
     ]);
     expect(ignoreRules).toBeDefined();
 
@@ -216,6 +220,10 @@ describe('Sites configuration and install commands', () => {
       '.aws/credentials',
       '.codex/session.json',
       '.agents/local.json',
+      '.claude/settings.json',
+      'apps/web/.claude/settings.json',
+      '.worktrees/feature/apps/web/src/main.tsx',
+      'packages/domain/.worktrees/feature/src/index.ts',
     ];
     const sourcePaths = [
       'package.json',

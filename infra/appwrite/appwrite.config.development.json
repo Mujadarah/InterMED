@@ -406,7 +406,11 @@
         ".codex",
         "**/.codex",
         ".agents",
-        "**/.agents"
+        "**/.agents",
+        ".claude",
+        "**/.claude",
+        ".worktrees",
+        "**/.worktrees"
       ]
     }
   ]
