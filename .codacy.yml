@@ -1,0 +1,16 @@
+---
+# Codacy analysis configuration (https://docs.codacy.com/repositories-configure/codacy-configuration-file/).
+#
+# TypeScript/JavaScript is linted by the `eslint-9` tool using the repository's
+# own eslint.config.mjs (the same rules `npm run lint` enforces in CI). The
+# generic ESLint 8 and legacy PMD engines duplicate it with rules that are not
+# TypeScript-aware (for example core `no-unused-vars` on type signatures), so
+# they are excluded from every path. Security tools (Opengrep, Trivy, Checkov)
+# and the remaining analyzers keep running unchanged.
+engines:
+  eslint-8:
+    exclude_paths:
+      - "**"
+  pmd:
+    exclude_paths:
+      - "**"
