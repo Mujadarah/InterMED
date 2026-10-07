@@ -21,6 +21,8 @@ Companion summary:
 | `tables/`               | Development TablesDB push/pull logs and declared-definition diff                             |
 | `function-checks/`      | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial |
 | `scanner-review/`       | Bounded anonymous baseline responses and manual review of the public revision candidates     |
+| `publication-live.json` | Sanitized synthetic generation, adapter metadata read, and guard-target record               |
+| `sites-deployment.log`  | Exact development Sites deployment attempt and Node/npm runtime failure                      |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.
@@ -28,9 +30,22 @@ are not part of this pack.
 ## Honesty rules used here
 
 - Pass/fail only for commands or probes that actually ran and were recorded.
-- Dataset publication and unauthenticated writes remain **NOT RUN**. The
-  bounded empty-resource GET matrix and the approved function stub checks are
-  recorded separately; they do not prove row/file CRUD or publication behavior.
+- One owner-approved synthetic generation was created and is readable through
+  the real adapter: ten synthetic objects (one bundle, one descriptor row, one
+  version row, three disposable guard rows, and four disposable guard files).
+  The generation is fictional and carries `not-approved` / `not-reviewed`
+  references; it is not clinical approval.
+- The first 39-check permission matrix is retained as a **failed/inconclusive**
+  probe, not a pass: the descriptor PATCH was a no-op with HTTP 200, storage
+  update attempts used the wrong method and returned 404, and private guard
+  GETs returned `row_not_found` rather than an authorization proof. The helper
+  continued after an unexpected 200. Corrected probes and guard cleanup were
+  not approved or executed.
+- The development Sites push was attempted and failed in the Appwrite build
+  image because it ran Node `22.23.2` while the repository requires Node
+  `24.21.0`; the CLI reported the failure but exited 0. This is not a
+  successful deployment. The source archive audit is retained separately and
+  does not change that result.
 - Shell-site observations do not prove the recorded monorepo Sites build
   settings from [SITES.md](../../../infra/appwrite/SITES.md).
 - Plan/org capacity is **GitHub Student Pack** (`auto-1`), not Free plan.
@@ -40,3 +55,6 @@ are not part of this pack.
   retained as an observed result; both candidates were manually matched to the
   public HTML revision and a Git commit, not suppressed or treated as a clean
   scanner pass.
+- A separate sanitized review copy of the deployed bundle scanned cleanly, but
+  the original strict scan still exited 1; both results are retained without
+  collapsing them into a single pass.

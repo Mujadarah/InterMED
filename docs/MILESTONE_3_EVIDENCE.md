@@ -357,7 +357,12 @@ Milestone 3 live acceptance claim.**
 - Owner approved the development resource checks. Bucket push/pull, TablesDB
   push/pull, the function stub deployment, the bounded anonymous GET matrix,
   and the two approved function checks are recorded in the evidence pack.
-  Dataset publication and unauthenticated writes were not run.
+  One fictional synthetic generation and ten total synthetic/guard objects
+  were also created; the real adapter read its manifest and descriptor.
+  Unauthenticated permission evidence remains inconclusive: the initial
+  39-check matrix used an invalid storage update method, accepted an
+  unexpected descriptor 200/no-op, masked private guard existence with 404,
+  and did not fail fast. Corrected probes and cleanup were not approved.
 - `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`
   → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
   → exit 0, lists **node-22** and **node-24** as supported (availability only,
@@ -365,8 +370,11 @@ Milestone 3 live acceptance claim.**
 - Shell `sites_list`: site `6ac4b3550003a26eea02` framework `other`, adapter
   `static`, `fallbackFile` `index.html`, `buildRuntime` `node-22`, empty
   install/build, output `./`, deployment `6ac4e58c6e620fd5dd84` ready — does
-  **not** prove the recorded monorepo Sites build. A separate new development
-  site is locally prepared only (no approval/deploy yet).
+  **not** prove the recorded monorepo Sites build. A new development Sites
+  deployment was attempted, but the cloud build used Node `22.23.2` while the
+  repository requires Node `24.21.0`; `npm ci` failed with `EBADENGINE`.
+  The CLI reported the failure but exited 0, so no successful deployment is
+  claimed. The existing shell remains unchanged.
 - CLI: global 13.3.2 unsigned; work used `npx --yes appwrite-cli@28.1.0`. Owner
   ran login; lead whoami saw console endpoint; no secrets recorded.
 - Markdown: Antigravity audited all **36** tracked Markdown files — no
@@ -380,12 +388,12 @@ Milestone 3 live acceptance claim.**
 
 | #   | Check                                                                        | Command / probe                                                                          | Results (summary)                                                                                                                                                                                                                                                                                                                                                                                 | Status                                                             |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; no monorepo Sites deploy                                             | Prebuilt shell settings only; monorepo install/build/output **unverified**; new dev site not deployed                                                                                                                                                                                                                                                                                             | **NOT RUN**                                                        |
-| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs                                                          | Empty published tables/bucket return HTTP 200 with zero rows/files; private tables/buckets return HTTP 401. No published dataset or non-empty resource was created.                                                                                                                                                                                                                               | **PARTIAL**                                                        |
-| 3   | Unauthenticated writes refused                                               | Unauth create/update/delete                                                              | No write probes were authorized; create/update/delete remains **NOT RUN**.                                                                                                                                                                                                                                                                                                                        | **NOT RUN**                                                        |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; development Sites push                                               | Existing shell is prebuilt-only. Development push `6ac61591ec43a84f8084` failed in the cloud build on Node 22.23.2 vs required Node 24.21.0 (`EBADENGINE`); CLI exit 0 does not convert the reported failure into a deployment. | **FAILED (runtime)** |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                   | Approved fictional generation exists; adapter read returned available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. Anonymous non-empty list/get/download remains unverified. | **PARTIAL** |
+| 3   | Unauthenticated writes refused                                               | Initial 39-check matrix; corrected probes pending                                        | Initial run is failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200. | **FAILED (inconclusive)** |
 | 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                                             | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                                                                                              | **PASS (bounded)**                                                 |
-| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource GET matrix recorded: public tables and published bucket are readable; private tables/buckets are denied. Per-row/file guards and real adapter CRUD remain **NOT RUN**.                                                                                                                                                                                                             | **PARTIAL**                                                        |
-| 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Scanner exit 1 on two 40-character candidates in public JS; both equal the public HTML revision and resolve to Git commits. No API-key assignment was found; manual classification is recorded and scanner strict-pass is not claimed.                                                                                                                                                            | **PARTIAL**                                                        |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Empty-resource baseline remains bounded. Private guard GETs returned `row_not_found` (existence masked), and the descriptor update was a no-op 200; corrected row/file checks and cleanup remain pending. | **PARTIAL (failed probe)** |
+| 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Original deployed-bundle scan exited 1 on two public Git revision candidates; provenance matched both to HTML/Git. A separate sanitized 13-file review copy scanned cleanly. Strict original scanner pass is not claimed. | **PARTIAL** |
 | 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on `https://intermed-shell-test.appwrite.network` (see `site-probes/`) | Every path HTTP **200**, TLS verify OK, HSTS present; manifest id/start_url/scope `/`; SW controller+scope root; shell version `77c816387c81001988b3`. Cache-Control **observed** `public, max-age=0, must-revalidate` on all paths — **no** `immutable` / long-max-age on hashed assets (residual risk vs reviewed long-cache policy). Browser proof only; not real-device/installed acceptance. | **PASS** (scopes/TLS/deep-link); cache OBSERVED with residual risk |
 | 8   | Region/plan, quotas/cost limits, backup/restore                              | `organization create-project`, plan read                                                 | Dev **fra** + Student Pack (`auto-1`, projects=2) confirmed. Backup/restore **NOT RUN**. Production project **not** created.                                                                                                                                                                                                                                                                      | **PARTIAL**                                                        |
 
@@ -401,11 +409,12 @@ Milestone 3 live acceptance claim.**
 
 #### Still pending after this capture
 
-Dataset publication and unauthenticated write probes; non-empty row/file reads;
-per-row/file permission checks; new development Sites deployment with recorded
-monorepo settings; production capacity decision; backup/restore drill. The
-deployed bundle scanner strict pass remains open because its two candidates were
-resolved by provenance review rather than by changing the scanner.
+Corrected unauthenticated write probes; non-empty anonymous row/file reads and
+CRUD; per-row/file permission checks; guard cleanup; a successful development
+Sites deployment using Node 24.21.0; production capacity decision; and the
+backup/restore drill remain pending. The deployed bundle scanner strict pass
+remains open because its two candidates were resolved by provenance review
+rather than by changing the scanner.
 
 ## PR #7 review fixes
 

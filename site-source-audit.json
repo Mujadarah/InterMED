@@ -1,0 +1,10 @@
+{
+  "deploymentId": "6ac61591ec43a84f8084",
+  "archiveBytes": 5753795,
+  "entryCount": 314,
+  "forbiddenEntries": [],
+  "publicEnvironmentExamples": [
+    "apps/web/.env.example"
+  ],
+  "inspected": "names only; no contents printed"
+}

@@ -37,22 +37,22 @@
       "id": 1,
       "title": "Authorized test deployment with recorded SITES.md settings",
       "commandOrProbe": "sites_list on shell site 6ac4b3550003a26eea02; no new monorepo Sites deploy",
-      "results": "Shell site uses framework other, adapter static, fallbackFile index.html, buildRuntime node-22, empty install/build commands, output ./, deployment 6ac4e58c6e620fd5dd84 ready. That proves prebuilt static hosting only. Recorded monorepo install npm ci --prefix ../.. --no-fund / build npm run build / output ./dist is NOT proven. Separate new development site locally prepared only; no approval or deployment yet.",
-      "status": "NOT RUN"
+      "results": "Shell site remains read-only and uses framework other, adapter static, fallbackFile index.html, buildRuntime node-22, empty install/build commands, output ./, deployment 6ac4e58c6e620fd5dd84 ready. A new development Sites push was attempted as deployment 6ac61591ec43a84f8084, but its Appwrite build ran Node 22.23.2 instead of the required Node 24.21.0 and failed npm ci with EBADENGINE. The CLI reported the failure but exited 0. This does not prove a successful deployment.",
+      "status": "FAILED (runtime)"
     },
     {
       "id": 2,
       "title": "Unauthenticated reader reads only published resources",
       "commandOrProbe": "Anonymous GET against dataset-versions / dataset-bundles / published-datasets and denials for private resources",
-      "results": "Empty published tables and published-datasets bucket returned HTTP 200 with zero rows/files; private tables and buckets returned HTTP 401. No non-empty resource was created.",
+      "results": "One owner-approved fictional generation was created: version-aba05ea1b8fc3e49f18d517b, bundle-aba05ea1b8fc3e49f18d517b, file-aba05ea1b8fc3e49f18d517b, and three row/four file guard fixtures. The real adapter read returned available manifest and descriptor metadata for synthetic-medication-catalogue; the bundle is 25959 bytes and its SHA-256 is recorded in publication-live.json. Rights references remain not-approved/not-reviewed. Anonymous non-empty list/get/download and corrected permission probes remain unverified.",
       "status": "PARTIAL"
     },
     {
       "id": 3,
       "title": "Unauthenticated writer refused on published resources",
       "commandOrProbe": "Unauth POST/PATCH/DELETE on published tables and bucket files",
-      "results": "No unauthenticated write probes were authorized; create/update/delete remains not run.",
-      "status": "NOT RUN"
+      "results": "The initial 39-check matrix was executed but failed/inconclusive and is not evidence of authorization or refusal: descriptor PATCH returned HTTP 200 with identical before/after data, storage update attempts returned HTTP 404 because the probe used PATCH instead of the official PUT method, and the helper continued after an unexpected 200. Corrected probes were not approved or executed.",
+      "status": "FAILED (inconclusive)"
     },
     {
       "id": 4,
@@ -65,14 +65,14 @@
       "id": 5,
       "title": "Effective permissions at every resource level",
       "commandOrProbe": "Live additive table/row and bucket/file denial matrix (runbook §5)",
-      "results": "Empty-resource GET matrix recorded: public tables and published bucket readable; private tables and buckets denied. Per-row/file guards and real adapter CRUD remain not run.",
-      "status": "PARTIAL"
+      "results": "The bounded empty-resource matrix remains valid for its original scope. The initial guard matrix did not prove row/file authorization: private guard GETs returned HTTP 404 row_not_found, masking existence, and the descriptor PATCH was an identical no-op with HTTP 200. Corrected guard checks and cleanup remain pending.",
+      "status": "PARTIAL (failed probe)"
     },
     {
       "id": 6,
       "title": "No server key in deployed bundle / function vars / logs / config",
       "commandOrProbe": "node scripts/scan-dist-secrets.mjs plus provenance review",
-      "results": "Scanner exit 1 on two 40-character candidates in public JS; both equal the public HTML revision and resolve to Git commits. No API-key assignment was found; manual classification is recorded and a strict scanner pass is not claimed.",
+      "results": "The original deployed-bundle scan exited 1 on two 40-character public Git revision candidates; provenance matched both to the public HTML revision and commits. A separate sanitized review copy scanned 13 files with no credential-shaped strings. No API-key assignment was found; the original strict scanner pass is not claimed.",
       "status": "PARTIAL"
     },
     {
@@ -102,7 +102,8 @@
         "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
         "capacity": "Development uses second included slot; future production needs separate capacity decision; NO billing/paid/production changes",
         "backupRestore": "NOT RUN",
-        "productionProject": "NOT CREATED / deferred"
+        "productionProject": "NOT CREATED / deferred",
+        "siteDeployment": "Attempted development deployment failed in the cloud build image on Node 22.23.2 versus required Node 24.21.0; no successful deployment claimed"
       },
       "status": "PARTIAL",
       "statusDetail": "Development region+plan confirmed; backup/restore and production capacity remain open"
@@ -136,7 +137,7 @@
     {
       "field": "REST row list shape { total, rows } with flattened columns",
       "commandOrProbe": "live unauthenticated TablesDB read",
-      "results": "Public empty table reads returned { total: 0, rows: [] }; non-empty row shape remains unverified.",
+      "results": "Public empty table reads returned { total: 0, rows: [] }. The adapter read obtained a non-empty published manifest and descriptor, but the list-row shape and full anonymous non-empty CRUD matrix remain unverified.",
       "status": "PARTIAL"
     }
   ],
@@ -167,10 +168,10 @@
     }
   ],
   "pendingApprovals": [
-    "dataset publishing and synthetic row/file creation",
-    "unauthenticated write probes and per-row/file permission checks",
-    "non-empty adapter reads and CRUD verification",
-    "new development site deployment",
+    "corrected unauthenticated write probes and per-row/file permission checks",
+    "guard cleanup after separately approved verification",
+    "anonymous non-empty list/get/download and CRUD verification",
+    "successful new development site deployment with Node 24.21.0",
     "production capacity decision / intermed-prod creation",
     "backup/restore drill"
   ]

@@ -26,7 +26,8 @@ login. Lead used `npx --yes appwrite-cli@28.1.0` (not the unsigned global
 | `functions list-runtimes` (same config)                                                     | exit 0; node-22 and node-24 **supported**                                        | EXECUTED       |
 | Read-only shell site metadata + public HTTP/Playwright probes                               | See live evidence pack `site-probes/`                                            | EXECUTED       |
 | `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`            | EXECUTED       |
-| Dataset publishing / unauthenticated writes / non-empty CRUD matrix                         | —                                                                                | **PENDING**    |
+| Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; manifest + descriptor available; evidence `publication-live.json` | **PARTIAL** |
+| Unauthenticated writes / non-empty CRUD matrix                                               | Initial 39-check matrix failed/inconclusive; corrected probes not approved        | **FAILED / PENDING RETRY** |
 | Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`    | **PARTIAL**    |
 | Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`       | PASS (bounded) |
 | Production project / billing / paid capacity                                                | —                                                                                | **NOT DONE**   |
@@ -195,8 +196,14 @@ The executed bounded GET matrix is in `scanner-review/`: public
 `dataset-versions`, `dataset-bundles`, and `published-datasets` returned HTTP
 200 with empty results; private `import-runs`, `raw-sources`, `quarantine`, and
 `import-run-logs` returned HTTP 401. No anonymous write, non-empty read,
-per-row/file guard, or publication probe was authorized, so this section is
-not a complete acceptance.
+or successful per-row/file authorization result is established by that
+baseline. A later owner-approved synthetic generation was created and the real
+adapter read its manifest and descriptor, but the initial 39-check guard/write
+matrix is retained as failed/inconclusive: descriptor PATCH was an identical
+HTTP 200 no-op, storage updates used PATCH and returned 404, private guard GETs
+returned `row_not_found`, and the helper continued after an unexpected 200.
+Corrected probes and guard cleanup remain pending separate approval. This
+section is not a complete acceptance.
 
 ## 6. Deploy the web shell
 
@@ -213,7 +220,13 @@ manifest/SW scopes, observed cache headers) are recorded in
 Those probes do **not** prove the monorepo Sites build runner and are not a new
 real-device acceptance.
 
-> **New development/production Sites deploy NOT YET EXECUTED — requires maintainer approval**
+> **Development Sites deploy attempted 2026-10-07; failed in the cloud build**
+
+The deployment created `6ac61591ec43a84f8084`, but the Appwrite build image ran
+Node `22.23.2` while the repository requires Node `24.21.0`; `npm ci` failed
+with `EBADENGINE`. The CLI reported the failure but exited 0. Treat this as a
+failed deployment, not a successful rollout. A retry using the pinned runtime
+requires separate approval. Production remains not attempted.
 
 ```powershell
 npm ci --no-fund
