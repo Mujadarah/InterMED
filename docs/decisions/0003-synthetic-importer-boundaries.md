@@ -107,3 +107,22 @@ published-dataset contracts, or M3 public identifiers.
 - The M6 PR10 head `8ef6fd8` validator still checks only the internal FNV
   fingerprint, so the SHA-256 public-contract compatibility gap is **open**;
   no integrated M5/M6 pass is claimed here.
+
+## Status update — 2026-10-07 (final docs preparation)
+
+- M6 PR10 is **merged** (head `8ef6fd8`, merge commit
+  `729ccfc797358499398b2bbf811f2f7d87bffa02`); the clean integration `384f5d8`
+  retains both the importer and `local-store` workspaces. The FNV-only
+  validator conflict with the published SHA-256 contract is a known **hard
+  reject**, and the preserved-token notes are recorded; no domain or public
+  contract change is proposed here, and the GitHub coordination issue is
+  awaiting owner permission before anything is opened.
+- The handler schema now pins the publication time to the immutable `approvedAt`
+  of the owner approval intent (item 5's retry requirement). Handler acceptance
+  is still **pending** repairs and a fresh root full check, so no handler retry
+  result is claimed.
+- The concrete future owner workflow (build artifact outside the tracked tree,
+  deployment to `intermed-dev`, private raw/intent/run-log handling, separate
+  stage and publication executions, and prior human diff review) is documented
+  with exact commands in [the runbook](../APPWRITE_RUNBOOK.md) section 10 and
+  remains **not executed**.

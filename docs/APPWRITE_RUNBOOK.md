@@ -352,58 +352,213 @@ the incident with dates, scope and approver. Software rollback cannot erase
 copies already distributed. Never commit recovered key material into evidence
 logs.
 
-## 10. Milestone 5 synthetic importer — future, separately approved changes
+## 10. Milestone 5 synthetic importer — concrete future owner-approved procedure
 
-This section is a control boundary, not a live procedure. As of 2026-10-07 the
-importer core, the Appwrite store client, and the Function artifact builder are
-verified **offline** only (see
-[the Milestone 5 evidence record](MILESTONE_5_EVIDENCE.md) and its
-[evidence pack](evidence/milestone-5-synthetic-2026-10-07/README.md)); the
-Function handler/authority worker is **pending**, and the deployed Function
-remains the deliberate 501 stub until a separately approved deployment.
-**No M5 live action was authorized or executed**: no raw operation intent, no
-private staging/import, no Function execution, no deployment, no publication,
-and no cleanup. Never request, paste, store, or expose credentials.
+> **NOTHING IN THIS SECTION HAS BEEN EXECUTED.** Every step needs its own
+> written owner approval, and each approval is recorded separately. The live
+> `import-anmdmr` Function is still the deliberate 501 stub; no M5 live check,
+> staging, execution, deployment, publication, or cleanup has been authorized or
+> run. Handler acceptance is **not** claimed: handler `0c16177` has committed
+> positive detached Node 22 flows, but the root full gate failed (5 of 598
+> tests; `task-b-ROOT-handler-0c16177-FULL.log`) and repairs plus a fresh root
+> full check are pending. Commands below are exact Appwrite CLI **28.1.0**
+> invocations (verified with `--help` and the public CLI docs on 2026-10-07) and
+> match the handler schema actually implemented in the handler worktree; confirm
+> each flag with `npx --yes appwrite-cli@28.1.0 <command> --help` at execution
+> time and record the exact invocation. All examples use fictional synthetic
+> material only, contain **no key values**, and are not executable evidence.
 
-**Every future live step below requires its own written owner approval** —
-approval for deployment does not authorize staging, and staging never grants
-publication. Each approval names the environment (development only), scope,
-exact revision/artifact, and approver, and is recorded separately.
+**Credential rules (owner terminal only).** The owner authenticates with the
+interactive `login` command in their own terminal. A key never appears in a
+command line argument, a log, a file, or this runbook; `--show-secrets` is never
+used; `appwrite client --key …` (non-interactive key mode) is deliberately **not**
+used here. The Function's `INTERMED_SERVER_KEY` is an I/O credential the owner
+provisions through the Console function-variables screen in their own
+authenticated session (never via a CLI `--value` flag). Public `execute: []`
+stays unchanged.
 
-1. **Deploy (separate owner approval):** deploy only the reviewed importer
-   revision to `intermed-dev`. Production does not exist for this scope. The
-   generated Node 22-compatible artifact must be produced outside the
-   repository from the reviewed source and smoke-tested locally with fakes. The
-   exact build/smoke/deploy commands stay **pending the final handler report**;
-   the draft handler report may still change and this runbook deliberately
-   records no unverified command.
-2. **Private staging/import (separate owner approval):** use only a fictional
-   synthetic snapshot and the synthetic placeholder source format, which is
-   explicitly to be replaced after source-rights approval and review. Read raw
-   material through the approved private port, write only private
-   quarantine/run-log/candidate staging resources, and inspect the complete
-   diff, counts, provenance, encoding, and SHA-256 before any publication
-   decision. No network retrieval or real source layout is allowed.
-3. **Publication (separate owner approval):** one bounded publication after
-   review. Create immutable bundle first, descriptor second, and manifest last.
-   `execute=[]` remains publicly denied. The exact operation-intent schema and
-   invocation commands are **pending the final handler report** — do not treat
-   any draft schema as executable and do not invent commands.
-4. **Post-read-only verification (separate owner approval):** after an approved
-   publication, perform only read-only manifest/descriptor/bundle checks and
-   record exact bytes, sizes, checksums, counts, and provenance. Do not alter or
-   delete a prior generation.
+### 10.0 Verified handler contract (source of truth for the steps below)
 
-The exact owner workflow commands remain **pending the handler API**; do not
-treat any draft schema as executable and do not invent commands. One handler
-defect is still open: the storage bridge derives `publicationTimestamp` from
-the current clock instead of binding it to the immutable owner approval intent
-(for example `approvedAt`). Until that correction lands and a real handler
-retry test with an advanced clock passes, no handler retry or idempotent-retry
-behaviour may be described as verified.
+From the handler source at `0c16177` (repair edits in progress; re-read before
+executing — the schema may still change until the final handler report):
 
-Concrete environment, scope, approver, function configuration, and future
-least-privilege variables/scopes remain pending handler closure and
-implementation review. Do not add a saved key or environment example. No
-production project, billing change, Shell Test change, CSP change, or client
-grant is part of M5.
+- Trusted runtime context (read from environment only, no header fallback):
+  `APPWRITE_ENDPOINT` must be `https://fra.cloud.appwrite.io/v1`,
+  `APPWRITE_FUNCTION_PROJECT_ID` must be `intermed-dev`,
+  `APPWRITE_FUNCTION_ID` must be `import-anmdmr`. `INTERMED_SERVER_KEY` must
+  exist. `INTERMED_SYNTHETIC_PUBLISH_ENABLED` must be exactly `true` or any
+  `op-publish-…` reference fails `publication-disabled`.
+- Request envelope: `POST` with body exactly `{"operationId":"<reference>"}`
+  (≤ 2048 bytes). Reference pattern `^op-(stage|publish)-[a-z0-9][a-z0-9-]{0,43}$`;
+  the `op-stage-`/`op-publish-` prefix binds the operation kind.
+- Authority document: one owner-created private JSON file in the
+  `import-run-logs` bucket, file name exactly
+  `op-intent-v1.<operationId>.json`, file id `oid1<32 hex>` where the hex is the
+  first 32 characters of
+  `sha256("intermed-op-intent-file/v1|<operationId>")`. Any other name is
+  rejected.
+- Stage intent (`"purpose": "intermed-synthetic-stage/v1"`), exact keys:
+  `purpose`, `operationId` (`op-stage-…`), `issuedAt` (UTC instant
+  `YYYY-MM-DDTHH:MM:SS[.mmm]Z`), `dataset` (≤ 100), `syntheticOnly: true`,
+  `rawSnapshotFileId` (≤ 36, `[a-zA-Z0-9][a-zA-Z0-9.\-_]*`), `rawSnapshotSha256`
+  (64 lowercase hex), `config`.
+- Publish intent (`"purpose": "intermed-synthetic-publish/v1"`), exact keys:
+  `purpose`, `operationId` (`op-publish-…`), `stageOperationId` (`op-stage-…`),
+  `issuedAt`, `dataset`, `version` (≤ 100), `candidateVersionId` (≤ 256),
+  `candidateSha256`, `rawSnapshotSha256` (both 64 lowercase hex),
+  `baselineVersionId` + `baselineFingerprint` (both `null` for a first
+  generation, otherwise `sha256:<64 hex>`), `approvedBy` (≤ 200),
+  `approvalReference` (≤ 500), `approvedAt` (UTC instant — this value pins the
+  publication time so retries present the identical publication),
+  `operationalApproval: true`, `largeRemovalApproval` (boolean), `config`.
+- `config` (exact 11 keys): `sourceKey` (≤ 100), `sourceVersion` (≤ 200),
+  `schemaVersion` (≤ 50), `importerVersion` (≤ 50), `parserVersion` (≤ 50),
+  `parserEncoding` (`utf-8`/`utf8`/`windows-1250`), `syntheticAllowlist`
+  (1–20 keys, includes `sourceKey`), `largeRemovalCount` (integer 1–1000000),
+  `largeRemovalPercent` (0–100), `maxRawBytes` (integer 1–5242880), `maxRows`
+  (integer 1–1000000).
+- Handler-written evidence (never owner-written): `candidate-v1.<cnd1…>.json`,
+  `stage-review-v1.<rev1…>.json`, `quarantine-v1.<reason>.raw`, and the
+  `import-runs` run row.
+- Responses carry constant codes only: `staged`, `quarantined`, `published`,
+  `already-published` (200); `envelope-invalid` (400); `method-not-allowed`
+  (405); `runtime-credential-missing` (401); `runtime-context-rejected`,
+  `publication-disabled`, `operation-rejected` (403); `operation-unknown`
+  (404); `publication-busy`, `publication-collision`, `stale-baseline` (409);
+  `backend-error`, `operation-failed` (500). Bodies add only 12-hex derived
+  refs (`operationRef`, `runRef`, `datasetVersionRef`) and a bounded summary.
+
+### 10.1 Preconditions (no cloud change)
+
+Written owner approval naming environment (`intermed-dev` only), scope, the
+reviewed commit, and the approver. Then, in the owner's own terminal:
+
+```powershell
+npx --yes appwrite-cli@28.1.0 -v
+npx --yes appwrite-cli@28.1.0 client --endpoint https://fra.cloud.appwrite.io/v1
+npx --yes appwrite-cli@28.1.0 login
+npx --yes appwrite-cli@28.1.0 whoami
+```
+
+`login` is interactive and stores a session; no key is placed on any command
+line. Never run `appwrite init project` against the committed configuration.
+
+### 10.2 Build a fresh artifact outside the tracked tree (local only)
+
+With the pinned Node, from the reviewed commit; the builder writes into the
+system temp directory by default, so the artifact stays **outside** the tracked
+tree (entry `src/main.js`, matching `entrypoint: "src/main.js"` in the
+configuration as code):
+
+```powershell
+node scripts/build-importer-function.mjs
+# prints: Artifact built successfully: <temp>/intermed-importer-function-XXXXXX
+```
+
+Smoke-test that artifact on Node 22 before any deployment step and record the
+result. Do not copy the artifact into the repository.
+
+### 10.3 Approval 1 — deploy the reviewed Function to `intermed-dev` only
+
+Run these from the artifact's parent directory (`--code` must be inside the
+current directory) so the package is the fresh temp artifact, never repository
+source. Explicit function id, explicit development config:
+
+```powershell
+cd <temp>
+npx --yes appwrite-cli@28.1.0 functions create-deployment --function-id import-anmdmr --code <temp>/intermed-importer-function-XXXXXX --entrypoint src/main.js --commands "npm ci --ignore-scripts --offline" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions get-deployment --function-id import-anmdmr --deployment-id <DEPLOYMENT_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions update-function-deployment --function-id import-anmdmr --deployment-id <DEPLOYMENT_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions get --function-id import-anmdmr --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+```
+
+Then, in the Console (owner session), create the function variables
+`INTERMED_SERVER_KEY` (secret value entered only in the Console) and leave
+`INTERMED_SYNTHETIC_PUBLISH_ENABLED` unset until publication approval. Confirm
+`execute` is still `[]`. Deployment is not staging and not publication.
+
+### 10.4 Approval 2 — private synthetic raw snapshot and stage intent
+
+Use only fictional synthetic fixture material (for example `Synthetica`,
+`Fictivol`, `Placebex`) in a placeholder-format snapshot. Hash and upload the
+raw bytes to the private `raw-sources` bucket (bucket `$permissions: []`,
+`fileSecurity: false`):
+
+```powershell
+node -e "const f=require('node:fs'),c=require('node:crypto');console.log(c.createHash('sha256').update(f.readFileSync(process.argv[1])).digest('hex'))" <temp>/synthetic-snapshot.json
+npx --yes appwrite-cli@28.1.0 storage create-file --bucket-id raw-sources --file-id synth-raw-2026-10-07-a --file <temp>/synthetic-snapshot.json --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+```
+
+Derive the reserved intent file id and write the stage intent JSON locally
+(exact schema in 10.0; fictional values only), then upload it to the private
+`import-run-logs` bucket under its reserved name:
+
+```powershell
+node -e "const c=require('node:crypto');const op='op-stage-synth-2026-10-07-a';console.log('oid1'+c.createHash('sha256').update('intermed-op-intent-file/v1|'+op).digest('hex').slice(0,32))"
+npx --yes appwrite-cli@28.1.0 storage create-file --bucket-id import-run-logs --file-id <OID1_RESULT> --file <temp>/op-intent-v1.op-stage-synth-2026-10-07-a.json --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+```
+
+Execute the staged operation (body is exactly the one reference):
+
+```powershell
+npx --yes appwrite-cli@28.1.0 functions create-execution --function-id import-anmdmr --body "{\"operationId\":\"op-stage-synth-2026-10-07-a\"}" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions get-execution --function-id import-anmdmr --execution-id <EXECUTION_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+```
+
+Expected: `staged` or `quarantined` with bounded summary only. A quarantined
+run is recorded privately and never proceeds to publication.
+
+### 10.5 Human diff review (read-only, mandatory before any publication)
+
+Download the handler-written candidate and stage review and inspect the diff,
+counts, provenance, encodings, and checksums. Record the human decision with
+actor, reference, and timestamp — the publish intent must copy these exactly.
+
+```powershell
+npx --yes appwrite-cli@28.1.0 storage list-files --bucket-id import-run-logs --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 storage get-file-download --bucket-id import-run-logs --file-id <CANDIDATE_FILE_ID> --destination <temp>/candidate.json --config-file <repo>/infra/appwrite/appwrite.config.development.json
+npx --yes appwrite-cli@28.1.0 storage get-file-download --bucket-id import-run-logs --file-id <REVIEW_FILE_ID> --destination <temp>/stage-review.json --config-file <repo>/infra/appwrite/appwrite.config.development.json
+```
+
+### 10.6 Approval 3 — one bounded publication (separate approval only)
+
+Only after an approved diff review: turn on the publish flag in the Console
+function variables (`INTERMED_SYNTHETIC_PUBLISH_ENABLED` exactly `true`), write
+the publish intent (exact schema in 10.0; `approvedAt` pins the publication
+time; `candidateVersionId`, `candidateSha256`, `stageOperationId`, and the
+baseline binding copy the reviewed values), upload it under its reserved name,
+and execute:
+
+```powershell
+npx --yes appwrite-cli@28.1.0 storage create-file --bucket-id import-run-logs --file-id <OID1_RESULT> --file <temp>/op-intent-v1.op-publish-synth-2026-10-07-a.json --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions create-execution --function-id import-anmdmr --body "{\"operationId\":\"op-publish-synth-2026-10-07-a\"}" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+```
+
+Expected: `published` or `already-published` (an identical retry), or a
+fail-closed `operation-rejected` / `publication-collision` / `stale-baseline` /
+`publication-busy`. The handler writes immutable bundle first, descriptor
+second, manifest last, and never updates or deletes a prior generation. Turn
+the publish flag back off afterwards. **No publication is authorized now.**
+
+### 10.7 Approval 4 — read-only post-verification
+
+Read-only checks only (no update, no delete):
+
+```powershell
+npx --yes appwrite-cli@28.1.0 tablesdb get-row --database-id intermed-datasets --table-id dataset-versions --row-id <GENERATION_ROW_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 tablesdb get-row --database-id intermed-datasets --table-id dataset-bundles --row-id <BUNDLE_ROW_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 storage get-file-view --bucket-id published-datasets --file-id <BUNDLE_FILE_ID> --destination <temp>/published-bundle.json --config-file <repo>/infra/appwrite/appwrite.config.development.json
+```
+
+Compare bytes, sizes, `sha256:<64 hex>` checksums, counts, and provenance with
+the reviewed candidate and with the anonymous public read (section 5). Rollback
+(7.3) is the only withdrawal path and is separately approved.
+
+### 10.8 Standing limits
+
+No key values or environment examples are stored anywhere; no production
+project, billing change, Shell Test change, CSP change, or client grant is part
+of Milestone 5. Source rights remain `not-approved` and clinical references
+`not-reviewed`: synthetic staging never implies publication rights. The exact
+step order above may change with the final handler report; re-read the handler
+schema (10.0) before any execution.
