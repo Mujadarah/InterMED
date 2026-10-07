@@ -1,1 +1,30 @@
-{"total":1,"rows":[{"dataset":"synthetic-medication-catalogue","version":"synthetic-2026-10-06","sourceIds":["ds\u001fintermed\u001fsource.synthetic"],"upstreamVersion":null,"upstreamPublishedAt":null,"publishedAt":"2026-10-07T09:53:59.731+00:00","importedAt":"2026-10-06T00:00:00.000+00:00","checksum":"sha256:91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b","schemaVersion":"medication-catalogue-1","minimumClientVersion":"0.0.0","recordCounts":"{\"dataSources\":1,\"datasetVersions\":1,\"products\":10,\"activeIngredients\":7,\"medicationIngredients\":10,\"atcCodes\":2,\"dosageForms\":2,\"manufacturers\":1,\"marketingAuthorizationHolders\":1,\"regulatoryDocuments\":1}","coverage":"Fictional coverage only. Not for clinical use.","rightsApprovalReference":"not-approved","clinicalReviewReference":"not-reviewed","previousVersionId":null,"status":"published","$id":"version-aba05ea1b8fc3e49f18d517b","$sequence":"2","$createdAt":"2026-10-07T09:56:01.939+00:00","$updatedAt":"2026-10-07T09:56:01.939+00:00","$permissions":["read(\"any\")"],"$databaseId":"intermed-datasets","$tableId":"dataset-versions"}]}
+{
+  "total": 1,
+  "rows": [
+    {
+      "dataset": "synthetic-medication-catalogue",
+      "version": "synthetic-2026-10-06",
+      "sourceIds": ["ds\u001fintermed\u001fsource.synthetic"],
+      "upstreamVersion": null,
+      "upstreamPublishedAt": null,
+      "publishedAt": "2026-10-07T09:53:59.731+00:00",
+      "importedAt": "2026-10-06T00:00:00.000+00:00",
+      "checksum": "sha256:91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b",
+      "schemaVersion": "medication-catalogue-1",
+      "minimumClientVersion": "0.0.0",
+      "recordCounts": "{\"dataSources\":1,\"datasetVersions\":1,\"products\":10,\"activeIngredients\":7,\"medicationIngredients\":10,\"atcCodes\":2,\"dosageForms\":2,\"manufacturers\":1,\"marketingAuthorizationHolders\":1,\"regulatoryDocuments\":1}",
+      "coverage": "Fictional coverage only. Not for clinical use.",
+      "rightsApprovalReference": "not-approved",
+      "clinicalReviewReference": "not-reviewed",
+      "previousVersionId": null,
+      "status": "published",
+      "$id": "version-aba05ea1b8fc3e49f18d517b",
+      "$sequence": "2",
+      "$createdAt": "2026-10-07T09:56:01.939+00:00",
+      "$updatedAt": "2026-10-07T09:56:01.939+00:00",
+      "$permissions": ["read(\"any\")"],
+      "$databaseId": "intermed-datasets",
+      "$tableId": "dataset-versions"
+    }
+  ]
+}

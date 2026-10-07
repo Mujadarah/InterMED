@@ -25,9 +25,9 @@ Companion summary:
 | `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs, corrected probe records, approval-gated cleanup plan, and REST/query recordings; the source bundle archive is excluded |
 | `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                                                                        |
 | `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                                                                             |
-| `cleanup-live/`                                         | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                  |
-| `adapter-final-after-cleanup/`                          | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                        |
-| `site-retry/`                                           | Latest approved Sites retry failure, source audit, and official Node 24.21.0 musl checksum evidence; binary archive excluded                                        |
+| `cleanup-live/`                                        | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                   |
+| `adapter-final-after-cleanup/`                         | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                        |
+| `site-retry/`                                          | Latest approved Sites retry failure, source audit, and official Node 24.21.0 musl checksum evidence; binary archive excluded                                        |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.

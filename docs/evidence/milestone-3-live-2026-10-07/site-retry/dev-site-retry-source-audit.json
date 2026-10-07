@@ -4,7 +4,5 @@
   "archiveBytes": 5766768,
   "entries": 323,
   "forbiddenEntries": [],
-  "publicEnvExamples": [
-    "apps/web/.env.example"
-  ]
+  "publicEnvExamples": ["apps/web/.env.example"]
 }

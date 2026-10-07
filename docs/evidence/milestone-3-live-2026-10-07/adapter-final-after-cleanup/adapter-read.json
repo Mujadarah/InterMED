@@ -8,9 +8,7 @@
       "dataset": "synthetic-medication-catalogue",
       "datasetVersionId": "version-aba05ea1b8fc3e49f18d517b",
       "version": "synthetic-2026-10-06",
-      "sourceIds": [
-        "ds\u001fintermed\u001fsource.synthetic"
-      ],
+      "sourceIds": ["ds\u001fintermed\u001fsource.synthetic"],
       "upstreamVersion": null,
       "upstreamPublishedAt": null,
       "publishedAt": "2026-10-07T09:53:59.731+00:00",
