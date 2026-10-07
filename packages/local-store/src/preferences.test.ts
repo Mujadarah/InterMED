@@ -277,6 +277,44 @@ it('aborts staging cleanly when the local data is cleared underneath it', async 
   expect(cleared).toEqual({ status: 'cleared' });
 });
 
+it('clears the tombstone when a tombstoned product comes back', async () => {
+  const store = testStore();
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  // Generation 2 drops the product: the favorite is tombstoned.
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
+  });
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(await store.preferences.listProductTombstones()).toHaveLength(1);
+  expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    status: 'removed',
+  });
+
+  // Generation 3 publishes the same stable product id again: the tombstone is
+  // gone and the favorite is available again. A similar product under another
+  // id is never adopted.
+  const gamma = bundle('gamma', {
+    products: [
+      { key: 'SP-FICTIVOL', name: 'Fictivol' },
+      { key: 'SP-PLACEBEX', name: 'Placebex' },
+    ],
+  });
+  await store.updates.stageAndActivate(gamma.manifest, gamma.text);
+  expect(await store.preferences.listProductTombstones()).toEqual([]);
+  expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    status: 'available',
+    lastKnownDisplayName: 'Fictivol gamma',
+    lastKnownDatasetVersionId: gamma.generationId,
+  });
+});
+
 it('keeps a favorite removed that was deleted while reconciliation ran', async () => {
   const alpha = bundle('alpha');
   const beta = bundle('beta', {

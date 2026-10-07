@@ -926,6 +926,9 @@ export function createLocalDatasetStore(
               lastKnownDisplayName: row.entity.commercialName,
               lastKnownDatasetVersionId: row.entity.datasetVersionId,
             });
+            // The same stable product id is back: its tombstone is stale
+            // (Codacy review fix 2).
+            await transaction.tombstones.delete(favorite.productId);
           } else {
             await transaction.tombstones.put({
               productId: favorite.productId,

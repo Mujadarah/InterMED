@@ -52,3 +52,19 @@ $ npx vitest run packages/local-store
 
 [exit code: 0]
 
+---
+
+## Codacy 2 - stale tombstones are cleared when the product returns (GREEN)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  19:49:20
+   Duration  412ms (transform 86ms, setup 0ms, import 140ms, tests 169ms, environment 0ms)
+
+[exit code: 0]
+

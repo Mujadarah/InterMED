@@ -36,3 +36,49 @@ AssertionError: expected 'web-lock-vgm5jfuszcd' to match /^[0-9a-f]{8}-[0-9a-f]{
 
 [exit code: 1]
 
+---
+
+## Codacy 2 - stale tombstones are cleared when the product returns (RED against 06ec3be)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t comes back
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (10 tests | 1 failed | 9 skipped) 51ms
+   × clears the tombstone when a tombstoned product comes back 50ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > clears the tombstone when a tombstoned product comes back
+AssertionError: expected [ { …(3) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "lastKnownDisplayName": "Fictivol alpha",
++     "productId": "mpsource.syntheticSP-FICTIVOL",
++     "removedAt": "2026-10-07T16:49:08.818Z",
++   },
++ ]
+
+ ❯ packages/local-store/src/preferences.test.ts:310:59
+    308|   });
+    309|   await store.updates.stageAndActivate(gamma.manifest, gamma.text);
+    310|   expect(await store.preferences.listProductTombstones()).toEqual([]);
+       |                                                           ^
+    311|   expect((await store.preferences.listFavorites())[0]).toMatchObject({
+    312|     status: 'available',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  19:49:08
+   Duration  289ms (transform 83ms, setup 0ms, import 136ms, tests 51ms, environment 0ms)
+
+[exit code: 1]
+
