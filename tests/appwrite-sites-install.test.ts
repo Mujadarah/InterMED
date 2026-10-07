@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import ignore from 'ignore';
+import { dirname, join, matchesGlob, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   appwriteConfigPaths,
@@ -47,6 +46,31 @@ function installRoot(workingDir: string, installCommand: string): string {
  */
 function outputRoot(workingDir: string, outputDirectory: string): string {
   return resolve(workingDir, outputDirectory);
+}
+
+/**
+ * Match the repository's path-only archive rules with Node's native glob
+ * implementation. Directory rules match descendants, and later negated rules
+ * restore paths in the same way as the configured ignore list.
+ */
+function archiveRuleMatches(path: string, rule: string): boolean {
+  const pattern = rule.startsWith('!') ? rule.slice(1) : rule;
+  const segments = path.split('/');
+  const candidates = segments.flatMap((_, start) =>
+    segments
+      .slice(start)
+      .map((_, end) => segments.slice(start, start + end + 1).join('/')),
+  );
+
+  return candidates.some((candidate) => matchesGlob(candidate, pattern));
+}
+
+function archivePathIsIgnored(path: string, rules: readonly string[]): boolean {
+  let ignored = false;
+  for (const rule of rules) {
+    if (archiveRuleMatches(path, rule)) ignored = !rule.startsWith('!');
+  }
+  return ignored;
 }
 
 describe('Sites configuration and install commands', () => {
@@ -206,7 +230,6 @@ describe('Sites configuration and install commands', () => {
     ]);
     expect(ignoreRules).toBeDefined();
 
-    const matcher = ignore().add(ignoreRules as string[]);
     const ignoredPaths = [
       '.git/config',
       'node_modules/example/index.js',
@@ -237,12 +260,16 @@ describe('Sites configuration and install commands', () => {
     ];
 
     for (const path of ignoredPaths) {
-      expect(matcher.ignores(path), `${path} should be ignored`).toBe(true);
+      expect(
+        archivePathIsIgnored(path, ignoreRules as string[]),
+        `${path} should be ignored`,
+      ).toBe(true);
     }
     for (const path of sourcePaths) {
-      expect(matcher.ignores(path), `${path} should remain archivable`).toBe(
-        false,
-      );
+      expect(
+        archivePathIsIgnored(path, ignoreRules as string[]),
+        `${path} should remain archivable`,
+      ).toBe(false);
     }
   });
 });
