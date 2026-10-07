@@ -66,12 +66,15 @@ function decodeTrackedText(path: string, source: Buffer): string | undefined {
 
 function findMachinePaths(source: string): string[] {
   const findings: string[] = [];
-  if (source.toLowerCase().includes(homePrefix.toLowerCase()))
+  const normalizedSource = source.replaceAll(escapedWindowsSlash, windowsSlash);
+  if (normalizedSource.toLowerCase().includes(homePrefix.toLowerCase()))
     findings.push('owner home path');
   if (source.toLowerCase().includes(owner)) findings.push('owner username');
-  if (source.toLowerCase().includes(projectPrefix.toLowerCase()))
+  if (normalizedSource.toLowerCase().includes(projectPrefix.toLowerCase()))
     findings.push('project worktree path');
-  if (source.toLowerCase().includes(projectPrefixForward.toLowerCase()))
+  if (
+    normalizedSource.toLowerCase().includes(projectPrefixForward.toLowerCase())
+  )
     findings.push('project worktree path');
   if (
     /(?:[A-Za-z]:[\\/]{1,2}(?:Users|home)(?:[\\/]{1,2})|\/home(?:[\\/]{1,2}))/i.test(
@@ -103,6 +106,7 @@ function trackedPathFindings(
 
 it('detects UTF-8, escaped and UTF-16 paths without treating images as text', () => {
   const utf8 = `${projectPrefixForward}/docs`;
+  const escapedProject = `"${['D:', 'Proiecte AI', 'InterMED'].join(escapedWindowsSlash)}\\\\docs"`;
   const escaped = `"${['C:', 'Users', 'other-user'].join(escapedWindowsSlash)}"`;
   const utf16le = Buffer.concat([
     Buffer.from([0xff, 0xfe]),
@@ -114,6 +118,7 @@ it('detects UTF-8, escaped and UTF-16 paths without treating images as text', ()
   ]);
 
   expect(findMachinePaths(utf8)).not.toEqual([]);
+  expect(findMachinePaths(escapedProject)).not.toEqual([]);
   expect(findMachinePaths(escaped)).not.toEqual([]);
   expect(
     findMachinePaths(decodeTrackedText('fixture.txt', utf16le)!),
