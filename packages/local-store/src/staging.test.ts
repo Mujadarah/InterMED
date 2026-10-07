@@ -1,9 +1,12 @@
 import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
+import type { DatasetStoreEvent } from './events';
 import {
   bundle,
   fakePublishedSource,
   integrityBrokenBundle,
+  sharedBus,
+  testDatabase,
   testStore,
   uniqueName,
 } from './test-support';
@@ -298,5 +301,145 @@ it('reports update-available after a background check and fails without touching
   expect(absent.getState()).toMatchObject({
     status: 'ready',
     generation: { generationId: alpha.generationId },
+  });
+});
+
+it('keeps a committed activation successful when preference reconciliation fails', async () => {
+  const events = sharedBus();
+  const posted: DatasetStoreEvent[] = [];
+  events.subscribe((event) => {
+    posted.push(event);
+  });
+  let failMaintenance = false;
+  const store = testStore({
+    events,
+    onMaintenance: (task) => {
+      if (failMaintenance && task.kind === 'preference-reconciliation')
+        throw Object.assign(new Error('Synthetic quota'), {
+          name: 'QuotaExceededError',
+        });
+    },
+  });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+  // The replacement drops the favorite, so reconciliation writes a tombstone.
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
+  });
+  failMaintenance = true;
+  posted.length = 0;
+
+  const state = await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(state).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  expect(store.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  expect(posted).toContainEqual({
+    type: 'activated',
+    generationId: beta.generationId,
+  });
+  // The maintenance failure is reported separately, never as a failed update.
+  expect(store.maintenance.getStatus()).toMatchObject({
+    pending: true,
+    lastFailure: {
+      task: {
+        kind: 'preference-reconciliation',
+        generationId: beta.generationId,
+      },
+      reason: 'storage-quota',
+    },
+  });
+
+  failMaintenance = false;
+  await store.maintenance.retry();
+  expect(store.maintenance.getStatus().pending).toBe(false);
+  expect(await store.preferences.listProductTombstones()).toMatchObject([
+    {
+      productId: alpha.productIds['SP-FICTIVOL'],
+      lastKnownDisplayName: 'Fictivol alpha',
+    },
+  ]);
+});
+
+it('keeps a committed activation successful when post-commit collection fails', async () => {
+  let failCollection = false;
+  const store = testStore({
+    onMaintenance: (task) => {
+      if (failCollection && task.kind === 'generation-gc')
+        throw Object.assign(new Error('Synthetic quota'), {
+          name: 'QuotaExceededError',
+        });
+    },
+  });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  failCollection = true;
+  const beta = bundle('beta');
+
+  const state = await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(state).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  expect(store.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  expect(store.maintenance.getStatus()).toMatchObject({
+    pending: true,
+    lastFailure: { task: { kind: 'generation-gc' }, reason: 'storage-quota' },
+  });
+
+  failCollection = false;
+  await store.maintenance.retry();
+  expect(store.maintenance.getStatus().pending).toBe(false);
+});
+
+it('finishes a preference reconciliation that a crash interrupted', async () => {
+  const name = uniqueName();
+  const store = testStore({ name });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
+  });
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(await store.preferences.listProductTombstones()).toHaveLength(1);
+
+  // Rewind to the state a crash before reconciliation leaves behind: the
+  // activation committed and the reconciliation marker still names the
+  // previous generation.
+  const crashed = await testDatabase(name);
+  await crashed.tombstones.clear();
+  await crashed.favorites.update(alpha.productIds['SP-FICTIVOL']!, {
+    status: 'available',
+  });
+  await crashed.meta.update('dataset-state', {
+    reconciledGenerationId: alpha.generationId,
+  });
+  crashed.close();
+  store.close();
+
+  const reopened = testStore({ name });
+  await reopened.open();
+  expect(await reopened.preferences.listProductTombstones()).toMatchObject([
+    { productId: alpha.productIds['SP-FICTIVOL'] },
+  ]);
+  expect((await reopened.preferences.listFavorites())[0]).toMatchObject({
+    status: 'removed',
   });
 });

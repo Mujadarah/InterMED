@@ -14,7 +14,15 @@ export {
   RETAIN_READY_FOR_MS,
   STALE_STAGING_MS,
 } from './store';
-export type { LocalDatasetStoreOptions, StagingProgress } from './store';
+export type {
+  LocalDatasetStore,
+  LocalDatasetStoreOptions,
+  MaintenanceDiagnostics,
+  MaintenanceFailure,
+  MaintenanceStatus,
+  MaintenanceTask,
+  StagingProgress,
+} from './store';
 export {
   LOCAL_DATASET_DB_NAME,
   LOCAL_DATASET_SCHEMA_GENERATION,

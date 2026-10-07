@@ -115,6 +115,12 @@ export interface DatasetStateRecord {
   readonly lastSuccessfulCheckAt: string | null;
   readonly updateStatus: string;
   readonly failureReason: string | null;
+  /**
+   * Generation the local favorites were last reconciled against. When it
+   * differs from `activeGenerationId`, a crash interrupted the post-commit
+   * reconciliation and the next open runs it again.
+   */
+  readonly reconciledGenerationId: string | null;
 }
 
 /** Cross-tab writer marker used when the Web Locks API is unavailable. */

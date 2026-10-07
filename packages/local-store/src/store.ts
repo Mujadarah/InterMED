@@ -64,6 +64,55 @@ export interface StagingProgress {
   readonly count: number;
 }
 
+/**
+ * One post-commit maintenance task. Preference reconciliation makes the local
+ * favorites match the active generation; generation collection deletes what
+ * retention no longer protects.
+ */
+export type MaintenanceTask =
+  | {
+      readonly kind: 'preference-reconciliation';
+      readonly generationId: string;
+    }
+  | { readonly kind: 'generation-gc' };
+
+/**
+ * A non-fatal maintenance failure. A committed activation or rollback is never
+ * turned into a failure by one: it is reported here and retried later.
+ */
+export interface MaintenanceFailure {
+  readonly task: MaintenanceTask;
+  readonly occurredAt: string;
+  /** `storage-quota` for `QuotaExceededError`, `error` for anything else. */
+  readonly reason: 'storage-quota' | 'error';
+  readonly message: string;
+}
+
+/** Maintenance diagnostics, deliberately separate from the update state. */
+export interface MaintenanceStatus {
+  /** True while a failed maintenance task waits for a later retry. */
+  readonly pending: boolean;
+  /** The most recent maintenance failure, or null when none happened. */
+  readonly lastFailure: MaintenanceFailure | null;
+}
+
+/** Post-commit maintenance reporting and retry (never an update failure). */
+export interface MaintenanceDiagnostics {
+  getStatus(): MaintenanceStatus;
+  subscribe(listener: () => void): () => void;
+  /** Run the maintenance tasks that failed earlier again. */
+  retry(): Promise<void>;
+}
+
+/**
+ * The local dataset store plus its maintenance diagnostics. Post-commit
+ * maintenance (preference reconciliation, generation collection) runs in
+ * isolation and reports here; it can never fail a committed activation.
+ */
+export interface LocalDatasetStore extends LocalCatalogueStore {
+  readonly maintenance: MaintenanceDiagnostics;
+}
+
 export interface LocalDatasetStoreOptions {
   /** Database name. Tests use a fresh name per case. */
   readonly name?: string;
@@ -89,6 +138,13 @@ export interface LocalDatasetStoreOptions {
   readonly loader?: PublishedBundleLoader;
   /** Diagnostics/test seam invoked after each staged store write. */
   readonly onStaged?: (progress: StagingProgress) => void | Promise<void>;
+  /**
+   * Diagnostics/test seam invoked at the start of each maintenance task
+   * (preference reconciliation, generation collection), wherever it runs.
+   * Throwing simulates a failure inside that task, for example a
+   * `QuotaExceededError` while a tombstone is written.
+   */
+  readonly onMaintenance?: (task: MaintenanceTask) => void | Promise<void>;
 }
 
 type StageOutcome =
@@ -140,6 +196,7 @@ function emptyMeta(): DatasetStateRecord {
     lastSuccessfulCheckAt: null,
     updateStatus: 'never-downloaded',
     failureReason: null,
+    reconciledGenerationId: null,
   };
 }
 
@@ -164,7 +221,7 @@ async function requestPersistentStorage(): Promise<void> {
  */
 export function createLocalDatasetStore(
   options: LocalDatasetStoreOptions = {},
-): LocalCatalogueStore {
+): LocalDatasetStore {
   const databaseName = options.name ?? LOCAL_DATASET_DB_NAME;
   const dataset = options.dataset ?? DEFAULT_DATASET_KEY;
   const now = options.now ?? (() => Date.now());
@@ -174,6 +231,12 @@ export function createLocalDatasetStore(
 
   const listeners = new Set<() => void>();
   const pins = new Map<string, number>();
+  const maintenanceListeners = new Set<() => void>();
+  const pendingMaintenance = new Map<
+    string,
+    { readonly task: MaintenanceTask; readonly work: () => Promise<void> }
+  >();
+  let lastMaintenanceFailure: MaintenanceFailure | null = null;
   let state: DatasetUpdateState = { status: 'opening' };
   let database: LocalDatasetDatabase | null = null;
   let writerLock: DatasetWriterLock | null = options.lock ?? null;
@@ -317,7 +380,11 @@ export function createLocalDatasetStore(
     unsubscribe ??= events.subscribe((event) => {
       if (event.type === 'activated') void refresh();
     });
-    return refresh();
+    const opened = await refresh();
+    // A crash may have interrupted the post-commit reconciliation of the
+    // active generation: the marker in meta names the one it finished for.
+    await catchUpReconciliation();
+    return opened;
   }
 
   const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
@@ -512,10 +579,14 @@ export function createLocalDatasetStore(
       await cleanupPartial(generationId);
       return fail('interrupted');
     }
-    await reconcilePreferences(generationId);
+    // The pointer switch committed: the activation has succeeded. Refresh the
+    // visible state and tell the other tabs first; preference reconciliation
+    // and generation collection run afterwards, isolated: they may fail and be
+    // retried later and must never turn a committed activation into a failure.
+    const activated = await refresh();
     events.post({ type: 'activated', generationId });
-    await collectGenerations();
-    return refresh();
+    await runPostCommitMaintenance(generationId);
+    return activated;
   }
 
   async function stageAndActivateUnlocked(
@@ -634,6 +705,10 @@ export function createLocalDatasetStore(
   };
 
   async function reconcilePreferences(generationId: string): Promise<void> {
+    await options.onMaintenance?.({
+      kind: 'preference-reconciliation',
+      generationId,
+    });
     const db = requireDatabase();
     const favorites = await db.favorites.toArray();
     for (const favorite of favorites) {
@@ -655,6 +730,65 @@ export function createLocalDatasetStore(
         await db.favorites.put({ ...favorite, status: 'removed' });
       }
     }
+    // Record what was reconciled, so a run interrupted by a crash is picked up
+    // again on the next open.
+    await db.meta.update('dataset-state', {
+      reconciledGenerationId: generationId,
+    });
+  }
+
+  function maintenanceKey(task: MaintenanceTask): string {
+    return task.kind === 'generation-gc'
+      ? 'generation-gc'
+      : `preference-reconciliation#${task.generationId}`;
+  }
+
+  /**
+   * Run one maintenance task in isolation. A failure is reported as a
+   * diagnostic and retried later; it never fails the update that scheduled it.
+   */
+  async function runMaintenanceTask(
+    task: MaintenanceTask,
+    work: () => Promise<void>,
+  ): Promise<void> {
+    try {
+      await work();
+      pendingMaintenance.delete(maintenanceKey(task));
+    } catch (error) {
+      pendingMaintenance.set(maintenanceKey(task), { task, work });
+      lastMaintenanceFailure = {
+        task,
+        occurredAt: new Date(now()).toISOString(),
+        reason: isQuotaError(error) ? 'storage-quota' : 'error',
+        message: error instanceof Error ? error.message : String(error),
+      };
+      for (const listener of [...maintenanceListeners]) listener();
+    }
+  }
+
+  /** Maintenance of a committed pointer switch: reconciliation, then GC. */
+  async function runPostCommitMaintenance(generationId: string): Promise<void> {
+    await runMaintenanceTask(
+      { kind: 'preference-reconciliation', generationId },
+      () => reconcilePreferences(generationId),
+    );
+    await runMaintenanceTask({ kind: 'generation-gc' }, async () => {
+      await collectGenerations();
+    });
+  }
+
+  /** Reconcile preferences the active generation never was reconciled for. */
+  async function catchUpReconciliation(): Promise<void> {
+    const db = database;
+    if (!db) return;
+    const meta = await db.meta.get('dataset-state');
+    const activeGenerationId = meta?.activeGenerationId ?? null;
+    if (!activeGenerationId) return;
+    if (meta?.reconciledGenerationId === activeGenerationId) return;
+    await runMaintenanceTask(
+      { kind: 'preference-reconciliation', generationId: activeGenerationId },
+      () => reconcilePreferences(activeGenerationId),
+    );
   }
 
   const preferences: LocalPreferencesStore = {
@@ -826,6 +960,7 @@ export function createLocalDatasetStore(
   }
 
   async function collectGenerations(): Promise<readonly string[]> {
+    await options.onMaintenance?.({ kind: 'generation-gc' });
     await open();
     const db = database;
     if (!db) return [];
@@ -892,15 +1027,36 @@ export function createLocalDatasetStore(
         );
       });
       if (!outcome.ok || !outcome.value) return false;
-      await reconcilePreferences(outcome.value);
-      events.post({ type: 'activated', generationId: outcome.value });
+      const rolledBackTo = outcome.value;
       await refresh();
+      events.post({ type: 'activated', generationId: rolledBackTo });
+      await runMaintenanceTask(
+        { kind: 'preference-reconciliation', generationId: rolledBackTo },
+        () => reconcilePreferences(rolledBackTo),
+      );
       return true;
     },
     collect: collectGenerations,
   };
 
-  const store: LocalCatalogueStore = {
+  const maintenance: MaintenanceDiagnostics = {
+    getStatus: () => ({
+      pending: pendingMaintenance.size > 0,
+      lastFailure: lastMaintenanceFailure,
+    }),
+    subscribe: (listener) => {
+      maintenanceListeners.add(listener);
+      return () => {
+        maintenanceListeners.delete(listener);
+      };
+    },
+    retry: async () => {
+      for (const entry of [...pendingMaintenance.values()])
+        await runMaintenanceTask(entry.task, entry.work);
+    },
+  };
+
+  const store: LocalDatasetStore = {
     getState: () => state,
     subscribe: (listener) => {
       listeners.add(listener);
@@ -920,6 +1076,7 @@ export function createLocalDatasetStore(
     },
     updates,
     preferences,
+    maintenance,
     ...generations,
   };
   void open();
