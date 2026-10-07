@@ -1,0 +1,8 @@
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+(node:35444) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Checking formatting...
+All matched files use Prettier code style!

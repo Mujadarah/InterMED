@@ -1,0 +1,20 @@
+
+> intermed@0.0.0 build
+> npm run build --workspace @intermed/web
+
+
+> @intermed/web@0.0.0 build
+> vite build
+
+(node:41012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+vite v8.3.2 building client environment for production...
+transforming...
+[32m✓[0m 140 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[0m[32mindex.html                 [0m[1;2m  1.58 kB[0m[2m │ gzip:   0.64 kB[0m
+[2mdist/[0m[2massets/[0m[35mindex-kdzZSpSC.css  [0m[1;2m  2.80 kB[0m[2m │ gzip:   1.08 kB[0m
+[2mdist/[0m[2massets/[0m[36mindex-C8eOc21W.js   [0m[1;2m368.42 kB[0m[2m │ gzip: 113.81 kB[0m
+
+✓ built in 401ms
