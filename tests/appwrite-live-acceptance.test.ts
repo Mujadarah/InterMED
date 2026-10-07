@@ -223,6 +223,31 @@ describe('anonymous Appwrite probe', () => {
         options?: ProbeFetchOptions,
       ): Promise<ProbeFetchResponse> => {
         calls.push({ url, options });
+        const parsedBody =
+          typeof options?.body === 'string'
+            ? (JSON.parse(options.body) as Record<string, unknown>)
+            : undefined;
+        const isRowPost =
+          options?.method === 'POST' && url.includes('/tables/');
+        const isRowPatch =
+          options?.method === 'PATCH' && url.includes('/tables/');
+        const malformedRowRequest =
+          (isRowPost &&
+            (!parsedBody?.rowId ||
+              typeof parsedBody.data !== 'object' ||
+              parsedBody.data === null)) ||
+          (isRowPatch &&
+            (typeof parsedBody?.data !== 'object' || parsedBody.data === null));
+        const isFilePost =
+          options?.method === 'POST' && url.includes('/buckets/');
+        const submittedFileId =
+          options?.body instanceof FormData
+            ? options.body.get('fileId')
+            : undefined;
+        const malformedFileRequest =
+          isFilePost &&
+          typeof submittedFileId === 'string' &&
+          submittedFileId.startsWith('guard-');
         const privateRequest =
           options?.method === 'POST' ||
           options?.method === 'PATCH' ||
@@ -232,11 +257,21 @@ describe('anonymous Appwrite probe', () => {
           url.includes('quarantine') ||
           url.includes('import-run-logs');
         return {
-          ok: privateRequest ? false : true,
-          status: privateRequest ? 403 : 200,
+          ok: !privateRequest,
+          status: !privateRequest
+            ? 200
+            : malformedRowRequest || malformedFileRequest
+              ? 400
+              : 403,
           headers: { 'content-type': 'application/json' },
-          text: async () => '{}',
-          json: async () => ({ rows: [] }),
+          text: async () =>
+            malformedRowRequest || malformedFileRequest
+              ? JSON.stringify({ type: 'invalid_request' })
+              : '{}',
+          json: async () =>
+            malformedRowRequest || malformedFileRequest
+              ? { type: 'invalid_request' }
+              : { rows: [] },
         };
       },
       guard: {
@@ -260,6 +295,7 @@ describe('anonymous Appwrite probe', () => {
     expect(
       calls.every(
         ({ options }) =>
+          options?.credentials === 'omit' &&
           !JSON.stringify(options).match(/key|jwt|cookie|token/i),
       ),
     ).toBe(true);
@@ -281,6 +317,34 @@ describe('anonymous Appwrite probe', () => {
           url.endsWith('/buckets/published-datasets/files') &&
           options?.method === 'POST',
       ),
+    ).toBe(true);
+    expect(
+      calls
+        .filter(
+          ({ url, options }) =>
+            url.includes('/tables/') && options?.method === 'POST',
+        )
+        .every(({ options }) => {
+          const body = JSON.parse(String(options?.body)) as {
+            rowId?: string;
+            data?: Record<string, unknown>;
+          };
+          return (
+            body.rowId?.startsWith('anon-create-') && body.data !== undefined
+          );
+        }),
+    ).toBe(true);
+    expect(
+      calls
+        .filter(
+          ({ url, options }) =>
+            url.includes('/buckets/') && options?.method === 'POST',
+        )
+        .every(
+          ({ options }) =>
+            options?.body instanceof FormData &&
+            String(options.body.get('fileId')).startsWith('anon-create-'),
+        ),
     ).toBe(true);
     expect(new Set(result.checks.map((check) => check.name)).size).toBe(39);
     expect(
@@ -308,6 +372,33 @@ describe('anonymous Appwrite probe', () => {
     });
 
     expect(result.failed).toBeGreaterThan(0);
+  });
+
+  it('records Appwrite response type for an HTTP denial', async () => {
+    const result = await runAnonymousProbe({
+      ...project,
+      fetchLike: async () => ({
+        ok: false,
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+        text: async () =>
+          JSON.stringify({
+            type: 'user_unauthorized',
+            message: 'This action requires authentication.',
+          }),
+        json: async () => ({
+          type: 'user_unauthorized',
+          message: 'This action requires authentication.',
+        }),
+      }),
+      guard: {
+        rows: [{ tableId: 'import-runs', rowId: 'guard-run' }],
+        files: [],
+      },
+    });
+
+    expect(result.checks[0]?.observed.errorType).toBe('user_unauthorized');
+    expect(result.log).toContain('user_unauthorized');
   });
 
   it('rejects production project and endpoint targets before fetching', async () => {

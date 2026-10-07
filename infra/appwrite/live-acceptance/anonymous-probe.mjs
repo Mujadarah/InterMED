@@ -30,6 +30,7 @@ async function request(fetchLike, target, options = {}) {
   try {
     const response = await fetchLike(target, {
       ...fetchOptions,
+      credentials: 'omit',
       headers: {
         'X-Appwrite-Project': _projectId,
         ...(fetchOptions.body && !(fetchOptions.body instanceof FormData)
@@ -37,12 +38,23 @@ async function request(fetchLike, target, options = {}) {
           : {}),
       },
     });
-    const body = safeBody(await response.text());
+    const rawBody = await response.text();
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(rawBody);
+    } catch {
+      parsedBody = null;
+    }
     return {
       status: response.status,
-      body,
+      body: safeBody(rawBody),
       contentType: responseHeader(response, 'content-type'),
-      errorType: response.status >= 400 ? 'http-error' : null,
+      errorType:
+        response.status >= 400
+          ? typeof parsedBody?.type === 'string'
+            ? parsedBody.type
+            : 'http-error'
+          : null,
     };
   } catch (error) {
     return {
@@ -54,7 +66,8 @@ async function request(fetchLike, target, options = {}) {
   }
 }
 
-function rowPayload(tableId) {
+function rowPayload(tableId, preparedRow) {
+  if (preparedRow?.data) return preparedRow.data;
   if (tableId === 'dataset-versions')
     return {
       dataset: 'anonymous-guard',
@@ -145,13 +158,22 @@ export async function runAnonymousProbe(options) {
       `row-POST-${row.tableId}`,
       url(endpoint, rowPath(row.tableId)),
       [401, 403],
-      { method: 'POST', body: JSON.stringify(rowPayload(row.tableId)) },
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          rowId: `anon-create-${row.tableId}`,
+          data: rowPayload(row.tableId, row),
+        }),
+      },
     );
     await check(
       `row-PATCH-${row.tableId}`,
       url(endpoint, rowPath(row.tableId, row.rowId)),
       [401, 403],
-      { method: 'PATCH', body: JSON.stringify(rowPayload(row.tableId)) },
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ data: rowPayload(row.tableId, row) }),
+      },
     );
     await check(
       `row-DELETE-${row.tableId}`,
@@ -185,7 +207,12 @@ export async function runAnonymousProbe(options) {
       `file-POST-${file.bucketId}`,
       url(endpoint, filePath(file.bucketId)),
       [401, 403],
-      { method: 'POST', body: fileFormData(file.fileId) },
+      {
+        method: 'POST',
+        body: fileFormData(
+          `anon-create-${file.bucketId.replaceAll('-', '').slice(0, 20)}`,
+        ),
+      },
     );
     await check(
       `file-PATCH-${file.bucketId}`,
