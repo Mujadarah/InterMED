@@ -20,6 +20,7 @@ import type {
   RecentSearchEntry,
 } from '@intermed/domain';
 import type { Table, Transaction } from 'dexie';
+import Dexie from 'dexie';
 import { createDefaultEventBus, type DatasetEventBus } from './events';
 import { foldForIndex } from './fold';
 import { isQuotaError, isVersionError, readOnDiskSchema } from './introspect';
@@ -172,6 +173,13 @@ function scopedCatalogueTable(
   name: CatalogueStoreName,
 ): AnyCatalogueTable {
   return transaction.table(name) as unknown as AnyCatalogueTable;
+}
+
+/** Every catalogue table, for transactions that span a whole generation. */
+function catalogueTables(
+  database: LocalDatasetDatabase,
+): readonly AnyCatalogueTable[] {
+  return CATALOGUE_STORE_NAMES.map((name) => catalogueTable(database, name));
 }
 
 function toLocalGeneration(record: GenerationRecord): LocalDatasetGeneration {
@@ -448,6 +456,19 @@ export function createLocalDatasetStore(
         .equals(generationId)
         .delete();
     await db.generations.delete(generationId);
+  }
+
+  /** The same deletion, on one already open transaction. */
+  async function deleteGenerationRowsIn(
+    transaction: Transaction,
+    generationId: string,
+  ): Promise<void> {
+    for (const name of CATALOGUE_STORE_NAMES)
+      await scopedCatalogueTable(transaction, name)
+        .where('generationId')
+        .equals(generationId)
+        .delete();
+    await transaction.table('generations').delete(generationId);
   }
 
   async function cleanupPartial(generationId: string): Promise<void> {
@@ -1061,6 +1082,26 @@ export function createLocalDatasetStore(
     };
   }
 
+  async function pinnedReader(
+    record: GenerationRecord,
+  ): Promise<GenerationReader> {
+    // Pin before anything else: a generation someone is reading keeps its
+    // cross-tab retention window, so the pin also refreshes the retention
+    // anchor (Greptile review fix G2). Pin bookkeeping never joins another
+    // in-flight transaction: it must run whatever else is writing.
+    const reader = createReader(record);
+    await Dexie.ignoreTransaction(() =>
+      requireDatabase()
+        .generations.update(record.generationId, {
+          lastUsedAt: new Date(now()).toISOString(),
+        })
+        .catch(() => {
+          /* Diagnostics only; the pin itself already protects the generation. */
+        }),
+    );
+    return reader;
+  }
+
   async function collectGenerations(): Promise<readonly string[]> {
     await options.onMaintenance?.({ kind: 'generation-gc' });
     await open();
@@ -1072,39 +1113,76 @@ export function createLocalDatasetStore(
     if (meta?.previousGenerationId) keep.add(meta.previousGenerationId);
     for (const [generationId, count] of pins)
       if (count > 0) keep.add(generationId);
-    const removed: string[] = [];
+    const candidates: GenerationRecord[] = [];
     for (const record of await db.generations.toArray()) {
       if (keep.has(record.generationId)) continue;
       const abandonedStaging =
         record.status === 'staging' &&
         now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS;
-      // Retention is measured from the last activation (or rollback), never
-      // from the original staging time: a re-activated generation restarts the
-      // cross-tab window.
+      // Retention is measured from the last activation (or rollback, or pin),
+      // never from the original staging time: a re-activated generation
+      // restarts the cross-tab window.
       const retainedAt = record.lastUsedAt ?? record.readyAt;
       const expiredReady =
         record.status === 'ready' &&
         retainedAt !== null &&
         now() - Date.parse(retainedAt) >= retainReadyForMs;
-      if (!abandonedStaging && !expiredReady) continue;
-      await deleteGenerationRows(record.generationId);
-      removed.push(record.generationId);
+      if (abandonedStaging || expiredReady) candidates.push(record);
+    }
+    const removed: string[] = [];
+    for (const record of candidates) {
+      // The decision is taken again inside the deleting transaction: a pointer
+      // switch or a pin that happened after the snapshot protects the
+      // generation it targets (Greptile review fix G2).
+      const deleted = await db.transaction(
+        'rw',
+        [db.generations, db.meta, ...catalogueTables(db)],
+        async (transaction) => {
+          const current = await transaction.meta.get('dataset-state');
+          if (current?.activeGenerationId === record.generationId) return false;
+          if (current?.previousGenerationId === record.generationId)
+            return false;
+          if ((pins.get(record.generationId) ?? 0) > 0) return false;
+          const staged = await transaction.generations.get(record.generationId);
+          if (!staged) return false;
+          await deleteGenerationRowsIn(transaction, record.generationId);
+          return true;
+        },
+      );
+      if (deleted) removed.push(record.generationId);
     }
     return removed;
+  }
+
+  /**
+   * Run collection under the writer lease. It is refused - nothing is
+   * collected - while another tab stages or activates: collection never
+   * deletes underneath a writer.
+   */
+  async function collectUnderLock(): Promise<readonly string[]> {
+    await open();
+    const db = database;
+    if (!db || !writerLock) return [];
+    const outcome = await writerLock.withExclusiveUpdate(async () =>
+      collectGenerations(),
+    );
+    return outcome.ok ? outcome.value : [];
   }
 
   const generations = {
     openReader: async () => {
       await open();
       const record = await currentGenerationRecord();
-      return record ? createReader(record) : null;
+      return record ? pinnedReader(record) : null;
     },
     openPinnedReader: async (generationId: string) => {
       await open();
       const db = database;
       if (!db) return null;
-      const record = await db.generations.get(generationId);
-      return record && record.status === 'ready' ? createReader(record) : null;
+      const record = await Dexie.ignoreTransaction(() =>
+        db.generations.get(generationId),
+      );
+      return record && record.status === 'ready' ? pinnedReader(record) : null;
     },
     rollback: async () => {
       await open();
@@ -1148,7 +1226,7 @@ export function createLocalDatasetStore(
       );
       return true;
     },
-    collect: collectGenerations,
+    collect: collectUnderLock,
   };
 
   const maintenance: MaintenanceDiagnostics = {

@@ -1,0 +1,143 @@
+## G2 - collection under the writer lease, pins honoured at delete time, pin refreshes retention (RED against 519c113)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 1239ms
+   × refuses collection while another tab is staging instead of deleting under it 13ms
+   × honours a pin taken while collection is running 1037ms
+   × restarts a generation retention window when a reader pins it 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "dvsource.syntheticsynthetic-alpha",
++ ]
+
+ ❯ packages/local-store/src/readers.test.ts:169:33
+    167|   // The staging run is long enough to look abandoned to a stale snaps…
+    168|   clock.tick(STALE_STAGING_MS + 1_000);
+    169|   expect(await other.collect()).toEqual([]);
+       |                                 ^
+    170|
+    171|   release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:207:46
+    205|   armed = true;
+    206|   const collecting = store.collect();
+    207|   await vi.waitFor(() => expect(pinning).not.toBeNull());
+       |                                              ^
+    208|   const pinned = (await pinning)!;
+    209|   expect(pinned).not.toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts a generation retention window when a reader pins it
+AssertionError: expected null not to be null
+ ❯ packages/local-store/src/readers.test.ts:230:22
+    228|   // Another tab reads alpha: its pin extends this tab's retention win…
+    229|   const pinned = (await tabB.openPinnedReader(alpha.generationId))!;
+    230|   expect(pinned).not.toBeNull();
+       |                      ^
+    231|   pinned.release();
+    232|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 7 passed (10)
+   Start at  16:53:57
+   Duration  1.49s (transform 86ms, setup 0ms, import 142ms, tests 1.24s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G2 - same three tests with the setups pinned down (RED against 519c113)
+
+$ npx vitest run packages/local-store/src/readers.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/readers.test.ts (10 tests | 3 failed) 277ms
+   × refuses collection while another tab is staging instead of deleting under it 15ms
+   × honours a pin taken while collection is running 78ms
+   × restarts a generation retention window when a reader pins it 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses collection while another tab is staging instead of deleting under it
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "dvsource.syntheticsynthetic-alpha",
++ ]
+
+ ❯ packages/local-store/src/readers.test.ts:169:33
+    167|   // The staging run is long enough to look abandoned to a stale snaps…
+    168|   clock.tick(STALE_STAGING_MS + 1_000);
+    169|   expect(await other.collect()).toEqual([]);
+       |                                 ^
+    170|
+    171|   release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > honours a pin taken while collection is running
+AssertionError: expected [ …(2) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    "dvsource.syntheticsynthetic-alpha",
++   "dvsource.syntheticsynthetic-beta",
+  ]
+
+ ❯ packages/local-store/src/readers.test.ts:215:28
+    213|
+    214|   // Alpha is collected; beta was pinned after the snapshot and must s…
+    215|   expect(await collecting).toEqual([alpha.generationId]);
+       |                            ^
+    216|   expect((await store.openPinnedReader(beta.generationId))!).not.toBeN…
+    217|   pinned!.release();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > restarts a generation retention window when a reader pins it
+AssertionError: expected [ Array(1) ] to not include 'dv\u001fsource.synthetic\u001fsynthet…'
+ ❯ packages/local-store/src/readers.test.ts:239:36
+    237|
+    238|   clock.tick(60 * 60 * 1000);
+    239|   expect(await tabA.collect()).not.toContain(alpha.generationId);
+       |                                    ^
+    240|   clock.tick(RETAIN_READY_FOR_MS);
+    241|   expect(await tabA.collect()).toContain(alpha.generationId);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 7 passed (10)
+   Start at  16:58:41
+   Duration  521ms (transform 86ms, setup 0ms, import 139ms, tests 277ms, environment 0ms)
+
+[exit code: 1]
+
