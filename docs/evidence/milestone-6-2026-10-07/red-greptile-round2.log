@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store/src/preferences.test.ts -t superseded reconciliation retry
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/preferences.test.ts (12 tests | 1 failed | 11 skipped) 54ms
    × drops a superseded reconciliation retry instead of overwriting newer favorites 53ms
@@ -46,7 +46,7 @@ AssertionError: expected { …(5) } to match object { status: 'available', …(1
 
 $ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 3ms
    × keeps a generation that becomes active while startup cleanup runs 3ms
@@ -79,7 +79,7 @@ ReferenceError: testClock is not defined
 
 $ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 38ms
    × keeps a generation that becomes active while startup cleanup runs 37ms
@@ -119,7 +119,7 @@ undefined
 
 $ npx vitest run packages/local-store/src/staging.test.ts -t declares only some counts
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (24 tests | 1 failed | 23 skipped) 42ms
    × installs a manifest that declares only some counts 41ms
@@ -166,7 +166,7 @@ AssertionError: expected { status: 'update-failed', …(2) } to match object { s
 
 $ npx vitest run packages/local-store/src/readers.test.ts -t incomplete previous generation
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/readers.test.ts (11 tests | 1 failed | 10 skipped) 54ms
    × refuses to roll back to an incomplete previous generation 53ms
@@ -202,4 +202,3 @@ true
    Duration  387ms (transform 128ms, setup 0ms, import 208ms, tests 54ms, environment 0ms)
 
 [exit code: 1]
-

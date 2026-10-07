@@ -345,6 +345,50 @@ Only Markdown is written after that captured `npm run check` run, and only
 `npm run format:check` reads Markdown: it is re-run afterwards (also recorded
 in the same log).
 
+### Greptile round 2
+
+Four findings after the module refactor; all four were valid and confirmed
+with a failing test first. Logs:
+[red-greptile-round2.log](evidence/milestone-6-2026-10-07/red-greptile-round2.log),
+[green-greptile-round2.log](evidence/milestone-6-2026-10-07/green-greptile-round2.log).
+
+|     | Finding                                                     | Commit    | Test                                                                                                   |
+| --- | ----------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| 1   | a superseded reconciliation retry overwrote newer favorites | `d3cae0a` | `preferences.test.ts` "drops a superseded reconciliation retry instead of overwriting newer favorites" |
+| 2   | startup cleanup could delete a just-activated generation    | `30d4ee9` | `staging.test.ts` "keeps a generation that becomes active while startup cleanup runs"                  |
+| 3   | partial manifest counts made valid datasets uninstallable   | `cbd804a` | `staging.test.ts` "installs a manifest that declares only some counts"                                 |
+| 4   | rollback accepted an incomplete previous generation         | `3a515e6` | `readers.test.ts` "refuses to roll back to an incomplete previous generation"                          |
+
+- **1** a reconciliation task now re-reads the active generation inside its own
+  transaction and does nothing when its target has been superseded: the newer
+  activation already reconciled, the queued task leaves the retry queue and no
+  stale `reconciledGenerationId` is written.
+- **2** the incomplete-staging scan still runs before the lease claim (so an
+  open never refuses a concurrent update), but every candidate is re-checked
+  inside the deleting transaction - still incomplete staging, not active, not
+  previous, not pinned - before its rows are removed. The test forces the
+  interleaving at the lease claim through an injected writer lock.
+- **3** one consistent rule everywhere: only the counts a record declares are
+  compared (missing means not asserted), while the stored completeness marker
+  is derived from the validated snapshot for every store. The domain contract
+  `packages/domain/src/published-dataset.ts` is unchanged; `checkManifest()`
+  and `checkBundle()` already compared only declared counts.
+- **4** `rollback()` verifies the previous generation's completeness inside
+  the switching transaction and returns the typed failure
+  `previous-incomplete` (new domain `RollbackResult`) without moving the
+  pointer, instead of pointing at rows that only read back as `evicted`.
+
+Verification, pinned Node `v24.21.0` / npm `11.19.0`, in
+[check-after-greptile-round2.log](evidence/milestone-6-2026-10-07/check-after-greptile-round2.log):
+`npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run test`
+(406 tests in 31 files), `npm run check:boundaries` (66 source files),
+`npm run build`, `npm audit` (0 vulnerabilities), `npm run scan:dist` and
+`npm run test:browser` (150 Playwright tests in 3 projects) - every gate exit
+0 through the `npm run check` chain. The first captured run failed on the
+path-hygiene test because the new logs still carried machine paths; they were
+redacted to the placeholders above and the full run was repeated green. Only
+Markdown is written afterwards, and `npm run format:check` is re-run for it.
+
 ## Verification results
 
 Local Windows, pinned Node `v24.21.0` with npm `11.19.0` on `PATH`. `dexie@4.4.6` (dependency of `@intermed/local-store`) and `fake-indexeddb@6.2.5` (root dev dependency) were added at exact versions by the previous worker's manifest/lockfile edits and were verified installed before use; no other dependency changed. Logs below were captured with Node (UTF-8), including the exact command and its exit code.

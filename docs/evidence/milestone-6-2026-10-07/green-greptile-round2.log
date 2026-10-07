@@ -2,7 +2,7 @@
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -18,7 +18,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed) 360ms
    × keeps a generation that becomes active while startup cleanup runs 12ms
@@ -58,7 +58,7 @@ undefined
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -74,7 +74,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -90,7 +90,7 @@ $ npx vitest run packages/local-store
 
 $ npx vitest run packages/local-store
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+ RUN  v4.1.11 <worktree>
 
 
  Test Files  5 passed (5)
@@ -99,4 +99,3 @@ $ npx vitest run packages/local-store
    Duration  668ms (transform 358ms, setup 0ms, import 746ms, tests 1.41s, environment 0ms)
 
 [exit code: 0]
-
