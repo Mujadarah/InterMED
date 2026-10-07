@@ -133,3 +133,401 @@ $ npx vitest run packages/local-store/src/readers.test.ts
 
 [exit code: 0]
 
+---
+
+## G3 - staging completion marker and count verification before activation (GREEN)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (19 tests | 14 failed) 244ms
+   × stages and activates a bundle, then reads the same generation after a restart 36ms
+   × keeps staged rows invisible until one atomic pointer switch 19ms
+   × is idempotent when the same generation is staged twice 20ms
+   × rejects a corrupted bundle, keeps the previous generation and stages nothing 13ms
+   × rejects a bundle that fails referential integrity 15ms
+   × keeps the old active generation when staging is interrupted 16ms
+   × keeps the old active generation on a quota error and reports storage-quota 18ms
+   × downloads through the injected published source and reports size mismatches 11ms
+   × reports update-available after a background check and fails without touching data 8ms
+   × keeps a committed activation successful when preference reconciliation fails 16ms
+   × keeps a committed activation successful when post-commit collection fails 15ms
+   × finishes a preference reconciliation that a crash interrupted 14ms
+   × refuses to activate a generation whose staging never completed 10ms
+   × re-verifies the stored row counts before switching the pointer 10ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > stages and activates a bundle, then reads the same generation after a restart
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "dataset": "synthetic-medication-catalogue",
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-     "synthetic": true,
+-     "version": "synthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:48:28
+     46|   const alpha = bundle('alpha');
+     47|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+     48|   expect(store.getState()).toMatchObject({
+       |                            ^
+     49|     status: 'ready',
+     50|     generation: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps staged rows invisible until one atomic pointer switch
+AssertionError: expected { status: 'never-downloaded' } to match object { status: 'ready', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "status": "never-downloaded",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:78:28
+     76|
+     77|   await store.updates.stageBundle(beta.manifest, beta.text);
+     78|   expect(store.getState()).toMatchObject({
+       |                            ^
+     79|     status: 'ready',
+     80|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > is idempotent when the same generation is staged twice
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:102:28
+    100|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+    101|   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+    102|   expect(store.getState()).toMatchObject({
+       |                            ^
+    103|     status: 'ready',
+    104|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a corrupted bundle, keeps the previous generation and stages nothing
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "checksum-mismatch",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:118:28
+    116|
+    117|   await store.updates.stageBundle(beta.manifest, corrupted);
+    118|   expect(store.getState()).toMatchObject({
+       |                            ^
+    119|     status: 'update-failed',
+    120|     reason: 'checksum-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle that fails referential integrity
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "integrity-failed",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:135:28
+    133|
+    134|   await store.updates.stageBundle(broken.manifest, broken.text);
+    135|   expect(store.getState()).toMatchObject({
+       |                            ^
+    136|     status: 'update-failed',
+    137|     reason: 'integrity-failed',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation when staging is interrupted
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:232:28
+    230|
+    231|   await store.updates.stageBundle(beta.manifest, beta.text);
+    232|   expect(store.getState()).toMatchObject({
+       |                            ^
+    233|     status: 'update-failed',
+    234|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation on a quota error and reports storage-quota
+AssertionError: expected { status: 'storage-quota', …(1) } to match object { status: 'storage-quota', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "status": "storage-quota",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:260:28
+    258|
+    259|   await store.updates.stageBundle(beta.manifest, beta.text);
+    260|   expect(store.getState()).toMatchObject({
+       |                            ^
+    261|     status: 'storage-quota',
+    262|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > downloads through the injected published source and reports size mismatches
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:274:28
+    272|   const store = testStore(healthy);
+    273|   await store.updates.downloadAndActivate();
+    274|   expect(store.getState()).toMatchObject({
+       |                            ^
+    275|     status: 'ready',
+    276|     generation: { generationId: alpha.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > reports update-available after a background check and fails without touching data
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready' }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "ready",
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:296:28
+    294|   const store = testStore(fakePublishedSource(alpha));
+    295|   await store.updates.downloadAndActivate();
+    296|   expect(store.getState()).toMatchObject({ status: 'ready' });
+       |                            ^
+    297|
+    298|   await store.updates.checkForUpdate();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when preference reconciliation fails
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:367:17
+    365|
+    366|   const state = await store.updates.stageAndActivate(beta.manifest, be…
+    367|   expect(state).toMatchObject({
+       |                 ^
+    368|     status: 'ready',
+    369|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a committed activation successful when post-commit collection fails
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
+-   },
+-   "status": "ready",
++   "generation": null,
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:418:17
+    416|
+    417|   const state = await store.updates.stageAndActivate(beta.manifest, be…
+    418|   expect(state).toMatchObject({
+       |                 ^
+    419|     status: 'ready',
+    420|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > finishes a preference reconciliation that a crash interrupted
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/local-store/src/staging.test.ts:450:59
+    448|   });
+    449|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    450|   expect(await store.preferences.listProductTombstones()).toHaveLength…
+       |                                                           ^
+    451|
+    452|   // Rewind to the state a crash before reconciliation leaves behind: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > refuses to activate a generation whose staging never completed
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
++   "generation": null,
+    "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:486:28
+    484|
+    485|   await store.updates.activate('planted-staging');
+    486|   expect(store.getState()).toMatchObject({
+       |                            ^
+    487|     status: 'update-failed',
+    488|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > re-verifies the stored row counts before switching the pointer
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "count-mismatch",
++   "generation": null,
++   "reason": "interrupted",
+    "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:506:28
+    504|
+    505|   await store.updates.activate('short-generation');
+    506|   expect(store.getState()).toMatchObject({
+       |                            ^
+    507|     status: 'update-failed',
+    508|     reason: 'count-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed | 5 passed (19)
+   Start at  17:36:14
+   Duration  497ms (transform 91ms, setup 0ms, import 147ms, tests 244ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## G3 - staging completion marker and count verification before activation (GREEN, catalogue tables added to the verifying transactions)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  5 passed (5)
+      Tests  54 passed (54)
+   Start at  17:39:21
+   Duration  688ms (transform 353ms, setup 0ms, import 778ms, tests 1.15s, environment 0ms)
+
+[exit code: 0]
+

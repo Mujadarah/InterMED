@@ -101,7 +101,15 @@ export interface GenerationRecord {
   readonly coverage: string;
   readonly recordCounts: Readonly<Record<string, number>>;
   readonly synthetic: boolean;
-  readonly status: 'staging' | 'ready';
+  /**
+   * Lifecycle of one local generation row.
+   *
+   * `staging` records are incomplete: their catalogue rows may be half
+   * written and they are never readable or activatable. `staged` records are
+   * complete and verified against their published counts, ready for
+   * activation; `ready` records have been active at least once.
+   */
+  readonly status: 'staging' | 'staged' | 'ready';
   readonly stagedAt: string;
   /** First time this generation became readable after staging. Never moves. */
   readonly readyAt: string | null;

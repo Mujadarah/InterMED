@@ -36,6 +36,7 @@ import {
   LOCAL_DATASET_DB_NAME,
   LOCAL_DATASET_SCHEMA_GENERATION,
   LocalDatasetDatabase,
+  RECORD_COUNT_COLLECTIONS,
   type CatalogueRows,
   type CatalogueStoreName,
   type DatasetStateRecord,
@@ -154,7 +155,8 @@ type StageOutcome =
   | { readonly ok: false; readonly state: DatasetUpdateState };
 
 /** Outcome of one guarded staging write batch. */
-type StageWrite = 'written' | 'lease-lost' | 'cleared' | 'cleared-quiet';
+type StageWrite =
+  'written' | 'lease-lost' | 'cleared' | 'cleared-quiet' | 'count-mismatch';
 
 type AnyCatalogueTable = Table<{ generationId: string; id: string }, RowKey>;
 
@@ -395,11 +397,16 @@ export function createLocalDatasetStore(
       // at a safe boundary by re-reading the persisted state.
       void refresh();
     });
-    const opened = await refresh();
+    // A crash can leave a half-written staging generation; the next open that
+    // can take the writer lease removes it before anything else.
+    await runMaintenanceTask(
+      { kind: 'generation-gc' },
+      cleanupIncompleteStaging,
+    );
     // A crash may have interrupted the post-commit reconciliation of the
     // active generation: the marker in meta names the one it finished for.
     await catchUpReconciliation();
-    return opened;
+    return refresh();
   }
 
   const open = (): Promise<DatasetUpdateState> => (opening ??= openDatabase());
@@ -489,9 +496,30 @@ export function createLocalDatasetStore(
   ): Promise<DatasetUpdateState> {
     if (outcome === 'cleared-quiet') return refresh();
     if (outcome === 'lease-lost') return fail('writer-busy');
+    if (outcome === 'count-mismatch') return fail('count-mismatch');
     // The staged generation disappeared mid-write: the local data was cleared
     // (or the abandoned staging record was collected) underneath this run.
     return fail('local-data-cleared');
+  }
+
+  /**
+   * Whether the stored rows of one generation match the counts its record
+   * promises. Used to mark staging complete and to re-verify a generation
+   * before it becomes active (Greptile review fixes G3 and G7).
+   */
+  async function countsMatch(
+    record: GenerationRecord,
+    table: (name: CatalogueStoreName) => AnyCatalogueTable,
+  ): Promise<boolean> {
+    for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTIONS)) {
+      const expected = record.recordCounts[key] ?? 0;
+      const actual = await table(name)
+        .where('generationId')
+        .equals(record.generationId)
+        .count();
+      if (actual !== expected) return false;
+    }
+    return true;
   }
 
   async function stageUnlocked(
@@ -541,9 +569,7 @@ export function createLocalDatasetStore(
       // over rows that may belong to the new owner (Greptile G1).
       const created = await db.transaction(
         'rw',
-        db.writerLock,
-        db.generations,
-        db.meta,
+        [db.writerLock, db.generations, db.meta],
         async (transaction): Promise<StageWrite> => {
           // The clear epoch is checked with the first write: an update whose
           // clear completed while it was downloading stops here and quietly
@@ -562,9 +588,7 @@ export function createLocalDatasetStore(
         const items = rows[name];
         const written = await db.transaction(
           'rw',
-          db.writerLock,
-          db.generations,
-          catalogueTable(db, name),
+          [db.writerLock, db.generations, catalogueTable(db, name)],
           async (transaction): Promise<StageWrite> => {
             const staged = await transaction.generations.get(generationId);
             if (!staged) return 'cleared';
@@ -585,6 +609,31 @@ export function createLocalDatasetStore(
           count: items.length,
         });
       }
+      // Completion marker: only after every batch is written and the stored
+      // rows match the published counts does the generation become `staged`
+      // and thus activatable (Greptile review fix G3).
+      const completed = await db.transaction(
+        'rw',
+        [db.writerLock, db.generations, ...catalogueTables(db)],
+        async (transaction): Promise<StageWrite> => {
+          if (!(await lease.revalidate(transaction.writerLock)))
+            return 'lease-lost';
+          const staged = await transaction.generations.get(generationId);
+          if (!staged) return 'cleared';
+          if (
+            !(await countsMatch(record, (name) =>
+              scopedCatalogueTable(transaction, name),
+            ))
+          )
+            return 'count-mismatch';
+          await transaction
+            .table('generations')
+            .update(generationId, { status: 'staged' });
+          return 'written';
+        },
+      );
+      if (completed !== 'written')
+        return { ok: false, state: await abortStaging(completed) };
     } catch (error) {
       await cleanupPartial(generationId);
       if (isQuotaError(error)) {
@@ -621,9 +670,7 @@ export function createLocalDatasetStore(
       // happens inside it.
       await db.transaction(
         'rw',
-        db.generations,
-        db.meta,
-        db.writerLock,
+        [db.generations, db.meta, db.writerLock, ...catalogueTables(db)],
         async (transaction) => {
           if (!(await lease.revalidate(transaction.writerLock))) {
             abort = 'lease-lost';
@@ -639,6 +686,21 @@ export function createLocalDatasetStore(
           }
           const staged = await transaction.generations.get(generationId);
           if (!staged) throw new Error('The staged generation is missing');
+          // Only a complete, verified generation may become active: a crash
+          // mid-stage leaves `staging` rows that must never be pointed at
+          // (Greptile review fix G3).
+          if (staged.status === 'staging') {
+            abort = 'incomplete';
+            throw new Error('The staged generation is incomplete');
+          }
+          if (
+            !(await countsMatch(staged, (name) =>
+              scopedCatalogueTable(transaction, name),
+            ))
+          ) {
+            abort = 'count-mismatch';
+            throw new Error('The staged generation is missing rows');
+          }
           // Every pointer switch restarts the retention window of its
           // generation; `readyAt` keeps the first readable time.
           await transaction.generations.update(generationId, {
@@ -664,6 +726,7 @@ export function createLocalDatasetStore(
       // A writer that lost its lease leaves the database to its new owner: it
       // stops and runs no cleanup over rows that may no longer be its own.
       if (abort === 'lease-lost') return fail('writer-busy');
+      if (abort === 'count-mismatch') return fail('count-mismatch');
       await cleanupPartial(generationId);
       return fail('interrupted');
     }
@@ -1117,7 +1180,7 @@ export function createLocalDatasetStore(
     for (const record of await db.generations.toArray()) {
       if (keep.has(record.generationId)) continue;
       const abandonedStaging =
-        record.status === 'staging' &&
+        record.status !== 'ready' &&
         now() - Date.parse(record.stagedAt) >= STALE_STAGING_MS;
       // Retention is measured from the last activation (or rollback, or pin),
       // never from the original staging time: a re-activated generation
@@ -1167,6 +1230,22 @@ export function createLocalDatasetStore(
       collectGenerations(),
     );
     return outcome.ok ? outcome.value : [];
+  }
+
+  /**
+   * Remove staging generations whose writer crashed mid-write: they are never
+   * activatable and their rows serve nobody (Greptile review fix G3). Runs
+   * under the writer lease, so it never deletes underneath a live staging run.
+   */
+  async function cleanupIncompleteStaging(): Promise<void> {
+    const db = database;
+    if (!db || !writerLock) return;
+    await writerLock.withExclusiveUpdate(async () => {
+      for (const record of await db.generations.toArray())
+        if (record.status === 'staging')
+          await deleteGenerationRows(record.generationId);
+      return true;
+    });
   }
 
   const generations = {

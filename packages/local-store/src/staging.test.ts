@@ -1,6 +1,9 @@
 import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
+import { MEDICATION_CATALOGUE_SCHEMA_VERSION } from '@intermed/domain';
 import type { DatasetStoreEvent } from './events';
+import type { GenerationRecord } from './schema';
+import { SYNTHETIC_DATASET } from './synthetic-bundle';
 import {
   bundle,
   fakePublishedSource,
@@ -10,6 +13,32 @@ import {
   testStore,
   uniqueName,
 } from './test-support';
+
+/** A generation record planted as a crash or corruption would leave it. */
+function plantedRecord(
+  generationId: string,
+  fields: Partial<GenerationRecord> = {},
+): GenerationRecord {
+  return {
+    generationId,
+    dataset: SYNTHETIC_DATASET,
+    version: 'synthetic-planted',
+    schemaVersion: MEDICATION_CATALOGUE_SCHEMA_VERSION,
+    sourceIds: ['source.synthetic'],
+    publishedAt: null,
+    importedAt: '2026-06-01T00:00:00.000Z',
+    downloadedAt: '2026-06-01T00:00:00.000Z',
+    checksum: 'planted-by-test',
+    coverage: 'Synthetic development fixture (not for clinical use)',
+    recordCounts: { products: 2 },
+    synthetic: true,
+    status: 'staging',
+    stagedAt: '2026-06-01T00:00:00.000Z',
+    readyAt: null,
+    lastUsedAt: null,
+    ...fields,
+  };
+}
 
 it('stages and activates a bundle, then reads the same generation after a restart', async () => {
   const name = uniqueName();
@@ -442,4 +471,56 @@ it('finishes a preference reconciliation that a crash interrupted', async () => 
   expect((await reopened.preferences.listFavorites())[0]).toMatchObject({
     status: 'removed',
   });
+});
+
+it('refuses to activate a generation whose staging never completed', async () => {
+  const name = uniqueName();
+  const store = testStore({ name });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const rows = await testDatabase(name);
+  // A crash mid-stage leaves a record whose catalogue rows were never written.
+  await rows.generations.put(plantedRecord('planted-staging'));
+
+  await store.updates.activate('planted-staging');
+  expect(store.getState()).toMatchObject({
+    status: 'update-failed',
+    reason: 'interrupted',
+    generation: { generationId: alpha.generationId },
+  });
+  expect((await store.openReader())?.generationId).toBe(alpha.generationId);
+});
+
+it('re-verifies the stored row counts before switching the pointer', async () => {
+  const name = uniqueName();
+  const store = testStore({ name });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const rows = await testDatabase(name);
+  // Marked complete, but the rows it promises are not there.
+  await rows.generations.put(
+    plantedRecord('short-generation', { status: 'staged' }),
+  );
+
+  await store.updates.activate('short-generation');
+  expect(store.getState()).toMatchObject({
+    status: 'update-failed',
+    reason: 'count-mismatch',
+    generation: { generationId: alpha.generationId },
+  });
+  expect((await store.openReader())?.generationId).toBe(alpha.generationId);
+});
+
+it('removes an incomplete staging generation on the next open', async () => {
+  const name = uniqueName();
+  const seeded = testStore({ name });
+  await seeded.open();
+  const rows = await testDatabase(name);
+  await rows.generations.put(plantedRecord('crashed-staging'));
+  seeded.close();
+
+  const reopened = testStore({ name });
+  await reopened.open();
+  expect(await rows.generations.get('crashed-staging')).toBeUndefined();
+  expect(reopened.getState()).toMatchObject({ status: 'never-downloaded' });
 });

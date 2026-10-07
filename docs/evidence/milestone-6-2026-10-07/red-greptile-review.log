@@ -141,3 +141,118 @@ AssertionError: expected [ Array(1) ] to not include 'dv\u001fsource.synthetic\u
 
 [exit code: 1]
 
+---
+
+## G3 - staging completion marker and count verification before activation (RED against d50cdc7)
+
+$ npx vitest run packages/local-store/src/staging.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (19 tests | 3 failed) 222ms
+   × refuses to activate a generation whose staging never completed 11ms
+   × re-verifies the stored row counts before switching the pointer 8ms
+   × removes an incomplete staging generation on the next open 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > refuses to activate a generation whose staging never completed
+AssertionError: expected { status: 'evicted', …(1) } to match object { status: 'update-failed', …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "interrupted",
+-   "status": "update-failed",
++   "status": "evicted",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:486:28
+    484|
+    485|   await store.updates.activate('planted-staging');
+    486|   expect(store.getState()).toMatchObject({
+       |                            ^
+    487|     status: 'update-failed',
+    488|     reason: 'interrupted',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > re-verifies the stored row counts before switching the pointer
+AssertionError: expected { status: 'evicted', …(1) } to match object { status: 'update-failed', …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-alpha",
+-   },
+-   "reason": "count-mismatch",
+-   "status": "update-failed",
++   "status": "evicted",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:506:28
+    504|
+    505|   await store.updates.activate('short-generation');
+    506|   expect(store.getState()).toMatchObject({
+       |                            ^
+    507|     status: 'update-failed',
+    508|     reason: 'count-mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > removes an incomplete staging generation on the next open
+AssertionError: expected { …(16) } to be undefined
+
+- Expected:
+undefined
+
++ Received:
+{
+  "checksum": "planted-by-test",
+  "coverage": "Synthetic development fixture (not for clinical use)",
+  "dataset": "synthetic-medication-catalogue",
+  "downloadedAt": "2026-06-01T00:00:00.000Z",
+  "generationId": "crashed-staging",
+  "importedAt": "2026-06-01T00:00:00.000Z",
+  "lastUsedAt": null,
+  "publishedAt": null,
+  "readyAt": null,
+  "recordCounts": {
+    "products": 2,
+  },
+  "schemaVersion": "medication-catalogue-1",
+  "sourceIds": [
+    "source.synthetic",
+  ],
+  "stagedAt": "2026-06-01T00:00:00.000Z",
+  "status": "staging",
+  "synthetic": true,
+  "version": "synthetic-planted",
+}
+
+ ❯ packages/local-store/src/staging.test.ts:524:57
+    522|   const reopened = testStore({ name });
+    523|   await reopened.open();
+    524|   expect(await rows.generations.get('crashed-staging')).toBeUndefined(…
+       |                                                         ^
+    525|   expect(reopened.getState()).toMatchObject({ status: 'never-downloade…
+    526| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 16 passed (19)
+   Start at  17:34:56
+   Duration  460ms (transform 84ms, setup 0ms, import 136ms, tests 222ms, environment 0ms)
+
+[exit code: 1]
+
