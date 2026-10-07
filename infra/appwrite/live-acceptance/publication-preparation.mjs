@@ -159,7 +159,7 @@ export async function prepareSyntheticPublication(options) {
   const cloudVersionId = cloudId('version', canonicalVersionId);
   const fileId = cloudId('file', canonicalVersionId);
   const descriptorId = cloudId('bundle', canonicalVersionId);
-  const checksum = version.checksum;
+  const checksum = fileChecksum;
   const versionRow = {
     $id: cloudVersionId,
     $permissions: PUBLIC_READ,
@@ -168,7 +168,7 @@ export async function prepareSyntheticPublication(options) {
     sourceIds: version.sourceIds,
     upstreamVersion: fieldValue(version.upstreamVersion),
     upstreamPublishedAt: fieldValue(version.upstreamPublishedAt),
-    publishedAt: null,
+    publishedAt: now,
     importedAt: version.importedAt,
     checksum,
     schemaVersion: version.schemaVersion,
@@ -178,7 +178,7 @@ export async function prepareSyntheticPublication(options) {
     rightsApprovalReference: version.rightsApprovalReference,
     clinicalReviewReference: version.clinicalReviewReference,
     previousVersionId: fieldValue(version.previousVersionId),
-    status: 'staging',
+    status: 'published',
   };
   const descriptor = {
     $id: descriptorId,
@@ -299,6 +299,7 @@ export async function prepareSyntheticPublication(options) {
       status: versionRow.status,
       checksum,
       fileChecksum,
+      catalogueFingerprint: version.checksum,
     },
     rows: {
       version: versionRow,
@@ -326,6 +327,7 @@ export async function prepareSyntheticPublication(options) {
       status: versionRow.status,
       checksum,
       fileChecksum,
+      catalogueFingerprint: version.checksum,
     },
     versionRow,
     descriptor,

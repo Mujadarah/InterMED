@@ -35,10 +35,16 @@ describe('Appwrite live acceptance preparation', () => {
     });
 
     expect(result.generation.dataset).toBe('synthetic-medication-catalogue');
-    expect(result.generation.status).toBe('staging');
-    expect(result.generation.checksum).toBe(
+    expect(result.generation.status).toBe('published');
+    expect(result.generation.checksum).toBe(result.descriptor.checksum);
+    expect(result.generation.checksum).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(result.generation.fileChecksum).toBe(result.generation.checksum);
+    expect(result.generation.catalogueFingerprint).toBe(
       result.snapshot.datasetVersions[0]?.checksum,
     );
+    expect(result.versionRow.status).toBe('published');
+    expect(result.versionRow.publishedAt).toBe('2026-10-07T09:00:00.000Z');
+    expect(result.versionRow.checksum).toBe(result.descriptor.checksum);
     expect(result.files).toHaveLength(3);
     expect(result.preparationPath).toContain('preparation.json');
     expect(JSON.parse(await readFile(result.preparationPath, 'utf8'))).toEqual(
@@ -141,6 +147,66 @@ describe('Appwrite live acceptance preparation', () => {
     expect(result.guards.targets).not.toContain(result.versionRow.$id);
     expect(result.guards.targets).not.toContain(result.descriptor.$id);
     expect(result.guards.targets).not.toContain(result.descriptor.fileId);
+  });
+
+  it('reads the prepared published rows through the actual adapter contract', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const prepared = await prepareSyntheticPublication({
+      ...project,
+      outputDirectory,
+      now: '2026-10-07T09:00:00.000Z',
+    });
+    const result = await readPublishedMetadata({
+      ...project,
+      outputDirectory,
+      fetchLike: async (url: string): Promise<ProbeFetchResponse> => ({
+        ok: true,
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        text: async () => '{}',
+        json: async () =>
+          url.includes('dataset-versions')
+            ? { total: 1, rows: [prepared.versionRow] }
+            : { total: 1, rows: [prepared.descriptor] },
+      }),
+      dataset: prepared.versionRow.dataset,
+    });
+
+    expect(result.manifest.status).toBe('available');
+    expect(result.descriptor.status).toBe('available');
+    if (
+      result.manifest.status !== 'available' ||
+      result.descriptor.status !== 'available'
+    )
+      throw new Error('prepared publication was not readable');
+    if (!('value' in result.descriptor))
+      throw new Error('prepared descriptor had no value');
+    expect(result.manifest.value.publishedAt).toBe('2026-10-07T09:00:00.000Z');
+    expect(result.manifest.value.checksum).toBe(
+      result.descriptor.value.checksum,
+    );
+    expect(result.manifest.value.checksum).toMatch(/^sha256:[0-9a-f]{64}$/);
+  });
+
+  it('preserves manifest unavailability in the descriptor result', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const result = await readPublishedMetadata({
+      ...project,
+      outputDirectory,
+      fetchLike: async () => {
+        throw new TypeError('synthetic network failure');
+      },
+      dataset: 'synthetic-medication-catalogue',
+    });
+
+    expect(result.manifest).toEqual({
+      status: 'unavailable',
+      reason: 'transport-error',
+    });
+    expect(result.descriptor).toEqual({
+      status: 'unavailable',
+      reason: 'transport-error',
+    });
   });
 });
 

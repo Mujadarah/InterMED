@@ -40,7 +40,9 @@ export async function readPublishedMetadata(options) {
   const descriptor =
     manifest.status === 'available'
       ? await reader.getBundleDescriptor(manifest.value.datasetVersionId)
-      : { status: 'absent', reason: 'not-found' };
+      : manifest.status === 'unavailable'
+        ? manifest
+        : { status: 'absent', reason: 'not-found' };
   const payload = { projectId, endpoint, dataset, manifest, descriptor };
   await mkdir(outputDirectory, { recursive: true });
   const outputPath = join(outputDirectory, 'adapter-read.json');
