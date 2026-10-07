@@ -12,6 +12,7 @@ process.stdout.write(
       outputDirectory,
       commandPlan: result.commandPlan,
       generation: result.generation,
+      preparationPath: result.preparationPath,
     },
     null,
     2,

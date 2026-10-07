@@ -1,6 +1,6 @@
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { prepareSyntheticPublication } from '../infra/appwrite/live-acceptance/publication-preparation.mjs';
 import { runAnonymousProbe } from '../infra/appwrite/live-acceptance/anonymous-probe.mjs';
@@ -10,6 +10,20 @@ const project = {
   projectId: 'intermed-dev',
   endpoint: 'https://fra.cloud.appwrite.io/v1',
 } as const;
+
+type ProbeFetchOptions = {
+  method?: string;
+  body?: string | FormData;
+  [key: string]: unknown;
+};
+
+type ProbeFetchResponse = {
+  ok: boolean;
+  status: number;
+  headers: Record<string, string>;
+  text: () => Promise<string>;
+  json: () => Promise<unknown>;
+};
 
 describe('Appwrite live acceptance preparation', () => {
   it('writes one canonical synthetic generation and owner-only command plan', async () => {
@@ -26,6 +40,14 @@ describe('Appwrite live acceptance preparation', () => {
       result.snapshot.datasetVersions[0]?.checksum,
     );
     expect(result.files).toHaveLength(3);
+    expect(result.preparationPath).toContain('preparation.json');
+    expect(JSON.parse(await readFile(result.preparationPath, 'utf8'))).toEqual(
+      expect.objectContaining({
+        rows: expect.any(Object),
+        guards: expect.any(Object),
+        commandPlan: result.commandPlan,
+      }),
+    );
     expect(result.commandPlan.map(({ action }) => action)).toEqual([
       ...Array(4).fill('storage-create-guard-file'),
       ...Array(3).fill('table-create-guard-row'),
@@ -47,6 +69,36 @@ describe('Appwrite live acceptance preparation', () => {
           !command.includes('tablesdb') &&
           !command.includes('--data @'),
       ),
+    ).toBe(true);
+    expect(
+      result.commandPlan
+        .filter(({ action }) => action.includes('create-file'))
+        .every(
+          ({ argv }) =>
+            argv.includes(
+              resolve(outputDirectory, 'live-acceptance-guard.txt'),
+            ) ||
+            argv.includes(
+              resolve(
+                outputDirectory,
+                result.generation.dataset + '-synthetic-2026-10-06.json',
+              ),
+            ),
+        ),
+    ).toBe(true);
+    expect(
+      result.commandPlan
+        .filter(({ action }) => action.includes('create-row'))
+        .every(({ argv }) => {
+          const permissions = argv.reduce<string[]>((values, value, index) => {
+            if (value === '--permissions') {
+              const permission = argv[index + 1];
+              if (permission) values.push(permission);
+            }
+            return values;
+          }, []);
+          return permissions.every((permission) => !permission.startsWith('['));
+        }),
     ).toBe(true);
     expect(result.commandPlan.at(-1)?.action).toBe(
       'table-create-manifest-row-last',
@@ -94,10 +146,16 @@ describe('Appwrite live acceptance preparation', () => {
 
 describe('anonymous Appwrite probe', () => {
   it('records public success and private 401/403 denial without credentials', async () => {
-    const calls: Array<{ url: string; options?: Record<string, unknown> }> = [];
+    const calls: Array<{
+      url: string;
+      options: ProbeFetchOptions | undefined;
+    }> = [];
     const result = await runAnonymousProbe({
       ...project,
-      fetchLike: async (url, options) => {
+      fetchLike: async (
+        url: string,
+        options?: ProbeFetchOptions,
+      ): Promise<ProbeFetchResponse> => {
         calls.push({ url, options });
         const privateRequest =
           options?.method === 'POST' ||
@@ -206,7 +264,7 @@ describe('actual Appwrite adapter read recording', () => {
     const result = await readPublishedMetadata({
       ...project,
       outputDirectory,
-      fetchLike: async (url) => ({
+      fetchLike: async (url: string): Promise<ProbeFetchResponse> => ({
         ok: true,
         status: 200,
         headers: { 'content-type': 'application/json' },

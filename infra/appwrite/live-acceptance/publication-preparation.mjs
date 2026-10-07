@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { serializeCatalogue } from '@intermed/domain';
 import {
   syntheticMedicationFixture,
@@ -43,6 +43,10 @@ function shellArg(value) {
 
 function commandFromArgv(argv) {
   return argv.map(shellArg).join(' ');
+}
+
+function permissionArgs(permissions) {
+  return permissions.flatMap((permission) => ['--permissions', permission]);
 }
 
 function rowData(row) {
@@ -136,6 +140,7 @@ export async function prepareSyntheticPublication(options) {
   } = options;
   assertDevelopmentProject(projectId, endpoint);
   if (!outputDirectory) throw new Error('outputDirectory is required');
+  const resolvedOutputDirectory = resolve(outputDirectory);
 
   const validated = validateSyntheticSource(syntheticMedicationFixture);
   if (!validated.ok)
@@ -186,16 +191,21 @@ export async function prepareSyntheticPublication(options) {
     checksum: fileChecksum,
   };
 
-  await mkdir(outputDirectory, { recursive: true });
-  const bundlePath = join(outputDirectory, fileName);
+  await mkdir(resolvedOutputDirectory, { recursive: true });
+  const bundlePath = join(resolvedOutputDirectory, fileName);
   const descriptorPath = join(
-    outputDirectory,
+    resolvedOutputDirectory,
     'dataset-bundle-descriptor.json',
   );
-  const versionPath = join(outputDirectory, 'dataset-version-row.json');
+  const versionPath = join(resolvedOutputDirectory, 'dataset-version-row.json');
+  const guardArtifactPath = join(
+    resolvedOutputDirectory,
+    'live-acceptance-guard.txt',
+  );
   await writeFile(bundlePath, bytes);
   await writeFile(descriptorPath, `${JSON.stringify(descriptor, null, 2)}\n`);
   await writeFile(versionPath, `${JSON.stringify(versionRow, null, 2)}\n`);
+  await writeFile(guardArtifactPath, 'synthetic guard\n');
 
   const configFile = 'infra/appwrite/appwrite.config.development.json';
   const cli = ['npx', '--yes', 'appwrite-cli@28.1.0'];
@@ -213,9 +223,7 @@ export async function prepareSyntheticPublication(options) {
       rowId,
       '--data',
       JSON.stringify(data),
-      ...(permissions.length
-        ? ['--permissions', JSON.stringify(permissions)]
-        : []),
+      ...(permissions.length ? permissionArgs(permissions) : []),
       ...config,
     ];
     return { argv, data, command: commandFromArgv(argv) };
@@ -230,9 +238,8 @@ export async function prepareSyntheticPublication(options) {
       '--file-id',
       file.fileId,
       '--file',
-      file.fileName,
-      '--permissions',
-      JSON.stringify(file.permissions),
+      file.path ?? guardArtifactPath,
+      ...permissionArgs(file.permissions),
       ...config,
     ];
     return { argv, command: commandFromArgv(argv) };
@@ -255,6 +262,7 @@ export async function prepareSyntheticPublication(options) {
         bucketId: 'published-datasets',
         fileId,
         fileName,
+        path: bundlePath,
         permissions: PUBLIC_READ,
       }),
     },
@@ -280,10 +288,35 @@ export async function prepareSyntheticPublication(options) {
     },
   ];
 
+  const preparationPath = join(resolvedOutputDirectory, 'preparation.json');
+  const preparation = {
+    outputDirectory: resolvedOutputDirectory,
+    generation: {
+      dataset: version.dataset,
+      version: version.version,
+      canonicalDatasetVersionId: canonicalVersionId,
+      datasetVersionId: cloudVersionId,
+      status: versionRow.status,
+      checksum,
+      fileChecksum,
+    },
+    rows: {
+      version: versionRow,
+      descriptor,
+    },
+    guards: {
+      rows: guardRows(now),
+      files: guardFiles(),
+    },
+    files: [bundlePath, descriptorPath, versionPath, guardArtifactPath],
+    commandPlan,
+  };
+  await writeFile(preparationPath, `${JSON.stringify(preparation, null, 2)}\n`);
+
   return {
     projectId,
     endpoint,
-    outputDirectory,
+    outputDirectory: resolvedOutputDirectory,
     snapshot,
     generation: {
       dataset: version.dataset,
@@ -297,6 +330,7 @@ export async function prepareSyntheticPublication(options) {
     versionRow,
     descriptor,
     files: [bundlePath, descriptorPath, versionPath],
+    preparationPath,
     commandPlan,
     guards: {
       rows: guardRows(now),
