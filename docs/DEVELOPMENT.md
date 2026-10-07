@@ -38,6 +38,7 @@ Bootstrap validates configuration with Zod, injects a synthetic `BootstrapInfoPr
 | `npm run check:boundaries`    | Actual-source AST checks plus dependency-free domain manifest                                     |
 | `npm audit --audit-level=low` | Dependency vulnerability gate                                                                     |
 | `npm run build`               | Vite production assets in `apps/web/dist`                                                         |
+| `npm run scan:dist`           | Required post-build credential scan of `apps/web/dist`; fails when the build output is missing    |
 | `npm run test:browser`        | Playwright production shell, offline/cache/failure/update lifecycle, keyboard focus and viewports |
 | `npm run check`               | All quality gates above in order, excluding install/browser download                              |
 
@@ -53,6 +54,8 @@ npx vitest run packages/data-access
 ```
 
 No Appwrite CLI invocation is part of any repository script. Provisioning, deployment and rollback commands live in [the Appwrite runbook](APPWRITE_RUNBOOK.md) and remain **NOT YET EXECUTED — requires maintainer approval**.
+
+The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever that build output already exists, and `npm run scan:dist` (`scripts/scan-dist-secrets.mjs`) scans it unconditionally as the `npm run check` step directly after `npm run build`, failing when the build output is missing instead of skipping. Both use the detector in `tests/support/secret-scan.ts` and report file names and pattern labels only, never matched values.
 
 ## Dependencies and API decisions
 

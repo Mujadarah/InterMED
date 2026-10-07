@@ -19,7 +19,7 @@ assert that no live identifier appears in the configuration.
 | GitHub repository      | `Mujadarah/InterMED`                                                                | The repository already used by CI; connection requires a GitHub App authorization |
 | Production branch      | `main`                                                                              | Production-branch commits deploy and activate; other branches build previews only |
 | Root directory         | `apps/web`                                                                          | Where the install/build commands run                                              |
-| Install command        | `npm ci --prefix .. --no-fund`                                                      | Lockfile-only install of the workspace root (see the monorepo note below)         |
+| Install command        | `npm ci --prefix ../.. --no-fund`                                                   | Lockfile-only install of the workspace root (see the monorepo note below)         |
 | Build command          | `npm run build`                                                                     | `vite build` for `@intermed/web`                                                  |
 | Output directory       | `./dist`                                                                            | Vite output for `apps/web` (`apps/web/dist` from the repository root)             |
 | SPA deep-link fallback | `index.html` (`fallbackFile`)                                                       | Serves app HTML for `/status` and other deep links; matches the existing site     |
@@ -31,8 +31,12 @@ assert that no live identifier appears in the configuration.
 
 **Monorepo note.** npm workspaces install from the repository root, so an
 install command running inside `apps/web` must target the root. The value above
-(`npm ci --prefix .. --no-fund`) does that while keeping `apps/web` as the
-documented root directory. If the Sites build runner does not accept
+(`npm ci --prefix ../.. --no-fund`) resolves from `apps/web` to the repository
+root — the directory that holds the single root `package-lock.json` — while
+keeping `apps/web` as the documented root directory. (`--prefix ..` resolves to
+`apps/`, which has no `package.json` and no lockfile and therefore cannot be
+installed.) An offline test asserts that the configured prefix resolves to the
+lockfile directory. If the Sites build runner does not accept
 `--prefix`, use the equivalent single-root settings instead: root directory `/`,
 install `npm ci --no-fund`, build `npm run build`, output `apps/web/dist`,
 fallback `index.html`. Whichever variant is chosen must be confirmed against an
