@@ -6,9 +6,9 @@ Date: 2026-10-06, Europe/Bucharest. This run continued the existing Milestone 2 
 
 ## Repository
 
-Starting and ending branch/worktree: `codex/pwa-milestone-2-shell` at `D:/Proiecte AI/InterMED`.
+Starting and ending branch/worktree: `codex/pwa-milestone-2-shell` at `<repo>`.
 
-Starting status: clean, HEAD `de5a077d432975efb73849ed4ac1cd4eba02af63`, matching open [PR #4](https://github.com/Mujadarah/InterMED/pull/4). Main was independently verified at `f129e0dfc9d91847502e36fbb46cad9c6659ce2c`, protected. The separate planning worktree at `C:/Users/rabia/.codex/worktrees/intermed-pwa-plan/InterMED` remained unchanged.
+Starting status: clean, HEAD `de5a077d432975efb73849ed4ac1cd4eba02af63`, matching open [PR #4](https://github.com/Mujadarah/InterMED/pull/4). Main was independently verified at `f129e0dfc9d91847502e36fbb46cad9c6659ce2c`, protected. The separate planning worktree at `<worktree>` remained unchanged.
 
 The test change is local commit `72a60df7d79b2061e0fce107cbd8ce17548b510a`, **test: cover keyboard shell updates and multitab refusal**. This report and its evidence form a subsequent documentation commit. Ending status: clean after two local commits (test coverage, then this evidence/report). The final handoff records the ending HEAD; both commits remain unpushed. No push, merge, release, deployment, provisioning or repository-policy change is part of this run; remote checks below cover the starting head only.
 
@@ -85,7 +85,7 @@ The agent-orchestration and using-gh-cli skills guided delegation and GitHub ins
 Actual Grok invocations used this prefix:
 
 ```powershell
-grok --cwd 'D:\Proiecte AI\InterMED' --model grok-4.7 --permission-mode plan --disable-web-search --no-subagents
+grok --cwd '<repo>' --model grok-4.7 --permission-mode plan --disable-web-search --no-subagents
 ```
 
 | Suffix added to that command                                                                                                 | Result/evidence                                                                                                                  |

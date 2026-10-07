@@ -1,0 +1,17 @@
+{
+  "$id": "guard-publisheddatasets",
+  "bucketId": "published-datasets",
+  "$createdAt": "2026-10-07T09:54:57.053+00:00",
+  "$updatedAt": "2026-10-07T09:54:57.053+00:00",
+  "$permissions": ["read(\"any\")", "update(\"any\")", "delete(\"any\")"],
+  "name": "live-acceptance-guard.txt",
+  "key": "live-acceptance-guard.txt",
+  "signature": "fe765801660e2d0129a2e07239483c7d",
+  "mimeType": "text/plain",
+  "sizeOriginal": 16,
+  "sizeActual": 16,
+  "chunksTotal": 1,
+  "chunksUploaded": 1,
+  "encryption": false,
+  "compression": "none"
+}

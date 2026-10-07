@@ -1,0 +1,8 @@
+{
+  "url": "https://fra.cloud.appwrite.io/v1/tablesdb/intermed-datasets/tables/dataset-versions/rows?queries[0]=%7B%22method%22%3A%22equal%22%2C%22attribute%22%3A%22dataset%22%2C%22values%22%3A%5B%22synthetic-medication-catalogue%22%5D%7D&queries[1]=%7B%22method%22%3A%22equal%22%2C%22attribute%22%3A%22status%22%2C%22values%22%3A%5B%22published%22%5D%7D&queries[2]=%7B%22method%22%3A%22orderDesc%22%2C%22attribute%22%3A%22publishedAt%22%7D&queries[3]=%7B%22method%22%3A%22limit%22%2C%22values%22%3A%5B1%5D%7D",
+  "method": "GET",
+  "credentials": "omit",
+  "headers": {
+    "x-appwrite-project": "intermed-dev"
+  }
+}

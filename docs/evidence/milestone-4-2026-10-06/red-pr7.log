@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+ RUN  v4.1.11 <repo>-wt/m4
 
  ❯ tests/domain/serialize.test.ts (4 tests | 1 failed) 11ms
    × round-trips padded source text without trimming it 4ms

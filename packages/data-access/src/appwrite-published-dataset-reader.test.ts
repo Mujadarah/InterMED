@@ -398,6 +398,21 @@ describe('Appwrite published dataset reader', () => {
     });
   });
 
+  it('propagates manifest transport failure instead of fabricating an absent descriptor', async () => {
+    const { fetchLike } = fakeFetch(() => {
+      throw new TypeError('synthetic network failure');
+    });
+    const reader = createAppwritePublishedDatasetReader({
+      ...readerOptions,
+      fetchLike,
+    });
+
+    expect(await reader.getManifest('synthetic-fixture-demo')).toEqual({
+      status: 'unavailable',
+      reason: 'transport-error',
+    });
+  });
+
   it('rejects empty identifiers instead of querying', async () => {
     const { fetchLike, calls } = fakeFetch(() =>
       jsonResponse(200, { total: 0, rows: [] }),

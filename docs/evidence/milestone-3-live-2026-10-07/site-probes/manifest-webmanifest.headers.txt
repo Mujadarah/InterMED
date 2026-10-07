@@ -1,0 +1,25 @@
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 722
+Cache-Control: public, max-age=0, must-revalidate
+Content-Type: application/manifest+json
+Etag: "34f1bf7056d2c2dc0d7b5e5a03a69ad1"
+Server: swoole-http-server
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Appwrite-Deployment-Id: 6ac4e58c6e620fd5dd84
+X-Appwrite-Project-Id: 6ac4b25b0012379cf3d0
+X-Appwrite-Traffic-Type: site
+X-Content-Type-Options: nosniff
+X-Debug-Speed: 0.11120104789734
+X-Edge-Location: fra
+X-Edge-Rule-Cache: hit
+X-Edge-Runtime-Cache: hit
+Accept-Ranges: bytes
+Date: Wed, 07 Oct 2026 08:32:13 GMT
+Via: 1.1 varnish
+X-Served-By: cache-fra-etou8220182-FRA
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1791361933.145820,VS0,VE117
+X-Appwrite-Edge-Server: 0bBHNYBByXcKOErbUf2l16--F_fra1
+

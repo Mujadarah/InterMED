@@ -1,0 +1,20 @@
+# First-run to corrected probe mapping
+
+This crosswalk preserves the first matrix as failed or inconclusive evidence
+and links each observed failure to the corrected probe record. Statuses,
+`errorType` values, and `pass` values below are copied from the JSON records;
+no status is inferred from the probe name.
+
+| Original probe                  | First observed status | First `errorType` | First `pass` | Why the first result was invalid or inconclusive                                                                                                              | Corrected probe               | Corrected observed status | Corrected `errorType` | Corrected `pass` | Evidence                                                                     |
+| ------------------------------- | --------------------: | ----------------- | :----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------: | --------------------- | :--------------: | ---------------------------------------------------------------------------- |
+| `row-PATCH-dataset-bundles`     |                   200 | `null`            |   `false`    | The PATCH sent identical data and produced a no-op. It did not test whether a changed descriptor was denied.                                                  | `row-PATCH-dataset-bundles`   |                       401 | `user_unauthorized`   |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+| `private-get-import-runs`       |                   404 | `row_not_found`   |   `false`    | The valid GET was existence-masked by the private guard. The first strict 401/403 expectation was mistaken; this is a masked refusal, not an invalid request. | `private-get-import-runs`     |                       404 | `row_not_found`       |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+| `file-PATCH-raw-sources`        |                   404 | `http-error`      |   `false`    | PATCH is the wrong method for the Storage file update endpoint; the HTML 404 is not authorization evidence.                                                   | `file-PUT-raw-sources`        |                       401 | `user_unauthorized`   |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+| `file-PATCH-quarantine`         |                   404 | `http-error`      |   `false`    | PATCH is the wrong method for the Storage file update endpoint; the HTML 404 is not authorization evidence.                                                   | `file-PUT-quarantine`         |                       401 | `user_unauthorized`   |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+| `file-PATCH-import-run-logs`    |                   404 | `http-error`      |   `false`    | PATCH is the wrong method for the Storage file update endpoint; the HTML 404 is not authorization evidence.                                                   | `file-PUT-import-run-logs`    |                       401 | `user_unauthorized`   |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+| `file-PATCH-published-datasets` |                   404 | `http-error`      |   `false`    | PATCH is the wrong method for the Storage file update endpoint; the HTML 404 is not authorization evidence.                                                   | `file-PUT-published-datasets` |                       401 | `user_unauthorized`   |      `true`      | [first](anonymous-probes.json), [corrected](corrected-anonymous-probes.json) |
+
+The corrected private `import-runs` GET remains `maskedRefusal: true` with
+`originalPass: false` in the corrected JSON. The corrected run is therefore
+bounded evidence, not a claim that the private resource returned a strict
+401/403.

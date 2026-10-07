@@ -29,18 +29,30 @@ assert that no live identifier appears in the configuration.
 | Build triggers         | branch filter `main`; path filter `apps/web/**`, `packages/**`, `infra/appwrite/**` | Avoids rebuilding for documentation-only commits                                  |
 | Environment variables  | none                                                                                | Frontend build variables are public-only and currently unset                      |
 
-**Monorepo note.** npm workspaces install from the repository root, so an
-install command running inside `apps/web` must target the root. The value above
-(`npm ci --prefix ../.. --no-fund`) resolves from `apps/web` to the repository
-root — the directory that holds the single root `package-lock.json` — while
-keeping `apps/web` as the documented root directory. (`--prefix ..` resolves to
-`apps/`, which has no `package.json` and no lockfile and therefore cannot be
-installed.) An offline test asserts that the configured prefix resolves to the
-lockfile directory. If the Sites build runner does not accept
-`--prefix`, use the equivalent single-root settings instead: root directory `/`,
-install `npm ci --no-fund`, build `npm run build`, output `apps/web/dist`,
-fallback `index.html`. Whichever variant is chosen must be confirmed against an
-actual Sites build before it is called working.
+**Monorepo note.** npm workspaces install from the repository root, which holds
+the single root `package-lock.json`. The development site uses
+`node infra/appwrite/pinned-toolchain.mjs install` and
+`node infra/appwrite/pinned-toolchain.mjs build`: the launcher uses the host
+Node only to install `npm@11.19.0` at an isolated temporary prefix outside the
+archive, with lifecycle scripts disabled. On Linux x64 it first downloads the
+official Node `24.21.0` musl gzip artifact from
+`https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz`, verifies
+SHA-256
+`3d63405f c65a0d2d 2976c1f0 bc2fd27b b0bd0721 2469e705 aac3f03a e5ab4c9c`
+(remove spaces before comparing), validates
+archive paths, and only then extracts it with the host's `tar`. The launcher
+then verifies both versions and invokes the absolute extracted Node executable
+with the absolute `npm-cli.js`, prepending the prefix's `.bin` wrapper directory
+and the pinned Node binary directory to `PATH` for npm/Vite child processes.
+Linux arm64 is refused because no exact official musl artifact is published;
+unsupported platform/architecture combinations fail explicitly. The official
+musl build remains experimental and requires an authorized cloud compatibility
+retry before any production use. The npm and Windows bootstrap package
+integrity hashes remain a production follow-up; this local fix is not approved
+for production deployment.
+`APPWRITE_HOST_NPM`, `APPWRITE_PINNED_NODE`, and `APPWRITE_PINNED_NPM_CLI` are
+absolute-path test and operator injection points; no credentials are written by
+the launcher.
 
 ## Consistency with the existing site
 

@@ -1,0 +1,8 @@
+{
+  "deploymentId": "6ac6226495b5ff1a3249",
+  "sourceCommit": "9a021b599ea6ddf490e5e68527ee5613424b681e",
+  "archiveBytes": 5766768,
+  "entries": 323,
+  "forbiddenEntries": [],
+  "publicEnvExamples": ["apps/web/.env.example"]
+}

@@ -21,7 +21,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-config-secrets.test.ts (4 tests | 1 failed) 17ms
      × finds no credential-shaped strings in the scanned files 14ms

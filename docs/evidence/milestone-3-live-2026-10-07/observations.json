@@ -1,0 +1,177 @@
+{
+  "evidenceDate": "2026-10-07",
+  "baselineCommit": "f167d439fe3d608b99fb130ee314b2bbf68798f1",
+  "overallMilestone3LiveAcceptance": "DEVELOPMENT CHECKS PASSED; PRE-DELIVERY SNAPSHOT 2026-10-07",
+  "deliveryNote": "Final PR source contains reviewed offline helper/test changes; no new cloud deployment was made from that source. PR #9 checks are authoritative for final delivery once CI completes.",
+  "developmentProject": {
+    "projectId": "intermed-dev",
+    "name": "InterMED Development",
+    "organizationId": "6abdb0c92ffbb4c7fdf6",
+    "region": "fra",
+    "regionalEndpoint": "https://fra.cloud.appwrite.io/v1",
+    "createdAt": "2026-10-07T08:35:00.440+00:00",
+    "status": "active",
+    "resourcesAtCreation": {
+      "tablesdb": 0,
+      "storage": 0,
+      "functions": 0,
+      "sites": 0,
+      "users": 0
+    }
+  },
+  "organizationPlan": {
+    "name": "GitHub Student Pack",
+    "id": "auto-1",
+    "projectsLimit": 2,
+    "projectsUsed": 2,
+    "price": 0,
+    "note": "Audit text saying Free plan was wrong. Development fills the second included slot; production needs a separate capacity decision. No billing/paid/production changes."
+  },
+  "shellProjectUnchanged": {
+    "projectId": "6ac4b25b0012379cf3d0",
+    "siteId": "6ac4b3550003a26eea02",
+    "origin": "https://intermed-shell-test.appwrite.network",
+    "authorization": "read-only origin checks only; owner keeps shell unchanged"
+  },
+  "acceptanceItems": [
+    {
+      "id": 1,
+      "title": "Authorized test deployment with recorded SITES.md settings",
+      "commandOrProbe": "Development Sites push, deployment readback, pinned-runtime build log",
+      "results": "Final approved development deployment 6ac62b9286ef77aa3a78 is ready. The pinned install and build succeeded with Node v24.21.0 and npm 11.19.0; edge distribution completed 6/6. Live fields match the declaration with zero differences; pull omission of enabled was verified by direct GET.",
+      "status": "PASS"
+    },
+    {
+      "id": 2,
+      "title": "Unauthenticated reader reads only published resources",
+      "commandOrProbe": "Anonymous GET against dataset-versions / dataset-bundles / published-datasets and denials for private resources",
+      "results": "The real adapter read returned the available synthetic manifest and descriptor metadata. Public reads and private-resource denials are recorded; the bounded matrix retains the private import-runs masked-404 limitation. The published version and file remained untouched by cleanup.",
+      "status": "PASS"
+    },
+    {
+      "id": 3,
+      "title": "Unauthenticated writer refused on published resources",
+      "commandOrProbe": "Unauth POST/PATCH/DELETE on published tables and bucket files",
+      "results": "The initial 39-check matrix remains failed/inconclusive: descriptor PATCH returned HTTP 200 with identical before/after data, storage update attempts used PATCH instead of PUT, and the helper continued after an unexpected 200. Corrected probes passed 39/39. The exact seven approved cleanup deletes then exited 0; the owner-side repeat exited 1 with only requested-row/file-not-found CLI messages.",
+      "status": "PASS"
+    },
+    {
+      "id": 4,
+      "title": "Admin importer execution refused; stub reveals no key",
+      "commandOrProbe": "Unauth POST plus approved CLI stub execution",
+      "results": "Unauthenticated POST returned HTTP 401 user_unauthorized. Approved CLI execution returned responseStatusCode 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.",
+      "status": "PASS"
+    },
+    {
+      "id": 5,
+      "title": "Effective permissions at every resource level",
+      "commandOrProbe": "Live additive table/row and bucket/file denial matrix (runbook §5)",
+      "results": "The bounded empty-resource matrix remains valid for its original scope. Corrected guard checks passed 39/39. Owner-approved cleanup executed all seven exact deletes; the owner-side repeat contains only requested-row/file-not-found messages. The final saved-script adapter read returned the expected version in both manifest and descriptor, selected no guard, and recorded two REST calls. The private 404 remains a masked refusal, not a strict status proof.",
+      "status": "PASS"
+    },
+    {
+      "id": 6,
+      "title": "No server key in deployed bundle / function vars / logs / config",
+      "commandOrProbe": "node scripts/scan-dist-secrets.mjs plus provenance review",
+      "results": "The final scan covered 11 actual deployed HTML, manifest, service-worker, and referenced asset files and found no credential-shaped strings. Deployment variables are empty and source entries include only the public env example.",
+      "status": "PASS"
+    },
+    {
+      "id": 7,
+      "title": "Deep-link SPA fallback, manifest scope, SW root scope, TLS, cache headers",
+      "commandOrProbe": "curl GET successful development preview paths; Playwright /status + serviceWorker.getRegistrations",
+      "results": {
+        "http": "every curl exit 0, HTTP 200, ssl_verify_result 0, no bypass/cookies/credentials",
+        "tls": "PASS (default validation; HSTS max-age=63072000; includeSubDomains; preload)",
+        "deepLinkStatus": "PASS (HTTP 200 HTML with InterMED Development title / Development status heading)",
+        "manifest": "PASS (Content-Type application/manifest+json; id/start_url/scope all '/'; display standalone)",
+        "serviceWorker": "PASS (browser secureContext true; controller and activated registration scope are root; active script is /sw.js)",
+        "shellStatusText": "Development status; clinical capabilities unavailable",
+        "cacheControlObserved": "public, max-age=0, must-revalidate on all recorded paths",
+        "cachePolicyComparison": "No immutable / long-max-age Cache-Control observed on hashed JS/CSS assets; residual policy risk remains open.",
+        "limits": "Browser scope proof only; no real-device/installed acceptance"
+      },
+      "status": "PASS",
+      "statusDetail": "PASS for TLS, deep-link /status, manifest root scope, SW root scope and HTTP responses; immutable-cache policy is a future follow-up"
+    },
+    {
+      "id": 8,
+      "title": "Region/plan confirmation (development)",
+      "commandOrProbe": "organization create-project / plan read / connector empty-resource confirmation",
+      "results": {
+        "region": "PASS — fra; regional API https://fra.cloud.appwrite.io/v1",
+        "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
+        "scope": "Frankfurt region and GitHub Student Pack confirmation only; production capacity and backup/restore are outside this task",
+        "siteDeployment": "Final approved deployment 6ac62b9286ef77aa3a78 is ready; pinned install/build used Node 24.21.0 and npm 11.19.0, with edge distribution 6/6. Earlier runtime failures remain historical evidence."
+      },
+      "status": "PASS",
+      "statusDetail": "Development Frankfurt region and GitHub Student Pack confirmed; wider production and backup/restore roadmap remains deferred"
+    }
+  ],
+  "recordedFieldChecks": [
+    {
+      "field": "function runtime node-22 / site metadata node-22 / actual pinned build node-24",
+      "commandOrProbe": "function readback; development site readback; pinned build log",
+      "results": "Deployed function metadata reports runtime node-22; site metadata host reports buildRuntime node-22; successful deployment log records the actual pinned Node v24.21.0 and npm 11.19.0 build.",
+      "status": "PASS (development)"
+    },
+    {
+      "field": "site framework other, adapter static, fallbackFile index.html",
+      "commandOrProbe": "development site readback, pull comparison, pinned build log",
+      "results": "Development site.json and live-field-comparison.json show zero differences for the declared fields; the ready deployment log records the pinned monorepo install/build.",
+      "status": "PASS (development)"
+    },
+    {
+      "field": "column types text/bigint, enum elements, indexes columns/orders",
+      "commandOrProbe": "push tables / pull / live schema inspect",
+      "results": "Three tables pushed and pulled; every declared table, column, and index property compares with difference count 0.",
+      "status": "PASS"
+    },
+    {
+      "field": "bucket antivirus/encryption/compression/max size bounds",
+      "commandOrProbe": "push buckets / pull",
+      "results": "Four buckets pushed and pulled; expected declared fields compare with zero differences.",
+      "status": "PASS"
+    },
+    {
+      "field": "REST row list shape { total, rows } with flattened columns",
+      "commandOrProbe": "live unauthenticated TablesDB read",
+      "results": "The root adapter recordings obtained non-empty published manifest and descriptor responses with { total: 1, rows: [...] } and flattened columns; see adapter-published-recording/rest-1.json and rest-2.json. Public empty table reads also returned { total: 0, rows: [] }. The full anonymous non-empty CRUD matrix remains bounded by the corrected probe record.",
+      "status": "PASS (recorded shape; CRUD remains bounded)"
+    }
+  ],
+  "rejectedFindings": [
+    {
+      "source": "preflight-review",
+      "claim": "Config $permissions must be renamed to permissions or CLI ignores grants",
+      "judgment": "FALSE — official CLI pushsimple.go maps $permissions => permissions; resource.go uses $permissions JSON tag",
+      "action": "no code change"
+    },
+    {
+      "source": "preflight-review",
+      "claim": "function path functions/import-anmdmr fails because CLI resolves only from cwd",
+      "judgment": "FALSE as stated — CLI ResolveResourcePath joins via ResourceDirname relative to config",
+      "action": "no code change this stage"
+    },
+    {
+      "source": "replacement-audit wording",
+      "claim": "Free plan quota",
+      "judgment": "FALSE for this org — live plan is GitHub Student Pack auto-1",
+      "action": "record Student Pack in evidence/ADR/runbook"
+    },
+    {
+      "source": "research.log open issue",
+      "claim": "PublishedDatasetManifest.checksum and catalogueFingerprint are the same integrity field",
+      "judgment": "FALSE — the root checked the published-dataset.ts contract; the manifest and descriptor SHA-256 must match the actual bundle, while the internal catalogueFingerprint is a separate FNV value",
+      "action": "no domain change; the prepared publication satisfies the SHA-256 contract and the real adapter read returned the published manifest and descriptor"
+    }
+  ],
+  "pendingApprovals": [
+    "production bootstrap package integrity pinning (production untouched)"
+  ],
+  "reviewAdjudications": {
+    "cliAlias": "A freshly executed pinned appwrite-cli@28.1.0 tables-db delete-row --help exited 0; canonical Usage is tablesdb. The previously recorded alias-based publication/read/delete commands succeeded and are not a plan failure.",
+    "privateList": "The helper private-list masked-404 behavior was fixed in the offline PR source. The recorded private list HTTP 401 remains valid evidence.",
+    "ci": "Historical CI for source ac848af0b48f92a4eb9ab03b8aa7841769165e33 failed on the Ubuntu fixture while Windows passed. PR #9 checks are authoritative for the final exact head."
+  }
+}

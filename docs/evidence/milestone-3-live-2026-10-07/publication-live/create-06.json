@@ -1,0 +1,15 @@
+{
+  "byteSize": 2,
+  "checksum": "sha256:guard",
+  "contentType": "application/json",
+  "datasetVersionId": "guard-version",
+  "fileId": "guard-published",
+  "fileName": "live-acceptance-guard.json",
+  "$id": "guard-bundle",
+  "$permissions": ["read(\"any\")", "update(\"any\")", "delete(\"any\")"],
+  "$createdAt": "2026-10-07T09:54:58.017+00:00",
+  "$updatedAt": "2026-10-07T09:54:58.017+00:00",
+  "$sequence": "1",
+  "$databaseId": "intermed-datasets",
+  "$tableId": "dataset-bundles"
+}

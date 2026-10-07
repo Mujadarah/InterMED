@@ -1,0 +1,7 @@
+{"resource":"dataset-bundles","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: Row with the requested ID 'guard-bundle' could not be found.\r\n"}
+{"resource":"dataset-versions","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: Row with the requested ID 'guard-version' could not be found.\r\n"}
+{"resource":"import-runs","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: Row with the requested ID 'guard-run' could not be found.\r\n"}
+{"resource":"raw-sources","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: The requested file could not be found.\r\n"}
+{"resource":"quarantine","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: The requested file could not be found.\r\n"}
+{"resource":"import-run-logs","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: The requested file could not be found.\r\n"}
+{"resource":"published-datasets","exitCode":1,"output":"ℹ Info: For detailed error pass the --verbose or --report flag\r\n✗ Error: The requested file could not be found.\r\n"}

@@ -1,0 +1,17 @@
+{
+  "$id": "file-aba05ea1b8fc3e49f18d517b",
+  "bucketId": "published-datasets",
+  "$createdAt": "2026-10-07T09:54:59.331+00:00",
+  "$updatedAt": "2026-10-07T09:54:59.331+00:00",
+  "$permissions": ["read(\"any\")"],
+  "name": "synthetic-medication-catalogue-synthetic-2026-10-06.json",
+  "key": "synthetic-medication-catalogue-synthetic-2026-10-06.json",
+  "signature": "83b3f00607860bdeaff48c7f7e2c4401",
+  "mimeType": "application/json",
+  "sizeOriginal": 25959,
+  "sizeActual": 25959,
+  "chunksTotal": 1,
+  "chunksUploaded": 1,
+  "encryption": false,
+  "compression": "none"
+}

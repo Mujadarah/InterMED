@@ -1,0 +1,8 @@
+{
+  "httpStatus": "200",
+  "byteSize": 25959,
+  "matchesPreparedSha256": true,
+  "headersSent": ["X-Appwrite-Project: intermed-dev"],
+  "credentials": "none",
+  "fileId": "file-aba05ea1b8fc3e49f18d517b"
+}

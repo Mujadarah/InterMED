@@ -1,0 +1,134 @@
+[
+  {
+    "kind": "row",
+    "resource": "dataset-bundles",
+    "id": "guard-bundle",
+    "exitCode": 0,
+    "argv": [
+      "tablesdb",
+      "delete-row",
+      "--database-id",
+      "intermed-datasets",
+      "--table-id",
+      "dataset-bundles",
+      "--row-id",
+      "guard-bundle",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "row",
+    "resource": "dataset-versions",
+    "id": "guard-version",
+    "exitCode": 0,
+    "argv": [
+      "tablesdb",
+      "delete-row",
+      "--database-id",
+      "intermed-datasets",
+      "--table-id",
+      "dataset-versions",
+      "--row-id",
+      "guard-version",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "row",
+    "resource": "import-runs",
+    "id": "guard-run",
+    "exitCode": 0,
+    "argv": [
+      "tablesdb",
+      "delete-row",
+      "--database-id",
+      "intermed-datasets",
+      "--table-id",
+      "import-runs",
+      "--row-id",
+      "guard-run",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "file",
+    "resource": "raw-sources",
+    "id": "guard-rawsources",
+    "exitCode": 0,
+    "argv": [
+      "storage",
+      "delete-file",
+      "--bucket-id",
+      "raw-sources",
+      "--file-id",
+      "guard-rawsources",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "file",
+    "resource": "quarantine",
+    "id": "guard-quarantine",
+    "exitCode": 0,
+    "argv": [
+      "storage",
+      "delete-file",
+      "--bucket-id",
+      "quarantine",
+      "--file-id",
+      "guard-quarantine",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "file",
+    "resource": "import-run-logs",
+    "id": "guard-importrunlogs",
+    "exitCode": 0,
+    "argv": [
+      "storage",
+      "delete-file",
+      "--bucket-id",
+      "import-run-logs",
+      "--file-id",
+      "guard-importrunlogs",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  },
+  {
+    "kind": "file",
+    "resource": "published-datasets",
+    "id": "guard-publisheddatasets",
+    "exitCode": 0,
+    "argv": [
+      "storage",
+      "delete-file",
+      "--bucket-id",
+      "published-datasets",
+      "--file-id",
+      "guard-publisheddatasets",
+      "--config-file",
+      "<worktree>/infra/appwrite/appwrite.config.development.json",
+      "--force",
+      "--json"
+    ]
+  }
+]
