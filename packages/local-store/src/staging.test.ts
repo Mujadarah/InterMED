@@ -12,7 +12,9 @@ import {
   testDatabase,
   testStore,
   uniqueName,
+  versionMismatchBundle,
 } from './test-support';
+import { checkBundle } from './validate';
 
 /** A generation record planted as a crash or corruption would leave it. */
 function plantedRecord(
@@ -570,4 +572,65 @@ it('recovers an evicted generation by re-downloading and replacing its rows', as
   expect(
     await rows.products.where('generationId').equals(beta.generationId).count(),
   ).toBeGreaterThan(0);
+});
+
+it('rejects a bundle whose embedded dataset version disagrees with its manifest', async () => {
+  const store = testStore();
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const mismatched = versionMismatchBundle(bundle('beta'), {
+    schemaVersion: 'medication-catalogue-2',
+  });
+
+  await store.updates.stageBundle(mismatched.manifest, mismatched.text);
+  expect(store.getState()).toMatchObject({
+    status: 'update-failed',
+    reason: 'invalid-bundle',
+    generation: { generationId: alpha.generationId },
+  });
+  expect((await store.openReader())?.generationId).toBe(alpha.generationId);
+});
+
+it('applies the manifest compatibility checks to the embedded version too', () => {
+  const source = bundle('beta');
+  expect(checkBundle(source.manifest, source.text).ok).toBe(true);
+
+  const schemaMismatch = versionMismatchBundle(source, {
+    schemaVersion: 'medication-catalogue-2',
+  });
+  expect(checkBundle(schemaMismatch.manifest, schemaMismatch.text)).toEqual({
+    ok: false,
+    reason: 'invalid-bundle',
+  });
+  const clientMismatch = versionMismatchBundle(source, {
+    minimumClientVersion: '1.0.0',
+  });
+  expect(checkBundle(clientMismatch.manifest, clientMismatch.text)).toEqual({
+    ok: false,
+    reason: 'invalid-bundle',
+  });
+
+  // The same compatibility checks the manifest gets are applied to the
+  // embedded version when the two agree on an unsupported requirement.
+  const unsupportedSchema = versionMismatchBundle(source, {
+    schemaVersion: 'medication-catalogue-2',
+  });
+  expect(
+    checkBundle(
+      {
+        ...unsupportedSchema.manifest,
+        schemaVersion: 'medication-catalogue-2',
+      },
+      unsupportedSchema.text,
+    ),
+  ).toEqual({ ok: false, reason: 'incompatible-schema' });
+  const tooNewClient = versionMismatchBundle(source, {
+    minimumClientVersion: '9.0.0',
+  });
+  expect(
+    checkBundle(
+      { ...tooNewClient.manifest, minimumClientVersion: '9.0.0' },
+      tooNewClient.text,
+    ),
+  ).toEqual({ ok: false, reason: 'incompatible-schema' });
 });

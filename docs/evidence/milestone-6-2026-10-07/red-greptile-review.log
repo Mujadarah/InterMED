@@ -540,3 +540,691 @@ QuotaExceededError: Synthetic quota
 
 [exit code: 1]
 
+---
+
+## G9 - embedded dataset version checked against its manifest (RED against c72650d)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t embedded
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (22 tests | 2 failed | 20 skipped) 53ms
+   × rejects a bundle whose embedded dataset version disagrees with its manifest 42ms
+   × applies the manifest compatibility checks to the embedded version too 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle whose embedded dataset version disagrees with its manifest
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'update-failed', …(2) }
+
+- Expected
++ Received
+
+  {
+    "generation": {
+      "generationId": "dvsource.syntheticsynthetic-alpha",
+    },
+-   "reason": "invalid-bundle",
+-   "status": "update-failed",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:586:28
+    584|
+    585|   await store.updates.stageBundle(mismatched.manifest, mismatched.text…
+    586|   expect(store.getState()).toMatchObject({
+       |                            ^
+    587|     status: 'update-failed',
+    588|     reason: 'invalid-bundle',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > applies the manifest compatibility checks to the embedded version too
+AssertionError: expected { ok: true, snapshot: { …(10) }, …(1) } to deeply equal { ok: false, reason: 'invalid-bundle' }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
+-   "reason": "invalid-bundle",
++   "ok": true,
++   "snapshot": {
++     "activeIngredients": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Fictivolinum beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-FICTIVOLINUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-FICTIVOLINUM",
++         "originalNames": [
++           "Fictivolinum beta",
++         ],
++         "preferredName": "Fictivolinum beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-FICTIVOLINUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Placebexium beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-PLACEBEXIUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-PLACEBEXIUM",
++         "originalNames": [
++           "Placebexium beta",
++         ],
++         "preferredName": "Placebexium beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-PLACEBEXIUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Synthetinum beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-SYNTHETINUM",
++           },
++         ],
++         "id": "aisource.syntheticAI-SYNTHETINUM",
++         "originalNames": [
++           "Synthetinum beta",
++         ],
++         "preferredName": "Synthetinum beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-SYNTHETINUM",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dci": {
++           "status": "present",
++           "value": "Fictovolol beta",
++         },
++         "externalMappings": [
++           {
++             "mappingVersion": "synthetic-1",
++             "reviewStatus": "unreviewed",
++             "sourceId": "dsintermedsource.synthetic",
++             "sourceIngredientId": "MAP-AI-FICTOVOL",
++           },
++         ],
++         "id": "aisource.syntheticAI-FICTOVOL",
++         "originalNames": [
++           "Fictovolol beta",
++         ],
++         "preferredName": "Fictovolol beta",
++         "saltOrForm": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "AI-FICTOVOL",
++         "sourceVersion": "synthetic-1",
++         "synonyms": [],
++       },
++     ],
++     "atcCodes": [
++       {
++         "classificationVersion": {
++           "status": "missing",
++         },
++         "code": "SYN-SP-FICTIVOL",
++         "codeSystem": "synthetic-illustrative",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": {
++           "status": "present",
++           "value": "Synthetic illustrative class beta",
++         },
++         "id": "atcsource.syntheticATC-SP-FICTIVOL",
++         "illustrative": true,
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "ATC-SP-FICTIVOL",
++       },
++       {
++         "classificationVersion": {
++           "status": "missing",
++         },
++         "code": "SYN-SP-PLACEBEX",
++         "codeSystem": "synthetic-illustrative",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": {
++           "status": "present",
++           "value": "Synthetic illustrative class beta",
++         },
++         "id": "atcsource.syntheticATC-SP-PLACEBEX",
++         "illustrative": true,
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "ATC-SP-PLACEBEX",
++       },
++     ],
++     "dataSources": [
++       {
++         "allowedUses": [
++           "automated-test",
++         ],
++         "attributionRequirements": {
++           "status": "present",
++           "value": "Synthetic development data. Not for clinical use.",
++         },
++         "authority": "Fictional Test Authority",
++         "coverageDescription": "Fictional products for automated tests. Not for clinical use.",
++         "expectedUpdateCadence": {
++           "status": "missing",
++         },
++         "id": "dsintermedsource.synthetic",
++         "importMethod": "synthetic-inline",
++         "jurisdiction": {
++           "status": "present",
++           "value": "fictional",
++         },
++         "licenseOrPermissionReference": {
++           "status": "present",
++           "value": "synthetic-no-rights-granted",
++         },
++         "name": "Synthetic development catalogue",
++         "permissionExpiresAt": {
++           "status": "missing",
++         },
++         "prohibitedUses": [
++           "retrieval",
++           "server-storage",
++           "transformation",
++           "display",
++           "redistribution",
++           "offline-cache",
++           "commercial-use",
++         ],
++         "reviewOwner": "none",
++         "reviewedAt": "2026-01-01T00:00:00Z",
++         "rightsStatus": "unresolved",
++         "sourceKey": "source.synthetic",
++         "url": "https://example.invalid/intermed/synthetic-medication-catalogue",
++       },
++     ],
++     "datasetVersions": [
++       {
++         "checksum": "21a5df44aedca0fa",
++         "clinicalReviewReference": "not-reviewed",
++         "coverage": "Synthetic development fixture. Not for clinical use.",
++         "dataset": "synthetic-medication-catalogue",
++         "id": "dvsource.syntheticsynthetic-beta",
++         "importedAt": "2026-01-01T00:00:00Z",
++         "minimumClientVersion": "0.0.0",
++         "previousVersionId": {
++           "status": "missing",
++         },
++         "publishedAt": {
++           "status": "present",
++           "value": "2026-01-01T00:00:00Z",
++         },
++         "recordCounts": {
++           "activeIngredients": 4,
++           "atcCodes": 2,
++           "dataSources": 1,
++           "datasetVersions": 1,
++           "dosageForms": 1,
++           "manufacturers": 1,
++           "marketingAuthorizationHolders": 1,
++           "medicationIngredients": 4,
++           "products": 2,
++           "regulatoryDocuments": 2,
++         },
++         "rightsApprovalReference": "not-approved",
++         "schemaVersion": "medication-catalogue-2",
++         "sourceIds": [
++           "dsintermedsource.synthetic",
++         ],
++         "status": "published",
++         "upstreamPublishedAt": {
++           "status": "missing",
++         },
++         "upstreamVersion": {
++           "status": "missing",
++         },
++         "version": "synthetic-beta",
++       },
++     ],
++     "dosageForms": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "displayName": "fictional tablet beta",
++         "externalCode": {
++           "status": "missing",
++         },
++         "id": "dfsource.syntheticDF-TABLET",
++         "originalSourceText": "fictional tablet beta",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "DF-TABLET",
++       },
++     ],
++     "manufacturers": [
++       {
++         "country": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "id": "mfsource.syntheticMF-SYNTHETICA",
++         "name": "Synthetica Laboratories",
++         "sourceEntityId": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "MF-SYNTHETICA",
++       },
++     ],
++     "marketingAuthorizationHolders": [
++       {
++         "country": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "id": "mahsource.syntheticMAH-PLACEBO",
++         "name": "Placebo Holding",
++         "sourceEntityId": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "MAH-PLACEBO",
++       },
++     ],
++     "medicationIngredients": [
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-FICTIVOL+AI-FICTIVOLINUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-FICTIVOLINUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-FICTIVOL",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Fictivolinum beta",
++         "sourceRecordKey": "SP-FICTIVOL+AI-FICTIVOLINUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-PLACEBEXIUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-PLACEBEXIUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Placebexium beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-PLACEBEXIUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-SYNTHETINUM",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-SYNTHETINUM",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Synthetinum beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-SYNTHETINUM",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++       {
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "denominatorUnit": {
++           "status": "missing",
++         },
++         "denominatorValue": {
++           "status": "missing",
++         },
++         "denominatorValueNormalized": {
++           "status": "missing",
++         },
++         "id": "misource.syntheticSP-PLACEBEX+AI-FICTOVOL",
++         "ingredientId": {
++           "status": "present",
++           "value": "aisource.syntheticAI-FICTOVOL",
++         },
++         "mappingStatus": "confirmed",
++         "mappingVersion": "synthetic-1",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceIngredientText": "Fictovolol beta",
++         "sourceRecordKey": "SP-PLACEBEX+AI-FICTOVOL",
++         "strengthOriginalText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++         "strengthUnit": {
++           "sourceText": "mg",
++           "status": "present",
++         },
++         "strengthValue": {
++           "status": "present",
++           "value": "500",
++         },
++         "strengthValueNormalized": {
++           "status": "present",
++           "value": "500",
++         },
++       },
++     ],
++     "products": [
++       {
++         "atcCodeIds": [
++           "atcsource.syntheticATC-SP-FICTIVOL",
++         ],
++         "authorizationDate": {
++           "status": "missing",
++         },
++         "authorizationNumber": {
++           "status": "present",
++           "value": "AUTH-SYN-SP-FICTIVOL",
++         },
++         "authorizationStatus": {
++           "status": "missing",
++         },
++         "cim": {
++           "status": "missing",
++         },
++         "commercialName": "Fictivol beta",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dosageFormId": {
++           "status": "present",
++           "value": "dfsource.syntheticDF-TABLET",
++         },
++         "firstSeenAt": "2026-01-01T00:00:00Z",
++         "id": "mpsource.syntheticSP-FICTIVOL",
++         "lastSeenAt": "2026-01-01T00:00:00Z",
++         "manufacturerIds": [
++           "mfsource.syntheticMF-SYNTHETICA",
++         ],
++         "marketingAuthorizationHolderId": {
++           "status": "present",
++           "value": "mahsource.syntheticMAH-PLACEBO",
++         },
++         "originalDciText": {
++           "status": "missing",
++         },
++         "presentationOrPackDescription": {
++           "status": "missing",
++         },
++         "regulatoryDocumentIds": [
++           "rdsource.syntheticRD-SP-FICTIVOL",
++         ],
++         "route": {
++           "status": "present",
++           "value": "oral-fictional",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceProductId": "SP-FICTIVOL",
++         "sourceVersion": "synthetic-1",
++         "status": "active",
++         "strengthText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++       },
++       {
++         "atcCodeIds": [
++           "atcsource.syntheticATC-SP-PLACEBEX",
++         ],
++         "authorizationDate": {
++           "status": "missing",
++         },
++         "authorizationNumber": {
++           "status": "present",
++           "value": "AUTH-SYN-SP-PLACEBEX",
++         },
++         "authorizationStatus": {
++           "status": "missing",
++         },
++         "cim": {
++           "status": "missing",
++         },
++         "commercialName": "Placebex beta",
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "dosageFormId": {
++           "status": "present",
++           "value": "dfsource.syntheticDF-TABLET",
++         },
++         "firstSeenAt": "2026-01-01T00:00:00Z",
++         "id": "mpsource.syntheticSP-PLACEBEX",
++         "lastSeenAt": "2026-01-01T00:00:00Z",
++         "manufacturerIds": [
++           "mfsource.syntheticMF-SYNTHETICA",
++         ],
++         "marketingAuthorizationHolderId": {
++           "status": "present",
++           "value": "mahsource.syntheticMAH-PLACEBO",
++         },
++         "originalDciText": {
++           "status": "missing",
++         },
++         "presentationOrPackDescription": {
++           "status": "missing",
++         },
++         "regulatoryDocumentIds": [
++           "rdsource.syntheticRD-SP-PLACEBEX",
++         ],
++         "route": {
++           "status": "present",
++           "value": "oral-fictional",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceProductId": "SP-PLACEBEX",
++         "sourceVersion": "synthetic-1",
++         "status": "active",
++         "strengthText": {
++           "status": "present",
++           "value": "500 mg",
++         },
++       },
++     ],
++     "regulatoryDocuments": [
++       {
++         "cacheRightsStatus": "not-assessed",
++         "cachedContentReference": {
++           "status": "missing",
++         },
++         "checksum": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "documentVersion": {
++           "status": "missing",
++         },
++         "id": "rdsource.syntheticRD-SP-FICTIVOL",
++         "language": {
++           "status": "present",
++           "value": "ro",
++         },
++         "lastCheckedAt": "2026-01-01T00:00:00Z",
++         "productId": "mpsource.syntheticSP-FICTIVOL",
++         "publishedAt": {
++           "status": "missing",
++         },
++         "retrievedAt": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "RD-SP-FICTIVOL",
++         "sourceVersion": "synthetic-1",
++         "title": {
++           "status": "present",
++           "value": "Fictional Fictivol note",
++         },
++         "type": "other",
++         "url": "https://example.invalid/intermed/synthetic-document",
++       },
++       {
++         "cacheRightsStatus": "not-assessed",
++         "cachedContentReference": {
++           "status": "missing",
++         },
++         "checksum": {
++           "status": "missing",
++         },
++         "datasetVersionId": "dvsource.syntheticsynthetic-beta",
++         "documentVersion": {
++           "status": "missing",
++         },
++         "id": "rdsource.syntheticRD-SP-PLACEBEX",
++         "language": {
++           "status": "present",
++           "value": "ro",
++         },
++         "lastCheckedAt": "2026-01-01T00:00:00Z",
++         "productId": "mpsource.syntheticSP-PLACEBEX",
++         "publishedAt": {
++           "status": "missing",
++         },
++         "retrievedAt": {
++           "status": "missing",
++         },
++         "sourceId": "dsintermedsource.synthetic",
++         "sourceRecordKey": "RD-SP-PLACEBEX",
++         "sourceVersion": "synthetic-1",
++         "title": {
++           "status": "present",
++           "value": "Fictional Placebex note",
++         },
++         "type": "other",
++         "url": "https://example.invalid/intermed/synthetic-document",
++       },
++     ],
++   },
++   "synthetic": true,
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:601:69
+    599|     schemaVersion: 'medication-catalogue-2',
+    600|   });
+    601|   expect(checkBundle(schemaMismatch.manifest, schemaMismatch.text)).to…
+       |                                                                     ^
+    602|     ok: false,
+    603|     reason: 'invalid-bundle',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 20 skipped (22)
+   Start at  19:21:23
+   Duration  290ms (transform 82ms, setup 0ms, import 134ms, tests 53ms, environment 0ms)
+
+[exit code: 1]
+

@@ -170,6 +170,36 @@ export function integrityBrokenBundle(bundleToBreak: SyntheticBundle): {
   };
 }
 
+/**
+ * A bundle whose embedded dataset version disagrees with its manifest while
+ * everything else still validates: the version fields are rewritten and the
+ * bundle re-sealed and re-checksummed.
+ */
+export function versionMismatchBundle(
+  source: SyntheticBundle,
+  fields: {
+    readonly schemaVersion?: string;
+    readonly minimumClientVersion?: string;
+  },
+): {
+  readonly manifest: PublishedDatasetManifest;
+  readonly text: string;
+} {
+  const decoded = deserializeCatalogue(source.text);
+  if (!decoded.ok) throw new Error('The synthetic bundle did not deserialize');
+  const [first, ...rest] = decoded.snapshot.datasetVersions;
+  if (!first) throw new Error('The synthetic bundle has no dataset version');
+  const sealed = sealCatalogue({
+    ...decoded.snapshot,
+    datasetVersions: [{ ...first, ...fields }, ...rest],
+  });
+  const text = serializeCatalogue(sealed);
+  return {
+    manifest: { ...source.manifest, checksum: fingerprint(text) },
+    text,
+  };
+}
+
 /** Published source fake serving exactly one synthetic bundle. */
 export function fakePublishedSource(
   syntheticBundle: SyntheticBundle,

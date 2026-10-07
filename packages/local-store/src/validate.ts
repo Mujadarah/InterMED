@@ -157,6 +157,18 @@ export function checkBundle(
   const snapshotSources = [...version.sourceIds].sort().join('\u001f');
   if (publishedSources !== snapshotSources)
     return { ok: false, reason: 'invalid-bundle' };
+  // The embedded dataset version must identify the same schema and client
+  // requirement as its manifest (Greptile review fix G9).
+  if (
+    version.schemaVersion !== manifest.schemaVersion ||
+    version.minimumClientVersion !== manifest.minimumClientVersion
+  )
+    return { ok: false, reason: 'invalid-bundle' };
+  // ... and it gets the same compatibility treatment the manifest got.
+  if (!SUPPORTED_MANIFEST_SCHEMA_VERSIONS.includes(version.schemaVersion))
+    return { ok: false, reason: 'incompatible-schema' };
+  if (!isClientCompatible(version.minimumClientVersion))
+    return { ok: false, reason: 'incompatible-schema' };
   if (validateReferentialIntegrity(snapshot).length > 0)
     return { ok: false, reason: 'integrity-failed' };
   for (const [key, expected] of Object.entries(manifest.recordCounts)) {
