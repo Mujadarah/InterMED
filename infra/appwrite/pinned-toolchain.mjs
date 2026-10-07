@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import {
   dirname,
   isAbsolute,
@@ -14,6 +15,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const NODE_VERSION = '24.21.0';
 export const NPM_VERSION = '11.19.0';
+export const LINUX_X64_MUSL_ARTIFACT = Object.freeze({
+  url: 'https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz',
+  sha256: '3d63405fc65a0d2d2976c1f0bc2fd27bb0bd07212469e705aac3f03ae5ab4c9c',
+  topFolder: 'node-v24.21.0-linux-x64-musl',
+});
 
 const repositoryRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -54,9 +60,13 @@ export function resolvePinnedPaths(env = process.env) {
 function platformDetails(platform, arch) {
   const details = {
     'win32/x64': { packageName: 'node-win-x64', binaryName: 'node.exe' },
-    'linux/x64': { packageName: 'node-linux-x64', binaryName: 'node' },
-    'linux/arm64': { packageName: 'node-linux-arm64', binaryName: 'node' },
+    'linux/x64': { binaryName: 'node' },
   }[`${platform}/${arch}`];
+  if (platform === 'linux' && arch === 'arm64') {
+    throw new Error(
+      'Unsupported Node bootstrap platform/architecture: linux/arm64 has no exact official musl artifact',
+    );
+  }
   if (!details) {
     throw new Error(
       `Unsupported Node bootstrap platform/architecture: ${platform}/${arch}`,
@@ -89,8 +99,14 @@ export function bootstrapInstallSpec(
 ) {
   const { packageName, binaryName } = platformDetails(platform, arch);
   const pathApi = platform === 'win32' ? win32 : posix;
+  const nodeDirectory = packageName
+    ? pathApi.join(prefix, 'node_modules', packageName, 'bin')
+    : pathApi.join(prefix, LINUX_X64_MUSL_ARTIFACT.topFolder, 'bin');
   return {
-    packages: [`${packageName}@${NODE_VERSION}`, `npm@${NPM_VERSION}`],
+    packages: [
+      ...(packageName ? [`${packageName}@${NODE_VERSION}`] : []),
+      `npm@${NPM_VERSION}`,
+    ],
     npmArgs: [
       'install',
       '--prefix',
@@ -99,13 +115,7 @@ export function bootstrapInstallSpec(
       '--package-lock=false',
       '--ignore-scripts',
     ],
-    nodePath: pathApi.join(
-      prefix,
-      'node_modules',
-      packageName,
-      'bin',
-      binaryName,
-    ),
+    nodePath: pathApi.join(nodeDirectory, binaryName),
     npmCliPath: pathApi.join(
       prefix,
       'node_modules',
@@ -114,6 +124,69 @@ export function bootstrapInstallSpec(
       'npm-cli.js',
     ),
   };
+}
+
+function runTarArchive(phase, archivePath, prefix) {
+  if (phase === 'list') {
+    return execFileSync('tar', ['-tzf', archivePath], { encoding: 'utf8' })
+      .split(/\r?\n/)
+      .filter(Boolean);
+  }
+  execFileSync('tar', ['-xzf', archivePath, '-C', prefix], {
+    stdio: 'ignore',
+  });
+}
+
+export function assertSafeArchiveEntries(entries, topFolder) {
+  const expectedPrefix = `${topFolder}/`;
+  for (const entry of entries) {
+    const normalized = entry.replaceAll('\\', '/');
+    if (
+      normalized.startsWith('/') ||
+      normalized.includes('\0') ||
+      !normalized.startsWith(expectedPrefix) ||
+      normalized.split('/').includes('..')
+    ) {
+      throw new Error(`Unsafe archive entry: ${entry}`);
+    }
+  }
+}
+
+/**
+ * @param {{
+ *   prefix: string,
+ *   fetchImpl?: typeof fetch,
+ *   artifact?: { url: string, sha256: string, topFolder: string },
+ *   runTar?: (phase: string, archivePath: string, prefix: string) => string[] | undefined,
+ * }} options
+ */
+export async function downloadAndExtractLinuxMuslNode({
+  prefix,
+  fetchImpl = fetch,
+  artifact = LINUX_X64_MUSL_ARTIFACT,
+  runTar = runTarArchive,
+}) {
+  const response = await fetchImpl(artifact.url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to download pinned Node artifact: ${response.status}`,
+    );
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const actualHash = createHash('sha256').update(bytes).digest('hex');
+  if (actualHash !== artifact.sha256) {
+    throw new Error(
+      `Node artifact checksum mismatch: expected ${artifact.sha256}, got ${actualHash}`,
+    );
+  }
+
+  mkdirSync(prefix, { recursive: true });
+  const archivePath = join(prefix, `${artifact.topFolder}.tar.gz`);
+  writeFileSync(archivePath, bytes);
+  const entries = runTar('list', archivePath, prefix);
+  assertSafeArchiveEntries(entries, artifact.topFolder);
+  runTar('extract', archivePath, prefix);
+  return join(prefix, artifact.topFolder);
 }
 
 function hostNpmCliPath() {
@@ -157,7 +230,7 @@ function toolchainPrefix() {
   return prefix;
 }
 
-function bootstrapToolchain() {
+async function bootstrapToolchain() {
   const prefix = toolchainPrefix();
   mkdirSync(prefix, { recursive: true });
   const hostNode = process.execPath;
@@ -166,6 +239,13 @@ function bootstrapToolchain() {
     : hostNpmCliPath();
 
   const spec = bootstrapInstallSpec(process.platform, process.arch, prefix);
+  let nodePath = spec.nodePath;
+  if (process.platform === 'linux') {
+    const extractedDirectory = await downloadAndExtractLinuxMuslNode({
+      prefix,
+    });
+    nodePath = join(extractedDirectory, 'bin', 'node');
+  }
   const result = spawnSync(
     hostNode,
     [hostNpm, ...spec.npmArgs, ...spec.packages],
@@ -185,10 +265,10 @@ function bootstrapToolchain() {
     );
   }
 
-  return { nodePath: spec.nodePath, npmCliPath: spec.npmCliPath };
+  return { nodePath, npmCliPath: spec.npmCliPath };
 }
 
-function resolveToolchain() {
+async function resolveToolchain() {
   const injected =
     process.env.APPWRITE_PINNED_NODE || process.env.APPWRITE_PINNED_NPM_CLI;
   return injected ? resolvePinnedPaths() : bootstrapToolchain();
@@ -209,7 +289,7 @@ function verifyVersions(nodePath, npmCliPath) {
   return { nodeVersion, npmVersion };
 }
 
-function run() {
+async function run() {
   const command = process.argv[2];
   if (command !== 'install' && command !== 'build') {
     throw new Error(
@@ -217,7 +297,7 @@ function run() {
     );
   }
 
-  const { nodePath, npmCliPath } = resolveToolchain();
+  const { nodePath, npmCliPath } = await resolveToolchain();
   const versions = verifyVersions(nodePath, npmCliPath);
   const args =
     command === 'install'
@@ -249,10 +329,8 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
-  try {
-    run();
-  } catch (error) {
+  run().catch((error) => {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
-  }
+  });
 }
