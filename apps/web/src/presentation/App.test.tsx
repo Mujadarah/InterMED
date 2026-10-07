@@ -4,14 +4,21 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it } from 'vitest';
+import type { DatasetStateSource, DatasetUpdateState } from '@intermed/domain';
 import { App } from './App';
 
 afterEach(cleanup);
+const neverDownloaded: DatasetUpdateState = { status: 'never-downloaded' };
+const dataset: DatasetStateSource = {
+  getState: () => neverDownloaded,
+  subscribe: () => () => {},
+};
 const services = {
   info: {
     label: 'Synthetic contributor mode',
     referenceData: 'unavailable' as const,
   },
+  dataset,
 };
 
 it('labels the shell as development and keeps clinical capabilities unavailable', () => {
