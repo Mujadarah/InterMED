@@ -1,0 +1,31 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ Γ¥» packages/local-store/src/migrations.test.ts (10 tests | 1 failed | 9 skipped) 65ms
+   ├ù requests persistent storage as best effort and survives its denial 57ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > requests persistent storage as best effort and survives its denial
+AssertionError: expected "vi.fn()" to be called once, but got 0 times
+ Γ¥» packages/local-store/src/migrations.test.ts:197:21
+    195|     const store = testStore();
+    196|     await store.open();
+    197|     expect(persist).toHaveBeenCalledOnce();
+       |                     ^
+    198|     expect(store.getState()).toMatchObject({ status: 'never-downloadedΓÇª
+    199|   } finally {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  13:39:18
+   Duration  1.05s (transform 360ms, setup 0ms, import 589ms, tests 65ms, environment 0ms)

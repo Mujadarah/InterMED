@@ -1,0 +1,143 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ Γ¥» packages/local-store/src/migrations.test.ts (9 tests | 7 failed) 38ms
+   ├ù migrates a v1 database with favorites and keeps the active generation 12ms
+   ├ù refuses a newer on-disk schema and leaves its data untouched 5ms
+   ├ù reports evicted when the active pointer outlives its rows 3ms
+   ├ù reports never-downloaded on a fresh database 7ms
+   ├ù reports storage-unavailable when no database API is exposed 1ms
+   ├ù reports storage-restricted when the browser refuses to open a database 1ms
+   ├ù surfaces reload-required instead of blocking when another tab upgrades 3ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 7 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > migrates a v1 database with favorites and keeps the active
+generation
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/migrations.test.ts:13:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > refuses a newer on-disk schema and leaves its data untouched
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/migrations.test.ts:48:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports evicted when the active pointer outlives its rows
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/migrations.test.ts:78:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports never-downloaded on a fresh database
+AssertionError: expected { status: 'opening' } to match object { status: 'never-downloaded' }
+
+- Expected
++ Received
+
+  {
+-   "status": "never-downloaded",
++   "status": "opening",
+  }
+
+ Γ¥» packages/local-store/src/migrations.test.ts:99:28
+     97|   const store = testStore();
+     98|   await store.open();
+     99|   expect(store.getState()).toMatchObject({ status: 'never-downloaded' ΓÇª
+       |                            ^
+    100|   expect(await store.openReader()).toBeNull();
+    101|   expect(await store.rollback()).toBe(false);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports storage-unavailable when no database API is exposed
+AssertionError: expected { status: 'opening' } to match object { status: 'storage-unavailable' }
+
+- Expected
++ Received
+
+  {
+-   "status": "storage-unavailable",
++   "status": "opening",
+  }
+
+ Γ¥» packages/local-store/src/migrations.test.ts:109:30
+    107|     const store = testStore();
+    108|     await store.open();
+    109|     expect(store.getState()).toMatchObject({ status: 'storage-unavailaΓÇª
+       |                              ^
+    110|   } finally {
+    111|     vi.unstubAllGlobals();
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > reports storage-restricted when the browser refuses to open a
+database
+AssertionError: expected { status: 'opening' } to match object { status: 'storage-restricted' }
+
+- Expected
++ Received
+
+  {
+-   "status": "storage-restricted",
++   "status": "opening",
+  }
+
+ Γ¥» packages/local-store/src/migrations.test.ts:129:30
+    127|     const store = testStore();
+    128|     await store.open();
+    129|     expect(store.getState()).toMatchObject({ status: 'storage-restrictΓÇª
+       |                              ^
+    130|   } finally {
+    131|     vi.unstubAllGlobals();
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/7]ΓÄ»
+
+ FAIL  packages/local-store/src/migrations.test.ts > surfaces reload-required instead of blocking when another tab
+upgrades
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/migrations.test.ts:139:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/7]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 2 passed (9)
+   Start at  13:18:42
+   Duration  606ms (transform 159ms, setup 0ms, import 281ms, tests 38ms, environment 0ms)

@@ -1,0 +1,43 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ Γ¥» apps/web/src/presentation/DatasetStatus.test.tsx (0 test)
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Suites 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  apps/web/src/presentation/DatasetStatus.test.tsx [ apps/web/src/presentation/DatasetStatus.test.tsx ]
+Error: Failed to resolve import "./DatasetStatus" from "apps/web/src/presentation/DatasetStatus.test.tsx". Does the
+file exist?
+  Plugin: vite:import-analysis
+  File: D:/Proiecte AI/InterMED-wt/m6/apps/web/src/presentation/DatasetStatus.test.tsx:10:30
+  3  |  import { act, cleanup, render, screen } from "@testing-library/react";
+  4  |  import { afterEach, expect, it } from "vitest";
+  5  |  import { DatasetStatus } from "./DatasetStatus";
+     |                                 ^
+  6  |  var _jsxFileName = "D:/Proiecte AI/InterMED-wt/m6/apps/web/src/presentation/DatasetStatus.test.tsx";
+  7  |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
+ Γ¥» TransformPluginContext._formatLog
+../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8766:39
+ Γ¥» TransformPluginContext.error
+../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8763:14
+ Γ¥» normalizeUrl ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26423:18
+ Γ¥» ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26493:30
+ Γ¥» TransformPluginContext.transform
+../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26459:4
+ Γ¥» EnvironmentPluginContainer.transform
+../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8545:14
+ Γ¥» loadAndTransform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:19988:26
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  13:21:53
+   Duration  21.51s (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 20.82s)

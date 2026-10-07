@@ -1,0 +1,206 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ Γ¥» packages/local-store/src/staging.test.ts (13 tests | 13 failed) 50ms
+   ├ù stages and activates a bundle, then reads the same generation after a restart 10ms
+   ├ù keeps staged rows invisible until one atomic pointer switch 7ms
+   ├ù is idempotent when the same generation is staged twice 3ms
+   ├ù rejects a corrupted bundle, keeps the previous generation and stages nothing 2ms
+   ├ù rejects a bundle that fails referential integrity 2ms
+   ├ù rejects published count mismatches against the bundle 2ms
+   ├ù rejects an unsupported manifest schema or client requirement 3ms
+   ├ù rejects a manifest that is not for this dataset or has no expected counts 3ms
+   ├ù rejects a bundle that does not identify the manifest generation 7ms
+   ├ù keeps the old active generation when staging is interrupted 3ms
+   ├ù keeps the old active generation on a quota error and reports storage-quota 3ms
+   ├ù downloads through the injected published source and reports size mismatches 3ms
+   ├ù reports update-available after a background check and fails without touching data 2ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 13 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > stages and activates a bundle, then reads the same generation after
+a restart
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:15:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps staged rows invisible until one atomic pointer switch
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:43:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > is idempotent when the same generation is staged twice
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:68:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a corrupted bundle, keeps the previous generation and stages
+nothing
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:81:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle that fails referential integrity
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:99:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects published count mismatches against the bundle
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:114:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects an unsupported manifest schema or client requirement
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:131:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a manifest that is not for this dataset or has no expected
+counts
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:152:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > rejects a bundle that does not identify the manifest generation
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:175:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation when staging is interrupted
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:195:23
+
+ Test Files  1 failed (1)
+      Tests  13 failed (13)
+   Start at  13:18:34
+   Duration  583ms (transform 147ms, setup 0ms, import 273ms, tests 50ms, environment 0ms)
+
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps the old active generation on a quota error and reports
+storage-quota
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:223:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > downloads through the injected published source and reports size
+mismatches
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:241:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/13]ΓÄ»
+
+ FAIL  packages/local-store/src/staging.test.ts > reports update-available after a background check and fails without
+touching data
+Error: not implemented
+ Γ¥» Object.unavailable packages/local-store/src/store.ts:38:9
+     36| const state: DatasetUpdateState = { status: 'opening' };
+     37| const unavailable = async (): Promise<never> => {
+     38|   throw new Error('not implemented');
+       |         ^
+     39| };
+     40|
+ Γ¥» packages/local-store/src/staging.test.ts:263:23
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/13]ΓÄ»

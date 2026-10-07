@@ -1,0 +1,44 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ Γ¥» tests/boundaries.test.ts (21 tests | 5 failed) 81ms
+   ├ù rejects a local-store import outside the composition root: apps/web/src/presentation/View.ts 7ms
+   ├ù rejects a local-store import outside the composition root: apps/web/src/application/services.ts 2ms
+   ├ù rejects a local-store import outside the composition root: apps/web/src/infrastructure/browser-shell.ts 1ms
+   ├ù rejects a local-store import outside the composition root: packages/data-access/src/reader.ts 1ms
+   ├ù rejects a local-store import outside the composition root: packages/local-store-consumer.ts 1ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 5 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/boundaries.test.ts > rejects a local-store import outside the composition root:
+apps/web/src/presentation/View.ts
+ FAIL  tests/boundaries.test.ts > rejects a local-store import outside the composition root:
+apps/web/src/application/services.ts
+ FAIL  tests/boundaries.test.ts > rejects a local-store import outside the composition root:
+apps/web/src/infrastructure/browser-shell.ts
+ FAIL  tests/boundaries.test.ts > rejects a local-store import outside the composition root:
+packages/data-access/src/reader.ts
+ FAIL  tests/boundaries.test.ts > rejects a local-store import outside the composition root:
+packages/local-store-consumer.ts
+AssertionError: expected [] to not have a length of +0
+ Γ¥» tests/boundaries.test.ts:101:9
+     99|       },
+    100|     ]),
+    101|   ).not.toHaveLength(0);
+       |         ^
+    102| });
+    103|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/5]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 16 passed (21)
+   Start at  13:27:14
+   Duration  1.48s (transform 622ms, setup 0ms, import 978ms, tests 81ms, environment 0ms)
