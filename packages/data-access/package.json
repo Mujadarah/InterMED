@@ -8,6 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@intermed/domain": "0.0.0"
+    "@intermed/domain": "0.0.0",
+    "zod": "4.6.5"
   }
 }

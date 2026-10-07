@@ -17,7 +17,16 @@ createRoot(container).render(
     <BrowserRouter>
       <Bootstrap
         shell={shell}
-        env={{ VITE_RUNTIME_MODE: import.meta.env['VITE_RUNTIME_MODE'] }}
+        env={{
+          VITE_RUNTIME_MODE: import.meta.env['VITE_RUNTIME_MODE'],
+          VITE_PUBLISHED_DATASETS_ENDPOINT: import.meta.env[
+            'VITE_PUBLISHED_DATASETS_ENDPOINT'
+          ],
+          VITE_APPWRITE_PROJECT_ID: import.meta.env['VITE_APPWRITE_PROJECT_ID'],
+          VITE_APPWRITE_PUBLISHED_BUCKET_ID: import.meta.env[
+            'VITE_APPWRITE_PUBLISHED_BUCKET_ID'
+          ],
+        }}
       />
     </BrowserRouter>
   </StrictMode>,

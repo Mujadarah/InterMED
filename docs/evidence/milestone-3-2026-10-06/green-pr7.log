@@ -1,0 +1,57 @@
+PR #7 review fixes - green runs after the fixes. Every credential fixture is synthetic and assembled at runtime, so no key-shaped literal appears in these logs.
+
+## green 1/5 dropped regex flags in the credential scanner - npx vitest run tests/appwrite-config-secrets.test.ts (the detector keeps every pattern flag, so case variants match)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  10:02:38
+   Duration  150ms (transform 20ms, setup 0ms, import 34ms, tests 16ms, environment 0ms)
+
+## green 2/5 Sites install path - npx vitest run tests/appwrite-sites-install.test.ts (the install prefix resolves to the directory of the root package-lock.json)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  10:02:39
+   Duration  130ms (transform 15ms, setup 0ms, import 26ms, tests 3ms, environment 0ms)
+
+## green 3/5 required post-build bundle scan - npx vitest run tests/scan-dist-secrets.test.ts (the script fails on missing build output and on credential-shaped output)
+## exit code: 0
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  10:02:40
+   Duration  347ms (transform 16ms, setup 0ms, import 29ms, tests 221ms, environment 0ms)
+
+## green 4/5 the required scan over the real built bundle - npm run scan:dist
+## exit code: 0
+
+> intermed@0.0.0 scan:dist
+> node scripts/scan-dist-secrets.mjs
+
+scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\m3\apps\web\dist, no credential-shaped strings.
+
+## green 5/5 full unit suite - npm run test
+## exit code: 0
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+
+ Test Files  12 passed (12)
+      Tests  103 passed (103)
+   Start at  10:02:41
+   Duration  12.37s (transform 688ms, setup 0ms, import 8.68s, tests 579ms, environment 28.19s)

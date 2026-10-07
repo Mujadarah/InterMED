@@ -22,7 +22,7 @@ Run `npm run dev` for the local Vite server. Run `npm run build`, then `npm run 
 
 ## Public configuration and mock mode
 
-No environment file is required. The only supported public runtime-configuration value is `VITE_RUNTIME_MODE=mock`; an optional placeholder is in [apps/web/.env.example](../apps/web/.env.example). No endpoint, project ID, account, anonymous Auth session or cloud key exists in this milestone. Additional `VITE_*` keys and other mode values fail startup/build validation without printing values. All frontend variables are public: never put secrets in them. `.env`/local variants remain ignored.
+No environment file is required. The only supported runtime mode is `VITE_RUNTIME_MODE=mock`; an optional placeholder is in [apps/web/.env.example](../apps/web/.env.example). Optional nonsecret reader identifiers (`VITE_PUBLISHED_DATASETS_ENDPOINT`, `VITE_APPWRITE_PROJECT_ID`, `VITE_APPWRITE_PUBLISHED_BUCKET_ID`) may be set together and are validated but unused while mock mode is the only mode. No account, anonymous Auth session or cloud key exists in this milestone. Additional `VITE_*` keys, other mode values, partial reader identifiers and credential-shaped values fail startup/build validation without printing values. All frontend variables are public: never put secrets in them. `.env`/local variants remain ignored.
 
 Bootstrap validates configuration with Zod, injects a synthetic `BootstrapInfoProvider`, and renders an accessible error when runtime configuration is invalid. The provider supplies only a development label and unavailable-reference status. It supplies no fabricated medications, interactions or clinical facts. Tests substitute it through the domain contract without credentials. See [package boundaries](../packages/README.md).
 
@@ -38,10 +38,24 @@ Bootstrap validates configuration with Zod, injects a synthetic `BootstrapInfoPr
 | `npm run check:boundaries`    | Actual-source AST checks plus dependency-free domain manifest                                     |
 | `npm audit --audit-level=low` | Dependency vulnerability gate                                                                     |
 | `npm run build`               | Vite production assets in `apps/web/dist`                                                         |
+| `npm run scan:dist`           | Required post-build credential scan of `apps/web/dist`; fails when the build output is missing    |
 | `npm run test:browser`        | Playwright production shell, offline/cache/failure/update lifecycle, keyboard focus and viewports |
 | `npm run check`               | All quality gates above in order, excluding install/browser download                              |
 
 Use `npm run format` to format supported files. The historical planning corpus and all-branch reviewer configurations are preserved verbatim and excluded from mechanical formatting; this does not exclude them from review or static analysis. No lint/test/analyzer rule is disabled to pass the milestone. Vitest uses threads: the initial Windows fork-pool run completed after a slow 43-second startup; threads completed the same component assertions promptly. Neither startup latency nor the corrected initial Playwright preview-command error counts as a red behavior test.
+
+### Appwrite configuration commands (Milestone 3)
+
+The offline Appwrite permission and secret suites run inside `npm run test`. To run only those, plus the injected reader tests:
+
+```powershell
+npx vitest run tests/appwrite-config-permissions.test.ts tests/appwrite-config-secrets.test.ts
+npx vitest run packages/data-access
+```
+
+No Appwrite CLI invocation is part of any repository script. Provisioning, deployment and rollback commands live in [the Appwrite runbook](APPWRITE_RUNBOOK.md) and remain **NOT YET EXECUTED — requires maintainer approval**.
+
+The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever that build output already exists, and `npm run scan:dist` (`scripts/scan-dist-secrets.mjs`) scans it unconditionally as the `npm run check` step directly after `npm run build`, failing when the build output is missing instead of skipping. Both use the detector in `tests/support/secret-scan.ts` and report file names and pattern labels only, never matched values.
 
 ## Dependencies and API decisions
 

@@ -44,11 +44,15 @@ Acceptance: authorized test deployment works with exact recorded settings; unaut
 
 Ordering (maintainer decision, 2026-10-06): milestone 3 may begin. Appwrite configuration/schema **as code** behind an injected backend-client interface may proceed alongside milestone 4 (pure TypeScript domain model with synthetic fixtures); this is an owner-authorized deviation from strict sequencing. Live Appwrite provisioning/deployment still requires fresh explicit approval. The owner merges PRs; agents never merge.
 
+Status (2026-10-07): **code-complete as configuration-as-code; live acceptance pending provisioning approval.** See [Milestone 3 evidence](../docs/MILESTONE_3_EVIDENCE.md) for the exact live checks still open.
+
 ## Milestone 4 — Medication domain model
 
 Tasks: MedicationProduct, ActiveIngredient, MedicationIngredient, ATCCode, DosageForm, Manufacturer, MarketingAuthorizationHolder, RegulatoryDocument, DataSource, DatasetVersion, stable IDs and provenance; validated DTOs and synthetic source fixtures.
 
 Acceptance: tested product/ingredient separation, combination expansion, unit/source preservation, missing fields and referential integrity; domain serializes independently of Appwrite; mock source can be swapped. Document ambiguous identity states.
+
+Status (2026-10-07): **implemented with synthetic fixtures; acceptance evidence recorded** in [Milestone 4 evidence](../docs/MILESTONE_4_EVIDENCE.md), pending maintainer review/merge. Milestone 5 remains blocked on source-rights approval.
 
 ## Milestone 5 — ANMDMR importer
 

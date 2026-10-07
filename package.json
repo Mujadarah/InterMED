@@ -24,7 +24,8 @@
     "test": "vitest run",
     "test:browser": "playwright test",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run test:browser"
+    "scan:dist": "node scripts/scan-dist-secrets.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

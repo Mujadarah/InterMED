@@ -1,0 +1,42 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+
+ ❯ tests/domain/serialize.test.ts (2 tests | 2 failed) 6ms
+   × round-trips catalogue JSON without an Appwrite dependency 5ms
+   × returns issues for malformed JSON instead of throwing 1ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  23:54:38
+   Duration  172ms (transform 40ms, setup 0ms, import 56ms, tests 6ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/serialize.test.ts > round-trips catalogue JSON without an Appwrite dependency
+AssertionError: expected '{}' to contain 'Fictivol'
+
+Expected: "Fictivol"
+Received: "{}"
+
+ ❯ tests/domain/serialize.test.ts:84:16
+     82|   const snapshot = sample();
+     83|   const json = serializeCatalogue(snapshot);
+     84|   expect(json).toContain('Fictivol');
+       |                ^
+     85|   expect(json).toContain(commaName);
+     86|   expect(json.toLowerCase()).not.toContain('appwrite');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/domain/serialize.test.ts > returns issues for malformed JSON instead of throwing
+AssertionError: expected 0 to be greater than 0
+ ❯ tests/domain/serialize.test.ts:102:48
+    100|   const result = deserializeCatalogue('not-json');
+    101|   expect(result.ok).toBe(false);
+    102|   if (!result.ok) expect(result.issues.length).toBeGreaterThan(0);
+       |                                                ^
+    103|   const missing = deserializeCatalogue(JSON.stringify({ products: [] }…
+    104|   expect(missing.ok).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯

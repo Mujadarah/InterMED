@@ -1,0 +1,55 @@
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json
+
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ tests/appwrite-config-secrets.test.ts (4 tests | 1 failed) 17ms
+     × finds no credential-shaped strings in the scanned files 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/appwrite-config-secrets.test.ts > secret scan > finds no credential-shaped strings in the scanned files
+AssertionError: apps/web/dist/sw.js must not contain long hexadecimal secret: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/appwrite-config-secrets.test.ts:91:75
+     89|       const source = await readTextFile(path);
+     90|       for (const [label, pattern] of secretPatterns)
+     91|         expect(pattern.test(source), `${path} must not contain ${label…
+       |                                                                           ^
+     92|           false,
+     93|         );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  1 failed | 77 passed (78)
+   Start at  00:13:53
+   Duration  1.61s (transform 261ms, setup 0ms, import 1.96s, tests 558ms, environment 2.43s)
+

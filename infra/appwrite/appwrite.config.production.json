@@ -1,0 +1,385 @@
+{
+  "projectId": "intermed-prod",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "tablesDB": [
+    {
+      "$id": "intermed-datasets",
+      "name": "InterMED dataset publications",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "dataset-versions",
+      "$permissions": ["read(\"any\")"],
+      "databaseId": "intermed-datasets",
+      "name": "Dataset version manifest (public read)",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "dataset",
+          "type": "varchar",
+          "size": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "version",
+          "type": "varchar",
+          "size": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "sourceIds",
+          "type": "varchar",
+          "size": 100,
+          "required": true,
+          "array": true
+        },
+        {
+          "key": "upstreamVersion",
+          "type": "varchar",
+          "size": 200,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "upstreamPublishedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "publishedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "importedAt",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "checksum",
+          "type": "varchar",
+          "size": 200,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "schemaVersion",
+          "type": "varchar",
+          "size": 50,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "minimumClientVersion",
+          "type": "varchar",
+          "size": 50,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "recordCounts",
+          "type": "text",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "coverage",
+          "type": "text",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "rightsApprovalReference",
+          "type": "varchar",
+          "size": 500,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "clinicalReviewReference",
+          "type": "varchar",
+          "size": 500,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "previousVersionId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "staging",
+            "validated",
+            "published",
+            "rejected",
+            "withdrawn"
+          ],
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "dataset_status_publishedAt",
+          "type": "key",
+          "columns": ["dataset", "status", "publishedAt"],
+          "orders": ["ASC", "ASC", "DESC"]
+        },
+        {
+          "key": "dataset_version_unique",
+          "type": "unique",
+          "columns": ["dataset", "version"]
+        }
+      ]
+    },
+    {
+      "$id": "dataset-bundles",
+      "$permissions": ["read(\"any\")"],
+      "databaseId": "intermed-datasets",
+      "name": "Dataset bundle descriptors (public read)",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "datasetVersionId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "fileId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "fileName",
+          "type": "varchar",
+          "size": 255,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "contentType",
+          "type": "varchar",
+          "size": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "byteSize",
+          "type": "bigint",
+          "required": true,
+          "min": 0,
+          "array": false
+        },
+        {
+          "key": "checksum",
+          "type": "varchar",
+          "size": 200,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "datasetVersionId_unique",
+          "type": "unique",
+          "columns": ["datasetVersionId"]
+        }
+      ]
+    },
+    {
+      "$id": "import-runs",
+      "$permissions": [],
+      "databaseId": "intermed-datasets",
+      "name": "Import run metadata (private)",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "sourceId",
+          "type": "varchar",
+          "size": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "snapshotVersion",
+          "type": "varchar",
+          "size": 200,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "importerVersion",
+          "type": "varchar",
+          "size": 50,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "startedAt",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "completedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "counts",
+          "type": "text",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "validationFailures",
+          "type": "text",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "diffSummary",
+          "type": "text",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "completenessStatus",
+          "type": "varchar",
+          "size": 50,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "approvalReference",
+          "type": "varchar",
+          "size": 500,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "publicationStatus",
+          "type": "varchar",
+          "size": 50,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "sourceId_startedAt",
+          "type": "key",
+          "columns": ["sourceId", "startedAt"],
+          "orders": ["ASC", "DESC"]
+        }
+      ]
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "raw-sources",
+      "$permissions": [],
+      "fileSecurity": false,
+      "name": "Raw source snapshots (private)",
+      "enabled": true,
+      "maximumFileSize": 536870912,
+      "allowedFileExtensions": [],
+      "compression": "none",
+      "encryption": false,
+      "antivirus": true
+    },
+    {
+      "$id": "quarantine",
+      "$permissions": [],
+      "fileSecurity": false,
+      "name": "Quarantined failed material (private)",
+      "enabled": true,
+      "maximumFileSize": 536870912,
+      "allowedFileExtensions": [],
+      "compression": "none",
+      "encryption": false,
+      "antivirus": true
+    },
+    {
+      "$id": "import-run-logs",
+      "$permissions": [],
+      "fileSecurity": false,
+      "name": "Import run logs (private)",
+      "enabled": true,
+      "maximumFileSize": 16777216,
+      "allowedFileExtensions": [],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true
+    },
+    {
+      "$id": "published-datasets",
+      "$permissions": ["read(\"any\")"],
+      "fileSecurity": false,
+      "name": "Published dataset bundles (public read)",
+      "enabled": true,
+      "maximumFileSize": 1073741824,
+      "allowedFileExtensions": [],
+      "compression": "none",
+      "encryption": false,
+      "antivirus": true
+    }
+  ],
+  "functions": [
+    {
+      "$id": "import-anmdmr",
+      "name": "ANMDMR runner (Milestone 3 stub)",
+      "enabled": true,
+      "logging": true,
+      "runtime": "node-22",
+      "path": "functions/import-anmdmr",
+      "entrypoint": "src/main.js",
+      "commands": "npm install --omit=dev",
+      "execute": [],
+      "events": [],
+      "schedule": "",
+      "timeout": 60,
+      "ignore": ["node_modules", ".git"],
+      "scopes": [],
+      "vars": []
+    }
+  ],
+  "sites": [
+    {
+      "$id": "intermed-web-prod",
+      "name": "InterMED web (production)",
+      "enabled": true,
+      "logging": true,
+      "framework": "other",
+      "adapter": "static",
+      "timeout": 30,
+      "installCommand": "npm ci --prefix ../.. --no-fund",
+      "buildCommand": "npm run build",
+      "outputDirectory": "./dist",
+      "buildRuntime": "node-22",
+      "fallbackFile": "index.html",
+      "path": "apps/web"
+    }
+  ]
+}

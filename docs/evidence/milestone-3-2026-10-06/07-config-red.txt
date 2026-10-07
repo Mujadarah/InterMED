@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ apps/web/src/config.test.ts (11 tests | 3 failed) 6ms
+     × accepts the public endpoint, project ID and bucket ID together 2ms
+     × keeps credential-free mock mode when identifiers are set 0ms
+     × recognises credential shapes and ignores public identifiers 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/config.test.ts > optional public reader identifiers > accepts the public endpoint, project ID and bucket ID together
+Error: Invalid public configuration. Use VITE_RUNTIME_MODE=mock only.
+ ❯ parseConfig apps/web/src/config.ts:22:11
+     20|   const result = publicEnvironment.safeParse(values);
+     21|   if (!result.success)
+     22|     throw new Error(
+       |           ^
+     23|       'Invalid public configuration. Use VITE_RUNTIME_MODE=mock only.',
+     24|     );
+ ❯ apps/web/src/config.test.ts:37:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  apps/web/src/config.test.ts > optional public reader identifiers > keeps credential-free mock mode when identifiers are set
+Error: Invalid public configuration. Use VITE_RUNTIME_MODE=mock only.
+ ❯ parseConfig apps/web/src/config.ts:22:11
+     20|   const result = publicEnvironment.safeParse(values);
+     21|   if (!result.success)
+     22|     throw new Error(
+       |           ^
+     23|       'Invalid public configuration. Use VITE_RUNTIME_MODE=mock only.',
+     24|     );
+ ❯ apps/web/src/config.test.ts:48:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  apps/web/src/config.test.ts > optional public reader identifiers > recognises credential shapes and ignores public identifiers
+TypeError: looksLikeCredential is not a function
+ ❯ apps/web/src/config.test.ts:109:14
+    107|       'a1B2'.repeat(15),
+    108|     ])
+    109|       expect(looksLikeCredential(value), value).toBe(true);
+       |              ^
+    110|     for (const value of [
+    111|       'intermed-dev',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 8 passed (11)
+   Start at  00:04:02
+   Duration  201ms (transform 17ms, setup 0ms, import 86ms, tests 6ms, environment 0ms)
+

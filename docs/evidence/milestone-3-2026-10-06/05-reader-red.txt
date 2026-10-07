@@ -1,0 +1,36 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+
+ ❯ packages/data-access/src/appwrite-published-dataset-reader.test.ts (0 test)
+ ❯ packages/data-access/src/published-dataset-mock.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/data-access/src/appwrite-published-dataset-reader.test.ts [ packages/data-access/src/appwrite-published-dataset-reader.test.ts ]
+Error: Cannot find module './appwrite-published-dataset-reader' imported from D:/Proiecte AI/InterMED-wt/m3/packages/data-access/src/appwrite-published-dataset-reader.test.ts
+ ❯ packages/data-access/src/appwrite-published-dataset-reader.test.ts:2:1
+      1| import { describe, expect, it } from 'vitest';
+      2| import { createAppwritePublishedDatasetReader } from './appwrite-publi…
+       | ^
+      3| import type {
+      4|   FetchLike,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/data-access/src/published-dataset-mock.test.ts [ packages/data-access/src/published-dataset-mock.test.ts ]
+Error: Cannot find module './published-dataset-mock' imported from D:/Proiecte AI/InterMED-wt/m3/packages/data-access/src/published-dataset-mock.test.ts
+ ❯ packages/data-access/src/published-dataset-mock.test.ts:2:1
+      1| import { describe, expect, it } from 'vitest';
+      2| import {
+       | ^
+      3|   mockPublishedDatasetReader,
+      4|   syntheticPublishedBundleDescriptor,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  no tests
+   Start at  00:00:29
+   Duration  141ms (transform 26ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
