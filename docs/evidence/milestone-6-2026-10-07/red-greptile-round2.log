@@ -113,3 +113,50 @@ undefined
 
 [exit code: 1]
 
+---
+
+## Greptile round 2 #3 - partial manifest counts (RED against 30d4ee9)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t declares only some counts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (24 tests | 1 failed | 23 skipped) 42ms
+   × installs a manifest that declares only some counts 41ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > installs a manifest that declares only some counts
+AssertionError: expected { status: 'update-failed', …(2) } to match object { status: 'ready', …(1) }
+(22 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "generation": {
+-     "generationId": "dvsource.syntheticsynthetic-beta",
++     "generationId": "dvsource.syntheticsynthetic-alpha",
+    },
+-   "status": "ready",
++   "status": "update-failed",
+  }
+
+ ❯ packages/local-store/src/staging.test.ts:494:28
+    492|     beta.text,
+    493|   );
+    494|   expect(store.getState()).toMatchObject({
+       |                            ^
+    495|     status: 'ready',
+    496|     generation: { generationId: beta.generationId },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 23 skipped (24)
+   Start at  20:45:57
+   Duration  295ms (transform 95ms, setup 0ms, import 151ms, tests 42ms, environment 0ms)
+
+[exit code: 1]
+

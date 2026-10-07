@@ -20,6 +20,7 @@ import type { Retention } from './retention';
 import type { Preferences } from './preferences';
 import {
   CATALOGUE_STORE_NAMES,
+  RECORD_COUNT_COLLECTIONS,
   catalogueTable,
   catalogueTables,
   emptyMeta,
@@ -181,7 +182,15 @@ export function createUpdatePipeline(deps: PipelineDeps): UpdatePipeline {
       downloadedAt: new Date(deps.now()).toISOString(),
       checksum: manifest.checksum,
       coverage: manifest.coverage,
-      recordCounts: manifest.recordCounts,
+      // The completeness marker is derived from the validated snapshot for
+      // every store: published counts may be partial, completeness may not
+      // (Greptile round 2 finding 3).
+      recordCounts: Object.fromEntries(
+        Object.entries(RECORD_COUNT_COLLECTIONS).map(([key, name]) => [
+          key,
+          rows[name].length,
+        ]),
+      ),
       synthetic: bundle.synthetic,
       status: 'staging',
       stagedAt: new Date(deps.now()).toISOString(),

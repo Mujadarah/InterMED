@@ -479,6 +479,38 @@ it('finishes a preference reconciliation that a crash interrupted', async () => 
   });
 });
 
+it('installs a manifest that declares only some counts', async () => {
+  const store = testStore();
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+
+  // A published manifest may declare only some counts: the missing ones are
+  // never asserted, and the stored completeness marker covers every store.
+  const beta = bundle('beta');
+  await store.updates.stageAndActivate(
+    { ...beta.manifest, recordCounts: { products: 2 } },
+    beta.text,
+  );
+  expect(store.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  const reader = (await store.openReader())!;
+  expect(await reader.productIds()).toHaveLength(2);
+  reader.release();
+
+  // A declared count that does not match is still rejected.
+  const delta = bundle('delta');
+  await store.updates.stageBundle(
+    { ...delta.manifest, recordCounts: { products: 99 } },
+    delta.text,
+  );
+  expect(store.getState()).toMatchObject({
+    status: 'update-failed',
+    reason: 'count-mismatch',
+  });
+});
+
 it('keeps a generation that becomes active while startup cleanup runs', async () => {
   const name = uniqueName();
   const clock = testClock();

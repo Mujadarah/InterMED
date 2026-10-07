@@ -219,7 +219,10 @@ export function createRetention(deps: RetentionDeps): Retention {
   ): Promise<boolean> {
     return Dexie.ignoreTransaction(async () => {
       for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTIONS)) {
-        const expected = record.recordCounts[key] ?? 0;
+        const expected = record.recordCounts[key];
+        // A count the record does not declare is not asserted: published
+        // manifests may declare only some counts (Greptile round 2 finding 3).
+        if (expected === undefined) continue;
         const actual = await table(name)
           .where('generationId')
           .equals(record.generationId)
