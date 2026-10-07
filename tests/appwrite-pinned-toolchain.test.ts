@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  LINUX_X64_MUSL_ARTIFACT,
+  assertSafeArchiveEntries,
   bootstrapInstallSpec,
+  downloadAndExtractLinuxMuslNode,
   resolvePinnedPaths,
   resolveToolchainPaths,
 } from '../infra/appwrite/pinned-toolchain.mjs';
@@ -53,22 +56,56 @@ describe('Appwrite pinned toolchain launcher', () => {
     });
   });
 
-  it.each([
-    ['linux', 'x64', 'node-linux-x64', 'node'],
-    ['linux', 'arm64', 'node-linux-arm64', 'node'],
-  ] as const)(
-    'selects the supported %s/%s direct Node package',
-    (platform, arch, packageName, binaryName) => {
-      expect(bootstrapInstallSpec(platform, arch).packages[0]).toBe(
-        `${packageName}@24.21.0`,
-      );
-      expect(bootstrapInstallSpec(platform, arch).nodePath).toMatch(
-        new RegExp(
-          `node_modules[/\\\\]${packageName}[/\\\\]bin[/\\\\]${binaryName}$`,
-        ),
-      );
-    },
-  );
+  it('pins the official Node musl artifact for Linux x64', () => {
+    expect(LINUX_X64_MUSL_ARTIFACT).toEqual({
+      url: 'https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz',
+      sha256:
+        '3d63405fc65a0d2d2976c1f0bc2fd27bb0bd07212469e705aac3f03ae5ab4c9c',
+      topFolder: 'node-v24.21.0-linux-x64-musl',
+    });
+    const spec = bootstrapInstallSpec('linux', 'x64');
+    expect(spec.packages).toEqual(['npm@11.19.0']);
+    expect(spec.nodePath).toMatch(
+      /node-v24\.21\.0-linux-x64-musl[/\\]bin[/\\]node$/,
+    );
+  });
+
+  it('refuses Linux arm64 without an exact verified official musl artifact', () => {
+    expect(() => bootstrapInstallSpec('linux', 'arm64')).toThrow(
+      /linux\/arm64.*musl.*artifact/i,
+    );
+  });
+
+  it('rejects unsafe archive entries before extraction', () => {
+    expect(() =>
+      assertSafeArchiveEntries(
+        [
+          'node-v24.21.0-linux-x64-musl/bin/node',
+          'node-v24.21.0-linux-x64-musl/../../outside',
+        ],
+        LINUX_X64_MUSL_ARTIFACT.topFolder,
+      ),
+    ).toThrow(/unsafe archive entry/i);
+  });
+
+  it('verifies the downloaded checksum before listing or extracting', async () => {
+    const events: unknown[][] = [];
+    const archive = new TextEncoder().encode('verified archive');
+    await expect(
+      downloadAndExtractLinuxMuslNode({
+        prefix: 'C:\\outside\\toolchain',
+        fetchImpl: async () => new Response(archive),
+        artifact: Object.assign({}, LINUX_X64_MUSL_ARTIFACT, {
+          sha256: 'wrong',
+        }),
+        runTar: (...args) => {
+          events.push(args);
+          return [];
+        },
+      }),
+    ).rejects.toThrow(/checksum mismatch/i);
+    expect(events).toEqual([]);
+  });
 
   it('refuses unsupported platform and architecture combinations explicitly', () => {
     expect(() => bootstrapInstallSpec('darwin', 'x64')).toThrow(

@@ -33,14 +33,23 @@ assert that no live identifier appears in the configuration.
 the single root `package-lock.json`. The development site uses
 `node infra/appwrite/pinned-toolchain.mjs install` and
 `node infra/appwrite/pinned-toolchain.mjs build`: the launcher uses the host
-Node only to install the direct platform package (`node-win-x64`,
-`node-linux-x64`, or `node-linux-arm64`) at `24.21.0` and `npm@11.19.0` into
-an isolated temporary prefix outside the archive, with lifecycle scripts
-disabled. It then verifies both versions and invokes the absolute pinned Node
-executable with the absolute `npm-cli.js`, prepending the prefix's `.bin`
-wrapper directory and the pinned Node binary directory to `PATH` for npm/Vite
-child processes. Unsupported platform/architecture combinations fail
-explicitly.
+Node only to install `npm@11.19.0` at an isolated temporary prefix outside the
+archive, with lifecycle scripts disabled. On Linux x64 it first downloads the
+official Node `24.21.0` musl gzip artifact from
+`https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz`, verifies
+SHA-256
+`3d63405f c65a0d2d 2976c1f0 bc2fd27b b0bd0721 2469e705 aac3f03a e5ab4c9c`
+(remove spaces before comparing), validates
+archive paths, and only then extracts it with the host's `tar`. The launcher
+then verifies both versions and invokes the absolute extracted Node executable
+with the absolute `npm-cli.js`, prepending the prefix's `.bin` wrapper directory
+and the pinned Node binary directory to `PATH` for npm/Vite child processes.
+Linux arm64 is refused because no exact official musl artifact is published;
+unsupported platform/architecture combinations fail explicitly. The official
+musl build remains experimental and requires an authorized cloud compatibility
+retry before any production use. The npm and Windows bootstrap package
+integrity hashes remain a production follow-up; this local fix is not approved
+for production deployment.
 `APPWRITE_HOST_NPM`, `APPWRITE_PINNED_NODE`, and `APPWRITE_PINNED_NPM_CLI` are
 absolute-path test and operator injection points; no credentials are written by
 the launcher.
