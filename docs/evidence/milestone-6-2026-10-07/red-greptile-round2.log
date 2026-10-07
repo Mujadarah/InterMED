@@ -40,3 +40,76 @@ AssertionError: expected { …(5) } to match object { status: 'available', …(1
 
 [exit code: 1]
 
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (RED against d3cae0a)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 3ms
+   × keeps a generation that becomes active while startup cleanup runs 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a generation that becomes active while startup cleanup runs
+ReferenceError: testClock is not defined
+ ❯ packages/local-store/src/staging.test.ts:483:17
+    481| it('keeps a generation that becomes active while startup cleanup runs'…
+    482|   const name = uniqueName();
+    483|   const clock = testClock();
+       |                 ^
+    484|   const writerLease = await testMarkerLock(name, clock.now, {
+    485|     ttlMs: 3_600_000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  20:43:59
+   Duration  252ms (transform 92ms, setup 0ms, import 146ms, tests 3ms, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (RED against d3cae0a)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t becomes active while startup cleanup
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed | 22 skipped) 38ms
+   × keeps a generation that becomes active while startup cleanup runs 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a generation that becomes active while startup cleanup runs
+AssertionError: expected undefined to be 'dv\u001fsource.synthetic\u001fsynthet…' // Object.is equality
+
+- Expected:
+"dvsource.syntheticsynthetic-alpha"
+
++ Received:
+undefined
+
+ ❯ packages/local-store/src/staging.test.ts:529:54
+    527|
+    528|   await running;
+    529|   expect((await cleaner.openReader())?.generationId).toBe(alpha.genera…
+       |                                                      ^
+    530|   expect(await cleaner.openPinnedReader(alpha.generationId)).not.toBeN…
+    531| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  20:44:11
+   Duration  294ms (transform 95ms, setup 0ms, import 151ms, tests 38ms, environment 0ms)
+
+[exit code: 1]
+

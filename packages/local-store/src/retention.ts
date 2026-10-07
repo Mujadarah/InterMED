@@ -319,7 +319,9 @@ export function createRetention(deps: RetentionDeps): Retention {
   /**
    * Remove staging generations whose writer crashed mid-write (Greptile G3).
    * Only leftovers past the grace period are touched, and the lease is claimed
-   * only when there is something to clean.
+   * only when there is something to clean. Every candidate is re-checked
+   * inside the deleting transaction: the scan happens before the claim, and a
+   * writer can complete and activate in between (Greptile round 2 finding 2).
    */
   async function cleanupIncompleteStaging(): Promise<void> {
     const db = deps.database();
@@ -332,8 +334,23 @@ export function createRetention(deps: RetentionDeps): Retention {
     );
     if (leftovers.length === 0) return;
     await writerLock.withExclusiveUpdate(async () => {
-      for (const record of leftovers)
-        await deleteGenerationRows(record.generationId);
+      for (const record of leftovers) {
+        await db.transaction(
+          'rw',
+          [db.generations, db.meta, ...catalogueTables(db)],
+          async (transaction) => {
+            const current = await transaction.meta.get('dataset-state');
+            if (current?.activeGenerationId === record.generationId) return;
+            if (current?.previousGenerationId === record.generationId) return;
+            if ((pins.get(record.generationId) ?? 0) > 0) return;
+            const staged = await transaction.generations.get(
+              record.generationId,
+            );
+            if (!staged || staged.status !== 'staging') return;
+            await deleteGenerationRowsIn(transaction, record.generationId);
+          },
+        );
+      }
       return true;
     });
   }

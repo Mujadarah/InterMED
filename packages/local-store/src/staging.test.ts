@@ -2,14 +2,18 @@ import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
 import { MEDICATION_CATALOGUE_SCHEMA_VERSION } from '@intermed/domain';
 import type { DatasetStoreEvent } from './events';
+import type { DatasetWriterLock } from './locks';
 import type { GenerationRecord } from './schema';
+import { STALE_STAGING_MS } from './store';
 import { SYNTHETIC_DATASET } from './synthetic-bundle';
 import {
   bundle,
   fakePublishedSource,
   integrityBrokenBundle,
   sharedBus,
+  testClock,
   testDatabase,
+  testMarkerLock,
   testStore,
   uniqueName,
   versionMismatchBundle,
@@ -473,6 +477,56 @@ it('finishes a preference reconciliation that a crash interrupted', async () => 
   expect((await reopened.preferences.listFavorites())[0]).toMatchObject({
     status: 'removed',
   });
+});
+
+it('keeps a generation that becomes active while startup cleanup runs', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const writerLease = await testMarkerLock(name, clock.now, {
+    ttlMs: 3_600_000,
+  });
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    now: clock.now,
+    lock: writerLease.lock,
+    onStaged: async ({ store }) => {
+      if (store === 'ingredients') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const alpha = bundle('alpha');
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+  // The half-written staging record looks abandoned to a scan that runs now.
+  clock.tick(STALE_STAGING_MS + 1_000);
+
+  const inner = (await testMarkerLock(name, clock.now, { ttlMs: 3_600_000 }))
+    .lock;
+  const interleaving: DatasetWriterLock = {
+    withExclusiveUpdate: async (work) => {
+      // The lease claim is the interleaving point: the writer completes and
+      // activates before the startup cleanup is granted the lease.
+      release();
+      await running;
+      return inner.withExclusiveUpdate(work);
+    },
+  };
+  const cleaner = testStore({ name, now: clock.now, lock: interleaving });
+  await cleaner.open();
+
+  await running;
+  expect((await cleaner.openReader())?.generationId).toBe(alpha.generationId);
+  expect(await cleaner.openPinnedReader(alpha.generationId)).not.toBeNull();
 });
 
 it('refuses to activate a generation whose staging never completed', async () => {

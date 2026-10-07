@@ -12,3 +12,59 @@ $ npx vitest run packages/local-store
 
 [exit code: 0]
 
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (23 tests | 1 failed) 360ms
+   × keeps a generation that becomes active while startup cleanup runs 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > keeps a generation that becomes active while startup cleanup runs
+AssertionError: expected undefined to be 'dv\u001fsource.synthetic\u001fsynthet…' // Object.is equality
+
+- Expected:
+"dvsource.syntheticsynthetic-alpha"
+
++ Received:
+undefined
+
+ ❯ packages/local-store/src/staging.test.ts:528:54
+    526|
+    527|   await running;
+    528|   expect((await cleaner.openReader())?.generationId).toBe(alpha.genera…
+       |                                                      ^
+    529|   expect(await cleaner.openPinnedReader(alpha.generationId)).not.toBeN…
+    530| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 64 passed (65)
+   Start at  20:44:36
+   Duration  643ms (transform 328ms, setup 0ms, import 693ms, tests 1.38s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Greptile round 2 #2 - startup cleanup vs a completing writer (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  5 passed (5)
+      Tests  65 passed (65)
+   Start at  20:45:06
+   Duration  677ms (transform 364ms, setup 0ms, import 754ms, tests 1.47s, environment 0ms)
+
+[exit code: 0]
+
