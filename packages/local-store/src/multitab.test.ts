@@ -297,6 +297,29 @@ it('tells other tabs when one tab clears the local data', async () => {
   }
 });
 
+it('reports a failed background refresh instead of an unhandled rejection', async () => {
+  const name = uniqueName();
+  const events = sharedBus();
+  const store = testStore({ name, events });
+  const alpha = bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+
+  // A poisoned generation record makes the next background refresh throw.
+  // Without an explicit catch that surfaces as an unhandled rejection and
+  // fails this run.
+  const rows = await testDatabase(name);
+  await rows.generations.update(alpha.generationId, {
+    recordCounts: null as never,
+  });
+
+  events.post({ type: 'activated', generationId: alpha.generationId });
+  await vi.waitFor(() =>
+    expect(store.maintenance.getStatus().lastFailure).toMatchObject({
+      task: { kind: 'background', label: 'cross-tab refresh' },
+    }),
+  );
+});
+
 it('uses unpredictable UUIDs for writer tokens and tab ids', async () => {
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
   const names: string[] = [];

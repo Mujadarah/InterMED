@@ -77,7 +77,9 @@ export type MaintenanceTask =
       readonly kind: 'preference-reconciliation';
       readonly generationId: string;
     }
-  | { readonly kind: 'generation-gc' };
+  | { readonly kind: 'generation-gc' }
+  /** Fire-and-forget background work that failed (Codacy review fix 4). */
+  | { readonly kind: 'background'; readonly label: string };
 
 /**
  * A non-fatal maintenance failure. A committed activation or rollback is never
@@ -218,7 +220,10 @@ function emptyMeta(): DatasetStateRecord {
 /** Ask for persistent storage as best effort. Never a permanence claim. */
 async function requestPersistentStorage(): Promise<void> {
   try {
-    const storage = globalThis.navigator?.storage;
+    // The DOM types say navigator and its storage manager always exist and
+    // are complete; some profiles disagree, which is what these checks guard.
+    const navigator = globalThis.navigator as Navigator | undefined;
+    const storage = navigator?.storage as Partial<StorageManager> | undefined;
     if (storage && typeof storage.persist === 'function')
       await storage.persist();
   } catch {
@@ -356,7 +361,9 @@ export function createLocalDatasetStore(
 
   async function openDatabase(): Promise<DatasetUpdateState> {
     await requestPersistentStorage();
-    const factory = globalThis.indexedDB;
+    // The DOM types say indexedDB always exists; some browsers do not expose
+    // it at all, which is what this check guards.
+    const factory = globalThis.indexedDB as IDBFactory | undefined;
     if (!factory) return setState({ status: 'storage-unavailable' });
     try {
       const onDisk = await readOnDiskSchema(factory, databaseName);
@@ -390,7 +397,7 @@ export function createLocalDatasetStore(
     unsubscribe ??= events.subscribe(() => {
       // Any cross-tab change - an activation or a completed clear - is applied
       // at a safe boundary by re-reading the persisted state.
-      void refresh();
+      background('cross-tab refresh', refresh);
     });
     try {
       await ensureMetaRecord();
@@ -971,9 +978,37 @@ export function createLocalDatasetStore(
   }
 
   function maintenanceKey(task: MaintenanceTask): string {
+    if (task.kind === 'background') return `background#${task.label}`;
     return task.kind === 'generation-gc'
       ? 'generation-gc'
       : `preference-reconciliation#${task.generationId}`;
+  }
+
+  /** Record one maintenance failure and notify its subscribers. */
+  function reportMaintenance(failure: MaintenanceFailure): void {
+    lastMaintenanceFailure = failure;
+    for (const listener of [...maintenanceListeners]) listener();
+  }
+
+  /** Report a failed background task as a diagnostic instead of a rejection. */
+  function reportBackgroundFailure(label: string, error: unknown): void {
+    reportMaintenance({
+      task: { kind: 'background', label },
+      occurredAt: new Date(now()).toISOString(),
+      reason: isQuotaError(error) ? 'storage-quota' : 'error',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  /**
+   * Fire-and-forget background work. Every unawaited promise goes through
+   * here, so its failure becomes a diagnostic and never an unhandled
+   * rejection (Codacy review fix 4).
+   */
+  function background(label: string, work: () => Promise<unknown>): void {
+    void work().catch((error: unknown) =>
+      reportBackgroundFailure(label, error),
+    );
   }
 
   /**
@@ -989,13 +1024,12 @@ export function createLocalDatasetStore(
       pendingMaintenance.delete(maintenanceKey(task));
     } catch (error) {
       pendingMaintenance.set(maintenanceKey(task), { task, work });
-      lastMaintenanceFailure = {
+      reportMaintenance({
         task,
         occurredAt: new Date(now()).toISOString(),
         reason: isQuotaError(error) ? 'storage-quota' : 'error',
         message: error instanceof Error ? error.message : String(error),
-      };
-      for (const listener of [...maintenanceListeners]) listener();
+      });
     }
   }
 
@@ -1227,9 +1261,10 @@ export function createLocalDatasetStore(
         .generations.update(record.generationId, {
           lastUsedAt: new Date(now()).toISOString(),
         })
-        .catch(() => {
-          /* Diagnostics only; the pin itself already protects the generation. */
-        }),
+        .catch((error: unknown) =>
+          // Diagnostics only; the pin itself already protects the generation.
+          reportBackgroundFailure('pin retention refresh', error),
+        ),
     );
     return reader;
   }
@@ -1447,6 +1482,6 @@ export function createLocalDatasetStore(
     maintenance,
     ...generations,
   };
-  void open();
+  background('initial open', open);
   return store;
 }

@@ -63,10 +63,13 @@ export interface LockManagerLike {
 }
 
 function defaultLockManager(): LockManagerLike | null {
-  const locks = globalThis.navigator?.locks;
+  // The DOM types say navigator and its locks always exist and are complete;
+  // some browsers disagree, which is what these checks guard.
+  const navigator = globalThis.navigator as Navigator | undefined;
+  const locks = navigator?.locks as Partial<LockManagerLike> | undefined;
   if (!locks || typeof locks.request !== 'function') return null;
   // Structural subset of LockManager; the real API matches this shape.
-  return locks as unknown as LockManagerLike;
+  return locks as LockManagerLike;
 }
 
 /** The Web Locks implementation, or null when this environment has none. */
@@ -191,12 +194,25 @@ export function createMarkerWriterLock(
 
       let lost = false;
       let stopHeartbeat = (): void => {};
-      stopHeartbeat = schedule(async () => {
-        if (!(await renew())) {
-          lost = true;
-          stopHeartbeat();
-        }
-      }, renewMs);
+      stopHeartbeat = schedule(
+        () =>
+          // The heartbeat returns its promise (so tests can await one beat)
+          // and its failure is routed to lease state instead of becoming an
+          // unhandled rejection.
+          renew()
+            .then((kept) => {
+              if (!kept) {
+                lost = true;
+                stopHeartbeat();
+              }
+            })
+            .catch(() => {
+              // A failed renewal cannot be told apart from a lost lease.
+              lost = true;
+              stopHeartbeat();
+            }),
+        renewMs,
+      );
 
       const lease: WriterLease = {
         token,

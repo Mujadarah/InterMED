@@ -130,3 +130,74 @@ AssertionError: expected [ [ …(2) ], [ …(2) ] ] to deeply equal [ [ …(2) ]
 
 [exit code: 1]
 
+---
+
+## Codacy 4 - rejected background refresh surfaces a diagnostic, not an unhandled rejection (RED against 0f993c1)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts -t unhandled rejection
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/multitab.test.ts (9 tests | 1 failed | 8 skipped) 1036ms
+   × reports a failed background refresh instead of an unhandled rejection 1036ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > reports a failed background refresh instead of an unhandled rejection
+AssertionError: expected null to match object { task: { kind: 'background', …(1) } }
+
+- Expected:
+{
+  "task": {
+    "kind": "background",
+    "label": "cross-tab refresh",
+  },
+}
+
++ Received:
+null
+
+ ❯ packages/local-store/src/multitab.test.ts:317:55
+    315|   events.post({ type: 'activated', generationId: alpha.generationId });
+    316|   await vi.waitFor(() =>
+    317|     expect(store.maintenance.getStatus().lastFailure).toMatchObject({
+       |                                                       ^
+    318|       task: { kind: 'background', label: 'cross-tab refresh' },
+    319|     }),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of null (reading 'dataSources')
+ ❯ packages/local-store/src/store.ts:532:33
+    530|     return Dexie.ignoreTransaction(async () => {
+    531|       for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTION…
+    532|         const expected = record.recordCounts[key] ?? 0;
+       |                                 ^
+    533|         const actual = await table(name)
+    534|           .where('generationId')
+ ❯ Dexie.ignoreTransaction node_modules/dexie/dist/dexie.js:6408:17
+ ❯ countsMatch packages/local-store/src/store.ts:530:18
+ ❯ baseState packages/local-store/src/store.ts:341:17
+ ❯ refresh packages/local-store/src/store.ts:347:14
+
+This error originated in "packages/local-store/src/multitab.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "reports a failed background refresh instead of an unhandled rejection". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+     Errors  1 error
+   Start at  19:53:00
+   Duration  1.28s (transform 86ms, setup 0ms, import 140ms, tests 1.04s, environment 0ms)
+
+[exit code: 1]
+
