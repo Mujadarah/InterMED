@@ -30,6 +30,24 @@ function sha256(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 }
 
+function cloudId(prefix, canonicalId) {
+  return `${prefix}-${createHash('sha256').update(canonicalId).digest('hex').slice(0, 24)}`;
+}
+
+function shellArg(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function commandFromArgv(argv) {
+  return argv.map(shellArg).join(' ');
+}
+
+function rowData(row) {
+  return Object.fromEntries(
+    Object.entries(row).filter(([key]) => !key.startsWith('$')),
+  );
+}
+
 function fieldValue(field) {
   return field.status === 'present' ? field.value : null;
 }
@@ -41,7 +59,7 @@ function guardRows(now) {
   return [
     {
       tableId: 'dataset-versions',
-      rowId: 'live-acceptance-guard-version',
+      rowId: 'guard-version',
       data: {
         dataset: 'synthetic-live-acceptance-guard',
         version: 'guard-0',
@@ -64,10 +82,10 @@ function guardRows(now) {
     },
     {
       tableId: 'dataset-bundles',
-      rowId: 'live-acceptance-guard-bundle',
+      rowId: 'guard-bundle',
       data: {
-        datasetVersionId: 'live-acceptance-guard-version',
-        fileId: 'live-acceptance-guard-published',
+        datasetVersionId: 'guard-version',
+        fileId: 'guard-published',
         fileName: 'live-acceptance-guard.json',
         contentType: 'application/json',
         byteSize: 2,
@@ -77,7 +95,7 @@ function guardRows(now) {
     },
     {
       tableId: 'import-runs',
-      rowId: 'live-acceptance-guard-run',
+      rowId: 'guard-run',
       data: {
         sourceId: 'guard-source',
         snapshotVersion: 'guard-0',
@@ -99,7 +117,7 @@ function guardRows(now) {
 function guardFiles() {
   return BUCKETS.map((bucketId) => ({
     bucketId,
-    fileId: `live-acceptance-guard-${bucketId}`,
+    fileId: `guard-${bucketId.replaceAll('-', '').slice(0, 27)}`,
     fileName: 'live-acceptance-guard.txt',
     content: 'synthetic guard',
     permissions: ['read("any")', 'update("any")', 'delete("any")'],
@@ -125,11 +143,15 @@ export async function prepareSyntheticPublication(options) {
 
   const bundle = serializeCatalogue(snapshot);
   const bytes = Buffer.from(bundle, 'utf8');
-  const checksum = sha256(bytes);
+  const fileChecksum = sha256(bytes);
   const fileName = 'synthetic-medication-catalogue-synthetic-2026-10-06.json';
-  const fileId = 'synthetic-medication-catalogue-synthetic-2026-10-06';
+  const canonicalVersionId = version.id;
+  const cloudVersionId = cloudId('version', canonicalVersionId);
+  const fileId = cloudId('file', canonicalVersionId);
+  const descriptorId = cloudId('bundle', canonicalVersionId);
+  const checksum = version.checksum;
   const versionRow = {
-    $id: version.id,
+    $id: cloudVersionId,
     $permissions: PUBLIC_READ,
     dataset: version.dataset,
     version: version.version,
@@ -149,14 +171,14 @@ export async function prepareSyntheticPublication(options) {
     status: 'staging',
   };
   const descriptor = {
-    $id: 'synthetic-medication-catalogue-synthetic-2026-10-06-bundle',
+    $id: descriptorId,
     $permissions: PUBLIC_READ,
-    datasetVersionId: version.id,
+    datasetVersionId: cloudVersionId,
     fileId,
     fileName,
     contentType: 'application/json',
     byteSize: bytes.byteLength,
-    checksum,
+    checksum: fileChecksum,
   };
 
   await mkdir(outputDirectory, { recursive: true });
@@ -167,27 +189,74 @@ export async function prepareSyntheticPublication(options) {
   await writeFile(descriptorPath, `${JSON.stringify(descriptor, null, 2)}\n`);
   await writeFile(versionPath, `${JSON.stringify(versionRow, null, 2)}\n`);
 
-  const cli = 'appwrite@28.1.0';
+  const configFile = 'infra/appwrite/appwrite.config.development.json';
+  const cli = ['npx', '--yes', 'appwrite-cli@28.1.0'];
+  const config = ['--config-file', configFile];
+  const rowCommand = (tableId, rowId, data, permissions = []) => {
+    const argv = [
+      ...cli,
+      'tables-db',
+      'create-row',
+      '--database-id',
+      DATABASE_ID,
+      '--table-id',
+      tableId,
+      '--row-id',
+      rowId,
+      '--data',
+      JSON.stringify(data),
+      ...(permissions.length ? ['--permissions', JSON.stringify(permissions)] : []),
+      ...config,
+    ];
+    return { argv, data, command: commandFromArgv(argv) };
+  };
+  const fileCommand = (file) => {
+    const argv = [
+      ...cli,
+      'storage',
+      'create-file',
+      '--bucket-id',
+      file.bucketId,
+      '--file-id',
+      file.fileId,
+      '--file',
+      file.fileName,
+      '--permissions',
+      JSON.stringify(file.permissions),
+      ...config,
+    ];
+    return { argv, command: commandFromArgv(argv) };
+  };
   const commandPlan = [
-    {
-      action: 'storage-create-file',
+    ...guardFiles().map((file) => ({
+      action: 'storage-create-guard-file',
       automatic: false,
-      command: `${cli} storage create-file --bucket-id published-datasets --file-id ${fileId} --file ${fileName} --permissions 'read("any")'`,
+      ...fileCommand(file),
+    })),
+    ...guardRows(now).map((row) => ({
+      action: 'table-create-guard-row',
+      automatic: false,
+      ...rowCommand(row.tableId, row.rowId, row.data, row.$permissions),
+    })),
+    {
+      action: 'storage-create-bundle-file',
+      automatic: false,
+      ...fileCommand({
+        bucketId: 'published-datasets',
+        fileId,
+        fileName,
+        permissions: PUBLIC_READ,
+      }),
     },
     {
-      action: 'table-create-row',
+      action: 'table-create-descriptor-row',
       automatic: false,
-      command: `${cli} tablesdb create-row --database-id ${DATABASE_ID} --table-id dataset-bundles --row-id ${descriptor.$id} --data @dataset-bundle-descriptor.json --permissions 'read("any")'`,
+      ...rowCommand('dataset-bundles', descriptor.$id, rowData(descriptor), PUBLIC_READ),
     },
     {
-      action: 'table-create-row',
+      action: 'table-create-manifest-row-last',
       automatic: false,
-      command: `${cli} tablesdb create-row --database-id ${DATABASE_ID} --table-id dataset-versions --row-id ${versionRow.$id} --data @dataset-version-row.json --permissions 'read("any")'`,
-    },
-    {
-      action: 'publish-after-verification',
-      automatic: false,
-      command: `OWNER REVIEW: update ${versionRow.$id} status to published and set publishedAt after file, descriptor, and probes pass`,
+      ...rowCommand('dataset-versions', versionRow.$id, rowData(versionRow), PUBLIC_READ),
     },
   ];
 
@@ -199,9 +268,11 @@ export async function prepareSyntheticPublication(options) {
     generation: {
       dataset: version.dataset,
       version: version.version,
-      datasetVersionId: version.id,
+      canonicalDatasetVersionId: canonicalVersionId,
+      datasetVersionId: cloudVersionId,
       status: versionRow.status,
       checksum,
+      fileChecksum,
     },
     versionRow,
     descriptor,

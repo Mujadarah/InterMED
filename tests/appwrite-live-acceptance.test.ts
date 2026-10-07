@@ -28,19 +28,40 @@ describe('Appwrite live acceptance preparation', () => {
 
     expect(result.generation.dataset).toBe('synthetic-medication-catalogue');
     expect(result.generation.status).toBe('staging');
-    expect(result.generation.checksum).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(result.generation.checksum).toBe(
+      result.snapshot.datasetVersions[0]?.checksum,
+    );
     expect(result.files).toHaveLength(3);
     expect(result.commandPlan.map(({ action }) => action)).toEqual([
-      'storage-create-file',
-      'table-create-row',
-      'table-create-row',
-      'publish-after-verification',
+      ...Array(4).fill('storage-create-guard-file'),
+      ...Array(3).fill('table-create-guard-row'),
+      'storage-create-bundle-file',
+      'table-create-descriptor-row',
+      'table-create-manifest-row-last',
     ]);
-    expect(result.commandPlan.at(-1)?.automatic).toBe(false);
+    expect(result.commandPlan.every(({ automatic }) => automatic === false)).toBe(true);
+    expect(
+      result.commandPlan.every(
+        ({ command, argv }) =>
+          command.includes('npx') &&
+          (argv.includes('tables-db') || argv.includes('storage')) &&
+          command.includes('appwrite-cli@28.1.0') &&
+          command.includes('--config-file') &&
+          command.includes('appwrite.config.development.json') &&
+          !command.includes('tablesdb') &&
+          !command.includes('--data @'),
+      ),
+    ).toBe(true);
+    expect(result.commandPlan.at(-1)?.action).toBe('table-create-manifest-row-last');
 
     const bundle = await readFile(result.files[0]!, 'utf8');
     expect(JSON.parse(bundle).dataSources).toBeDefined();
     expect(result.descriptor.byteSize).toBe(Buffer.byteLength(bundle));
+    expect(result.descriptor.datasetVersionId).toBe(result.versionRow.$id);
+    expect(result.descriptor.checksum).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(result.versionRow.$id).toMatch(/^[A-Za-z0-9._-]{1,36}$/);
+    expect(result.descriptor.$id).toMatch(/^[A-Za-z0-9._-]{1,36}$/);
+    expect(result.descriptor.fileId).toMatch(/^[A-Za-z0-9._-]{1,36}$/);
     expect(result.versionRow.recordCounts).toBe(
       JSON.stringify(result.snapshot.datasetVersions[0]?.recordCounts),
     );
@@ -59,9 +80,9 @@ describe('Appwrite live acceptance preparation', () => {
 
     expect(result.guards.rows).toHaveLength(3);
     expect(result.guards.files).toHaveLength(4);
-    expect(result.guards.rows.every((row) => row.data.status === 'staging')).toBe(
-      true,
-    );
+    expect(result.guards.rows[0]?.data.status).toBe('staging');
+    expect(result.guards.rows[1]?.data.status).toBeUndefined();
+    expect(result.guards.rows[2]?.data.publicationStatus).toBe('staging');
     expect(
       result.guards.rows.every(
         (row) => row.data.dataset !== result.generation.dataset,
@@ -113,11 +134,33 @@ describe('anonymous Appwrite probe', () => {
     });
 
     expect(result.failed).toBe(0);
-    expect(result.checks).toHaveLength(42);
+    expect(result.checks).toHaveLength(39);
     expect(calls.every(({ options }) => !JSON.stringify(options).match(/key|jwt|cookie|token/i))).toBe(
       true,
     );
     expect(result.checks.some((check) => check.expected.includes('400'))).toBe(false);
+    expect(
+      calls.some(
+        ({ url, options }) =>
+          url.endsWith('/tables/dataset-versions/rows') &&
+          options?.method === 'POST' &&
+          typeof options.body === 'string' &&
+          options.body.includes('"status":"staging"'),
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ({ url, options }) =>
+          url.endsWith('/buckets/published-datasets/files') &&
+          options?.method === 'POST',
+      ),
+    ).toBe(true);
+    expect(new Set(result.checks.map((check) => check.name)).size).toBe(39);
+    expect(
+      result.checks
+        .filter((check) => check.name.includes('-POST-'))
+        .every((check) => check.expected.join(',') === '401,403'),
+    ).toBe(true);
   });
 
   it('fails a denial reported as 400 or 404', async () => {
@@ -138,6 +181,19 @@ describe('anonymous Appwrite probe', () => {
     });
 
     expect(result.failed).toBeGreaterThan(0);
+  });
+
+  it('rejects production project and endpoint targets before fetching', async () => {
+    await expect(
+      runAnonymousProbe({
+        projectId: 'intermed-prod',
+        endpoint: 'https://fra.cloud.appwrite.io/v1',
+        guard: { rows: [], files: [] },
+        fetchLike: async () => {
+          throw new Error('must not fetch');
+        },
+      }),
+    ).rejects.toThrow('fixed intermed-dev project');
   });
 });
 
