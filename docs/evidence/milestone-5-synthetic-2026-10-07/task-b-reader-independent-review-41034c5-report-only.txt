@@ -1,0 +1,14 @@
+# Reader Independent Review (Commit 41034c5)
+
+## Review Findings
+
+- **Domain Types:** Verified unchanged. `parseStableId` from `@intermed/domain` is utilized, but no core type definitions were altered.
+- **Canonical Parser Preserved:** The U+001F mandatory format is successfully verified using `parseStableId('DatasetVersion', id).ok` inside a `.refine()` block on `canonicalDatasetVersionIdSchema`.
+- **Database Schema Updates:** Both `appwrite.config.development.json` and `appwrite.config.production.json` have correctly added a new nullable 512-character `datasetVersionId` column to `dataset-versions`, along with a unique index. The `dataset-bundles` table successfully expanded its existing required `datasetVersionId` column from 64 to 512 characters. Physical `$id` usage remains unchanged and within length limits.
+- **Reader Selection & Fallback:** `createAppwritePublishedDatasetReader` prefers `datasetVersionId` and perfectly falls back to `$id` when it's absent or null (`row.data.datasetVersionId ?? row.data.$id`), mimicking legacy M3 behavior. If `datasetVersionId` is provided but canonically invalid, the parser throws, avoiding unintended fallback logic (fails closed).
+- **Descriptor Queries:** `getBundleDescriptor` searches using the identifier natively and correctly fails closed if the returned row identifier does not exactly match the requested one, preventing hostile metadata substitution. Oversized IDs (>512) are intercepted upfront.
+- **Legacy Descriptor IDs:** Legacy values (e.g., `version-aba`) remain perfectly valid as `bundleRowSchema` strictly checks size limits (`max(512)`) but does not force the strict canonical `.refine()` check. This allows legacy descriptor field roundtripping without issues.
+- **Environment & Encoding:** No UI wiring or CSP changes exist. Query variables (including U+001F separators) are safely handled via `JSON.stringify()` serialization, avoiding encoding issues.
+
+=== WORKER REPORT ===
+The schema and reader updates in 41034c5 successfully implement the canonical dataset ID format while preserving complete backward compatibility with legacy M3 data. All requested schema size constraints (512 capacity) and indexes (`datasetVersionId_unique`) were verified in the exact Appwrite configs. The `datasetVersionId` acts as an optional override that securely falls back to `$id` only when fully absent/null, deliberately failing on malformed payloads. Crucially, legacy Appwrite `version-aba` queries remain functional because the `getBundleDescriptor` parser intentionally skips canonical string validation, allowing opaque strings to roundtrip. Mismatched queries and payload sizes correctly fail closed. No domain packages, permissions, or web globals were altered.

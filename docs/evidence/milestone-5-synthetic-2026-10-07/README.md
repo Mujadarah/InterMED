@@ -73,6 +73,33 @@ described below. New bounded copies (same copy/redaction policy):
 | `task-b-handler-publication-time-finding.txt`                | Root defect finding: the handler bridge derives `publicationTimestamp` from `now()`; fix pending, so handler retries are **not** claimed                          |
 | `task-b-reviewer-client-ad9303b-focused.log`                 | The reviewer's focused 58-test run that caused the log-name collision (kept as the collision record)                                                              |
 
+## Follow-up update — 2026-10-08 (canonical identity + root proofs)
+
+Eight more bounded copies (same copy/redaction policy: machine path segments
+only, UTF-8 without BOM, LF, trailing whitespace stripped; **no line added or
+removed**, and specifically no `node`/`npm` version line was inserted into any
+log):
+
+| File                                                         | What it shows                                                                                                                                                                |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task-b-ROOT-core-b0fdde8-canonical-FULL.log`                | Root full `npm run check` at core `b0fdde8` on the synced `2bbbc38`: 452 tests (31 files), 135 browser tests, exit 0; the head prints `v24.21.0` / `11.19.0`                 |
+| `task-b-ROOT-reader-41034c5-FULL.log`                        | Root full `npm run check` at storage schema + canonical reader `41034c5`: 415 tests (31 files), 150 browser tests, exit 0; original `npm run check` output, no version lines |
+| `task-b-ROOT-artifact-e30e8d1-FULL.log`                      | Root full `npm run check` at artifact `e30e8d1`: 333 tests (28 files), 135 browser tests, exit 0; original `npm run check` output, no version lines                          |
+| `task-b-ROOT-toolchain-recheck-2026-10-08.log`               | Current toolchain recheck: `v24.21.0` / `11.19.0` and heads `e30e8d1`, `41034c5`, `2bbbc38`; states explicitly it is **not** a repeat of the completed full suites           |
+| `task-b-core-independent-review-b0fdde8-report-only.txt`     | Static core review: verdict ACCEPTED, severity none, 137 importer tests in 8 files passed in the reviewer's own probe; report-only                                           |
+| `task-b-reader-independent-review-41034c5-report-only.txt`   | Static reader/schema review: no blockers; canonical column + nullable unique index, `$id` fallback only for missing/`null`, malformed present rejects; report-only           |
+| `task-b-artifact-independent-review-e30e8d1-report-only.txt` | Static lock-projection/supply-chain review: no blockers; no browser tests or build gates executed by the reviewer; report-only                                               |
+| `task-b-core-public-identity-repair-api.md`                  | Current core identity API note: canonical `dv U+001Fsource U+001Fgenkey` ids, ≤ 36 descriptor id and safe file name, HTTPS `resolvePublicUrl` validation, lineage matrix     |
+
+The three reviews keep their original file names with the pack's documented
+`-report-only.txt` suffix (extension changed so Prettier does not reflow them,
+content otherwise untouched), because two of them fail `prettier --check` as
+Markdown. ROOT ran all three full suites with the pinned toolchain on `PATH`;
+the version output exists only where the log itself printed it (core), and the
+recheck log above covers the toolchain and heads explicitly without re-running
+any suite. The final handler run is still **pending**, so no handler log is
+copied.
+
 ## Inventory
 
 ### Importer core — worktree `m5-importer`, branch `codex/m5-synthetic-importer`, head `6ad7009`
