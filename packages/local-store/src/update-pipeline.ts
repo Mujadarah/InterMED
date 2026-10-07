@@ -11,6 +11,7 @@ import type {
   PublishedBundleLoader,
   PublishedDatasetManifest,
   PublishedDatasetReader,
+  RollbackResult,
 } from '@intermed/domain';
 import type { DatasetEventBus } from './events';
 import { isQuotaError } from './introspect';
@@ -84,7 +85,7 @@ export interface PipelineDeps {
 
 export interface UpdatePipeline {
   readonly updates: DatasetUpdatePipeline;
-  rollback(): Promise<boolean>;
+  rollback(): Promise<RollbackResult>;
 }
 
 export function createUpdatePipeline(deps: PipelineDeps): UpdatePipeline {
@@ -513,44 +514,70 @@ export function createUpdatePipeline(deps: PipelineDeps): UpdatePipeline {
       ),
   };
 
-  async function rollback(): Promise<boolean> {
+  async function rollback(): Promise<RollbackResult> {
     await deps.open();
     const db = deps.database();
     const writerLock = deps.writerLock();
-    if (!db || !writerLock) return false;
+    if (!db || !writerLock) return { ok: false, reason: 'none' };
     const outcome = await writerLock.withExclusiveUpdate(async () => {
       const activatedAt = new Date(deps.now()).toISOString();
       return db.transaction(
         'rw',
-        db.generations,
-        db.meta,
-        async (): Promise<string | null> => {
-          const meta = (await db.meta.get('dataset-state')) ?? emptyMeta();
+        [db.generations, db.meta, ...catalogueTables(db)],
+        async (
+          transaction,
+        ): Promise<{ result: RollbackResult; generationId: string | null }> => {
+          const meta =
+            (await transaction.meta.get('dataset-state')) ?? emptyMeta();
           const previousId = meta.previousGenerationId;
-          if (!previousId || !meta.activeGenerationId) return null;
-          const previous = await db.generations.get(previousId);
-          if (!previous || previous.status !== 'ready') return null;
-          await db.generations.update(previousId, { lastUsedAt: activatedAt });
-          await db.meta.put({
+          if (!previousId || !meta.activeGenerationId)
+            return {
+              result: { ok: false, reason: 'none' },
+              generationId: null,
+            };
+          const previous = await transaction.generations.get(previousId);
+          if (!previous || previous.status !== 'ready')
+            return {
+              result: { ok: false, reason: 'none' },
+              generationId: null,
+            };
+          // A previous generation whose rows are partly missing must not take
+          // the pointer: it would only read back as evicted (Greptile round 2
+          // finding 4).
+          if (
+            !(await deps.retention.countsMatch(previous, (name) =>
+              scopedCatalogueTable(transaction, name),
+            ))
+          )
+            return {
+              result: { ok: false, reason: 'previous-incomplete' },
+              generationId: null,
+            };
+          // A rollback is an activation too: it restarts the retention window.
+          await transaction.generations.update(previousId, {
+            lastUsedAt: activatedAt,
+          });
+          await transaction.meta.put({
             ...meta,
             activeGenerationId: previousId,
             previousGenerationId: meta.activeGenerationId,
             updateStatus: 'ready',
             failureReason: null,
           });
-          return previousId;
+          return { result: { ok: true }, generationId: previousId };
         },
       );
     });
-    if (!outcome.ok || !outcome.value) return false;
-    const rolledBackTo = outcome.value;
+    if (!outcome.ok) return { ok: false, reason: 'none' };
+    const { result, generationId } = outcome.value;
+    if (!result.ok || !generationId) return result;
     await deps.refresh();
-    deps.events.post({ type: 'activated', generationId: rolledBackTo });
+    deps.events.post({ type: 'activated', generationId });
     await deps.maintenance.run(
-      { kind: 'preference-reconciliation', generationId: rolledBackTo },
-      () => deps.preferences.reconcilePreferences(rolledBackTo),
+      { kind: 'preference-reconciliation', generationId },
+      () => deps.preferences.reconcilePreferences(generationId),
     );
-    return true;
+    return result;
   }
 
   return { updates, rollback };

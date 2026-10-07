@@ -43,7 +43,7 @@ it('rolls back to the retained previous generation', async () => {
     generation: { generationId: beta.generationId },
   });
 
-  await expect(store.rollback()).resolves.toBe(true);
+  await expect(store.rollback()).resolves.toEqual({ ok: true });
   expect(store.getState()).toMatchObject({
     status: 'ready',
     generation: { generationId: alpha.generationId },
@@ -53,7 +53,7 @@ it('rolls back to the retained previous generation', async () => {
     (await reader.product(alpha.productIds['SP-FICTIVOL']!))?.commercialName,
   ).toBe('Fictivol alpha');
 
-  await expect(store.rollback()).resolves.toBe(true);
+  await expect(store.rollback()).resolves.toEqual({ ok: true });
   expect(store.getState()).toMatchObject({
     generation: { generationId: beta.generationId },
   });
@@ -115,7 +115,7 @@ it('restarts the retention window when a rollback reactivates a generation', asy
   clock.tick(RETAIN_READY_FOR_MS + 60 * 60 * 1000);
   const beta = bundle('beta');
   await tabA.updates.stageAndActivate(beta.manifest, beta.text);
-  await expect(tabA.rollback()).resolves.toBe(true);
+  await expect(tabA.rollback()).resolves.toEqual({ ok: true });
   // `readyAt` keeps the original staging-to-ready time; the retention window
   // is anchored on the new activation instead.
   expect((await rows.generations.get(alpha.generationId))?.readyAt).toBe(
@@ -272,6 +272,28 @@ it('collects abandoned staged generations only after the grace period', async ()
   expect(await store.openPinnedReader(alpha.generationId)).not.toBeNull();
   expect(store.getState()).toMatchObject({
     generation: { generationId: alpha.generationId },
+  });
+});
+
+it('refuses to roll back to an incomplete previous generation', async () => {
+  const name = uniqueName();
+  const store = testStore({ name });
+  const alpha = bundle('alpha');
+  const beta = bundle('beta');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  // Eviction: parts of the previous generation's rows are gone.
+  const rows = await testDatabase(name);
+  await rows.products.where('generationId').equals(alpha.generationId).delete();
+
+  await expect(store.rollback()).resolves.toEqual({
+    ok: false,
+    reason: 'previous-incomplete',
+  });
+  // The pointer did not move: the active generation is still the good one.
+  expect(store.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
   });
 });
 

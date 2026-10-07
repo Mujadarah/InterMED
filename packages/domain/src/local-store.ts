@@ -181,6 +181,15 @@ export interface GenerationReader {
   release(): void;
 }
 
+/**
+ * Outcome of a rollback: `previous-incomplete` when the retained previous
+ * generation lost rows and would only read back as evicted (Greptile round 2
+ * finding 4), `none` when no previous generation is retained.
+ */
+export type RollbackResult =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly reason: 'none' | 'previous-incomplete' };
+
 /** Local generations: pinning, rollback and safe retention/garbage collection. */
 export interface DatasetGenerationRepository {
   /**
@@ -192,10 +201,12 @@ export interface DatasetGenerationRepository {
   /** Pin one specific generation. Returns null when it is not readable. */
   openPinnedReader(generationId: string): Promise<GenerationReader | null>;
   /**
-   * Switch the active pointer back to the retained previous generation.
-   * Returns false when no previous generation is retained.
+   * Switch the active pointer back to the retained previous generation,
+   * verifying its completeness inside the switching transaction. Never moves
+   * the pointer when the previous generation is missing, not ready or has
+   * lost rows.
    */
-  rollback(): Promise<boolean>;
+  rollback(): Promise<RollbackResult>;
   /**
    * Delete staged leftovers and ready generations that are neither active,
    * previous, pinned here, nor inside the cross-tab retention window.

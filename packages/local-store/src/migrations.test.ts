@@ -99,7 +99,7 @@ it('reports never-downloaded on a fresh database', async () => {
   await store.open();
   expect(store.getState()).toMatchObject({ status: 'never-downloaded' });
   expect(await store.openReader()).toBeNull();
-  expect(await store.rollback()).toBe(false);
+  expect(await store.rollback()).toEqual({ ok: false, reason: 'none' });
 });
 
 it('reports storage-unavailable when no database API is exposed', async () => {

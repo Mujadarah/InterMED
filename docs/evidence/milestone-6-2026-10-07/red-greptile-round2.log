@@ -160,3 +160,46 @@ AssertionError: expected { status: 'update-failed', …(2) } to match object { s
 
 [exit code: 1]
 
+---
+
+## Greptile round 2 #4 - rollback to an incomplete previous generation (RED against cbd804a)
+
+$ npx vitest run packages/local-store/src/readers.test.ts -t incomplete previous generation
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/readers.test.ts (11 tests | 1 failed | 10 skipped) 54ms
+   × refuses to roll back to an incomplete previous generation 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > refuses to roll back to an incomplete previous generation
+AssertionError: expected true to deeply equal { ok: false, …(1) }
+
+- Expected:
+{
+  "ok": false,
+  "reason": "previous-incomplete",
+}
+
++ Received:
+true
+
+ ❯ packages/local-store/src/readers.test.ts:292:33
+    290|     .delete();
+    291|
+    292|   await expect(store.rollback()).resolves.toEqual({
+       |                                 ^
+    293|     ok: false,
+    294|     reason: 'previous-incomplete',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 skipped (11)
+   Start at  20:47:53
+   Duration  387ms (transform 128ms, setup 0ms, import 208ms, tests 54ms, environment 0ms)
+
+[exit code: 1]
+

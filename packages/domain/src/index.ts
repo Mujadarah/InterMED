@@ -112,4 +112,5 @@ export type {
   PublishedBundleLoader,
   PublishedBundleRead,
   RecentSearchEntry,
+  RollbackResult,
 } from './local-store';
