@@ -1,0 +1,58 @@
+ℹ Info: Validating sites ...
+ℹ Info: Checking for changes ...
+ℹ Info: Pushing sites ...
+ℹ Info: Pushing site InterMED web (development) ( intermed-web-dev ) ...
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Deploying
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Status: waiting
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Still waiting... https://xkcd.com/303/
+
+Build logs
+
+[90m[11:23:03] [31m[[0mopen-runtimes[31m][97m Build cache miss. [0m
+[90m[11:23:03] [31m[[0mopen-runtimes[31m][97m Environment preparation started. [0m
+[90m[11:23:04] [31m[[0mopen-runtimes[31m][97m Environment preparation finished. [0m
+[90m[11:23:04] [31m[[0mopen-runtimes[31m][97m Build command execution started. [0m
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Status: building
+npm warn Unknown env config "store-dir". This will error in a future major version of npm. See `npm help npmrc` for supported config options.
+added 1 package in 8s
+npm notice
+npm notice New minor version of npm available! 12.0.2 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+added 374 packages in 14s
+Pinned install succeeded with Node v24.21.0 and npm 11.19.0
+npm warn Unknown env config "store-dir". This will error in a future major version of npm. See `npm help npmrc` for supported config options.
+up to date in 3s
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+> @intermed/web@0.0.0 build
+> vite build
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 140 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.58 kB │ gzip:   0.64 kB
+dist/assets/index-kdzZSpSC.css    2.80 kB │ gzip:   1.08 kB
+dist/assets/index-C8eOc21W.js   368.42 kB │ gzip: 113.81 kB
+✓ built in 1.23s
+Pinned build succeeded with Node v24.21.0 and npm 11.19.0
+[90m[11:23:49] [31m[[0mopen-runtimes[31m][97m Build command execution finished. [0m
+[90m[11:23:49] [31m[[0mopen-runtimes[31m][97m Build packaging started. [0m
+[90m[11:23:49] [31m[[0mopen-runtimes[31m][97m Build packaging finished. [0m
+[90m[11:23:49] [31m[[0mopen-runtimes[31m][97m Build manifest written. (1 files) [0m
+[90m[11:23:51] [31m[[0mopen-runtimes[31m][97m Build cache saved. (50593792 bytes) [0m
+[90m[11:23:51] [31m[[0mopen-runtimes[31m][32m Build finished. [0m
+[90m[11:25:22] [90m[[0mappwrite[90m][97m Edge distribution started. [0m
+[90m[11:25:32] [90m[[0mappwrite[90m][97m Edge distribution finished successfully (6/6). [0m
+[90m[11:25:32] [90m[[0mappwrite[90m][32m Deployment finished. [0m
+[90m[11:25:33] [90m[[0mappwrite[90m][97m Screenshot capturing started. [0m
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Finalizing deployment preview...
+[90m[11:25:41] [90m[[0mappwrite[90m][97m Screenshot capturing finished. [0m
+
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Deployed
+ℹ Info: Preview link: https://6ac6158c001bc74b5d58.appwrite.network
+ℹ Info: Deployment page: https://appwrite.io/projects/intermed-dev/sites/intermed-web-dev/deployments/6ac62b9286ef77aa3a78
+✓ Success: Successfully deployed 1 site in 165.8s.
