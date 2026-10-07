@@ -12,6 +12,7 @@ import {
   buildRawDocument,
   fictivolProduct,
   placebexProduct,
+  present,
   rawBytes,
   rawBytesPretty,
   testConfig,
@@ -305,6 +306,9 @@ describe('stage generation identity', () => {
         datasetVersion: {
           ...document.datasetVersion,
           version: 'synthetic-fictivol-v2',
+          previousVersionKey: present(
+            firstSnapshot.datasetVersions[0]!.version,
+          ),
         },
       }),
     );
@@ -353,7 +357,17 @@ describe('stage product diff against real baselines', () => {
     store.baseline = baselineOf(baseline.snapshot, baseline.id);
     const result = await runStage(
       store,
-      rawBytes(buildRawDocument({ products })),
+      rawBytes(
+        buildRawDocument({
+          products,
+          ...(baseline.snapshot.datasetVersions[0]?.version
+            ? {
+                previousVersionKey:
+                  baseline.snapshot.datasetVersions[0].version,
+              }
+            : {}),
+        }),
+      ),
       config,
     );
     const review = [...store.reviews.values()][0];

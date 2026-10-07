@@ -1,4 +1,4 @@
-﻿import {
+import {
   serializeCatalogue,
   validateReferentialIntegrity,
 } from '@intermed/domain';
@@ -7,6 +7,7 @@ import {
   assertValidConfig,
   boundedIssues,
   canonicalizeConfig,
+  isPublicationConflict,
   tryLog,
   type ReviewData,
   type StageRequest,
@@ -39,6 +40,13 @@ const EMPTY_IDENTITY = {
 
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
+}
+
+function isNumericSemver(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  if (value.length === 0 || value.length > 50) return false;
+  if (value !== value.trim()) return false;
+  return /^\d+\.\d+\.\d+$/.test(value);
 }
 
 /**
@@ -137,6 +145,12 @@ export async function stage(req: StageRequest): Promise<StageResult> {
     return quarantine('provenance-mismatch', provenance);
   }
 
+  if (!isNumericSemver(raw.datasetVersion.minimumClientVersion)) {
+    return quarantine('invalid-minimum-client-version', [
+      'dataset-version:minimumClientVersion',
+    ]);
+  }
+
   // Rewrite the raw version key and per-row provenance to this generation
   // before the domain validator constructs and seals the catalogue.
   const generationVersionKey = deriveGenerationVersionKey(
@@ -205,6 +219,28 @@ export async function stage(req: StageRequest): Promise<StageResult> {
   if (baseline.baselineVersionId && !baseline.catalogue) {
     return quarantine('baseline-unavailable', ['baseline-catalogue-missing']);
   }
+
+  const embeddedPrevious = snapshot.datasetVersions[0]?.previousVersionId;
+  const embeddedPreviousId =
+    embeddedPrevious && embeddedPrevious.status === 'present'
+      ? embeddedPrevious.value
+      : null;
+
+  const activeIsSelf = baseline.baselineVersionId === identity.datasetVersionId;
+
+  if (baseline.baselineVersionId === null) {
+    if (embeddedPreviousId !== null) {
+      return quarantine('baseline-mismatch', ['previous-version-unexpected']);
+    }
+  } else if (!activeIsSelf) {
+    if (
+      embeddedPreviousId === null ||
+      embeddedPreviousId !== baseline.baselineVersionId
+    ) {
+      return quarantine('baseline-mismatch', ['baseline-version-mismatch']);
+    }
+  }
+
   const productDiff = diffProducts(baseline.catalogue, snapshot, config);
   const largeRemovalRequired = productDiff.largeRemovalRequired;
   let quarantineReason: string | undefined;
@@ -225,7 +261,7 @@ export async function stage(req: StageRequest): Promise<StageResult> {
     configSha256: identity.configSha256,
     rawSnapshotSha256: identity.snapshotSha256,
     candidateSha256: identity.candidateSha256,
-    baselineVersionId: baseline.baselineVersionId,
+    baselineVersionId: embeddedPreviousId,
     baselineFingerprint: baseline.baselineFingerprint,
     completeness: 'complete',
     recordCounts: catalogueCounts(snapshot),
@@ -235,8 +271,20 @@ export async function stage(req: StageRequest): Promise<StageResult> {
     issues: boundedIssues(issues),
   };
 
-  await ports.writeCandidate(identity.datasetVersionId, candidateBytes);
-  await ports.writeReview(identity.datasetVersionId, reviewData);
+  try {
+    await ports.writeCandidate(identity.datasetVersionId, candidateBytes);
+  } catch (error) {
+    if (!activeIsSelf || !isPublicationConflict(error)) {
+      throw error;
+    }
+  }
+  try {
+    await ports.writeReview(identity.datasetVersionId, reviewData);
+  } catch (error) {
+    if (!activeIsSelf || !isPublicationConflict(error)) {
+      throw error;
+    }
+  }
   await ports.writeRunSummary(runId, {
     runId,
     status: 'staged',

@@ -5,6 +5,7 @@ import {
 import { stage } from '../../../packages/importer/src/stage';
 import type {
   CanonicalImporterConfig,
+  ImportIdentity,
   ReviewApproval,
   ReviewData,
 } from '../../../packages/importer/src/core';
@@ -21,6 +22,7 @@ import {
 export interface StagedGeneration {
   candidateVersionId: string;
   config: CanonicalImporterConfig;
+  identity: ImportIdentity;
   review: ReviewData;
   approval: ReviewApproval;
   snapshot: MedicationCatalogueSnapshot;
@@ -62,8 +64,21 @@ export async function stageGeneration(
   options: RawOptions | RawEnvelopeDocument,
   config: CanonicalImporterConfig = testConfig(),
 ): Promise<StagedGeneration> {
-  const raw =
-    'format' in options ? options : buildRawDocument(options as RawOptions);
+  let raw: RawEnvelopeDocument;
+  if ('format' in options) {
+    raw = options;
+  } else {
+    const rawOpts = { ...options };
+    if (
+      rawOpts.previousVersionKey === undefined &&
+      store.baseline.baselineVersionId !== null &&
+      store.baseline.catalogue?.datasetVersions[0]?.version
+    ) {
+      rawOpts.previousVersionKey =
+        store.baseline.catalogue.datasetVersions[0].version;
+    }
+    raw = buildRawDocument(rawOpts);
+  }
   const result = await stage({
     config,
     snapshotBytes: rawBytes(raw),
@@ -79,6 +94,7 @@ export async function stageGeneration(
   return {
     candidateVersionId,
     config,
+    identity: result.identity,
     review,
     approval: approve(review),
     snapshot: deserialized(store.candidates.get(candidateVersionId)),

@@ -114,7 +114,7 @@ export function configIssues(config: CanonicalImporterConfig): string[] {
   return issues;
 }
 
-function hasControlCharacter(value: string): boolean {
+export function hasControlCharacter(value: string): boolean {
   for (const char of value) {
     const code = char.codePointAt(0);
     if (code === undefined || code <= 0x1f || code === 0x7f) return true;
@@ -321,6 +321,7 @@ export interface PublishPorts {
     datasetVersionId: string,
   ) => Promise<PublishedDatasetManifest | null>;
   publicBaseUrl?: string;
+  resolvePublicUrl?: (datasetVersionId: string, fileName: string) => string;
   publicationTimestamp?: string;
   writeBundleFile: (
     lease: string,

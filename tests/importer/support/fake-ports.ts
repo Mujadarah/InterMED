@@ -70,6 +70,7 @@ export class FakeStore {
   publicationTimestamp = '2026-10-07T12:00:00Z';
   restNoise = false;
   heldLease: string | null = null;
+  resolvePublicUrl?: (datasetVersionId: string, fileName: string) => string;
 
   readonly quarantines: QuarantineRecord[] = [];
   readonly candidates = new Map<string, Uint8Array>();
@@ -249,6 +250,9 @@ export class FakeStore {
         } as PublishedDatasetManifest;
       },
       publicBaseUrl: 'https://published.invalid',
+      ...(this.resolvePublicUrl
+        ? { resolvePublicUrl: this.resolvePublicUrl }
+        : {}),
       publicationTimestamp: this.publicationTimestamp,
       writeBundleFile: async (
         lease,

@@ -171,10 +171,11 @@ async function runRealStageToPublish(): Promise<HarnessExecution> {
     throw new Error('publishing failed');
   }
 
-  const fileName = `bundle-${candidateVersionId}.json`;
-  const bundleBytes = store.files.get(`${candidateVersionId}/${fileName}`);
   const manifest = store.manifests.get(candidateVersionId);
   const descriptor = store.descriptors.get(candidateVersionId);
+  const bundleBytes = descriptor
+    ? store.files.get(`${candidateVersionId}/${descriptor.fileName}`)
+    : undefined;
   if (!bundleBytes || !manifest || !descriptor) {
     throw new Error('published components missing in store');
   }
@@ -353,9 +354,8 @@ describe('published reader compatibility with core producer', () => {
     expect(descriptor.datasetVersionId).toBe(executed.candidateVersionId);
     expect(descriptor.checksum).toBe(manifest.checksum);
     expect(descriptor.byteSize).toBe(executed.bundleBytes.byteLength);
-    expect(descriptor.fileName).toBe(
-      `bundle-${executed.candidateVersionId}.json`,
-    );
+    expect(descriptor.fileName).toBe(executed.descriptor.fileName);
+    expect(descriptor.fileName).not.toContain('\u001f');
 
     // Verify reconstructed download URL points to expected Appwrite storage path
     const expectedUrl = `${readerConfig.endpoint}/storage/buckets/${encodeURIComponent(readerConfig.bundleBucketId)}/files/${encodeURIComponent(executed.fileId)}/view?project=${encodeURIComponent(readerConfig.projectId)}`;

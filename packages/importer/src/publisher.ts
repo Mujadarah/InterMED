@@ -10,6 +10,7 @@ import {
   assertValidConfig,
   boundedIssues,
   canonicalizeConfig,
+  hasControlCharacter,
   isAmbiguousWrite,
   isPublicationConflict,
   PublicationLeaseError,
@@ -45,6 +46,27 @@ type SettleOutcome =
   | { kind: 'identical' }
   | { kind: 'partial'; missing: Component[] }
   | { kind: 'collision'; issue: string };
+
+function isNumericSemver(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  if (value.length === 0 || value.length > 50) return false;
+  if (value !== value.trim()) return false;
+  return /^\d+\.\d+\.\d+$/.test(value);
+}
+
+function isValidPublicUrl(url: string): boolean {
+  if (typeof url !== 'string' || !url.startsWith('https://')) return false;
+  if (hasControlCharacter(url)) return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return false;
+    if (parsed.username !== '' || parsed.password !== '') return false;
+    if (parsed.hash !== '') return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
   if (left.length !== right.length) return false;
@@ -320,19 +342,39 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
     return reject('large-removal-approval-required');
   }
 
+  if (!isNumericSemver(version.minimumClientVersion)) {
+    return reject('invalid-minimum-client-version');
+  }
+
+  const embeddedPrevious = version.previousVersionId;
+  const embeddedPreviousId =
+    embeddedPrevious.status === 'present' ? embeddedPrevious.value : null;
+
+  if (approval.baselineVersionId !== embeddedPreviousId) {
+    return reject('tampered-approval');
+  }
+
   const publicSha256 = `sha256:${candidateSha256.toLowerCase()}`;
-  const fileName = `bundle-${candidateVersionId}.json`;
+  const descriptorId = ports.sha256
+    .hash(`bundle-${candidateVersionId}`)
+    .substring(0, 36);
+  const fileName = `bundle-${descriptorId}.json`;
+  const publicUrl =
+    typeof ports.resolvePublicUrl === 'function'
+      ? ports.resolvePublicUrl(candidateVersionId, fileName)
+      : `${(ports.publicBaseUrl ?? 'https://published.invalid').replace(/\/+$/, '')}/${fileName}`;
+
   const expected: ExpectedPublication = {
     fileName,
     bytes: candidateBytes,
     descriptor: {
-      id: ports.sha256.hash(`bundle-${candidateVersionId}`).substring(0, 36),
+      id: descriptorId,
       datasetVersionId: candidateVersionId,
       fileName,
       contentType: 'application/json',
       byteSize: candidateBytes.length,
       checksum: publicSha256,
-      url: `${ports.publicBaseUrl ?? 'https://published.invalid'}/${fileName}`,
+      url: publicUrl,
     },
     manifest: {
       dataset: version.dataset,
@@ -356,9 +398,13 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
       coverage: version.coverage,
       rightsApprovalReference: version.rightsApprovalReference,
       clinicalReviewReference: version.clinicalReviewReference,
-      previousVersionId: approval.baselineVersionId,
+      previousVersionId: embeddedPreviousId,
     },
   };
+
+  if (!isValidPublicUrl(expected.descriptor.url)) {
+    return reject('invalid-public-url');
+  }
 
   const lock = await ports.acquirePublicationLock();
   const warnings: string[] = [];

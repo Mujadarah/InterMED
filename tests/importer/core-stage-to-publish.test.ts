@@ -81,8 +81,9 @@ describe('real stage to publish acceptance', () => {
     });
     expect(result.status).toBe('published');
 
+    const descriptor = store.descriptors.get(candidateVersionId)!;
     const publishedFile = store.files.get(
-      `${candidateVersionId}/bundle-${candidateVersionId}.json`,
+      `${candidateVersionId}/${descriptor.fileName}`,
     )!;
     expect(publishedFile).toEqual(candidateBytes);
     const snapshot = deserialized(publishedFile);

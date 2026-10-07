@@ -1,4 +1,4 @@
-﻿import { decodeBytes } from './parser';
+import { decodeBytes } from './parser';
 import { compareKeys } from './keys';
 import { isRecord, deepEqual } from './deep-equal';
 import { normalizeKey } from './normalize';

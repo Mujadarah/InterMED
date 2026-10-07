@@ -352,13 +352,14 @@ describe('publish success contract', () => {
     const descriptor = store.descriptors.get(generation.candidateVersionId)!;
     expect(descriptor).toMatchObject({
       datasetVersionId: generation.candidateVersionId,
-      fileName: `bundle-${generation.candidateVersionId}.json`,
+      fileName: `bundle-${descriptor.id}.json`,
       contentType: 'application/json',
       byteSize: bytes.length,
       checksum: publicSha,
-      url: `https://published.invalid/bundle-${generation.candidateVersionId}.json`,
+      url: `https://published.invalid/bundle-${descriptor.id}.json`,
     });
     expect(descriptor.id).toHaveLength(36);
+    expect(descriptor.fileName).not.toContain('\u001f');
 
     const manifest = store.manifests.get(generation.candidateVersionId)!;
     const version = generation.snapshot.datasetVersions[0]!;
@@ -501,7 +502,10 @@ describe('publish idempotency, resume and collisions', () => {
     const generation = await stageGeneration(store, {
       products: [fictivolProduct()],
     });
-    const key = `${generation.candidateVersionId}/bundle-${generation.candidateVersionId}.json`;
+    const descriptorId = sha256
+      .hash(`bundle-${generation.candidateVersionId}`)
+      .substring(0, 36);
+    const key = `${generation.candidateVersionId}/bundle-${descriptorId}.json`;
     store.files.set(key, new TextEncoder().encode('{"foreign":"orphan"}'));
     const before = store.publicState();
 
@@ -658,11 +662,10 @@ describe('publish fault injection and commit point', () => {
       });
       expect((await publishRequest(store, first)).status).toBe('published');
       advanceBaseline(store, first.candidateVersionId, first.snapshot);
+      const desc1 = store.descriptors.get(first.candidateVersionId)!;
       const prior = {
-        file: store.files.get(
-          `${first.candidateVersionId}/bundle-${first.candidateVersionId}.json`,
-        ),
-        descriptor: store.descriptors.get(first.candidateVersionId),
+        file: store.files.get(`${first.candidateVersionId}/${desc1.fileName}`),
+        descriptor: desc1,
         manifest: store.manifests.get(first.candidateVersionId),
       };
 
@@ -675,9 +678,7 @@ describe('publish fault injection and commit point', () => {
       );
 
       expect(
-        store.files.get(
-          `${first.candidateVersionId}/bundle-${first.candidateVersionId}.json`,
-        ),
+        store.files.get(`${first.candidateVersionId}/${desc1.fileName}`),
       ).toEqual(prior.file);
       expect(store.descriptors.get(first.candidateVersionId)).toEqual(
         prior.descriptor,
