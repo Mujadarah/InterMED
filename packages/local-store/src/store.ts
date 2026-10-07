@@ -907,6 +907,8 @@ export function createLocalDatasetStore(
       generationId,
     });
     const db = requireDatabase();
+    const failures: string[] = [];
+    let quotaFailure = false;
     // One transaction over the preference stores: read-modify-write per
     // favorite with no non-Dexie await in between (Greptile review fix G5).
     await db.transaction(
@@ -915,40 +917,57 @@ export function createLocalDatasetStore(
       async (transaction) => {
         const favorites = await transaction.favorites.toArray();
         for (const favorite of favorites) {
-          // Stable product id lookup: a favorite is never remapped to another id.
-          const row = await transaction.products.get([
-            generationId,
-            favorite.productId,
-          ]);
-          if (row) {
-            await transaction.favorites.update(favorite.productId, {
-              status: 'available',
-              lastKnownDisplayName: row.entity.commercialName,
-              lastKnownDatasetVersionId: row.entity.datasetVersionId,
-            });
-            // The same stable product id is back: its tombstone is stale
-            // (Codacy review fix 2).
-            await transaction.tombstones.delete(favorite.productId);
-          } else {
-            await transaction.tombstones.put({
-              productId: favorite.productId,
-              lastKnownDisplayName: favorite.lastKnownDisplayName,
-              removedAt: new Date(now()).toISOString(),
-            });
-            // Only rows that still exist are updated: a favorite that was
-            // removed while this ran stays removed.
-            await transaction.favorites.update(favorite.productId, {
-              status: 'removed',
-            });
+          // One product's failure must never stop the others (Codacy item 3).
+          try {
+            // Stable product id lookup: a favorite is never remapped to another id.
+            const row = await transaction.products.get([
+              generationId,
+              favorite.productId,
+            ]);
+            if (row) {
+              await transaction.favorites.update(favorite.productId, {
+                status: 'available',
+                lastKnownDisplayName: row.entity.commercialName,
+                lastKnownDatasetVersionId: row.entity.datasetVersionId,
+              });
+              // The same stable product id is back: its tombstone is stale
+              // (Codacy review fix 2).
+              await transaction.tombstones.delete(favorite.productId);
+            } else {
+              await transaction.tombstones.put({
+                productId: favorite.productId,
+                lastKnownDisplayName: favorite.lastKnownDisplayName,
+                removedAt: new Date(now()).toISOString(),
+              });
+              // Only rows that still exist are updated: a favorite that was
+              // removed while this ran stays removed.
+              await transaction.favorites.update(favorite.productId, {
+                status: 'removed',
+              });
+            }
+          } catch (error) {
+            failures.push(favorite.productId);
+            if (isQuotaError(error)) quotaFailure = true;
           }
         }
-        // Record what was reconciled, so a run interrupted by a crash is
-        // picked up again on the next open (Greptile review fix G6).
-        await transaction.meta.update('dataset-state', {
-          reconciledGenerationId: generationId,
-        });
+        // Only a complete run marks the generation reconciled; a partial one
+        // is left for the retry (Codacy item 3, Greptile review fix G6).
+        if (failures.length === 0)
+          await transaction.meta.update('dataset-state', {
+            reconciledGenerationId: generationId,
+          });
       },
     );
+    if (failures.length > 0) {
+      // Thrown only after the transaction committed: the reconciled items are
+      // kept, and the task is reported and retried.
+      throw Object.assign(
+        new Error(
+          `Preference reconciliation failed for ${failures.length} product(s): ${failures.join(', ')}`,
+        ),
+        quotaFailure ? { name: 'QuotaExceededError' } : {},
+      );
+    }
   }
 
   function maintenanceKey(task: MaintenanceTask): string {

@@ -82,3 +82,51 @@ AssertionError: expected [ { …(3) } ] to deeply equal []
 
 [exit code: 1]
 
+---
+
+## Codacy 3 - one failing product does not abort the rest of reconciliation (RED against 234c3b4)
+
+$ npx vitest run packages/local-store/src/preferences.test.ts -t one product fails
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (11 tests | 1 failed | 8 skipped) 99ms
+   × keeps reconciling other favorites when one product fails 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps reconciling other favorites when one product fails
+AssertionError: expected [ [ …(2) ], [ …(2) ] ] to deeply equal [ [ …(2) ], [ …(2) ] ]
+
+- Expected
++ Received
+
+@@ -3,8 +3,8 @@
+      "mpsource.syntheticSP-FICTIVOL",
+      "available",
+    ],
+    [
+      "mpsource.syntheticSP-PLACEBEX",
+-     "removed",
++     "available",
+    ],
+  ]
+
+ ❯ packages/local-store/src/preferences.test.ts:363:5
+    361|       entry.status,
+    362|     ]),
+    363|   ).toEqual([
+       |     ^
+    364|     [alpha.productIds['SP-FICTIVOL'], 'available'],
+    365|     [alpha.productIds['SP-PLACEBEX'], 'removed'],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed | 8 skipped (11)
+   Start at  19:50:53
+   Duration  351ms (transform 89ms, setup 0ms, import 144ms, tests 99ms, environment 0ms)
+
+[exit code: 1]
+

@@ -68,3 +68,52 @@ $ npx vitest run packages/local-store/src/preferences.test.ts
 
 [exit code: 0]
 
+---
+
+## Codacy 3 - one failing product does not abort the rest of reconciliation (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/preferences.test.ts (11 tests | 1 failed) 324ms
+   × keeps reconciling other favorites when one product fails 28ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/preferences.test.ts > keeps reconciling other favorites when one product fails
+ReferenceError: testDatabase is not defined
+ ❯ packages/local-store/src/preferences.test.ts:379:17
+    377|     lastFailure: { reason: 'storage-quota' },
+    378|   });
+    379|   const meta = (await (await testDatabase(name)).meta.get('dataset-sta…
+       |                 ^
+    380|   expect(meta.reconciledGenerationId).not.toBe(beta.generationId);
+    381|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 61 passed (62)
+   Start at  19:51:19
+   Duration  825ms (transform 392ms, setup 0ms, import 830ms, tests 1.73s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codacy 3 - one failing product does not abort the rest of reconciliation (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  5 passed (5)
+      Tests  62 passed (62)
+   Start at  19:51:30
+   Duration  772ms (transform 379ms, setup 0ms, import 793ms, tests 1.63s, environment 0ms)
+
+[exit code: 0]
+

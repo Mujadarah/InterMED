@@ -6,6 +6,7 @@ import {
   fakePublishedSource,
   sharedBus,
   testClock,
+  testDatabase,
   testMarkerLock,
   testStore,
   uniqueName,
@@ -313,6 +314,78 @@ it('clears the tombstone when a tombstoned product comes back', async () => {
     lastKnownDisplayName: 'Fictivol gamma',
     lastKnownDatasetVersionId: gamma.generationId,
   });
+});
+
+it('keeps reconciling other favorites when one product fails', async () => {
+  const name = uniqueName();
+  const alpha = bundle('alpha');
+  const beta = bundle('beta', {
+    products: [{ key: 'SP-SYNTHETICA', name: 'Synthetica' }],
+  });
+  const clock = testClock();
+  let failNext = false;
+  const now = () => {
+    // The first tombstone write after the activation broadcast is poisoned:
+    // that one product fails while the next one must still be reconciled.
+    if (failNext) {
+      failNext = false;
+      throw Object.assign(new Error('Synthetic quota'), {
+        name: 'QuotaExceededError',
+      });
+    }
+    return clock.now();
+  };
+  const events = sharedBus();
+  let broadcasts = 0;
+  events.subscribe(() => {
+    broadcasts += 1;
+    failNext = broadcasts === 2;
+  });
+  const store = testStore({ name, events, now });
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-PLACEBEX']!,
+    lastKnownDisplayName: 'Placebex alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  // The first favorite's item failed; the second one was still reconciled.
+  expect(
+    (await store.preferences.listFavorites()).map((entry) => [
+      entry.productId,
+      entry.status,
+    ]),
+  ).toEqual([
+    [alpha.productIds['SP-FICTIVOL'], 'available'],
+    [alpha.productIds['SP-PLACEBEX'], 'removed'],
+  ]);
+  expect(
+    (await store.preferences.listProductTombstones()).map(
+      (row) => row.productId,
+    ),
+  ).toEqual([alpha.productIds['SP-PLACEBEX']]);
+
+  // The failure is reported and the generation is not marked reconciled, so
+  // the work stays pending and is retried later.
+  expect(store.maintenance.getStatus()).toMatchObject({
+    pending: true,
+    lastFailure: { reason: 'storage-quota' },
+  });
+  const meta = (await (await testDatabase(name)).meta.get('dataset-state'))!;
+  expect(meta.reconciledGenerationId).not.toBe(beta.generationId);
+
+  await store.maintenance.retry();
+  expect(store.maintenance.getStatus().pending).toBe(false);
+  expect(
+    (await store.preferences.listFavorites()).map((entry) => entry.status),
+  ).toEqual(['removed', 'removed']);
+  expect(await store.preferences.listProductTombstones()).toHaveLength(2);
 });
 
 it('keeps a favorite removed that was deleted while reconciliation ran', async () => {
