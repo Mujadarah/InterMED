@@ -256,3 +256,80 @@ undefined
 
 [exit code: 1]
 
+---
+
+## G7 - evicted generation recovery by re-download and row replacement (RED against e0927ca)
+
+$ npx vitest run packages/local-store/src/staging.test.ts -t recovers an evicted generation
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/staging.test.ts (20 tests | 1 failed | 19 skipped) 43ms
+   × recovers an evicted generation by re-downloading and replacing its rows 43ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/staging.test.ts > recovers an evicted generation by re-downloading and replacing its rows
+AssertionError: expected { …(10) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "generation": {
+    "checksum": "11d91352ceb67547",
+    "coverage": "Synthetic development fixture. Not for clinical use.",
+    "dataset": "synthetic-medication-catalogue",
+    "downloadedAt": "2026-10-07T14:40:38.295Z",
+    "generationId": "dvsource.syntheticsynthetic-alpha",
+    "importedAt": "2026-01-01T00:00:00Z",
+    "publishedAt": "2026-01-01T00:00:00Z",
+    "recordCounts": {
+      "activeIngredients": 4,
+      "atcCodes": 2,
+      "dataSources": 1,
+      "datasetVersions": 1,
+      "dosageForms": 1,
+      "manufacturers": 1,
+      "marketingAuthorizationHolders": 1,
+      "medicationIngredients": 4,
+      "products": 2,
+      "regulatoryDocuments": 2,
+    },
+    "schemaVersion": "medication-catalogue-1",
+    "sourceIds": [
+      "dsintermedsource.synthetic",
+    ],
+    "synthetic": true,
+    "version": "synthetic-alpha",
+  },
+  "generationId": "dvsource.syntheticsynthetic-alpha",
+  "ingredient": [Function ingredient],
+  "ingredientsByDciPrefix": [Function ingredientsByDciPrefix],
+  "product": [Function product],
+  "productIds": [Function productIds],
+  "productIngredients": [Function productIngredients],
+  "productsByAtcCode": [Function productsByAtcCode],
+  "productsByNamePrefix": [Function productsByNamePrefix],
+  "release": [Function release],
+}
+
+ ❯ packages/local-store/src/staging.test.ts:558:39
+    556|     generationId: alpha.generationId,
+    557|   });
+    558|   expect(await reopened.openReader()).toBeNull();
+       |                                       ^
+    559|   expect(await reopened.openPinnedReader(alpha.generationId)).toBeNull…
+    560|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 skipped (4)
+      Tests  1 failed | 38 skipped (39)
+   Start at  17:40:38
+   Duration  289ms (transform 199ms, setup 0ms, import 311ms, tests 43ms, environment 0ms)
+
+[exit code: 1]
+

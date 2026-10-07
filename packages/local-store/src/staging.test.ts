@@ -524,3 +524,50 @@ it('removes an incomplete staging generation on the next open', async () => {
   expect(await rows.generations.get('crashed-staging')).toBeUndefined();
   expect(reopened.getState()).toMatchObject({ status: 'never-downloaded' });
 });
+
+it('recovers an evicted generation by re-downloading and replacing its rows', async () => {
+  const name = uniqueName();
+  const alpha = bundle('alpha');
+  const beta = bundle('beta');
+  const source = fakePublishedSource(alpha);
+  const store = testStore({
+    name,
+    reader: source.reader,
+    loader: source.loader,
+  });
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const rows = await testDatabase(name);
+  // Eviction: the product rows of the active generation are gone.
+  await rows.products.where('generationId').equals(alpha.generationId).delete();
+  store.close();
+
+  const reopened = testStore({
+    name,
+    reader: source.reader,
+    loader: source.loader,
+  });
+  await reopened.open();
+  expect(reopened.getState()).toMatchObject({
+    status: 'evicted',
+    generationId: alpha.generationId,
+  });
+  expect(await reopened.openReader()).toBeNull();
+  expect(await reopened.openPinnedReader(alpha.generationId)).toBeNull();
+
+  // The next update re-downloads the same published version and replaces its
+  // rows instead of skipping the download as already present.
+  await reopened.updates.downloadAndActivate();
+  expect(reopened.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: alpha.generationId },
+  });
+  const reader = (await reopened.openReader())!;
+  expect(await reader.productIds()).toHaveLength(2);
+  reader.release();
+  // The replacement touched no other generation.
+  expect(await reopened.openPinnedReader(beta.generationId)).not.toBeNull();
+  expect(
+    await rows.products.where('generationId').equals(beta.generationId).count(),
+  ).toBeGreaterThan(0);
+});

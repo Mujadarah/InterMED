@@ -337,12 +337,8 @@ export function createLocalDatasetStore(
     const generation = await db.generations.get(activeGenerationId);
     if (!generation || generation.status !== 'ready')
       return { status: 'evicted', generationId: activeGenerationId };
-    const rows = await db.products
-      .where('generationId')
-      .equals(activeGenerationId)
-      .count();
-    const expected = generation.recordCounts['products'] ?? 0;
-    if (expected > 0 && rows === 0)
+    // The pointer is only worth following while its rows are all there.
+    if (!(await countsMatch(generation, (name) => catalogueTable(db, name))))
       return { status: 'evicted', generationId: activeGenerationId };
     return { status: 'ready', generation: toLocalGeneration(generation) };
   }
@@ -442,7 +438,12 @@ export function createLocalDatasetStore(
     const activeGenerationId = record?.activeGenerationId ?? null;
     if (!activeGenerationId) return null;
     const generation = await db.generations.get(activeGenerationId);
-    return generation && generation.status === 'ready' ? generation : null;
+    if (!generation || generation.status !== 'ready') return null;
+    // An evicted generation counts as absent: it must be re-downloaded
+    // instead of skipped as the version already present (Greptile G7).
+    if (!(await countsMatch(generation, (name) => catalogueTable(db, name))))
+      return null;
+    return generation;
   }
 
   function candidateOf(
@@ -505,21 +506,25 @@ export function createLocalDatasetStore(
   /**
    * Whether the stored rows of one generation match the counts its record
    * promises. Used to mark staging complete and to re-verify a generation
-   * before it becomes active (Greptile review fixes G3 and G7).
+   * before it becomes active (Greptile review fixes G3 and G7). Runs outside
+   * any ambient transaction unless its tables come from one: a verification
+   * must never join or be blocked by an unrelated in-flight transaction.
    */
   async function countsMatch(
     record: GenerationRecord,
     table: (name: CatalogueStoreName) => AnyCatalogueTable,
   ): Promise<boolean> {
-    for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTIONS)) {
-      const expected = record.recordCounts[key] ?? 0;
-      const actual = await table(name)
-        .where('generationId')
-        .equals(record.generationId)
-        .count();
-      if (actual !== expected) return false;
-    }
-    return true;
+    return Dexie.ignoreTransaction(async () => {
+      for (const [key, name] of Object.entries(RECORD_COUNT_COLLECTIONS)) {
+        const expected = record.recordCounts[key] ?? 0;
+        const actual = await table(name)
+          .where('generationId')
+          .equals(record.generationId)
+          .count();
+        if (actual !== expected) return false;
+      }
+      return true;
+    });
   }
 
   async function stageUnlocked(
@@ -531,7 +536,15 @@ export function createLocalDatasetStore(
     const db = requireDatabase();
     const generationId = manifest.datasetVersionId;
     const existing = await db.generations.get(generationId);
-    if (existing?.status === 'ready') return { ok: true, generationId };
+    // A ready generation is only skipped when its rows are all there; an
+    // evicted one is re-staged, replacing its rows and touching no other
+    // generation (Greptile G7).
+    if (
+      existing?.status === 'ready' &&
+      (await countsMatch(existing, (name) => catalogueTable(db, name)))
+    )
+      return { ok: true, generationId };
+    if (existing) await deleteGenerationRows(generationId);
     const manifestProblem = checkManifest(manifest, dataset);
     if (manifestProblem)
       return { ok: false, state: await fail(manifestProblem) };
@@ -660,7 +673,14 @@ export function createLocalDatasetStore(
     const record = await db.generations.get(generationId);
     if (!record) return fail('interrupted');
     const active = await db.meta.get('dataset-state');
-    if (active?.activeGenerationId === generationId) return refresh();
+    // Already active *and* complete: nothing to switch. A re-staged record
+    // under the same pointer must still go through the switch to become
+    // `ready` again (Greptile review fix G7).
+    if (
+      active?.activeGenerationId === generationId &&
+      record.status === 'ready'
+    )
+      return refresh();
     const activatedAt = new Date(now()).toISOString();
     // Written from inside the transaction callback, so no literal narrowing.
     let abort: string = 'interrupted';
@@ -1255,13 +1275,36 @@ export function createLocalDatasetStore(
       return record ? pinnedReader(record) : null;
     },
     openPinnedReader: async (generationId: string) => {
-      await open();
-      const db = database;
-      if (!db) return null;
-      const record = await Dexie.ignoreTransaction(() =>
-        db.generations.get(generationId),
-      );
-      return record && record.status === 'ready' ? pinnedReader(record) : null;
+      // Pin before anything else: a collection that runs right now must see
+      // this pin even before the reader is validated (Greptile review fix G2).
+      // The pin is unwound again when the generation turns out unusable.
+      addPin(generationId);
+      let held = true;
+      const unwind = (): null => {
+        if (held) {
+          held = false;
+          removePin(generationId);
+        }
+        return null;
+      };
+      try {
+        await open();
+        const db = database;
+        if (!db) return unwind();
+        const record = await Dexie.ignoreTransaction(() =>
+          db.generations.get(generationId),
+        );
+        if (!record || record.status !== 'ready') return unwind();
+        // An evicted generation has no usable reader (Greptile G7).
+        if (!(await countsMatch(record, (name) => catalogueTable(db, name))))
+          return unwind();
+        // The reader takes the pin over from this optimistic hold.
+        unwind();
+        return pinnedReader(record);
+      } catch (error) {
+        unwind();
+        throw error;
+      }
     },
     rollback: async () => {
       await open();
