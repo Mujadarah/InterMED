@@ -1,10 +1,11 @@
 # Milestone 3 live evidence — development project (2026-10-07)
 
-Initial honest evidence for Milestone 3 **live verification against the new
-development project only**. Baseline commit
+Evidence for Milestone 3 **live verification against the new development
+project only**. Baseline commit
 `f167d439fe3d608b99fb130ee314b2bbf68798f1` (= `origin/main` at capture). This
-pack records what the lead and owner already executed; it does **not** claim
-Milestone 3 live acceptance.
+pack records what the lead and owner already executed. **All requested
+development live checks passed; PR delivery remains pending final exact-head
+CI.** This does not claim a global release or clinical-product validation.
 
 Companion summary:
 [docs/MILESTONE_3_EVIDENCE.md](../../MILESTONE_3_EVIDENCE.md#live-verification-development-project-2026-10-07).
@@ -67,13 +68,17 @@ are not part of this pack.
   build log records Node `v24.21.0` / npm `11.19.0`, install and build
   success, and edge distribution `6/6`. The sanitized records in
   `site-musl-live/` prove the ready deployment and its browser/TLS checks.
-- Shell-site observations do not prove the recorded monorepo Sites build
-  settings from [SITES.md](../../../infra/appwrite/SITES.md).
+- The older shell-site observations are separate from the successful development
+  deployment; the development `site.json` and live-field comparison prove the
+  recorded monorepo Sites build settings from
+  [SITES.md](../../../infra/appwrite/SITES.md).
 - Plan/org confirmation is **GitHub Student Pack** (`auto-1`), not Free plan.
 - Item 8 covers only the verified development Frankfurt region and Student Pack
   confirmation. Production capacity and backup/restore remain wider roadmap
   items deferred outside this task, not current acceptance blockers.
-- No overall Milestone 3 live acceptance claim.
+- All requested development checks 1–8 passed; production, restore,
+  real-device, immutable-cache, and clinical validation remain out of scope or
+  future follow-ups.
 - All copied evidence is sanitized: no API keys, session tokens, `clientIP`, or
   account identifiers are committed. The public bundle scanner's exit 1 is
   retained as an observed result; both candidates were manually matched to the

@@ -17,7 +17,9 @@ provisioning). On **2026-10-07** the owner approved creation of a separate
 Frankfurt development project and limited read-only checks; the honest status of
 each live acceptance item is under
 [Live verification (development project)](#live-verification-development-project-2026-10-07).
-**Milestone 3 live acceptance is not claimed.**
+**All requested Milestone 3 development live checks passed; PR delivery remains
+pending final exact-head CI.** This is bounded development evidence, not a
+global release or clinical-product validation claim.
 
 ## Scope and requirement IDs
 
@@ -336,8 +338,9 @@ Evidence pack:
 (`observations.json`, `cli-preflight.md`, `markdown-inventory.md`,
 `buckets/**`, `tables/**`, `function-checks/**`, `scanner-review/**`,
 `site-probes/**`). Baseline
-`f167d439fe3d608b99fb130ee314b2bbf68798f1` (= live `origin/main`). **No overall
-Milestone 3 live acceptance claim.**
+`f167d439fe3d608b99fb130ee314b2bbf68798f1` (= live `origin/main`). **Current
+status: all requested development live checks passed; PR delivery remains
+pending final exact-head CI.**
 
 #### Verified lead/owner facts (public ids only)
 
@@ -376,14 +379,13 @@ Milestone 3 live acceptance claim.**
   → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
   → exit 0, lists **node-22** and **node-24** as supported (availability only,
   not a deployed runtime on `intermed-dev`).
-- Shell `sites_list`: site `6ac4b3550003a26eea02` framework `other`, adapter
-  `static`, `fallbackFile` `index.html`, `buildRuntime` `node-22`, empty
-  install/build, output `./`, deployment `6ac4e58c6e620fd5dd84` ready — does
-  **not** prove the recorded monorepo Sites build. The latest approved retry used the configured pinned
-  bootstrap, but the cloud host reported npm `12.0.2` and the Node `24.21.0`
-  binary never started (`fcntl64: symbol not found`). The CLI exited 0 while
-  deployment `6ac6226495b5ff1a3249` is recorded as failed; no successful
-  deployment is claimed. The existing shell remains unchanged.
+- The existing shell `sites_list` observation remains read-only historical
+  evidence. The separate development site deployment
+  `6ac62b9286ef77aa3a78` is ready and proves the recorded monorepo Sites build:
+  its live fields match the declaration with zero differences, and the pinned
+  Node `24.21.0` / npm `11.19.0` install and build completed successfully.
+  Earlier shell/runtime failures remain historical evidence; the existing shell
+  remains unchanged.
 - CLI: global 13.3.2 unsigned; work used `npx --yes appwrite-cli@28.1.0`. Owner
   ran login; lead whoami saw console endpoint; no secrets recorded.
 - Markdown: Antigravity audited all **36** tracked Markdown files — no
@@ -395,26 +397,26 @@ Milestone 3 live acceptance claim.**
 
 #### Acceptance items 1–8
 
-| #   | Check                                                                        | Command / probe                                                       | Results (summary)                                                                                                                                                                                                                                                                                                                                                                | Status                        |
-| --- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Development Sites push, deployment readback, pinned-runtime build log | Deployment `6ac62b9286ef77aa3a78` is **ready**. Install and build succeeded with Node `v24.21.0` / npm `11.19.0`; edge distribution completed `6/6`. The live site fields and declared fields have zero differences; the pull export omits `enabled`, which was verified by direct GET.                                                                                          | **PASS (bounded)**            |
-| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                 | Adapter read returned the available synthetic manifest and descriptor; public reads and private-resource denials were recorded. The bounded matrix retains the private `import-runs` masked 404 limitation; the published version/file remained untouched by cleanup.                                                                                                            | **PASS (bounded)**            |
-| 3   | Unauthenticated writes refused                                               | Initial and corrected 39-check matrices                               | Initial run remains failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200. Corrected probes passed 39/39 with no abort; the private 404 remains a masked refusal rather than a strict status proof.                                                              | **PASS (corrected, bounded)** |
-| 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                          | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                                                                             | **PASS (bounded)**            |
-| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                       | Corrected probes passed 39/39; the owner-approved cleanup then executed all seven exact deletes (CLI exit 0), and the owner-side repeat returned only requested-row/file-not-found messages. The final adapter read passed with the expected version in both manifest and descriptor and no guard selected. The private 404 remains a masked refusal, not a strict status proof. | **PASS (bounded)**            |
-| 6   | No server key in deployed bundle / vars / logs / config                      | Sanitized deployed-bundle scan plus deployment variables/readback     | The final scan covered 11 actual deployed HTML, manifest, service-worker, and referenced asset files and found no credential-shaped strings. Variables are empty; source archive entries contain only the public env example.                                                                                                                                                    | **PASS (bounded)**            |
-| 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on the successful development deployment            | Preview `/status` returned the Development status heading; TLS verification, manifest root scope, active/controller root service worker, and all recorded HTTP 200 checks passed. Cache-Control is `public, max-age=0, must-revalidate`; immutable long-cache remains a policy risk. Browser proof only; not real-device/installed acceptance.                                   | **PASS (bounded)**            |
-| 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                              | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                                                                                  | **PASS**                      |
+| #   | Check                                                                        | Command / probe                                                       | Results (summary)                                                                                                                                                                                                                                                                                                         | Status   |
+| --- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Development Sites push, deployment readback, pinned-runtime build log | Deployment `6ac62b9286ef77aa3a78` is **ready**. Install and build succeeded with Node `v24.21.0` / npm `11.19.0`; edge distribution completed `6/6`. The live site fields and declared fields have zero differences; the pull export omits `enabled`, which was verified by direct GET.                                   | **PASS** |
+| 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                 | Adapter read returned the available synthetic manifest and descriptor; public reads and private-resource denials were recorded. The private `import-runs` masked 404 limitation is retained in the evidence; the published version/file remained untouched by cleanup.                                                    | **PASS** |
+| 3   | Unauthenticated writes refused                                               | Initial and corrected 39-check matrices                               | Initial run remains retained as failed/inconclusive historical evidence. Corrected probes passed 39/39 with no abort; the private 404 remains a masked refusal rather than a strict status proof.                                                                                                                         | **PASS** |
+| 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                          | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                      | **PASS** |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                       | Corrected probes passed 39/39; cleanup executed all seven exact deletes, and the final adapter read passed with the expected version in both manifest and descriptor and no guard selected. The private 404 remains a masked refusal, not a strict status proof.                                                          | **PASS** |
+| 6   | No server key in deployed bundle / vars / logs / config                      | Sanitized deployed-bundle scan plus deployment variables/readback     | The final scan covered 11 actual deployed HTML, manifest, service-worker, and referenced asset files and found no credential-shaped strings. Variables are empty; source archive entries contain only the public env example.                                                                                             | **PASS** |
+| 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on the successful development deployment            | Preview `/status` returned the Development status heading; TLS verification, manifest root scope, active/controller root service worker, and all recorded HTTP 200 checks passed. Cache-Control is `public, max-age=0, must-revalidate`; immutable long-cache remains a retained future policy risk, not a check blocker. | **PASS** |
+| 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                              | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                           | **PASS** |
 
 #### Recorded-field checks
 
-| Field / assumption                                                        | Command / probe                               | Results                                                                                                                                                                                                                                                                                                                                                                                                        | Status                          |
-| ------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Function runtime `node-22`; site build runtime `node-22`                  | function readback; shell site                 | Deployed function readback reports runtime node-22 and ready deployment; shell `buildRuntime` node-22. Supported runtimes also include node-24.                                                                                                                                                                                                                                                                | **PASS (development function)** |
-| Site `framework: "other"`, `adapter: "static"`, `fallbackFile`            | Shell `sites_list`                            | Observed on shell site only; monorepo runner unproven                                                                                                                                                                                                                                                                                                                                                          | **PARTIAL**                     |
-| Column types `text`/`bigint`, enum `elements`, indexes `columns`/`orders` | push/pull tables                              | Three tables pushed and pulled; declared table, column, and index properties compare with difference count 0.                                                                                                                                                                                                                                                                                                  | **PASS**                        |
-| Bucket `antivirus` / `encryption` / `compression` / max sizes             | push/pull buckets                             | Four buckets pushed and pulled; expected declared fields compare with zero differences.                                                                                                                                                                                                                                                                                                                        | **PASS**                        |
-| REST `{ total, rows }` with flattened columns                             | anonymous TablesDB read and adapter recording | The root adapter recordings show non-empty `{ "total": 1, "rows": [...] }` responses with flattened manifest and descriptor columns; see [`rest-1.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-1.json) and [`rest-2.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-2.json). Public empty-table reads also returned `{ "total": 0, "rows": [] }`. | **PASS (recorded shape)**       |
+| Field / assumption                                                                 | Command / probe                                                | Results                                                                                                                                                                                                                                                                                                                                                                                                        | Status                    |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Function runtime `node-22`; site metadata `node-22`; actual pinned build `node-24` | function readback; development site readback; pinned build log | Deployed function metadata reports runtime node-22; the site metadata host reports buildRuntime node-22, while the successful deployment log records the actual pinned Node v24.21.0 / npm 11.19.0 build.                                                                                                                                                                                                      | **PASS (development)**    |
+| Site `framework: "other"`, `adapter: "static"`, `fallbackFile`                     | Development site readback, pull comparison, pinned build log   | Development site `site.json` and `live-field-comparison.json` show zero differences for the declared fields; the ready deployment log records the pinned monorepo install/build.                                                                                                                                                                                                                               | **PASS (development)**    |
+| Column types `text`/`bigint`, enum `elements`, indexes `columns`/`orders`          | push/pull tables                                               | Three tables pushed and pulled; declared table, column, and index properties compare with difference count 0.                                                                                                                                                                                                                                                                                                  | **PASS**                  |
+| Bucket `antivirus` / `encryption` / `compression` / max sizes                      | push/pull buckets                                              | Four buckets pushed and pulled; expected declared fields compare with zero differences.                                                                                                                                                                                                                                                                                                                        | **PASS**                  |
+| REST `{ total, rows }` with flattened columns                                      | anonymous TablesDB read and adapter recording                  | The root adapter recordings show non-empty `{ "total": 1, "rows": [...] }` responses with flattened manifest and descriptor columns; see [`rest-1.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-1.json) and [`rest-2.json`](evidence/milestone-3-live-2026-10-07/adapter-published-recording/rest-2.json). Public empty-table reads also returned `{ "total": 0, "rows": [] }`. | **PASS (recorded shape)** |
 
 #### Corrected probe and cleanup status
 
@@ -442,12 +444,11 @@ guard, and recorded two REST calls. The earlier inline multiline invocation
 exited 0 without records because Windows argument handling lost the script and
 is not treated as evidence.
 
-The successful corrected probes and the successful development Sites deployment
-do not make overall Milestone 3 live acceptance complete. The final deployment
-is bounded development evidence only. Production is untouched; production
-bootstrap packages must be pinned by integrity hash before any production work.
-npm/Windows bootstrap integrity and production capacity/backup/restore remain
-deferred roadmap gates.
+The requested development live checks and final adapter read/cleanup passed.
+Production is untouched. Production bootstrap integrity, production capacity,
+backup/restore, real-device acceptance, immutable-cache policy, and clinical
+validation remain explicitly out of scope or future follow-ups; none blocks this
+development status. PR delivery remains pending final exact-head CI.
 
 ## PR #7 review fixes
 
@@ -558,11 +559,11 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
   gate (with `frame-ancestors`, CSP on `/sw.js`, `Referrer-Policy`,
   `Permissions-Policy`) remains a Milestone 12 requirement on a header-capable
   host or edge. Nothing in this milestone changed the CSP.
-- Live items 1–7 are **PASS (bounded)** in the development evidence pack; the
-  corrected permission matrix retains a masked private 404 limitation and the
-  successful Sites deployment retains the observed no-immutable-cache risk.
-  Item 8 is **PASS** for development region/plan confirmation only. Milestone 3
-  live acceptance is **not** claimed. No production deployment is implied.
+- Live items 1–7 are **PASS** in the development evidence pack; the corrected
+  permission matrix retains a masked private 404 limitation and the successful
+  Sites deployment retains the observed no-immutable-cache risk. Item 8 is
+  **PASS** for development region/plan confirmation only. No production
+  deployment is implied.
 - Most recorded field values remain unverified live; runtime/framework notes
   above are availability or shell-site observations only.
 - Operational ownership (release approver, incident owner, retention, cost
@@ -580,10 +581,10 @@ round): `tests/appwrite-config-secrets.test.ts` 10 → 14 tests, plus the new
 
 ## Next gate
 
-Development project `intermed-dev` exists; remaining Milestone 3 live acceptance
-still requires explicit maintainer authorization for push/pull, permission
-probes, publishing, and any Sites deployment that proves the recorded monorepo
-settings. Production capacity is a separate deferred roadmap decision before
-`intermed-prod`.
+Development project `intermed-dev` exists and all requested development live
+checks passed. PR delivery remains pending final exact-head CI. Production
+capacity is a separate deferred roadmap decision before `intermed-prod`; other
+production, restore, real-device, immutable-cache, and clinical follow-ups are
+retained as future scope.
 See [the runbook](APPWRITE_RUNBOOK.md). Milestone 4 proceeds under the
 maintainer's ordering decision and is unaffected by these files.

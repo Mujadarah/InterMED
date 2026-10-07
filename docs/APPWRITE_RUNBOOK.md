@@ -28,7 +28,7 @@ login. Lead used `npx --yes appwrite-cli@28.1.0` (not the unsigned global
 | `push` / `pull` buckets, tables, functions                                                  | Development evidence in `buckets/`, `tables/`, and `function-checks/`                                    | EXECUTED                                        |
 | Synthetic publication / real adapter metadata read                                          | Ten fictional synthetic/guard objects; final post-cleanup adapter read passed                            | **PASS (bounded)**                              |
 | Unauthenticated writes / non-empty CRUD matrix                                              | Initial matrix failed/inconclusive; corrected probes passed 39/39; exact seven approved deletes exited 0 | **PASS (corrected, bounded); CLEANUP EXECUTED** |
-| Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`                            | **PARTIAL**                                     |
+| Bounded anonymous empty-resource GET matrix                                                 | Public resources 200 empty; private resources 401; evidence `scanner-review/`                            | **PASS (bounded)**                              |
 | Admin stub execution + unauthenticated execution denial                                     | 501 deliberate stub; unauthenticated POST 401; evidence `function-checks/`                               | PASS (bounded)                                  |
 | Production project / billing / paid capacity                                                | —                                                                                                        | **NOT DONE**                                    |
 | Shell project `6ac4b25b0012379cf3d0` / site `6ac4b3550003a26eea02` changes                  | Owner forbids changes; read-only checks only                                                             | UNCHANGED                                       |
@@ -174,7 +174,7 @@ refusal only when the caller supplies explicit owner-verified existence for
 that exact table/row pair; `400` and unverified `404` responses remain
 failures.
 
-> **PARTIAL — bounded development checks executed 2026-10-07**
+> **PASS — bounded development checks executed 2026-10-07**
 
 ```powershell
 $api = 'https://fra.cloud.appwrite.io/v1'
@@ -217,7 +217,9 @@ unauthenticated denials where the response is available; the private
 matrix pass: it saw only an identical public descriptor 200 no-op, with no
 private 2xx and no successful create/delete. All seven guard objects were
 unchanged on parsed-field comparison, including permissions and timestamps.
-This is bounded evidence, not complete live acceptance.
+This is completed bounded development evidence. Production, restore,
+real-device, immutable-cache, and clinical validation remain out of scope or
+future follow-ups.
 
 ### 5.1 Guard cleanup — executed with owner approval
 
@@ -245,8 +247,8 @@ Read-only probes of the **existing** shell origin
 `https://intermed-shell-test.appwrite.network` on 2026-10-07 (deep link, TLS,
 manifest/SW scopes, observed cache headers) are recorded in
 [`docs/evidence/milestone-3-live-2026-10-07/site-probes/`](evidence/milestone-3-live-2026-10-07/site-probes/).
-Those probes do **not** prove the monorepo Sites build runner and are not a new
-real-device acceptance.
+Those probes are historical shell evidence and are not the development
+deployment record or real-device acceptance.
 
 > **Final approved development Sites retry succeeded 2026-10-07**
 
@@ -260,9 +262,9 @@ is not live drift. Full sanitized records are in
 `evidence/milestone-3-live-2026-10-07/site-musl-live/`.
 
 The official Node `24.21.0` Linux x64 musl archive and gzip checksum are
-recorded in `site-retry/` and `site-musl-live/`. This deployment proves the
-development path only; production remains untouched and its bootstrap
-integrity gates remain open.
+recorded in `site-retry/` and `site-musl-live/`. This deployment proves the requested development path only; production remains
+untouched and its bootstrap integrity gates remain future production
+follow-ups.
 Before production, every bootstrap package must be pinned by integrity hash;
 the Linux artifact is hash-verified, while npm and Windows bootstrap integrity
 remain follow-up gates.
