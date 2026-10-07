@@ -1,0 +1,25 @@
+{
+  "projectId": "intermed-dev",
+  "siteId": "intermed-web-dev",
+  "fieldsCompared": [
+    "framework",
+    "adapter",
+    "fallbackFile",
+    "buildRuntime",
+    "outputDirectory",
+    "installCommand",
+    "buildCommand",
+    "timeout",
+    "enabled",
+    "logging"
+  ],
+  "differences": [
+    {
+      "field": "enabled",
+      "expected": true,
+      "live": null
+    }
+  ],
+  "sourceDownloaded": false,
+  "variablesDownloaded": false
+}

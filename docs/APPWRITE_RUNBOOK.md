@@ -248,18 +248,21 @@ manifest/SW scopes, observed cache headers) are recorded in
 Those probes do **not** prove the monorepo Sites build runner and are not a new
 real-device acceptance.
 
-> **Latest approved development Sites retry attempted 2026-10-07; failed in the cloud build**
+> **Final approved development Sites retry succeeded 2026-10-07**
 
-The retry deployment is `6ac6226495b5ff1a3249`. The host reported npm `12.0.2`;
-the pinned Node `24.21.0` binary never started because
-`fcntl64: symbol not found`. The CLI reported the failure but exited 0. Treat
-this as a failed deployment, not a successful rollout. The retry fix remains
-**IMPLEMENTING** and fresh cloud approval is pending. Production remains
-untouched.
+Deployment `6ac62b9286ef77aa3a78` is ready. The pinned bootstrap log records
+successful install and build with Node `v24.21.0` / npm `11.19.0`, followed by
+successful edge distribution to `6/6`. The deployment readback records the
+reviewed install/build commands, output directory, static adapter and SPA
+fallback. The export comparison reports a synthetic `enabled: null` difference
+because the pull omits that field; direct GET verified `enabled: true`, so this
+is not live drift. Full sanitized records are in
+`evidence/milestone-3-live-2026-10-07/site-musl-live/`.
 
-The official Node `24.21.0` Linux x64 musl archive and primary checksum are
-recorded in `evidence/milestone-3-live-2026-10-07/site-retry/`. This is
-research/integrity evidence only, not compatibility or deployment proof.
+The official Node `24.21.0` Linux x64 musl archive and gzip checksum are
+recorded in `site-retry/` and `site-musl-live/`. This deployment proves the
+development path only; production remains untouched and its bootstrap
+integrity gates remain open.
 Before production, every bootstrap package must be pinned by integrity hash;
 the Linux artifact is hash-verified, while npm and Windows bootstrap integrity
 remain follow-up gates.
@@ -273,14 +276,15 @@ npx --yes appwrite-cli@28.1.0 sites create-deployment --site-id intermed-web-pro
 npx --yes appwrite-cli@28.1.0 sites get --site-id intermed-web-prod
 ```
 
-Post-deploy checklist (record results): deep link `/status` serves the app;
-`/sw.js` at root scope; `manifest.webmanifest` correct; TLS valid without
-bypass; asset cache headers match the reviewed policy; no source maps; `/status`
-shows the expected shell identity; unauthenticated read/denial checks of
-section 5 still hold. The existing public bundle scan returned exit 1 for two
-40-character public revision strings; provenance review matched both to the
-public HTML revision and Git commits. This is recorded as a bounded manual
-classification, not a strict scanner pass.
+Post-deploy checks passed in the bounded development scope: `/status` served
+the Development status heading; `/sw.js` was active and controlling at root
+scope; the manifest id/start/scope were `/`; TLS verification and HTTP 200
+checks passed; and the deployed-bundle scan found no credential-shaped strings
+in 11 actual deployed files. Observed asset headers are
+`public, max-age=0, must-revalidate`, so immutable long-cache policy remains an
+open risk. The earlier public-shell strict-scan failure is retained as
+historical evidence; it is not conflated with the final clean deployed-bundle
+scan.
 
 ## 7. Rollback
 

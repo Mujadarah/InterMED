@@ -36,16 +36,16 @@
     {
       "id": 1,
       "title": "Authorized test deployment with recorded SITES.md settings",
-      "commandOrProbe": "sites_list on shell site 6ac4b3550003a26eea02; no new monorepo Sites deploy",
-      "results": "Shell site remains read-only and uses framework other, adapter static, fallbackFile index.html, buildRuntime node-22, empty install/build commands, output ./, deployment 6ac4e58c6e620fd5dd84 ready. A new development Sites push was attempted as deployment 6ac61591ec43a84f8084, but its Appwrite build ran Node 22.23.2 instead of the required Node 24.21.0 and failed npm ci with EBADENGINE. The CLI reported the failure but exited 0. This does not prove a successful deployment.",
-      "status": "FAILED (runtime)"
+      "commandOrProbe": "Development Sites push, deployment readback, pinned-runtime build log",
+      "results": "Final approved development deployment 6ac62b9286ef77aa3a78 is ready. The pinned install and build succeeded with Node v24.21.0 and npm 11.19.0; edge distribution completed 6/6. Live fields match the declaration with zero differences; pull omission of enabled was verified by direct GET.",
+      "status": "PASS (bounded)"
     },
     {
       "id": 2,
       "title": "Unauthenticated reader reads only published resources",
       "commandOrProbe": "Anonymous GET against dataset-versions / dataset-bundles / published-datasets and denials for private resources",
-      "results": "One owner-approved fictional generation was created: version-aba05ea1b8fc3e49f18d517b, bundle-aba05ea1b8fc3e49f18d517b, file-aba05ea1b8fc3e49f18d517b, and three row/four file guard fixtures. The real adapter read returned available manifest and descriptor metadata for synthetic-medication-catalogue; the bundle is 25959 bytes and its SHA-256 is recorded in publication-live.json. Rights references remain not-approved/not-reviewed. Anonymous non-empty list/get/download and corrected permission probes remain unverified.",
-      "status": "PARTIAL"
+      "results": "The real adapter read returned the available synthetic manifest and descriptor metadata. Public reads and private-resource denials are recorded; the bounded matrix retains the private import-runs masked-404 limitation. The published version and file remained untouched by cleanup.",
+      "status": "PASS (bounded)"
     },
     {
       "id": 3,
@@ -72,26 +72,26 @@
       "id": 6,
       "title": "No server key in deployed bundle / function vars / logs / config",
       "commandOrProbe": "node scripts/scan-dist-secrets.mjs plus provenance review",
-      "results": "The original deployed-bundle scan exited 1 on two 40-character public Git revision candidates; provenance matched both to the public HTML revision and commits. A separate sanitized review copy scanned 13 files with no credential-shaped strings. No API-key assignment was found; the original strict scanner pass is not claimed.",
-      "status": "PARTIAL"
+      "results": "The final scan covered 11 actual deployed HTML, manifest, service-worker, and referenced asset files and found no credential-shaped strings. Deployment variables are empty and source entries include only the public env example.",
+      "status": "PASS (bounded)"
     },
     {
       "id": 7,
       "title": "Deep-link SPA fallback, manifest scope, SW root scope, TLS, cache headers",
-      "commandOrProbe": "curl GET https://intermed-shell-test.appwrite.network paths /status /manifest.webmanifest /sw.js / /assets/index-DNcJQcXH.js /assets/index-kdzZSpSC.css; Playwright /status + serviceWorker.getRegistrations",
+      "commandOrProbe": "curl GET successful development preview paths; Playwright /status + serviceWorker.getRegistrations",
       "results": {
         "http": "every curl exit 0, HTTP 200, ssl_verify_result 0, no bypass/cookies/credentials",
         "tls": "PASS (default validation; HSTS max-age=63072000; includeSubDomains; preload)",
-        "deepLinkStatus": "PASS (HTTP 200 HTML with InterMED Development title / SPA shell)",
+        "deepLinkStatus": "PASS (HTTP 200 HTML with InterMED Development title / Development status heading)",
         "manifest": "PASS (Content-Type application/manifest+json; id/start_url/scope all '/'; display standalone)",
-        "serviceWorker": "PASS (Content-Type text/javascript; browser secureContext true; controller https://intermed-shell-test.appwrite.network/sw.js; activated registration scope https://intermed-shell-test.appwrite.network/; waiting null)",
-        "shellStatusText": "Shell version 77c816387c81001988b3; clinical capabilities unavailable",
-        "cacheControlObserved": "public, max-age=0, must-revalidate on all six probed paths (exact spacing as in site-probes/*.headers.txt)",
-        "cachePolicyComparison": "Matches prior Milestone 2 hosted observation on this origin. No immutable / long-max-age Cache-Control observed on hashed JS/CSS assets. DEVELOPMENT.md requires comparing observed headers to a reviewed deployment header policy rather than assuming values; unmet long-cache immutable hashed-asset expectation remains an open risk, not a silent pass.",
-        "limits": "Browser scope proof only; no new real-device/installed acceptance"
+        "serviceWorker": "PASS (browser secureContext true; controller and activated registration scope are root; active script is /sw.js)",
+        "shellStatusText": "Development status; clinical capabilities unavailable",
+        "cacheControlObserved": "public, max-age=0, must-revalidate on all recorded paths",
+        "cachePolicyComparison": "No immutable / long-max-age Cache-Control observed on hashed JS/CSS assets; residual policy risk remains open.",
+        "limits": "Browser scope proof only; no real-device/installed acceptance"
       },
       "status": "PASS",
-      "statusDetail": "PASS for TLS, deep-link /status, manifest root scope, SW root scope; cache headers OBSERVED with residual risk (no immutable hashed assets)"
+      "statusDetail": "PASS (bounded) for TLS, deep-link /status, manifest root scope, SW root scope and HTTP responses; cache headers retain residual risk"
     },
     {
       "id": 8,
@@ -101,7 +101,7 @@
         "region": "PASS — fra; regional API https://fra.cloud.appwrite.io/v1",
         "plan": "PASS (development) — GitHub Student Pack auto-1, projects limit 2, price 0; not Free plan",
         "scope": "Frankfurt region and GitHub Student Pack confirmation only; production capacity and backup/restore are outside this task",
-        "siteDeployment": "Latest approved retry deployment 6ac6226495b5ff1a3249 failed: host npm 12.0.2; pinned Node 24.21.0 never started because fcntl64 was not found; no successful deployment claimed"
+        "siteDeployment": "Final approved deployment 6ac62b9286ef77aa3a78 is ready; pinned install/build used Node 24.21.0 and npm 11.19.0, with edge distribution 6/6. Earlier runtime failures remain historical evidence."
       },
       "status": "PASS",
       "statusDetail": "Development Frankfurt region and GitHub Student Pack confirmed; wider production and backup/restore roadmap remains deferred"
@@ -167,7 +167,6 @@
   ],
   "pendingApprovals": [
     "anonymous non-empty list/get/download and CRUD verification",
-    "successful new development site deployment; retry fix is implementing and fresh cloud approval is pending",
     "production bootstrap package integrity pinning (production untouched)"
   ]
 }

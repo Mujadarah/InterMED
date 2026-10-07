@@ -11,23 +11,25 @@ Companion summary:
 
 ## Contents
 
-| Path                                                   | Purpose                                                                                                                                                             |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `observations.json`                                    | Machine-readable status for acceptance items 1–8 and recorded-field checks                                                                                          |
-| `markdown-inventory.md`                                | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)                                                                                |
-| `cli-preflight.md`                                     | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings                                                                           |
-| `site-probes/`                                         | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7                                                                         |
-| `buckets/`                                             | Development bucket push/pull logs, including the corrected `--all` invocation                                                                                       |
-| `tables/`                                              | Development TablesDB push/pull logs and declared-definition diff                                                                                                    |
-| `function-checks/`                                     | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial                                                                        |
-| `scanner-review/`                                      | Bounded anonymous baseline responses and manual review of the public revision candidates                                                                            |
-| `publication-live.json`                                | Sanitized synthetic generation, adapter metadata read, and guard-target record                                                                                      |
-| `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs, corrected probe records, approval-gated cleanup plan, and REST/query recordings; the source bundle archive is excluded |
-| `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                                                                        |
-| `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                                                                             |
-| `cleanup-live/`                                        | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                   |
-| `adapter-final-after-cleanup/`                         | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                        |
-| `site-retry/`                                          | Latest approved Sites retry failure, source audit, and official Node 24.21.0 musl checksum evidence; binary archive excluded                                        |
+| Path                                                   | Purpose                                                                                                                                                                  |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `observations.json`                                    | Machine-readable status for acceptance items 1–8 and recorded-field checks                                                                                               |
+| `markdown-inventory.md`                                | The 36 tracked Markdown files audited by Antigravity (no controlling contradictions)                                                                                     |
+| `cli-preflight.md`                                     | Exact CLI version/syntax notes, executed vs pending commands, rejected preflight findings                                                                                |
+| `site-probes/`                                         | Read-only public origin captures (headers + public frontend bodies; no secrets) for check 7                                                                              |
+| `buckets/`                                             | Development bucket push/pull logs, including the corrected `--all` invocation                                                                                            |
+| `tables/`                                              | Development TablesDB push/pull logs and declared-definition diff                                                                                                         |
+| `function-checks/`                                     | Function deployment, runtime/variables, sanitized stub execution, and unauthenticated denial                                                                             |
+| `scanner-review/`                                      | Bounded anonymous baseline responses and manual review of the public revision candidates                                                                                 |
+| `publication-live.json`                                | Sanitized synthetic generation, adapter metadata read, and guard-target record                                                                                           |
+| `publication-live/` and `adapter-published-recording/` | Exact permitted publication command outputs, corrected probe records, approval-gated cleanup plan, and REST/query recordings; the source bundle archive is excluded      |
+| `site-source-audit.json` and `site-source-entries.txt` | Moved root site-source audit artifacts, retained in the dated evidence scope                                                                                             |
+| `sites-deployment.log`                                 | Exact development Sites deployment attempt and Node/npm runtime failure                                                                                                  |
+| `cleanup-live/`                                        | Actual owner-approved guard cleanup, owner-side not-found repeat, and preserved published objects                                                                        |
+| `adapter-final-after-cleanup/`                         | Actual final adapter read, REST recordings, request metadata, and verification after cleanup                                                                             |
+| `site-retry/`                                          | Earlier failed Sites retries and official Node 24.21.0 musl checksum evidence; binary archive excluded                                                                   |
+| `site-musl-live/`                                      | Successful development deployment metadata, pinned-runtime build log, browser/TLS checks, drift comparison, and sanitized deployed-bundle scan; archives/images excluded |
+| `owner-handoff.md`                                     | Copy-paste handoff of current bounded PASS checks, historical failures, and explicit limits                                                                              |
 
 `sites-preparation/**` and probe scripts/tests are owned by other workers and
 are not part of this pack.
@@ -60,11 +62,11 @@ are not part of this pack.
   made two REST recordings, used `credentials: "omit"`, and passed verification.
   An earlier inline multiline `npx eval` exited 0 without records because
   Windows argument handling lost the script; it is not proof of the final read.
-- The latest approved development Sites retry failed in the cloud build. The
-  host reported npm `12.0.2`; the pinned Node `24.21.0` binary never started
-  because `fcntl64: symbol not found`. The CLI exited 0 while deployment
-  status was failed, so no successful deployment or actual pinned Node/npm
-  runtime pair is claimed.
+- Earlier development Sites retries failed in the cloud build. The final
+  approved musl retry succeeded as deployment `6ac62b9286ef77aa3a78`: the
+  build log records Node `v24.21.0` / npm `11.19.0`, install and build
+  success, and edge distribution `6/6`. The sanitized records in
+  `site-musl-live/` prove the ready deployment and its browser/TLS checks.
 - Shell-site observations do not prove the recorded monorepo Sites build
   settings from [SITES.md](../../../infra/appwrite/SITES.md).
 - Plan/org confirmation is **GitHub Student Pack** (`auto-1`), not Free plan.
@@ -77,12 +79,11 @@ are not part of this pack.
   retained as an observed result; both candidates were manually matched to the
   public HTML revision and a Git commit, not suppressed or treated as a clean
   scanner pass.
-- A separate sanitized review copy of the deployed bundle scanned cleanly, but
-  the original strict scan still exited 1; both results are retained without
-  collapsing them into a single pass.
+- The final deployed-bundle scan passed over 11 actual deployed HTML,
+  manifest, service-worker, and referenced asset files. The earlier strict
+  scan failure and its public-revision classification remain retained as
+  historical evidence; they are not rewritten.
 - The official Node `24.21.0` Linux x64 musl archive checksum is recorded in
-  `site-retry/` as follow-up evidence, not deployment proof. The retry fix
-  remains **IMPLEMENTING** with fresh cloud approval pending. Production is
-  untouched; production bootstrap packages must be pinned by integrity hash.
-  The Linux artifact is hash-verified, while npm and Windows bootstrap
-  integrity remain follow-up gates.
+  both `site-retry/` and `site-musl-live/`. The gzip archive hash matched the
+  official SHASUMS file. Production remains untouched; npm and Windows
+  bootstrap integrity remain follow-up gates.
