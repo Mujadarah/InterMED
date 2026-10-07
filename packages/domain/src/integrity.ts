@@ -214,11 +214,12 @@ function collect(snapshot: MedicationCatalogueSnapshot): CatalogueIssue[] {
     entity: CatalogueEntity,
     entityId: string,
     sourceId: string,
+    field = 'sourceId',
   ): void => {
     requireRef(
       entity,
       entityId,
-      'sourceId',
+      field,
       'dangling-source',
       sourceIds.has(sourceId),
     );
@@ -423,6 +424,16 @@ function collect(snapshot: MedicationCatalogueSnapshot): CatalogueIssue[] {
   for (const item of snapshot.activeIngredients) {
     requireSource('ActiveIngredient', item.id, item.sourceId);
     requireDataset('ActiveIngredient', item.id, item.datasetVersionId);
+    for (let index = 0; index < item.externalMappings.length; index += 1) {
+      const mapping = item.externalMappings[index];
+      if (!mapping) continue;
+      requireSource(
+        'ActiveIngredient',
+        item.id,
+        mapping.sourceId,
+        `externalMappings[${index}].sourceId`,
+      );
+    }
   }
 
   for (const item of snapshot.medicationIngredients) {
