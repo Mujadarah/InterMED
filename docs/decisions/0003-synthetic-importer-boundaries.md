@@ -126,3 +126,60 @@ published-dataset contracts, or M3 public identifiers.
   stage and publication executions, and prior human diff review) is documented
   with exact commands in [the runbook](../APPWRITE_RUNBOOK.md) section 10 and
   remains **not executed**.
+
+## Status update — 2026-10-08 (canonical identity architecture correction)
+
+- **Cancelled proposal.** The plan to rebase the canonical `DatasetVersionId`
+  onto an opaque physical row id so that one value could serve both roles is
+  **explicitly cancelled** as a root architecture mistake: it would require a
+  domain contract change, which this decision forbids. Root verified the real
+  serializer path: canonical ids are exactly three `U+001F`-separated parts
+  (`dv U+001F <sourceKey> U+001F <generationVersionKey>`), and `previousVersionId`
+  is validated the same way.
+- **Actual architecture (no domain, no public contract, no M6 change).** The
+  canonical id stays verbatim in the sealed bundle candidate bytes, provenance,
+  and the public manifest. Physical Appwrite row ids stay safe and separate
+  (`/^[A-Za-z0-9._-]{1,36}$/`), the descriptor id is a deterministic plain hash
+  slice (≤ 36), and the file name is `bundle-<descriptorId>.json`. An
+  **optional** canonical attribute is added on the storage side only:
+  `dataset-versions.datasetVersionId` (max 512) with a **nullable unique
+  index**, plus `dataset-bundles.datasetVersionId` and
+  `dataset-versions.previousVersionId` extended to 512. The public reader
+  prefers that attribute, falls back to `$id` only when it is missing or
+  `null` (bounded legacy M3 behavior), and **rejects** a present-but-malformed
+  value.
+- **Not authorized by this decision.** Item "no physical schema expansion is
+  authorized by this decision" still holds: the optional column is a separate
+  storage-schema mapping that needs its **own owner approval before any deploy
+  or any new publication** (see [the runbook](../APPWRITE_RUNBOOK.md) section
+  10). The live migration has **NOT been executed** and no live field is
+  confirmed.
+- **Offline root proofs (all exit 0):** core `b0fdde8` at synced `2bbbc38` — 452
+  tests / 31 files / 135 browser (its log head prints the pinned `v24.21.0` /
+  `11.19.0`); storage schema + reader `41034c5` — 415 / 31 / 150; artifact
+  `e30e8d1` — 333 / 28 / 135. ROOT launched all three with the pinned toolchain
+  on `PATH`; the artifact and reader logs preserve the original `npm run check`
+  output and print no version lines (none was added), and the bounded
+  `task-b-ROOT-toolchain-recheck-2026-10-08.log` records the current toolchain
+  and heads without repeating any suite. The three static reviews are
+  **report-only with no blockers**.
+- **Still pending:** the handler canonical-mapping repair, the real
+  handler/public-reader first and second generation proof and retry, the
+  compiled Node 22 positive flow, final integration, the serial root full run,
+  the whole-patch review, CI, and the PR. The `0c16177` root failure (5 of 598)
+  is retained as recorded; the follow-up `0266` run is RED on a **real**
+  canonical mismatch, while its middle assertion that the canonical id must
+  equal the physical Appwrite `$id` is an **invalid root assumption** — this is
+  **not** three production bugs.
+- **M6:** PR10 merged (merge `729ccfc`, head `8ef6fd8`); the FNV-only consumer
+  versus the established public SHA-256 contract stays a **hard reject**, and
+  the intentional domain unit-separator/ambiguous-decimal forms are rejected by
+  that consumer. M6 and the domain are unchanged; **contract changes to M6:
+  none** (only the optional storage schema mapping above). The coordination
+  issue remains **not authorized and not opened**, and the legacy M3 opaque
+  public `$id` versus inner canonical id is a **known bounded fallback**, not an
+  M6 activation claim.
+- **Rights and live state:** synthetic rights stay `not-approved`, synthetic
+  clinical references stay `not-reviewed`, and no M5 live action (raw intents,
+  staging/import, Function execution, deploy, migration, publication, cleanup)
+  was authorized or executed.

@@ -357,11 +357,15 @@ logs.
 > **NOTHING IN THIS SECTION HAS BEEN EXECUTED.** Every step needs its own
 > written owner approval, and each approval is recorded separately. The live
 > `import-anmdmr` Function is still the deliberate 501 stub; no M5 live check,
-> staging, execution, deployment, publication, or cleanup has been authorized or
-> run. Handler acceptance is **not** claimed: handler `0c16177` has committed
-> positive detached Node 22 flows, but the root full gate failed (5 of 598
-> tests; `task-b-ROOT-handler-0c16177-FULL.log`) and repairs plus a fresh root
-> full check are pending. Commands below are exact Appwrite CLI **28.1.0**
+> staging, execution, deployment, publication, cleanup, or **schema migration**
+> has been authorized or run. Handler acceptance is **not** claimed: handler
+> `0c16177` has committed positive detached Node 22 flows, but the root full
+> gate failed (5 of 598 tests; `task-b-ROOT-handler-0c16177-FULL.log`), the
+> follow-up root run at `0266` is RED on a real canonical mismatch (its middle
+> "canonical must equal the physical `$id`" assertion is an invalid root
+> assumption), and the handler canonical-mapping repair, the real first/second
+> generation and retry proof, and a fresh root full check are pending. Commands
+> below are exact Appwrite CLI **28.1.0**
 > invocations (verified with `--help` and the public CLI docs on 2026-10-07) and
 > match the handler schema actually implemented in the handler worktree; confirm
 > each flag with `npx --yes appwrite-cli@28.1.0 <command> --help` at execution
@@ -376,6 +380,46 @@ used here. The Function's `INTERMED_SERVER_KEY` is an I/O credential the owner
 provisions through the Console function-variables screen in their own
 authenticated session (never via a CLI `--value` flag). Public `execute: []`
 stays unchanged.
+
+### Storage-schema prerequisite (future owner approval — NOT EXECUTED)
+
+> **PREREQUISITE BEFORE 10.3 (deploy) AND BEFORE ANY NEW PUBLICATION.**
+> **Nothing here has been executed, and no live field is confirmed.** The
+> canonical dataset-identity mapping exists only as code in
+> `infra/appwrite/appwrite.config.development.json` and
+> `infra/appwrite/appwrite.config.production.json`; no M5 worker, review, or
+> probe altered a live table. Production does not exist in this workstream and
+> is never touched.
+
+What the migration would apply, in `intermed-dev` only, under its own written
+owner approval (recorded as its own approval, separate from 10.1–10.8):
+
+- `dataset-versions.datasetVersionId` — **optional** string column, max **512**,
+  with the **nullable** unique index `datasetVersionId_unique` on
+  `datasetVersionId`.
+- `dataset-bundles.datasetVersionId` — capacity extended to **512**, and
+  `dataset-versions.previousVersionId` — capacity extended to **512**, so
+  canonical `dv U+001Fsource U+001Fgenkey` ids fit.
+- Physical row `$id` values are **unchanged** (safe, `≤ 36`,
+  `/^[A-Za-z0-9._-]{1,36}$/`); no existing row, bucket, permission, or manifest
+  field is rewritten.
+
+Ordering and safety rules:
+
+1. Apply with the same reviewed pattern as
+   [section 4](#4-apply-the-resource-configuration)
+   (`push tables --all --config-file … --force`, development config only) and
+   capture the output; never run it against production or the shell project.
+2. Verify read-only afterwards: the new column and index exist, existing rows
+   read back with `datasetVersionId: null`, and the public list envelope is
+   unchanged. Legacy M3 published rows without the canonical attribute stay a
+   **bounded legacy fallback** — the reader uses `$id` only when the attribute
+   is missing or `null` and **rejects** a present-but-malformed value.
+3. **No deploy (10.3) and no publication (10.6) may run before this migration
+   is applied and verified**, because a new publication persists the canonical
+   `datasetVersionId` on its descriptor and manifest rows.
+4. Rollback is metadata-only and needs its own approval: the canonical column
+   is additive, and no published object is created or deleted by the migration.
 
 ### 10.0 Verified handler contract (source of truth for the steps below)
 
