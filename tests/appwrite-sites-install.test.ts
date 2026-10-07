@@ -79,10 +79,10 @@ describe('Sites configuration and install commands', () => {
           expect(resource.path).toBe('../..');
           expect(workingDir).toBe(repositoryRoot);
           expect(resource.installCommand).toBe(
-            'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"',
+            'node infra/appwrite/pinned-toolchain.mjs install',
           );
           expect(resource.buildCommand).toBe(
-            'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"',
+            'node infra/appwrite/pinned-toolchain.mjs build',
           );
           expect(resource.outputDirectory).toBe('./apps/web/dist');
         } else {
@@ -131,7 +131,8 @@ describe('Sites configuration and install commands', () => {
     expect(pkgJson.engines?.npm).toBe('11.19.0');
     expect(npmrc).toContain('engine-strict=true');
 
-    // The development site uses npx to provide the exact declared toolchain.
+    // The development site uses the explicit-path launcher to provide the exact
+    // declared toolchain without relying on the runner's PATH.
     const devConfig = await loadAppwriteConfig(appwriteConfigPaths.development);
     const devSite = appwriteResources(devConfig).find(
       (entry) =>
@@ -140,26 +141,26 @@ describe('Sites configuration and install commands', () => {
     expect(devSite).toBeDefined();
 
     const expectedInstallCommand =
-      'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"';
+      'node infra/appwrite/pinned-toolchain.mjs install';
     const expectedBuildCommand =
-      'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"';
+      'node infra/appwrite/pinned-toolchain.mjs build';
 
     expect(devSite?.installCommand).toBe(expectedInstallCommand);
     expect(devSite?.buildCommand).toBe(expectedBuildCommand);
     expect(devSite?.buildRuntime).toBe('node-22');
 
-    expect(devSite?.installCommand).toContain(
-      `--package=node@${pkgJson.engines?.node}`,
+    expect(devSite?.installCommand).not.toContain('npx');
+    expect(devSite?.buildCommand).not.toContain('npx');
+
+    const launcher = readFileSync(
+      join(repositoryRoot, 'infra/appwrite/pinned-toolchain.mjs'),
+      'utf8',
     );
-    expect(devSite?.installCommand).toContain(
-      `--package=npm@${pkgJson.engines?.npm}`,
-    );
-    expect(devSite?.buildCommand).toContain(
-      `--package=node@${pkgJson.engines?.node}`,
-    );
-    expect(devSite?.buildCommand).toContain(
-      `--package=npm@${pkgJson.engines?.npm}`,
-    );
+    expect(launcher).toContain('APPWRITE_HOST_NPM');
+    expect(launcher).toContain('APPWRITE_PINNED_NODE');
+    expect(launcher).toContain('APPWRITE_PINNED_NPM_CLI');
+    expect(launcher).toContain('process.env.PATH');
+    expect(launcher).toContain("'ci', '--no-fund'");
   });
 
   it('applies the development site archive exclusions without hiding source files', async () => {

@@ -213,10 +213,10 @@ describe.each([
         expect(site.name, label).toBe('InterMED web (development)');
         expect(site.path, label).toBe('../..');
         expect(site.installCommand, label).toBe(
-          'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund"',
+          'node infra/appwrite/pinned-toolchain.mjs install',
         );
         expect(site.buildCommand, label).toBe(
-          'npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"',
+          'node infra/appwrite/pinned-toolchain.mjs build',
         );
         expect(site.outputDirectory, label).toBe('./apps/web/dist');
       } else {

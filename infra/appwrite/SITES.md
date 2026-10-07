@@ -29,18 +29,17 @@ assert that no live identifier appears in the configuration.
 | Build triggers         | branch filter `main`; path filter `apps/web/**`, `packages/**`, `infra/appwrite/**` | Avoids rebuilding for documentation-only commits                                  |
 | Environment variables  | none                                                                                | Frontend build variables are public-only and currently unset                      |
 
-**Monorepo note.** npm workspaces install from the repository root, so an
-install command running inside `apps/web` must target the root. The value above
-(`npm ci --prefix ../.. --no-fund`) resolves from `apps/web` to the repository
-root — the directory that holds the single root `package-lock.json` — while
-keeping `apps/web` as the documented root directory. (`--prefix ..` resolves to
-`apps/`, which has no `package.json` and no lockfile and therefore cannot be
-installed.) An offline test asserts that the configured prefix resolves to the
-lockfile directory. If the Sites build runner does not accept
-`--prefix`, use the equivalent single-root settings instead: root directory `/`,
-install `npm ci --no-fund`, build `npm run build`, output `apps/web/dist`,
-fallback `index.html`. Whichever variant is chosen must be confirmed against an
-actual Sites build before it is called working.
+**Monorepo note.** npm workspaces install from the repository root, which holds
+the single root `package-lock.json`. The development site uses
+`node infra/appwrite/pinned-toolchain.mjs install` and
+`node infra/appwrite/pinned-toolchain.mjs build`: the launcher uses the host Node
+only to install `node@24.21.0` and `npm@11.19.0` into an isolated temporary
+prefix outside the archive. It then verifies both versions and invokes the
+absolute pinned Node executable with the absolute `npm-cli.js`, prepending only
+their binary directories to `PATH` for npm/Vite child processes.
+`APPWRITE_HOST_NPM`, `APPWRITE_PINNED_NODE`, and `APPWRITE_PINNED_NPM_CLI` are
+absolute-path test and operator injection points; no credentials are written by
+the launcher.
 
 ## Consistency with the existing site
 
