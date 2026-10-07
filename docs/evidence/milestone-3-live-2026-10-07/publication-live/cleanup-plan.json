@@ -1,9 +1,9 @@
 {
-  "status": "PENDING OWNER APPROVAL",
+  "status": "EXECUTED — OWNER APPROVED",
   "environment": "development",
   "projectId": "intermed-dev",
   "configFile": "infra/appwrite/appwrite.config.development.json",
-  "approvalGate": "Separate owner approval after corrected probes and evidence review; no execution in this task.",
+  "approvalGate": "Separate owner approval was recorded before execution after corrected probes and evidence review.",
   "cliVersion": "28.1.0",
   "commandsVerifiedAgainst": "Cached appwrite-cli@28.1.0 --help output; no cloud operation was performed.",
   "objects": [
@@ -55,5 +55,5 @@
     "bundle-aba05ea1b8fc3e49f18d517b",
     "file-aba05ea1b8fc3e49f18d517b"
   ],
-  "postCleanupGate": "Run the final real-adapter read and assert version-aba05ea1b8fc3e49f18d517b is never a guard object; keep finalread pending until verified."
+  "postCleanupGate": "Final saved-script real-adapter read passed: expected version appears in manifest and descriptor, guardSelected is false, and two REST requests were recorded."
 }

@@ -1,0 +1,6 @@
+{
+  "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64-musl.tar.xz",
+  "sha256": "34ab095af8efe9018f21489d3dc19871fb5edd4f130a71469b69c05fd4e32a5e",
+  "expectedHashMatched": true,
+  "bytes": 33690732
+}

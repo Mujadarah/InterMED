@@ -1,0 +1,17 @@
+{
+  "datasetVersionId": "version-aba05ea1b8fc3e49f18d517b",
+  "fileId": "file-aba05ea1b8fc3e49f18d517b",
+  "fileName": "synthetic-medication-catalogue-synthetic-2026-10-06.json",
+  "contentType": "application/json",
+  "byteSize": 25959,
+  "checksum": "sha256:91cdc11ac3ff1cdeea3094b46d02b68096574a45890050fa57c38a2270e6e55b",
+  "$sequence": "2",
+  "$id": "bundle-aba05ea1b8fc3e49f18d517b",
+  "$createdAt": "2026-10-07T09:56:01.501+00:00",
+  "$updatedAt": "2026-10-07T09:56:01.501+00:00",
+  "$permissions": [
+    "read(\"any\")"
+  ],
+  "$databaseId": "intermed-datasets",
+  "$tableId": "dataset-bundles"
+}

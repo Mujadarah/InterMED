@@ -1,0 +1,15 @@
+{
+  "$id": "6ac6226495b5ff1a3249",
+  "$createdAt": "2026-10-07T10:43:48.717+00:00",
+  "$updatedAt": "2026-10-07T10:44:05.213+00:00",
+  "type": "cli",
+  "resourceId": "intermed-web-dev",
+  "resourceType": "sites",
+  "sourceSize": 5766768,
+  "buildSize": 0,
+  "totalSize": 5766768,
+  "activate": true,
+  "status": "failed",
+  "buildLogs": "\u001b[90m[10:43:52] \u001b[31m[\u001b[0mopen-runtimes\u001b[31m]\u001b[97m Build cache miss. \u001b[0m\n\u001b[90m[10:43:52] \u001b[31m[\u001b[0mopen-runtimes\u001b[31m]\u001b[97m Environment preparation started. \u001b[0m\n\u001b[90m[10:43:52] \u001b[31m[\u001b[0mopen-runtimes\u001b[31m]\u001b[97m Environment preparation finished. \u001b[0m\n\u001b[90m[10:43:52] \u001b[31m[\u001b[0mopen-runtimes\u001b[31m]\u001b[97m Build command execution started. \u001b[0m\nnpm warn Unknown env config \"store-dir\". This will error in a future major version of npm. See `npm help npmrc` for supported config options.\nadded 2 packages in 11s\nnpm notice\nnpm notice New minor version of npm available! 12.0.2 -> 12.2.0\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0\nnpm notice To update run: npm install -g npm@12.2.0\nnpm notice\nError relocating /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node: fcntl64: symbol not found\nCommand failed: /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node --version\nError relocating /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node: fcntl64: symbol not found\n\nBuild failed with exit code 1.\n",
+  "buildDuration": 11
+}

@@ -1,0 +1,36 @@
+ℹ Info: Validating sites ...
+ℹ Info: Checking for changes ...
+
+   id               │ key            │ remote                                                                                                              │ local                                            
+  ──────────────────┼────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────
+   intermed-web-dev │ installCommand │ npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "node --version && npm --version && npm ci --no-fund" │ node infra/appwrite/pinned-toolchain.mjs install 
+   intermed-web-dev │ buildCommand   │ npx --yes --package=node@24.21.0 --package=npm@11.19.0 --call "npm run build --workspace @intermed/web"             │ node infra/appwrite/pinned-toolchain.mjs build   
+
+ℹ Info: Pushing sites ...
+ℹ Info: Pushing site InterMED web (development) ( intermed-web-dev ) ...
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Deploying
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Status: waiting
+
+Build logs
+
+[90m[10:43:52] [31m[[0mopen-runtimes[31m][97m Build cache miss. [0m
+[90m[10:43:52] [31m[[0mopen-runtimes[31m][97m Environment preparation started. [0m
+[90m[10:43:52] [31m[[0mopen-runtimes[31m][97m Environment preparation finished. [0m
+[90m[10:43:52] [31m[[0mopen-runtimes[31m][97m Build command execution started. [0m
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Status: building
+npm warn Unknown env config "store-dir". This will error in a future major version of npm. See `npm help npmrc` for supported config options.
+added 2 packages in 11s
+npm notice
+npm notice New minor version of npm available! 12.0.2 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+Error relocating /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node: fcntl64: symbol not found
+Command failed: /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node --version
+Error relocating /tmp/intermed-node-24.21.0-npm-11.19.0/node_modules/node-linux-x64/bin/node: fcntl64: symbol not found
+
+Build failed with exit code 1.
+
+ℹ Info: InterMED web (development) ( intermed-web-dev ) Error
+ℹ Info: Deployment page: https://appwrite.io/projects/intermed-dev/sites/intermed-web-dev/deployments/6ac6226495b5ff1a3249
+✗ Error: Deployed none of the 1 site pushed, in 23.5s.

@@ -1,0 +1,11 @@
+{
+  "projectId": "intermed-dev",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "manifestId": "version-aba05ea1b8fc3e49f18d517b",
+  "descriptorVersionId": "version-aba05ea1b8fc3e49f18d517b",
+  "expectedVersion": true,
+  "guardSelected": false,
+  "requests": 2,
+  "credentials": "omit",
+  "passed": true
+}

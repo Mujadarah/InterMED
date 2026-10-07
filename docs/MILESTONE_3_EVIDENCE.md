@@ -366,8 +366,12 @@ Milestone 3 live acceptance claim.**
   `import-runs` GET remains a masked 404 rather than a strict 401/403 proof.
   The owner's first repeat was conditional: it observed the public descriptor
   as an identical-data 200 no-op, with no private 2xx and no successful
-  create/delete. Guard cleanup and the final adapter read require separate
-  owner approval and remain pending.
+  create/delete. A later owner-approved cleanup executed the exact seven-object
+  plan; all seven delete commands exited 0, and the owner-side repeat recorded
+  only requested-row/file-not-found messages with exit 1. The published
+  version/bundle/file `aba05ea1b8fc3e49f18d517b` remained present. The final
+  saved-script adapter read passed for the expected manifest and descriptor,
+  selected no guard, and recorded two REST requests.
 - `storage list-buckets --config-file infra/appwrite/appwrite.config.development.json --json`
   → exit 0, `total` 0, `buckets` `[]`. `functions list-runtimes` (same config)
   → exit 0, lists **node-22** and **node-24** as supported (availability only,
@@ -375,11 +379,11 @@ Milestone 3 live acceptance claim.**
 - Shell `sites_list`: site `6ac4b3550003a26eea02` framework `other`, adapter
   `static`, `fallbackFile` `index.html`, `buildRuntime` `node-22`, empty
   install/build, output `./`, deployment `6ac4e58c6e620fd5dd84` ready — does
-  **not** prove the recorded monorepo Sites build. A new development Sites
-  deployment was attempted, but the cloud build used Node `22.23.2` while the
-  repository requires Node `24.21.0`; `npm ci` failed with `EBADENGINE`.
-  The CLI reported the failure but exited 0, so no successful deployment is
-  claimed. The existing shell remains unchanged.
+  **not** prove the recorded   monorepo Sites build. The latest approved retry used the configured pinned
+  bootstrap, but the cloud host reported npm `12.0.2` and the Node `24.21.0`
+  binary never started (`fcntl64: symbol not found`). The CLI exited 0 while
+  deployment `6ac6226495b5ff1a3249` is recorded as failed; no successful
+  deployment is claimed. The existing shell remains unchanged.
 - CLI: global 13.3.2 unsigned; work used `npx --yes appwrite-cli@28.1.0`. Owner
   ran login; lead whoami saw console endpoint; no secrets recorded.
 - Markdown: Antigravity audited all **36** tracked Markdown files — no
@@ -393,11 +397,11 @@ Milestone 3 live acceptance claim.**
 
 | #   | Check                                                                        | Command / probe                                                                          | Results (summary)                                                                                                                                                                                                                                                                                                                                                                                 | Status                                                             |
 | --- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; development Sites push                                               | Existing shell is prebuilt-only. Development push `6ac61591ec43a84f8084` failed in the cloud build on Node 22.23.2 vs required Node 24.21.0 (`EBADENGINE`); CLI exit 0 does not convert the reported failure into a deployment.                                                                                                                                                                   | **FAILED (runtime)**                                               |
+| 1   | Authorized test deployment with exact recorded `SITES.md` settings           | Shell `sites_list`; latest approved development Sites retry                              | Existing shell is prebuilt-only. Retry deployment `6ac6226495b5ff1a3249` is `failed`: host npm `12.0.2`, pinned Node `24.21.0` never starts (`fcntl64: symbol not found`); CLI exit 0 does not convert the reported failure into a deployment.                                                                                                                                        | **FAILED (runtime)**                                               |
 | 2   | Unauthenticated reader reads only published resources                        | Anonymous TablesDB/Storage GETs and real adapter read                                    | Corrected probes read public synthetic rows and recorded the private `import-runs` GET as a masked 404; adapter read returned the available manifest and descriptor, with bundle 25,959 bytes and recorded SHA-256. The published version/file must remain untouched by cleanup.                                                                                                                  | **PARTIAL**                                                        |
 | 3   | Unauthenticated writes refused                                               | Initial and corrected 39-check matrices                                                  | Initial run remains failed/inconclusive: descriptor PATCH was HTTP 200 but identical/no-op, storage updates used PATCH and returned 404, and the helper continued after an unexpected 200. Corrected probes passed 39/39 with no abort; the private 404 remains a masked refusal rather than a strict status proof.                                                                               | **PASS (corrected, bounded)**                                      |
 | 4   | Admin importer execution refused; stub reveals no key                        | Unauth POST plus approved CLI stub execution                                             | Unauth POST returned HTTP 401 `user_unauthorized`. Approved CLI execution returned stub HTTP 501, failed execution status, exact stub log, and no variables; this is bounded stub evidence, not importer acceptance.                                                                                                                                                                              | **PASS (bounded)**                                                 |
-| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Corrected probes passed 39/39 and all seven guard objects were unchanged on parsed-field comparison, including permissions and timestamps. The private guard GET is still `row_not_found` (existence masked), and cleanup plus the final adapter read are approval-gated.                                                                                                                         | **PARTIAL (corrected, bounded)**                                   |
+| 5   | Effective permissions at every resource level                                | Live denial matrix (runbook §5)                                                          | Corrected probes passed 39/39; the owner-approved cleanup then executed all seven exact deletes (CLI exit 0), and the owner-side repeat returned only requested-row/file-not-found messages. The final adapter read passed with the expected version in both manifest and descriptor and no guard selected. The private 404 remains a masked refusal, not a strict status proof. | **PASS (bounded)** |
 | 6   | No server key in deployed bundle / vars / logs / config                      | `node scripts/scan-dist-secrets.mjs` plus provenance review                              | Original deployed-bundle scan exited 1 on two public Git revision candidates; provenance matched both to HTML/Git. A separate sanitized 13-file review copy scanned cleanly. Strict original scanner pass is not claimed.                                                                                                                                                                         | **PARTIAL**                                                        |
 | 7   | Deep-link `/status`, manifest scope, `/sw.js` root scope, TLS, cache headers | curl + Playwright on `https://intermed-shell-test.appwrite.network` (see `site-probes/`) | Every path HTTP **200**, TLS verify OK, HSTS present; manifest id/start_url/scope `/`; SW controller+scope root; shell version `77c816387c81001988b3`. Cache-Control **observed** `public, max-age=0, must-revalidate` on all paths — **no** `immutable` / long-max-age on hashed assets (residual risk vs reviewed long-cache policy). Browser proof only; not real-device/installed acceptance. | **PASS** (scopes/TLS/deep-link); cache OBSERVED with residual risk |
 | 8   | Region/plan confirmation (development)                                       | `organization create-project`, plan read                                                 | Development **fra** + Student Pack (`auto-1`, projects=2) confirmed. Production capacity and backup/restore are wider roadmap items deferred outside this task.                                                                                                                                                                                                                                   | **PASS**                                                           |
@@ -425,19 +429,26 @@ and `corrected-guard-before-after.json` records all seven guard objects
 unchanged after parsed-field comparison. The first matrix remains retained as
 failed/inconclusive evidence, with a corrected-probe link for each failure.
 
-Cleanup is not executed. The exact seven-object plan is
+Cleanup is executed. The exact seven-object plan is
 [`cleanup-plan.md`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.md)
 and [`cleanup-plan.json`](evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.json).
 It targets only the disposable guard rows/files in `intermed-dev`; the
-published version, bundle, and file `aba05ea1b8fc3e49f18d517b` are explicitly
-excluded. Separate owner approval is required after probes and evidence, then
-the final adapter read must assert that
-`version-aba05ea1b8fc3e49f18d517b` is never a guard object.
+published version, bundle, and file `aba05ea1b8fc3e49f18d517b` were explicitly
+excluded and remain present in `cleanup-live/preserved-*.json`. The seven CLI
+deletes exited 0, while the owner-side repeat exited 1 with the exact
+requested-row/file-not-found messages. The final saved-script adapter read is
+in `adapter-final-after-cleanup/verification.json`; it passed, selected no
+guard, and recorded two REST calls. The earlier inline multiline invocation
+exited 0 without records because Windows argument handling lost the script and
+is not treated as evidence.
 
 The successful corrected probes do not make overall Milestone 3 live
-acceptance complete. A successful development Sites deployment using Node
-24.21.0 remains pending; the failed first deployment is preserved. Production
-capacity and backup/restore remain deferred roadmap work.
+acceptance complete. A successful development Sites deployment remains pending:
+the retry fix is **IMPLEMENTING**, fresh cloud approval is pending, and the
+official Node 24.21.0 musl checksum evidence is retained under `site-retry/`.
+Production is untouched; production bootstrap packages must be pinned by
+integrity hash before any production work. npm/Windows bootstrap integrity and
+production capacity/backup/restore remain deferred roadmap gates.
 
 ## PR #7 review fixes
 
