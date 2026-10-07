@@ -158,3 +158,19 @@ $ npx vitest run packages/local-store/src/preferences.test.ts
 
 [exit code: 0]
 
+---
+
+## Codex #5 - cross-tab notification after a clear (GREEN)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  16:36:16
+   Duration  435ms (transform 93ms, setup 0ms, import 149ms, tests 171ms, environment 0ms)
+
+[exit code: 0]
+

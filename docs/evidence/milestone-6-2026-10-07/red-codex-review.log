@@ -406,3 +406,46 @@ AssertionError: expected { status: 'update-failed', …(2) } to match object { s
 
 [exit code: 1]
 
+---
+
+## Codex #5 - cross-tab notification after a clear (RED against 7c6edea)
+
+$ npx vitest run packages/local-store/src/multitab.test.ts
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/multitab.test.ts (7 tests | 1 failed) 1115ms
+   × tells other tabs when one tab clears the local data 1026ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > tells other tabs when one tab clears the local data
+AssertionError: expected { status: 'ready', …(1) } to match object { status: 'never-downloaded' }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "never-downloaded",
++   "status": "ready",
+  }
+
+ ❯ packages/local-store/src/multitab.test.ts:290:31
+    288|     await tabA.preferences.clearAllLocalData();
+    289|     await vi.waitFor(() =>
+    290|       expect(tabB.getState()).toMatchObject({ status: 'never-downloade…
+       |                               ^
+    291|     );
+    292|     expect(await tabB.openReader()).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:35:41
+   Duration  1.36s (transform 85ms, setup 0ms, import 138ms, tests 1.11s, environment 0ms)
+
+[exit code: 1]
+

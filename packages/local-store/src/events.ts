@@ -1,19 +1,19 @@
 import { DATASET_EVENTS_CHANNEL } from './schema';
 
 /**
- * Cross-tab notification channel for dataset activations.
+ * Cross-tab notification channel for dataset changes.
  *
- * Activation only publishes a fact ("this generation is now active"). Other
- * tabs apply it at a safe boundary: new readers immediately use the new
- * generation while already pinned readers finish on the generation they
- * captured. Losing a message is safe, because every tab re-reads the pointer
- * when opening a reader.
+ * Activation only publishes a fact ("this generation is now active"), and a
+ * completed clear publishes "everything local is gone". Other tabs apply both
+ * at a safe boundary: new readers immediately use the new state while already
+ * pinned readers finish on the generation they captured. Losing a message is
+ * safe, because every tab re-reads the persisted state when opening a reader.
  */
 
-export interface DatasetStoreEvent {
-  readonly type: 'activated';
-  readonly generationId: string;
-}
+export type DatasetStoreEvent =
+  | { readonly type: 'activated'; readonly generationId: string }
+  /** Every local dataset and preference record was deleted explicitly. */
+  | { readonly type: 'cleared' };
 
 export interface DatasetEventBus {
   post(event: DatasetStoreEvent): void;
@@ -22,10 +22,11 @@ export interface DatasetEventBus {
 }
 
 function isDatasetStoreEvent(value: unknown): value is DatasetStoreEvent {
+  if (typeof value !== 'object' || value === null) return false;
+  const type = (value as { readonly type?: unknown }).type;
+  if (type === 'cleared') return true;
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    (value as { readonly type?: unknown }).type === 'activated' &&
+    type === 'activated' &&
     typeof (value as { readonly generationId?: unknown }).generationId ===
       'string'
   );

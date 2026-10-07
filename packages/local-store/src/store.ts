@@ -382,8 +382,10 @@ export function createLocalDatasetStore(
       owner,
     });
     await ensureMetaRecord();
-    unsubscribe ??= events.subscribe((event) => {
-      if (event.type === 'activated') void refresh();
+    unsubscribe ??= events.subscribe(() => {
+      // Any cross-tab change - an activation or a completed clear - is applied
+      // at a safe boundary by re-reading the persisted state.
+      void refresh();
     });
     const opened = await refresh();
     // A crash may have interrupted the post-commit reconciliation of the
@@ -972,6 +974,10 @@ export function createLocalDatasetStore(
       if (!outcome.ok || !outcome.value)
         return { status: 'refused', reason: 'writer-busy' };
       await refresh();
+      // Other tabs hold their own view of the state: tell them the local data
+      // is gone so none of them keeps reporting a generation that no longer
+      // exists.
+      events.post({ type: 'cleared' });
       return { status: 'cleared' };
     },
   };

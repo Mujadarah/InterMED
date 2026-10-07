@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
+import { createBroadcastEventBus } from './events';
 import type { LockManagerLike } from './locks';
 import { createWebWriterLock } from './locks';
 import {
@@ -264,4 +265,33 @@ it('stops staging and keeps the new writer rows when the lease is lost mid-stagi
   expect(reader).not.toBeNull();
   expect(await reader.productIds()).toHaveLength(2);
   reader.release();
+});
+
+it('tells other tabs when one tab clears the local data', async () => {
+  // Two separate channel endpoints on one name, like two tabs of one origin.
+  const channel = uniqueName('intermed-test-channel');
+  const eventsA = createBroadcastEventBus(channel);
+  const eventsB = createBroadcastEventBus(channel);
+  try {
+    const name = uniqueName();
+    const tabA = testStore({ name, events: eventsA });
+    const tabB = testStore({ name, events: eventsB });
+    const alpha = bundle('alpha');
+    await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
+    await vi.waitFor(() =>
+      expect(tabB.getState()).toMatchObject({
+        status: 'ready',
+        generation: { generationId: alpha.generationId },
+      }),
+    );
+
+    await tabA.preferences.clearAllLocalData();
+    await vi.waitFor(() =>
+      expect(tabB.getState()).toMatchObject({ status: 'never-downloaded' }),
+    );
+    expect(await tabB.openReader()).toBeNull();
+  } finally {
+    eventsA.close();
+    eventsB.close();
+  }
 });
