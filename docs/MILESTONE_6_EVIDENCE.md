@@ -111,6 +111,101 @@ builds. A regression test covers both the production-with-flag and fixture
 paths. The test-first wording above was corrected to distinguish
 behaviour-determining red/green evidence from implementation order.
 
+## Codex review fixes
+
+Five findings from the Codex review of PR #10 were confirmed with a failing
+test first (Vitest on `fake-indexeddb`; no finding needed real multi-tab
+IndexedDB) and then fixed minimally. **All five were valid**; none was
+rejected as invalid. Logs are UTF-8, LF, trailing whitespace stripped, one
+section per run with its exact command and exit code:
+[red-codex-review.log](evidence/milestone-6-2026-10-07/red-codex-review.log),
+[green-codex-review.log](evidence/milestone-6-2026-10-07/green-codex-review.log).
+
+Method, stated plainly: every red section is the named suite run against the
+tree immediately before that fix, so it fails on the reported behaviour (for
+finding 2 the log also keeps the run without the fault-injection seam and the
+run with only that seam present, where the injected `QuotaExceededError`
+rejects the committed activation exactly as the finding describes). The
+`onMaintenance` seam added for that injection is test scaffolding of the same
+kind as the existing `onStaged` seam. Two findings were designed and landed
+together with overlapping Greptile findings (G1 with #1, G4 with #4, G6 with
+#2); the "Greptile review fixes" subsection below points at those tests.
+
+| #   | Finding (Codex review)                                                                                      | Test(s)                                                                                                                                                                                           | Fix                                                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1   | fallback writer lease expires mid-update; another tab can take the marker while the first writer still runs | `multitab.test.ts` "renews the fallback writer lease while its work runs so no other writer can take it", "aborts an activation whose writer lease was lost to another tab" (+ the G1 test below) | `041f4bb`: lease heartbeat renewal plus ownership revalidation inside the activation transaction                       |
+| 2   | post-commit maintenance failure rejects a committed activation                                              | `staging.test.ts` "keeps a committed activation successful when preference reconciliation fails", "keeps a committed activation successful when post-commit collection fails"                     | `5ad1e69`: refresh and broadcast first, then isolated maintenance with `store.maintenance` diagnostics and later retry |
+| 3   | rollback does not refresh the retention timestamp, so a rolled-back generation can be collected immediately | `readers.test.ts` "restarts the retention window when a rollback reactivates a generation"                                                                                                        | `92751fe`: `lastUsedAt` retention anchor written in the pointer-switch transactions                                    |
+| 4   | `clearAllLocalData` is not coordinated with writers; it can interleave with another tab's staging loop      | `preferences.test.ts` "refuses clear-all while another tab is staging instead of racing it", "aborts staging cleanly when the local data is cleared underneath it"                                | `7c6edea`: clear-all under the writer lease, guarded staging batches, explicit `local-data-cleared` reason             |
+| 5   | no cross-tab notification after a clear; other tabs keep reporting `ready`                                  | `multitab.test.ts` "tells other tabs when one tab clears the local data"                                                                                                                          | `facf926`: `cleared` event on the same channel; subscribers refresh                                                    |
+
+Details that record the choices the findings left open:
+
+- **#1** renews the marker lease on a heartbeat well under its TTL
+  (`MARKER_RENEW_MS`, a third of `MARKER_TTL_MS`; the timer is injectable so
+  tests drive it on the simulated clock) and revalidates ownership **inside**
+  the transaction it guards, through the caller's transaction-bound
+  `writerLock` table, so the check, the renewal and the write are one atomic
+  step. Activation aborts when the lease is gone, and such a writer stops
+  writing and runs **no cleanup** over rows that may already belong to the
+  writer that took over (Greptile G1). The failed attempt kept in the green
+  log hung on a cross-connection deadlock: the lease first renewed through its
+  own connection while the caller's transaction was open.
+- **#2** treats the activation as succeeded the moment the pointer switch
+  commits: `refresh()` and the `activated` broadcast happen before any
+  maintenance, then preference reconciliation and generation collection run
+  isolated (`runMaintenanceTask`). A failure is reported as a separate
+  non-fatal diagnostic (`store.maintenance.getStatus()`: `pending`,
+  `lastFailure` with `storage-quota`/`error`) and `store.maintenance.retry()`
+  re-runs it. The test injects the `QuotaExceededError` in the tombstone
+  creating reconciliation; the second test injects it in the post-commit
+  collection.
+- **#3** uses a **dedicated field**, `GenerationRecord.lastUsedAt`, because
+  `readyAt` must keep its documented meaning (the first staging-to-ready time,
+  shown in diagnostics): every pointer switch - activation and rollback -
+  records `lastUsedAt` inside the switching transaction, `collect()` measures
+  the 24 h cross-tab window from it, and records written before this change
+  fall back to `readyAt`.
+- **#4** chose refusal over waiting: `clearAllLocalData()` returns the new
+  `ClearLocalDataResult` (`cleared`, or `refused`/`writer-busy` while another
+  tab writes) and deletes nothing when refused. Every staging write batch
+  re-checks its generation record inside the batch transaction, so a cleared
+  generation aborts **before** the batch is written and leaves no orphaned
+  rows. Two abort shapes, both deliberate: mid-write the update reports
+  `update-failed` with the new `local-data-cleared` reason (the update was cut
+  short and says so), while an update that has written nothing yet stops
+  quietly on a completed clear and leaves the honest `never-downloaded` state
+  (that is the shape the overlapping Greptile G4 test pins down).
+- **#5** broadcasts `DatasetStoreEvent` `cleared` on the same
+  `BroadcastChannel('intermed-dataset-events')` as activations; subscribers
+  now refresh from the persisted state on **any** of those events.
+
+Contract changes: `LocalPreferencesStore.clearAllLocalData()` returns
+`ClearLocalDataResult`, `DatasetUpdateFailureReason` gains
+`local-data-cleared` (with status-page wording in `DatasetStatus`), and
+`DatasetStoreEvent` becomes the `activated` | `cleared` union. The
+`meta.dataset-state` record gains `reconciledGenerationId` and `clearEpoch`;
+both are plain record fields, so no Dexie schema version or schema generation
+change is involved.
+
+Verification after these fixes, with the pinned Node `v24.21.0` / npm
+`11.19.0` (each command and its exit code is captured in
+[check-after-codex-review.log](evidence/milestone-6-2026-10-07/check-after-codex-review.log)):
+
+| Command                    | Exit | Result                                                                                |
+| -------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| `npm run format:check`     | 0    | all files use Prettier code style                                                     |
+| `npm run lint`             | 0    | no warnings (`--max-warnings 0`)                                                      |
+| `npm run typecheck`        | 0    | workspace and domain compile                                                          |
+| `npm run test`             | 0    | 355 Vitest tests in 28 files (13 more than before)                                    |
+| `npm run check:boundaries` | 0    | 62 source files; dependency-free domain; local-store confined                         |
+| `npm run build`            | 0    | web build produced                                                                    |
+| `npm run check`            | 0    | every gate above plus `npm audit`, `scan:dist` and 150 Playwright tests in 3 projects |
+
+Only Markdown (this file) was written after that captured `npm run check`
+run, and only `npm run format:check` reads Markdown: it was re-run afterwards
+and exited 0 (also recorded in the same log).
+
 ## Verification results
 
 Local Windows, pinned Node `v24.21.0` with npm `11.19.0` on `PATH`. `dexie@4.4.6` (dependency of `@intermed/local-store`) and `fake-indexeddb@6.2.5` (root dev dependency) were added at exact versions by the previous worker's manifest/lockfile edits and were verified installed before use; no other dependency changed. Logs below were captured with Node (UTF-8), including the exact command and its exit code.
