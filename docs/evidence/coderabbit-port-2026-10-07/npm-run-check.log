@@ -27,7 +27,7 @@ All matched files use Prettier code style!
 (node:19328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/port
+ RUN  v4.1.11 <worktree>
 
 (node:19328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
@@ -109,7 +109,7 @@ computing gzip size...
 > intermed@0.0.0 scan:dist
 > node scripts/scan-dist-secrets.mjs
 
-scan-dist-secrets: 9 file(s) scanned in D:\Proiecte AI\InterMED-wt\port\apps\web\dist, no credential-shaped strings.
+scan-dist-secrets: 9 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
 
 > intermed@0.0.0 test:browser
 > playwright test

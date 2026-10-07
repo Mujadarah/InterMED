@@ -21,7 +21,7 @@ All matched files use Prettier code style!
 > vitest run
 
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED
+ RUN  v4.1.11 <repo>
 
 
  Test Files  6 passed (6)

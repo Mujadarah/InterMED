@@ -1,7 +1,7 @@
 ## red 1/3 Appwrite query JSON shape - npx vitest run packages/data-access/src/appwrite-published-dataset-reader.test.ts (serializer still emits the column/values shape)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/data-access/src/appwrite-published-dataset-reader.test.ts (15 tests | 3 failed) 43ms
      × reads the published manifest with one unauthenticated public request 21ms
@@ -83,7 +83,7 @@ AssertionError: expected [ …(2) ] to deeply equal [ …(2) ]
 ## red 2/3 secret-scan public-digest exemption - npx vitest run tests/appwrite-config-secrets.test.ts (version/revision words still exempt a secret)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-config-secrets.test.ts (10 tests | 1 failed) 59ms
      × flags a secret behind generic words such as version, id or name 6ms
@@ -111,7 +111,7 @@ AssertionError: {"version": "1.0", "secret": "<redacted synthetic fixture>"}: ex
 ## red 3/3 rowSecurity/fileSecurity assertions - npx vitest run tests/appwrite-config-permissions.test.ts (finding 3 is a coverage gap: the config already held the expected flags, so four flags were deliberately flipped - dataset-versions.rowSecurity and published-datasets.fileSecurity in development, import-runs.rowSecurity and import-run-logs.fileSecurity in production - to show the new assertions fail on a flip; the config is restored right after this run)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-config-permissions.test.ts (32 tests | 2 failed) 20ms
      × grants public reads at the resource level, never per row or per file 6ms
@@ -166,7 +166,7 @@ AssertionError: production/import-runs rowSecurity: expected true to be false //
 ## red 3/3b rowSecurity/fileSecurity assertions - npx vitest run tests/appwrite-config-permissions.test.ts (supplementary induced-mutation run: only the two fileSecurity flags flipped - published-datasets in development, import-run-logs in production - because the test loops stop at the first failure; the config is restored right after this run)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-config-permissions.test.ts (32 tests | 2 failed) 26ms
      × grants public reads at the resource level, never per row or per file 10ms

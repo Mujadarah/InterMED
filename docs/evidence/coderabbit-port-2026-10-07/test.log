@@ -5,7 +5,7 @@
 (node:35648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/port
+ RUN  v4.1.11 <worktree>
 
 (node:35648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)

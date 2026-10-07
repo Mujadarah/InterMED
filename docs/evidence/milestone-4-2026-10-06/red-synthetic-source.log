@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+ RUN  v4.1.11 <repo>-wt/m4
 
  ❯ tests/data-access/synthetic-source.test.ts (10 tests | 10 failed) 7ms
    × separates one fictional product from its single ingredient 4ms

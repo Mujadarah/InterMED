@@ -3,6 +3,10 @@
 These records are offline preparation checks only. No Appwrite CLI, cloud
 endpoint, deployment, credential, or live-site operation was used.
 
+Machine-specific path segments in retained command output are redacted to
+repository-neutral placeholders; commands, results, warnings, and engine
+outcomes are otherwise preserved.
+
 | Record                             | Command                                                                                         | Exit | Meaning                                                                                                                                       |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------- | ---: | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `01-host-runtime-engine-check.log` | `npm ci --no-fund`                                                                              |    1 | Local host is Node 25.6.1/npm 11.9.0 and fails the repository's exact Node 24.21.0/npm 11.19.0 engines. This is not an Appwrite image result. |

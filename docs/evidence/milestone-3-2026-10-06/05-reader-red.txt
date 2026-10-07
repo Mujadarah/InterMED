@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ packages/data-access/src/appwrite-published-dataset-reader.test.ts (0 test)
  ❯ packages/data-access/src/published-dataset-mock.test.ts (0 test)
@@ -7,7 +7,7 @@
 ⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  packages/data-access/src/appwrite-published-dataset-reader.test.ts [ packages/data-access/src/appwrite-published-dataset-reader.test.ts ]
-Error: Cannot find module './appwrite-published-dataset-reader' imported from D:/Proiecte AI/InterMED-wt/m3/packages/data-access/src/appwrite-published-dataset-reader.test.ts
+Error: Cannot find module './appwrite-published-dataset-reader' imported from <worktree>/packages/data-access/src/appwrite-published-dataset-reader.test.ts
  ❯ packages/data-access/src/appwrite-published-dataset-reader.test.ts:2:1
       1| import { describe, expect, it } from 'vitest';
       2| import { createAppwritePublishedDatasetReader } from './appwrite-publi…
@@ -18,7 +18,7 @@ Error: Cannot find module './appwrite-published-dataset-reader' imported from D:
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
 
  FAIL  packages/data-access/src/published-dataset-mock.test.ts [ packages/data-access/src/published-dataset-mock.test.ts ]
-Error: Cannot find module './published-dataset-mock' imported from D:/Proiecte AI/InterMED-wt/m3/packages/data-access/src/published-dataset-mock.test.ts
+Error: Cannot find module './published-dataset-mock' imported from <worktree>/packages/data-access/src/published-dataset-mock.test.ts
  ❯ packages/data-access/src/published-dataset-mock.test.ts:2:1
       1| import { describe, expect, it } from 'vitest';
       2| import {

@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+ RUN  v4.1.11 <repo>-wt/m4
 
  ❯ tests/domain/ids-and-quantities.test.ts (8 tests | 8 failed) 8ms
    × derives the same canonical product id for the same source key 5ms

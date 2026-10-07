@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m4
+ RUN  v4.1.11 <repo>-wt/m4
 
  ❯ tests/domain/expand.test.ts (6 tests | 6 failed) 8ms
    × keeps a product, its ingredient and the join as separate ids 4ms

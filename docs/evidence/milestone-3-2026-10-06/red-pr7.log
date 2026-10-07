@@ -3,7 +3,7 @@ PR #7 review fixes - red runs before the fixes. Every credential fixture is synt
 ## red 1/3 dropped regex flags in the credential scanner - npx vitest run tests/appwrite-config-secrets.test.ts (the detector rebuilds each pattern without its i flag)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-config-secrets.test.ts (14 tests | 4 failed) 217ms
      × flags a lowercase quoted key header 3ms
@@ -98,7 +98,7 @@ null
 ## red 2/3 Sites install path - npx vitest run tests/appwrite-sites-install.test.ts (the install prefix resolves to apps/, where no package-lock.json exists)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/appwrite-sites-install.test.ts (2 tests | 2 failed) 6ms
      × installs the npm workspace root in development 4ms
@@ -113,10 +113,10 @@ null
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  tests/appwrite-sites-install.test.ts > Sites install command > installs the npm workspace root in development
-AssertionError: intermed-web-dev installs the npm workspace root: expected 'D:\Proiecte AI\InterMED-wt\m3\apps' to be 'D:\Proiecte AI\InterMED-wt\m3' // Object.is equality
+AssertionError: intermed-web-dev installs the npm workspace root: expected '<worktree>\apps' to be '<worktree>' // Object.is equality
 
-Expected: "D:\Proiecte AI\InterMED-wt\m3"
-Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
+Expected: "<worktree>"
+Received: "<worktree>\apps"
 
  ❯ tests/appwrite-sites-install.test.ts:38:73
      36|         );
@@ -129,10 +129,10 @@ Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
 
  FAIL  tests/appwrite-sites-install.test.ts > Sites install command > installs the npm workspace root in production
-AssertionError: intermed-web-prod installs the npm workspace root: expected 'D:\Proiecte AI\InterMED-wt\m3\apps' to be 'D:\Proiecte AI\InterMED-wt\m3' // Object.is equality
+AssertionError: intermed-web-prod installs the npm workspace root: expected '<worktree>\apps' to be '<worktree>' // Object.is equality
 
-Expected: "D:\Proiecte AI\InterMED-wt\m3"
-Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
+Expected: "<worktree>"
+Received: "<worktree>\apps"
 
  ❯ tests/appwrite-sites-install.test.ts:38:73
      36|         );
@@ -147,7 +147,7 @@ Received: "D:\Proiecte AI\InterMED-wt\m3\apps"
 ## red 3/3 required post-build bundle scan - npx vitest run tests/scan-dist-secrets.test.ts (scripts/scan-dist-secrets.mjs does not exist yet and check does not run it)
 ## exit code: 1
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m3
+ RUN  v4.1.11 <worktree>
 
  ❯ tests/scan-dist-secrets.test.ts (5 tests | 4 failed) 122ms
      × fails when the build output is missing instead of skipping 42ms
@@ -174,7 +174,7 @@ AssertionError: expected 'node:internal/modules/cjs/loader:1568…' to contain '
 +   throw err;
 +   ^
 +
-+ Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
++ Error: Cannot find module '<worktree>\scripts\scan-dist-secrets.mjs'
 +     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
 +     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
 +     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
@@ -211,7 +211,7 @@ AssertionError: expected 'node:internal/modules/cjs/loader:1568…' to contain '
 +   throw err;
 +   ^
 +
-+ Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
++ Error: Cannot find module '<worktree>\scripts\scan-dist-secrets.mjs'
 +     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
 +     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
 +     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
@@ -242,7 +242,7 @@ AssertionError: node:internal/modules/cjs/loader:1568
   throw err;
   ^
 
-Error: Cannot find module 'D:\Proiecte AI\InterMED-wt\m3\scripts\scan-dist-secrets.mjs'
+Error: Cannot find module '<worktree>\scripts\scan-dist-secrets.mjs'
     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)

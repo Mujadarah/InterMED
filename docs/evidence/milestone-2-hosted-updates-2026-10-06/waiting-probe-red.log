@@ -82,7 +82,7 @@ Running 20 tests using 3 workers
       108 |     expect(
       109 |       await page.evaluate(async () =>
       110 |         (await caches.keys())
-        at D:\Proiecte AI\InterMED\tests\browser\activation-failure.spec.ts:107:8
+        at <repo>\tests\browser\activation-failure.spec.ts:107:8
 
     Error Context: test-results\activation-failure-bounds--bc890--retaining-the-active-shell-chromium-desktop-repeat3\error-context.md
 
@@ -111,7 +111,7 @@ Running 20 tests using 3 workers
       108 |     expect(
       109 |       await page.evaluate(async () =>
       110 |         (await caches.keys())
-        at D:\Proiecte AI\InterMED\tests\browser\activation-failure.spec.ts:107:8
+        at <repo>\tests\browser\activation-failure.spec.ts:107:8
 
     Error Context: test-results\activation-failure-bounds--bc890--retaining-the-active-shell-chromium-desktop-repeat8\error-context.md
 
