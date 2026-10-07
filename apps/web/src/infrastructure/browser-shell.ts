@@ -11,7 +11,9 @@ interface InstallPrompt extends Event {
  * context with service workers, register the root worker and track readiness
  * and updates for the page lifetime. Otherwise report unsupported availability.
  * With production disabled, start in development state without registration
- * or listeners; explicit controller actions still retain their browser effects.
+ * or listeners. Reload still reloads the page. Repair still messages a
+ * controlling worker or retries registration. Check, activate and install do
+ * nothing until a registration or install prompt exists.
  */
 export function createBrowserShell(production: boolean): ShellController {
   let state: ShellState = {
