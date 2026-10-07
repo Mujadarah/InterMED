@@ -281,6 +281,70 @@ Only Markdown (this file) is written after that final captured
 `npm run check` run, and only `npm run format:check` reads Markdown: it is
 re-run afterwards (also recorded in the same log).
 
+## Codacy review fixes and refactor
+
+Nine Codacy items on PR #10, all confirmed with a failing test first where
+they are behaviours (items 5, 8 and 9 are hygiene; item 7 is a browser
+locator). Logs: [red-codacy-review.log](evidence/milestone-6-2026-10-07/red-codacy-review.log),
+[green-codacy-review.log](evidence/milestone-6-2026-10-07/green-codacy-review.log).
+
+|     | Item                                                            | Status | Commit    | Test                                                                                                                                             |
+| --- | --------------------------------------------------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `Math.random()`-based tab/writer ids                            | fixed  | `06ec3be` | `multitab.test.ts` "uses unpredictable UUIDs for writer tokens and tab ids"                                                                      |
+| 2   | stale tombstones when a product returns                         | fixed  | `234c3b4` | `preferences.test.ts` "clears the tombstone when a tombstoned product comes back"                                                                |
+| 3   | one failing product aborted the whole reconciliation            | fixed  | `0f993c1` | `preferences.test.ts` "keeps reconciling other favorites when one product fails"                                                                 |
+| 4   | unawaited promises could become unhandled rejections            | fixed  | `7e69a18` | `multitab.test.ts` "reports a failed background refresh instead of an unhandled rejection"                                                       |
+| 5   | unnecessary conditions around optional browser APIs             | fixed  | `50cbd24` | no behaviour change; verified by typecheck, lint and the suite (the flagged `event.type` check is gone since `DatasetStoreEvent` became a union) |
+| 7   | flaky "Shell available offline" locator (strict-mode violation) | fixed  | `9221078` | `tests/browser/local-store.spec.ts` scoped to the shell status region with exact text; 5× per project                                            |
+| 8   | Milestone 6 files exempt from path hygiene                      | fixed  | `212ea21` | `tests/repository-path-hygiene.test.ts` "keeps tracked text and logs UTF-8/LF and free of machine paths"                                         |
+| 9   | Playwright MCP output not ignored                               | fixed  | `21147a4` | `.gitignore` and `.prettierignore`                                                                                                               |
+| 6   | `store.ts` complexity (216, ~1500 lines)                        | done   | `9787d84` | all 402 Vitest tests pass unchanged (none edited)                                                                                                |
+
+Details:
+
+- **1** `crypto.randomUUID()` replaces `Math.random()` in the Web Locks lease
+  token, the tab owner recorded in the fallback marker and the test id
+  helpers. Ids were never injectable, so no injection seam was added.
+- **2** the same stable product id now deletes its tombstone inside the
+  reconciliation transaction; nothing is ever remapped to a similar product
+  under another id.
+- **3** each favorite is reconciled in its own try/catch inside the
+  transaction: the other items are still reconciled, the failing ids are
+  reported in the maintenance diagnostics (quota classified as
+  `storage-quota`) and `reconciledGenerationId` is only written by a complete
+  run, so a partial one stays pending for the retry. A store-level failure
+  still aborts the transaction and is retried wholesale.
+- **4** every unawaited promise (initial open, cross-tab refresh, pin
+  retention, lease heartbeat) has an explicit `.catch` routing to a `background`
+  maintenance diagnostic; the heartbeat routes a failed renewal to lease state.
+- **8** only exact machine-path prefixes in verbatim logs are replaced with
+  `<worktree>`, `<repo>`, `<temp>` and `<home>` (their escaped and forward
+  slash spellings too); commands, results, counts, durations and exit codes are
+  unchanged, and three CRLF logs were normalised to LF. The evidence folder's
+  README records this.
+- **6** pure move/extract into `update-pipeline.ts`, `preferences.ts`,
+  `retention.ts` and `maintenance.ts`, with `store.ts` reduced from ~1500 to
+  ~280 lines as the state machine and composition facade. Public API
+  unchanged; no test edited.
+
+Verification, pinned Node `v24.21.0` / npm `11.19.0` (each command and its
+exit code in
+[check-after-codacy-review.log](evidence/milestone-6-2026-10-07/check-after-codacy-review.log)):
+
+| Command                    | Exit | Result                                                                                |
+| -------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| `npm run format:check`     | 0    | all files use Prettier code style                                                     |
+| `npm run lint`             | 0    | no warnings (`--max-warnings 0`)                                                      |
+| `npm run typecheck`        | 0    | workspace and domain compile                                                          |
+| `npm run test`             | 0    | 402 Vitest tests in 31 files                                                          |
+| `npm run check:boundaries` | 0    | 66 source files; dependency-free domain; local-store confined                         |
+| `npm run build`            | 0    | web build produced                                                                    |
+| `npm run check`            | 0    | every gate above plus `npm audit`, `scan:dist` and 150 Playwright tests in 3 projects |
+
+Only Markdown is written after that captured `npm run check` run, and only
+`npm run format:check` reads Markdown: it is re-run afterwards (also recorded
+in the same log).
+
 ## Verification results
 
 Local Windows, pinned Node `v24.21.0` with npm `11.19.0` on `PATH`. `dexie@4.4.6` (dependency of `@intermed/local-store`) and `fake-indexeddb@6.2.5` (root dev dependency) were added at exact versions by the previous worker's manifest/lockfile edits and were verified installed before use; no other dependency changed. Logs below were captured with Node (UTF-8), including the exact command and its exit code.
