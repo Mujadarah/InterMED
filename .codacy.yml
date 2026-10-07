@@ -10,7 +10,7 @@
 engines:
   eslint-8:
     exclude_paths:
-      - "**"
+      - '**'
   pmd:
     exclude_paths:
-      - "**"
+      - '**'
