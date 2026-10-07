@@ -86,7 +86,11 @@ function isPublicChecksumValue(source: string, start: number): boolean {
  */
 export function findCredentialShape(source: string): string | null {
   for (const { label, pattern, allowPublicValueContext } of secretPatterns) {
-    const matches = source.matchAll(new RegExp(pattern.source, 'g'));
+    // Rebuilding the matcher must keep every existing flag (notably `i`):
+    // dropping it would miss `"x-appwrite-key": "…"` and other case variants.
+    const matches = source.matchAll(
+      new RegExp(pattern.source, `${pattern.flags.replaceAll('g', '')}g`),
+    );
     for (const match of matches) {
       const start = match.index ?? 0;
       if (allowPublicValueContext && isPublicChecksumValue(source, start))

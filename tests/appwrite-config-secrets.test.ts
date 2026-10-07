@@ -50,41 +50,75 @@ const scannedFiles = (
   .filter((path) => !path.endsWith('.test.ts') && !path.endsWith('.test.tsx'))
   .sort();
 
-const assetDigest =
-  '8f4913fed8fde10babda2cc680ce25d18b817e73530e34fc2c1b3dfc5aea758b';
-const revisionId = '1a8f09fe351510d3bb796f9e09cfe18d00d2fe48';
+/**
+ * Synthetic credential fixtures, assembled at runtime so no key-shaped literal
+ * exists in this file for a secrets scanner to flag. Every value is fake and
+ * only carries the shape under test.
+ */
+const syntheticDigest = 'ab'.repeat(32);
+const syntheticRevision = '7b'.repeat(20);
+const syntheticStandardKey = ['standard', '_', 'f'.repeat(32)].join('');
+const syntheticHexSecret = '01'.repeat(20);
+const syntheticKeyValue = ['live', 'value'].join('-');
 
 describe('credential shape detector', () => {
   it('flags credential-shaped material', () => {
     for (const source of [
-      'standard_68a5b4c3d2e1f0a1b2c3d4e5f6071829',
-      'value = 0123456789abcdef0123456789abcdef01234567;',
+      syntheticStandardKey,
+      `value = ${syntheticHexSecret};`,
       `const token = "${'a1B2'.repeat(15)}";`,
-      'APPWRITE_API_KEY=live-value-here',
-      'headers: { "X-Appwrite-Key": "live-value-here" }',
+      `APPWRITE_API_KEY=${syntheticKeyValue}`,
+      `headers: { "${['X', 'Appwrite', 'Key'].join('-')}": "${syntheticKeyValue}" }`,
     ])
       expect(findCredentialShape(source), source).not.toBeNull();
   });
 
+  it('flags a lowercase quoted key header', () => {
+    const source = `headers: { "${['x', 'appwrite', 'key'].join('-')}": "${syntheticKeyValue}" }`;
+    expect(findCredentialShape(source), 'lowercase key header').toBe(
+      'API key assignment carrying a value',
+    );
+  });
+
+  it('flags a mixed-case quoted key header', () => {
+    const source = `headers: { "${['X', 'ApPwRiTe', 'kEy'].join('-')}": "${syntheticKeyValue}" }`;
+    expect(findCredentialShape(source), 'mixed-case key header').toBe(
+      'API key assignment carrying a value',
+    );
+  });
+
+  it('flags a lowercase key variable assignment', () => {
+    const source = `${['appwrite', 'api', 'key'].join('_')}=${syntheticKeyValue}`;
+    expect(findCredentialShape(source), 'lowercase key assignment').toBe(
+      'API key assignment carrying a value',
+    );
+  });
+
+  it('flags a mixed-case key variable assignment', () => {
+    const source = `${['Appwrite', 'API', 'Key'].join('_')}=${syntheticKeyValue}`;
+    expect(findCredentialShape(source), 'mixed-case key assignment').toBe(
+      'API key assignment carrying a value',
+    );
+  });
+
   it('tolerates public integrity and revision values near their marker', () => {
     for (const source of [
-      `{"url":"/assets/index.js","hash":"${assetDigest}"}`,
-      `integrity="sha256-${assetDigest}"`,
-      `checksum: '${assetDigest}'`,
-      `<meta name="intermed-shell-revision" content="${revisionId}">`,
+      `{"url":"/assets/index.js","hash":"${syntheticDigest}"}`,
+      `integrity="sha256-${syntheticDigest}"`,
+      `checksum: '${syntheticDigest}'`,
+      `<meta name="intermed-shell-revision" content="${syntheticRevision}">`,
     ])
       expect(findCredentialShape(source), source).toBeNull();
   });
 
   it('still flags the same digest away from any public value marker', () => {
-    expect(findCredentialShape(`const leaked = '${assetDigest}';`)).toBe(
+    expect(findCredentialShape(`const leaked = '${syntheticDigest}';`)).toBe(
       'long hexadecimal secret',
     );
   });
 
   it('flags a secret behind generic words such as version, id or name', () => {
-    const secret =
-      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const secret = syntheticDigest;
     for (const source of [
       `{"version": "1.0", "secret": "${secret}"}`,
       `{"id": "1.0", "secret": "${secret}"}`,
@@ -99,11 +133,9 @@ describe('credential shape detector', () => {
   });
 
   it('never tolerates key shapes, even near a public value marker', () => {
-    expect(
-      findCredentialShape(
-        `revision: 'standard_68a5b4c3d2e1f0a1b2c3d4e5f6071829'`,
-      ),
-    ).toBe('Appwrite standard_ API key');
+    expect(findCredentialShape(`revision: '${syntheticStandardKey}'`)).toBe(
+      'Appwrite standard_ API key',
+    );
   });
 
   it('ignores public identifiers and documentation text', () => {
