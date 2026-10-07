@@ -1,9 +1,11 @@
 /* global process */
 import { deserializeCatalogue } from '@intermed/domain';
 import {
+  AmbiguousWriteError,
   canonicalizeConfig,
   publish,
   PublicationConflictError,
+  PublicationLeaseError,
   stage,
 } from '@intermed/importer';
 import crypto from 'node:crypto';
@@ -21,12 +23,24 @@ const sha256 = {
   hash: (data) => crypto.createHash('sha256').update(data).digest('hex'),
 };
 
+const core = {
+  stage,
+  publish,
+  canonicalizeConfig,
+  errorFactories: () => ({
+    newPublicationConflict: () => new PublicationConflictError(),
+    newAmbiguousWrite: () => new AmbiguousWriteError(),
+    newPublicationLease: () => new PublicationLeaseError(),
+  }),
+};
+
 function responseFor(outcome) {
   const body = { code: outcome.code };
   if (outcome.operationRef) body.operationRef = outcome.operationRef;
   if (outcome.runRef) body.runRef = outcome.runRef;
-  if (outcome.datasetVersionRef)
+  if (outcome.datasetVersionRef) {
     body.datasetVersionRef = outcome.datasetVersionRef;
+  }
   if (outcome.summary) body.summary = outcome.summary;
   return body;
 }
@@ -68,16 +82,10 @@ export default async ({ req, res, log }) => {
     outcome = await runOperation({
       operationId: envelope.operationId,
       deps: {
-        core: {
-          stage,
-          publish,
-          canonicalizeConfig,
-          newPublicationConflict: () => new PublicationConflictError(),
-        },
+        core,
         deserializeCatalogue,
         store,
         sha256,
-        now: () => new Date(),
         randomToken: () => crypto.randomBytes(24).toString('hex'),
         log,
         publishEnabled: runtime.publishEnabled,

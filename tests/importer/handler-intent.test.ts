@@ -45,6 +45,19 @@ function reviewDocument(): Record<string, unknown> {
     configSha256: 'a'.repeat(64),
     rawSnapshotSha256: 'b'.repeat(64),
     candidateSha256: 'c'.repeat(64),
+    completeness: 'complete',
+    recordCounts: {
+      dataSources: 1,
+      datasetVersions: 1,
+      products: 3,
+      activeIngredients: 2,
+      medicationIngredients: 2,
+      atcCodes: 1,
+      dosageForms: 1,
+      manufacturers: 1,
+      marketingAuthorizationHolders: 1,
+      regulatoryDocuments: 0,
+    },
     diffSummary: {
       added: 3,
       changed: 0,
@@ -219,8 +232,24 @@ describe('private intent schemas', () => {
       mutate: (doc) => void (doc.rawSnapshotSha256 = 'not-a-hash'),
     },
     {
-      name: 'an unsupported encoding',
+      name: 'an encoding outside the config policy',
       mutate: (doc) => void (doc.encoding = 'utf-16'),
+    },
+    {
+      name: 'an unsupported parser encoding',
+      mutate: (doc) =>
+        void (doc.config = {
+          ...(doc.config as Record<string, unknown>),
+          parserEncoding: 'utf-16',
+        }),
+    },
+    {
+      name: 'a missing parser encoding',
+      mutate: (doc) =>
+        void (doc.config = {
+          ...(doc.config as Record<string, unknown>),
+          parserEncoding: undefined,
+        }),
     },
     {
       name: 'an unbounded dataset',
@@ -233,6 +262,30 @@ describe('private intent schemas', () => {
     {
       name: 'a smuggled approval flag',
       mutate: (doc) => void (doc.operationalApproval = true),
+    },
+    {
+      name: 'an importer version over the Appwrite column limit',
+      mutate: (doc) =>
+        void (doc.config = {
+          ...(doc.config as Record<string, unknown>),
+          importerVersion: 'i'.repeat(51),
+        }),
+    },
+    {
+      name: 'a schema version over the Appwrite column limit',
+      mutate: (doc) =>
+        void (doc.config = {
+          ...(doc.config as Record<string, unknown>),
+          schemaVersion: 's'.repeat(51),
+        }),
+    },
+    {
+      name: 'a source version over the Appwrite column limit',
+      mutate: (doc) =>
+        void (doc.config = {
+          ...(doc.config as Record<string, unknown>),
+          sourceVersion: 'v'.repeat(201),
+        }),
     },
     {
       name: 'an unlisted source key',
@@ -289,6 +342,14 @@ describe('private intent schemas', () => {
     {
       name: 'a missing approval timestamp',
       mutate: (doc) => void delete doc.approvedAt,
+    },
+    {
+      name: 'an approval reference over the Appwrite column limit',
+      mutate: (doc) => void (doc.approvalReference = 'r'.repeat(501)),
+    },
+    {
+      name: 'a version over the Appwrite column limit',
+      mutate: (doc) => void (doc.version = 'v'.repeat(101)),
     },
     {
       name: 'a missing large-removal approval',

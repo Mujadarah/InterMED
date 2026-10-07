@@ -1,24 +1,22 @@
 /**
- * Shared fixtures for the import handler, intent and bridge tests.
+ * Shared fixtures for the import handler, intent, bridge and artifact tests.
  *
  * Identifier derivations are re-implemented here from the published formula so
  * the tests do not simply agree with the implementation under test. Raw
  * material is the synthetic fixture only: fictional names, flagged synthetic.
+ * The publish intent's immutable `approvedAt` pins the publication timestamp so
+ * a retry never drifts with the wall clock.
  */
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  syntheticMedicationFixture,
-  validateSyntheticSource,
-} from '@intermed/data-access';
+import { validateSyntheticSource } from '@intermed/data-access';
 import { serializeCatalogue } from '@intermed/domain';
 import handler from '../../infra/appwrite/functions/import-anmdmr/src/main.js';
 import {
   bytesToText,
   createFakeAppwriteRest,
   utf8Bytes,
-  type FakeAppwriteRest,
-} from './fake-appwrite-rest';
+} from './fake-appwrite-rest.mjs';
 
 /** Dummy credential sentinel: never a real key, used for leak assertions. */
 export const SENTINEL = 'dummy-secret-sentinel-7c1f9a4e2b60';
@@ -31,6 +29,7 @@ export const TRUSTED_RUNTIME = {
 
 export const DATASET = 'synthetic-medication-catalogue';
 export const SOURCE_VERSION = 'synthetic-2026-10-06';
+export const APPROVED_AT = '2026-10-07T10:00:00Z';
 
 export const TEST_CONFIG = {
   sourceKey: 'source.synthetic',
@@ -38,6 +37,7 @@ export const TEST_CONFIG = {
   schemaVersion: 'medication-catalogue-1',
   importerVersion: 'm5-function-handler',
   parserVersion: 'm5-parser',
+  parserEncoding: 'utf-8',
   syntheticAllowlist: ['source.synthetic'],
   largeRemovalCount: 5,
   largeRemovalPercent: 25,
@@ -73,8 +73,8 @@ export const derivations = {
   candidateFileId(candidateVersionId: string): string {
     return `cnd1${hexPrefix(sha256Hex(`intermed-candidate-file/v1|${candidateVersionId}`), 32)}`;
   },
-  candidateFileName(candidateVersionId: string): string {
-    return `candidate-v1.${candidateVersionId}.json`;
+  candidateFileName(fileId: string): string {
+    return `candidate-v1.${fileId}.json`;
   },
   reviewFileId(input: {
     stageOperationId: string;
@@ -91,8 +91,8 @@ export const derivations = {
     ].join('|');
     return `rev1${hexPrefix(sha256Hex(material), 32)}`;
   },
-  reviewFileName(candidateVersionId: string): string {
-    return `stage-review-v1.${candidateVersionId}.json`;
+  reviewFileName(fileId: string): string {
+    return `stage-review-v1.${fileId}.json`;
   },
   quarantineFileId(runId: string, reason: string): string {
     return `qtn1${hexPrefix(sha256Hex(`intermed-quarantine-file/v1|${runId}|${reason}`), 32)}`;
@@ -106,46 +106,111 @@ export const derivations = {
   bundleFileId(candidateVersionId: string): string {
     return `bnd1${hexPrefix(sha256Hex(`intermed-bundle-file/v1|${candidateVersionId}`), 32)}`;
   },
-  bundleFileName(candidateVersionId: string): string {
-    return `bundle-${candidateVersionId}.json`;
+  bundleFileName(fileId: string): string {
+    return `bundle-${fileId}.json`;
   },
 };
 
-/** Raw synthetic source snapshot (obviously fictional, flagged synthetic). */
-export function buildSnapshotDocument(): Record<string, unknown> {
-  const fixture = syntheticMedicationFixture as unknown as Record<
-    string,
-    unknown
-  >;
-  const collection = (key: string): unknown[] =>
-    Array.isArray(fixture[key]) ? (fixture[key] as unknown[]) : [];
+/**
+ * Raw synthetic source snapshot: one coherent, obviously fictional generation
+ * ("Synthetica"/"Fictivol") with consistent provenance and no referential
+ * gaps, valid against the real domain validator.
+ */
+export function buildSnapshotDocument(
+  overrides: { commercialName?: string } = {},
+): Record<string, unknown> {
+  const track = {
+    sourceKey: 'source.synthetic',
+    datasetVersionKey: SOURCE_VERSION,
+  };
+  const missing = { status: 'missing' };
+  const instant = '2026-10-06T00:00:00Z';
   return {
     format: 'anmdmr-synthetic',
-    schemaVersion: '1',
+    schemaVersion: TEST_CONFIG.schemaVersion,
     synthetic: true,
     completeness: 'full',
     sourceKey: 'source.synthetic',
     recordCounts: {
-      products: collection('products').length,
-      activeIngredients: collection('activeIngredients').length,
-      medicationIngredients: collection('medicationIngredients').length,
-      atcCodes: collection('atcCodes').length,
-      dosageForms: collection('dosageForms').length,
-      manufacturers: collection('manufacturers').length,
-      marketingAuthorizationHolders: collection('marketingAuthorizationHolders')
-        .length,
-      regulatoryDocuments: collection('regulatoryDocuments').length,
+      products: 1,
+      activeIngredients: 0,
+      medicationIngredients: 0,
+      atcCodes: 0,
+      dosageForms: 0,
+      manufacturers: 0,
+      marketingAuthorizationHolders: 0,
+      regulatoryDocuments: 0,
     },
-    dataSource: fixture.dataSource,
-    datasetVersion: fixture.datasetVersion,
-    products: fixture.products,
-    activeIngredients: fixture.activeIngredients,
-    medicationIngredients: fixture.medicationIngredients,
-    atcCodes: fixture.atcCodes,
-    dosageForms: fixture.dosageForms,
-    manufacturers: fixture.manufacturers,
-    marketingAuthorizationHolders: fixture.marketingAuthorizationHolders,
-    regulatoryDocuments: fixture.regulatoryDocuments,
+    dataSource: {
+      sourceKey: 'source.synthetic',
+      name: 'Synthetica synthetic catalogue (fictional)',
+      authority: 'Fictivol Test Authority (fictional)',
+      jurisdiction: { status: 'present', value: 'fictional' },
+      url: 'https://example.invalid/synthetica',
+      licenseOrPermissionReference: {
+        status: 'present',
+        value: 'FICT-LICENCE-0001',
+      },
+      rightsStatus: 'unresolved',
+      allowedUses: ['automated-test'],
+      prohibitedUses: ['commercial-use'],
+      permissionExpiresAt: missing,
+      attributionRequirements: {
+        status: 'present',
+        value: 'Synthetic fixture. Not for clinical use.',
+      },
+      expectedUpdateCadence: missing,
+      importMethod: 'synthetic-inline',
+      coverageDescription: 'Fictional products only. Not for clinical use.',
+      reviewOwner: 'none',
+      reviewedAt: instant,
+    },
+    datasetVersion: {
+      dataset: DATASET,
+      version: SOURCE_VERSION,
+      upstreamVersion: missing,
+      publishedAt: missing,
+      upstreamPublishedAt: missing,
+      importedAt: instant,
+      schemaVersion: 'medication-catalogue-1',
+      minimumClientVersion: '0.0.0',
+      coverage: 'Fictional coverage only. Not for clinical use.',
+      rightsApprovalReference: 'FICT-APPROVAL-0000',
+      clinicalReviewReference: 'FICT-REVIEW-0000',
+      previousVersionKey: missing,
+      status: 'staging',
+    },
+    products: [
+      {
+        ...track,
+        sourceProductId: 'P-FICTIVOL',
+        cim: { status: 'present', value: 'FICT-CIM-0001' },
+        commercialName: overrides.commercialName ?? 'Fictivol',
+        originalDciText: { status: 'present', value: 'Fictivolinum' },
+        strengthText: { status: 'present', value: '500 mg' },
+        dosageFormKey: missing,
+        route: { status: 'present', value: 'oral-fictional' },
+        atcKeys: [],
+        manufacturerKeys: [],
+        marketingAuthorizationHolderKey: missing,
+        authorizationNumber: missing,
+        authorizationDate: missing,
+        authorizationStatus: missing,
+        presentationOrPackDescription: missing,
+        regulatoryDocumentKeys: [],
+        sourceVersion: 'synthetic-1',
+        firstSeenAt: instant,
+        lastSeenAt: instant,
+        status: 'active',
+      },
+    ],
+    activeIngredients: [],
+    medicationIngredients: [],
+    atcCodes: [],
+    dosageForms: [],
+    manufacturers: [],
+    marketingAuthorizationHolders: [],
+    regulatoryDocuments: [],
   };
 }
 
@@ -156,8 +221,8 @@ export function snapshotBytes(
 }
 
 /**
- * Candidate bundle bytes as the core would write them: the real validator and
- * the real canonical serializer, no domain mocking.
+ * Candidate bundle bytes as the core writes them: the real validator and the
+ * real canonical serializer, no domain mocking.
  */
 export function candidateBytes(): Uint8Array {
   const document = buildSnapshotDocument();
@@ -197,14 +262,14 @@ export function catalogueCounts(
   };
 }
 
-export interface StageIntentDocument {
+export interface IntentDocument {
   [key: string]: unknown;
 }
 
 export function stageIntentDocument(
   operationId: string = STAGE_OPERATION,
   overrides: Record<string, unknown> = {},
-): StageIntentDocument {
+): IntentDocument {
   const bytes = snapshotBytes();
   return {
     purpose: 'intermed-synthetic-stage/v1',
@@ -212,7 +277,6 @@ export function stageIntentDocument(
     issuedAt: '2026-10-07T09:00:00Z',
     dataset: DATASET,
     syntheticOnly: true,
-    encoding: 'utf-8',
     rawSnapshotFileId: RAW_FILE_ID,
     rawSnapshotSha256: sha256Hex(bytes),
     config: {
@@ -235,7 +299,7 @@ export function publishIntentDocument(
   operationId: string = PUBLISH_OPERATION,
   bindings: PublishIntentBindings,
   overrides: Record<string, unknown> = {},
-): StageIntentDocument {
+): IntentDocument {
   return {
     purpose: 'intermed-synthetic-publish/v1',
     operationId,
@@ -254,7 +318,7 @@ export function publishIntentDocument(
     version: SOURCE_VERSION,
     approvedBy: 'Synthetica Release Owner (fictional)',
     approvalReference: 'FICT-APPROVAL-0001',
-    approvedAt: '2026-10-07T10:00:00Z',
+    approvedAt: APPROVED_AT,
     operationalApproval: true,
     largeRemovalApproval: true,
     ...overrides,
@@ -276,8 +340,10 @@ export interface HandlerRequest {
   headers?: Record<string, string>;
 }
 
+export type FakeRest = ReturnType<typeof createFakeAppwriteRest>;
+
 export interface Harness {
-  rest: FakeAppwriteRest;
+  rest: FakeRest;
   logs: string[];
   call(request: HandlerRequest): Promise<HandlerResult>;
   seedFile(
@@ -385,7 +451,7 @@ export function envelope(operationId: unknown): { operationId: unknown } {
 }
 
 export function readSeedText(
-  rest: FakeAppwriteRest,
+  rest: FakeRest,
   bucketId: string,
   fileId: string,
 ): string {

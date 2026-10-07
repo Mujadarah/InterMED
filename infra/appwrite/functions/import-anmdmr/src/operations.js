@@ -6,7 +6,9 @@
  * the request reference points to. The caller controls that reference and
  * nothing else: no inline bytes, config, endpoints, keys, actors or approval
  * flags cross this boundary. Unauthorized or tampered flows return before any
- * data write.
+ * data write. The publication timestamp is pinned to the immutable approval
+ * timestamp of the intent, so a retry of the same publication presents the
+ * identical publication even when the wall clock advances.
  */
 import {
   intentFileId,
@@ -20,9 +22,9 @@ import {
 } from './intent.js';
 import { deriveRef } from './codes.js';
 import {
+  BridgeError,
   createPublishBridge,
   createStageBridge,
-  BridgeError,
 } from './storage-bridge.js';
 import { BUCKETS } from './runtime-config.js';
 
@@ -65,15 +67,16 @@ async function loadIntent(store, sha256, operationId) {
 }
 
 async function runStage(intent, deps, operationRef) {
-  const { store, sha256, core, now, randomToken, log } = deps;
+  const { store, sha256, core, randomToken, log } = deps;
   let rawBytes;
   try {
     rawBytes = await readBytes(
       await store.downloadFile(BUCKETS.raw, intent.rawSnapshotFileId),
     );
   } catch (error) {
-    if (isNotFound(error))
+    if (isNotFound(error)) {
       return outcome(404, 'operation-unknown', operationRef);
+    }
     throw error;
   }
   // Raw hash verified before any parse or write.
@@ -89,14 +92,14 @@ async function runStage(intent, deps, operationRef) {
     dataset: intent.dataset,
     stageOperationId: intent.operationId,
     issuedAt: intent.issuedAt,
-    now,
     randomToken,
-    newPublicationConflict: core.newPublicationConflict,
+    ...core.errorFactories(),
   });
+  // The canonical config encoding policy binds how the raw bytes decode.
   const result = await core.stage({
     config: intent.config,
     snapshotBytes: rawBytes,
-    encoding: intent.encoding,
+    encoding: intent.config.parserEncoding,
     ports: bridge.ports,
   });
   const runRef = deriveRef(sha256, 'run', result.runId);
@@ -126,7 +129,8 @@ async function runStage(intent, deps, operationRef) {
         ? reviewData.largeRemovalRequired
         : false,
       issueCount: result.issues.length,
-      counts: reviewData ? reviewData.diffSummary : {},
+      counts: reviewData ? reviewData.recordCounts : {},
+      diff: reviewData ? reviewData.diffSummary : {},
     },
   });
 }
@@ -152,7 +156,7 @@ async function loadReview(store, sha256, intent) {
 }
 
 async function runPublish(intent, deps, operationRef) {
-  const { store, sha256, core, now, randomToken, log } = deps;
+  const { store, sha256, core, randomToken, log } = deps;
   const configSha256 = sha256.hash(core.canonicalizeConfig(intent.config));
   // The approval originates in the private intent; the review must match it.
   const review = await loadReview(store, sha256, intent);
@@ -192,9 +196,10 @@ async function runPublish(intent, deps, operationRef) {
     baselineVersionId: intent.baselineVersionId,
     baselineFingerprint: intent.baselineFingerprint,
     issuedAt: intent.issuedAt,
-    now,
+    // Immutable approval timestamp: a retry must present the same publication.
+    publicationTimestamp: intent.approvedAt,
     randomToken,
-    newPublicationConflict: core.newPublicationConflict,
+    ...core.errorFactories(),
   });
   const datasetVersionRef = deriveRef(
     sha256,
@@ -215,9 +220,10 @@ async function runPublish(intent, deps, operationRef) {
     }
     throw error;
   }
+  const warnings = Array.isArray(result.warnings) ? result.warnings : [];
   const summary = {
     status: result.status,
-    lockReleased: bridge.journal.lockReleased,
+    warnings: warnings.slice(0, 8),
   };
   if (result.status === 'published' || result.status === 'already-published') {
     return outcome(200, result.status, operationRef, {

@@ -5,6 +5,8 @@
  * reserved file-name prefix and a strict purpose-bound schema. Identifiers are
  * derived deterministically with purpose-separated salts, so a candidate,
  * review, raw snapshot or run row can never collide with an approval intent.
+ * Field bounds mirror the Appwrite columns of the config as code: version 100,
+ * schema/minimum 50, sourceId 100, importer 50, approval references 500.
  */
 
 export const STAGE_INTENT_PURPOSE = 'intermed-synthetic-stage/v1';
@@ -22,7 +24,7 @@ const OPERATION_PATTERN = /^op-(stage|publish)-[a-z0-9][a-z0-9-]{0,43}$/;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const FINGERPRINT_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
-const ENCODINGS = ['utf-8', 'windows-1250'];
+const PARSER_ENCODINGS = ['utf-8', 'utf8', 'windows-1250'];
 
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -72,6 +74,29 @@ function isCount(value) {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
+const RECORD_COUNT_KEYS = [
+  'activeIngredients',
+  'atcCodes',
+  'dataSources',
+  'datasetVersions',
+  'dosageForms',
+  'manufacturers',
+  'marketingAuthorizationHolders',
+  'medicationIngredients',
+  'products',
+  'regulatoryDocuments',
+];
+
+function isRecordCounts(value) {
+  if (!isPlainObject(value)) return false;
+  const keys = Object.keys(value).sort();
+  return (
+    keys.length === RECORD_COUNT_KEYS.length &&
+    RECORD_COUNT_KEYS.every((key, index) => keys[index] === key) &&
+    Object.values(value).every((count) => isCount(count))
+  );
+}
+
 function validateConfig(config) {
   if (!isPlainObject(config)) return false;
   if (
@@ -81,6 +106,7 @@ function validateConfig(config) {
       'largeRemovalPercent',
       'maxRawBytes',
       'maxRows',
+      'parserEncoding',
       'parserVersion',
       'schemaVersion',
       'sourceKey',
@@ -95,6 +121,7 @@ function validateConfig(config) {
   if (!isBoundedString(config.schemaVersion, 1, 50)) return false;
   if (!isBoundedString(config.importerVersion, 1, 50)) return false;
   if (!isBoundedString(config.parserVersion, 1, 50)) return false;
+  if (!PARSER_ENCODINGS.includes(config.parserEncoding)) return false;
   if (!Array.isArray(config.syntheticAllowlist)) return false;
   if (config.syntheticAllowlist.length < 1) return false;
   if (config.syntheticAllowlist.length > 20) return false;
@@ -108,7 +135,7 @@ function validateConfig(config) {
   if (
     typeof config.largeRemovalCount !== 'number' ||
     !Number.isInteger(config.largeRemovalCount) ||
-    config.largeRemovalCount < 0 ||
+    config.largeRemovalCount < 1 ||
     config.largeRemovalCount > 1000000
   ) {
     return false;
@@ -154,7 +181,6 @@ function validateStageIntent(intent) {
     !hasExactKeys(intent, [
       'config',
       'dataset',
-      'encoding',
       'issuedAt',
       'operationId',
       'purpose',
@@ -171,9 +197,7 @@ function validateStageIntent(intent) {
   if (!isInstant(intent.issuedAt)) return false;
   if (!isRecordKey(intent.dataset, 100)) return false;
   if (intent.syntheticOnly !== true) return false;
-  if (!ENCODINGS.includes(intent.encoding)) return false;
   if (!isSafeId(intent.rawSnapshotFileId)) return false;
-  if (typeof intent.rawSnapshotSha256 !== 'string') return false;
   if (!SHA256_PATTERN.test(intent.rawSnapshotSha256)) return false;
   return validateConfig(intent.config);
 }
@@ -209,7 +233,7 @@ function validatePublishIntent(intent) {
   if (!isRecordKey(intent.dataset, 100)) return false;
   if (!OPERATION_PATTERN.test(intent.stageOperationId)) return false;
   if (!intent.stageOperationId.startsWith('op-stage-')) return false;
-  if (!isSafeId(intent.candidateVersionId)) return false;
+  if (!isBoundedString(intent.candidateVersionId, 1, 256)) return false;
   if (!SHA256_PATTERN.test(intent.candidateSha256)) return false;
   if (!SHA256_PATTERN.test(intent.rawSnapshotSha256)) return false;
   if (
@@ -232,7 +256,8 @@ function validatePublishIntent(intent) {
     return false;
   }
   if (!isRecordKey(intent.version, 100)) return false;
-  // Explicit human approval triple: actor, reference and timestamp.
+  // Explicit human approval triple: actor, reference and timestamp. The
+  // timestamp also pins the publication time so retries never drift.
   if (!isBoundedString(intent.approvedBy, 1, 200)) return false;
   if (intent.approvedBy.trim().length === 0) return false;
   if (!isBoundedString(intent.approvalReference, 1, 500)) return false;
@@ -266,6 +291,7 @@ export function parseReviewDocument(text) {
       'baselineVersionId',
       'candidateSha256',
       'candidateVersionId',
+      'completeness',
       'configSha256',
       'dataset',
       'diffSummary',
@@ -273,6 +299,7 @@ export function parseReviewDocument(text) {
       'largeRemovalRequired',
       'purpose',
       'rawSnapshotSha256',
+      'recordCounts',
       'stageOperationId',
     ])
   ) {
@@ -281,10 +308,13 @@ export function parseReviewDocument(text) {
   if (review.purpose !== REVIEW_PURPOSE) return { ok: false };
   if (!OPERATION_PATTERN.test(review.stageOperationId)) return { ok: false };
   if (!isRecordKey(review.dataset, 100)) return { ok: false };
-  if (!isSafeId(review.candidateVersionId)) return { ok: false };
+  if (typeof review.candidateVersionId !== 'string') return { ok: false };
+  if (review.candidateVersionId.length === 0) return { ok: false };
   if (
     review.baselineVersionId !== null &&
-    !isSafeId(review.baselineVersionId)
+    (typeof review.baselineVersionId !== 'string' ||
+      review.baselineVersionId.length === 0 ||
+      review.baselineVersionId.length > ID_LIMIT)
   ) {
     return { ok: false };
   }
@@ -298,6 +328,8 @@ export function parseReviewDocument(text) {
   if (!SHA256_PATTERN.test(review.configSha256)) return { ok: false };
   if (!SHA256_PATTERN.test(review.rawSnapshotSha256)) return { ok: false };
   if (!SHA256_PATTERN.test(review.candidateSha256)) return { ok: false };
+  if (review.completeness !== 'complete') return { ok: false };
+  if (!isRecordCounts(review.recordCounts)) return { ok: false };
   if (typeof review.largeRemovalRequired !== 'boolean') return { ok: false };
   const diff = review.diffSummary;
   if (
@@ -337,7 +369,8 @@ export function reviewMatchesIntent(intent, review, configSha256) {
     review.baselineFingerprint === (intent.baselineFingerprint ?? null) &&
     review.configSha256 === configSha256 &&
     review.rawSnapshotSha256 === intent.rawSnapshotSha256 &&
-    review.candidateSha256 === intent.candidateSha256
+    review.candidateSha256 === intent.candidateSha256 &&
+    review.completeness === 'complete'
   );
 }
 
@@ -378,8 +411,9 @@ export function candidateFileId(sha256, candidateVersionId) {
   );
 }
 
-export function candidateFileName(candidateVersionId) {
-  return `${CANDIDATE_FILE_NAME_PREFIX}${candidateVersionId}.json`;
+/** File names embed only derived ids, never raw domain ids. */
+export function candidateFileName(fileId) {
+  return `${CANDIDATE_FILE_NAME_PREFIX}${fileId}.json`;
 }
 
 export function reviewFileId(sha256, binding) {
@@ -393,8 +427,8 @@ export function reviewFileId(sha256, binding) {
   return deriveId(sha256, 'rev1', material);
 }
 
-export function reviewFileName(candidateVersionId) {
-  return `${REVIEW_FILE_NAME_PREFIX}${candidateVersionId}.json`;
+export function reviewFileName(fileId) {
+  return `${REVIEW_FILE_NAME_PREFIX}${fileId}.json`;
 }
 
 export function quarantineFileId(sha256, runId, reason) {
@@ -421,6 +455,33 @@ export function bundleFileId(sha256, candidateVersionId) {
   );
 }
 
-export function bundleFileName(candidateVersionId) {
-  return `bundle-${candidateVersionId}.json`;
+/**
+ * Storage-safe form of a file name: domain stable ids carry unit separators,
+ * which multipart headers and Storage names must never contain. The mapping is
+ * deterministic so retries address the same stored file.
+ */
+export function toSafeFileName(fileName) {
+  const raw = String(fileName);
+  let safe = '';
+  for (const char of raw) {
+    const code = char.codePointAt(0);
+    safe += code !== undefined && code <= 0x1f ? '_' : char;
+  }
+  const trimmed = safe.replace(/\u007f/g, '_');
+  return trimmed.length > 0 && trimmed.length <= 255 ? trimmed : 'bundle.json';
+}
+
+/**
+ * Public generation identity for Appwrite rows. The domain stable id of a
+ * generation is longer than any Appwrite row id or `varchar(64)` column, so
+ * rows use this deterministic 36-char derivation everywhere consistently:
+ * the manifest row id, the descriptor row's `datasetVersionId`, and
+ * `previousVersionId` lineage links.
+ */
+export function publicationRowId(sha256, datasetVersionId) {
+  return deriveId(
+    sha256,
+    'gen1',
+    `intermed-publication-row/v1|${datasetVersionId}`,
+  );
 }
