@@ -1,0 +1,54 @@
+## Codacy 1 - unpredictable UUIDs for writer tokens and tab ids (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+ ❯ packages/local-store/src/multitab.test.ts (8 tests | 1 failed) 199ms
+   × uses unpredictable UUIDs for writer tokens and tab ids 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/multitab.test.ts > uses unpredictable UUIDs for writer tokens and tab ids
+AssertionError: expected 'web-lock-81572a43-db0f-4f42-bade-dc8b…' to match /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-…/
+
+- Expected:
+/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
++ Received:
+"web-lock-81572a43-db0f-4f42-bade-dc8b4acbe84b"
+
+ ❯ packages/local-store/src/multitab.test.ts:324:17
+    322|     return true;
+    323|   });
+    324|   expect(token).toMatch(uuid);
+       |                 ^
+    325|
+    326|   // The tab id is what the fallback marker records while a writer is …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 59 passed (60)
+   Start at  19:46:31
+   Duration  646ms (transform 342ms, setup 0ms, import 734ms, tests 1.24s, environment 0ms)
+
+[exit code: 1]
+
+---
+
+## Codacy 1 - unpredictable UUIDs for writer tokens and tab ids (GREEN)
+
+$ npx vitest run packages/local-store
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/m6
+
+
+ Test Files  5 passed (5)
+      Tests  60 passed (60)
+   Start at  19:47:22
+   Duration  673ms (transform 377ms, setup 0ms, import 754ms, tests 1.29s, environment 0ms)
+
+[exit code: 0]
+

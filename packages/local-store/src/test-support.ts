@@ -40,7 +40,7 @@ let sequence = 0;
  */
 export function uniqueName(prefix = 'intermed-test'): string {
   sequence += 1;
-  return `${prefix}-${Date.now()}-${sequence}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}-${Date.now()}-${sequence}-${crypto.randomUUID()}`;
 }
 
 export interface TestClock {
@@ -125,7 +125,7 @@ export async function testMarkerLock(
   const lock = createMarkerWriterLock(db, {
     now,
     ttlMs: options.ttlMs ?? 60_000,
-    owner: `test-tab-${Math.random().toString(36).slice(2)}`,
+    owner: `test-tab-${crypto.randomUUID()}`,
     schedule: (callback) => {
       beat = callback;
       return () => {

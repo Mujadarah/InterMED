@@ -75,7 +75,8 @@ export function createWebWriterLock(
 ): DatasetWriterLock | null {
   if (!locks) return null;
   const lease: WriterLease = {
-    token: `web-lock-${Math.random().toString(36).slice(2)}`,
+    // crypto.randomUUID: an id another tab cannot predict or collide with.
+    token: `web-lock-${crypto.randomUUID()}`,
     // The platform holds the lock for the whole callback: nothing can take it.
     revalidate: async () => true,
   };

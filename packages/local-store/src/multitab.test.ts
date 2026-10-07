@@ -7,6 +7,7 @@ import {
   bundle,
   sharedBus,
   testClock,
+  testDatabase,
   testMarkerLock,
   testStore,
   uniqueName,
@@ -294,4 +295,65 @@ it('tells other tabs when one tab clears the local data', async () => {
     eventsA.close();
     eventsB.close();
   }
+});
+
+it('uses unpredictable UUIDs for writer tokens and tab ids', async () => {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const names: string[] = [];
+  const locks: LockManagerLike = {
+    async request<T>(
+      name: string,
+      _options: { readonly ifAvailable: true; readonly mode: 'exclusive' },
+      callback: (lock: { readonly name: string } | null) => Promise<T>,
+    ): Promise<T> {
+      const held = names.includes(name) ? null : { name };
+      if (held) names.push(name);
+      try {
+        return await callback(held);
+      } finally {
+        if (held) names.splice(names.indexOf(name), 1);
+      }
+    },
+  };
+  let token = '';
+  const web = createWebWriterLock(locks);
+  await web!.withExclusiveUpdate(async (lease) => {
+    token = lease.token;
+    return true;
+  });
+  expect(token.startsWith('web-lock-')).toBe(true);
+  expect(token.slice('web-lock-'.length)).toMatch(uuid);
+
+  // The tab id is what the fallback marker records while a writer is active.
+  const name = uniqueName();
+  let reached: () => void = () => {};
+  let release: () => void = () => {};
+  const reachedStaging = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = testStore({
+    name,
+    onStaged: async ({ store }) => {
+      if (store === 'ingredients') {
+        reached();
+        await blocked;
+      }
+    },
+  });
+  const alpha = bundle('alpha');
+  const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await reachedStaging;
+
+  const marker = (await (
+    await testDatabase(name)
+  ).writerLock.get('writer-lock'))!;
+  expect(marker.owner).toMatch(
+    /^intermed-tab-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}#\d+$/,
+  );
+
+  release();
+  await running;
 });

@@ -242,7 +242,7 @@ export function createLocalDatasetStore(
   const now = options.now ?? (() => Date.now());
   const retainReadyForMs = options.retainReadyForMs ?? RETAIN_READY_FOR_MS;
   const events = options.events ?? createDefaultEventBus();
-  const owner = `intermed-tab-${Math.random().toString(36).slice(2)}`;
+  const owner = `intermed-tab-${crypto.randomUUID()}`;
 
   const listeners = new Set<() => void>();
   const pins = new Map<string, number>();
