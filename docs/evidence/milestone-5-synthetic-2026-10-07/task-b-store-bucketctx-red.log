@@ -1,0 +1,129 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/appwrite-store.test.ts (58 tests | 4 failed) 69ms
+       × rejects mismatched database/table/bucket context metadata 6ms
+       × rejects recorded real file metadata whose bucketId names another bucket 1ms
+       × never lets the legacy $bucketId key substitute for or mask the real field 1ms
+       × refuses non-string bucket context values when present 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > rejects mismatched database/table/bucket context metadata
+AssertionError: promise resolved "{ '$id': 'file1', name: 'f.bin', …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$id": "file1",
++   "$permissions": [],
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
++   "bucketId": "quarantine",
++   "name": "f.bin",
++   "sizeOriginal": 1,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:955:8
+    953|       await expect(
+    954|         store.getFileMetadata('raw-sources', 'file1'),
+    955|       ).rejects.toMatchObject({
+       |        ^
+    956|         code: 'SERVER_ERROR',
+    957|         safeMessage: 'Response context mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > file metadata bucket context (real bucketId field) > rejects recorded real file metadata whose bucketId names another bucket
+AssertionError: promise resolved "{ '$id': 'file1', name: 'f.bin', …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$id": "file1",
++   "$permissions": [],
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
++   "bucketId": "published-datasets",
++   "name": "f.bin",
++   "sizeOriginal": 25959,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:1086:8
+    1084|       await expect(
+    1085|         store.getFileMetadata('raw-sources', 'file1'),
+    1086|       ).rejects.toMatchObject({
+       |        ^
+    1087|         code: 'SERVER_ERROR',
+    1088|         safeMessage: 'Response context mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > file metadata bucket context (real bucketId field) > never lets the legacy $bucketId key substitute for or mask the real field
+AssertionError: promise resolved "{ '$id': 'file1', name: 'f.bin', …(6) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$bucketId": "raw-sources",
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$id": "file1",
++   "$permissions": [],
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
++   "bucketId": "published-datasets",
++   "name": "f.bin",
++   "sizeOriginal": 16,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:1124:8
+    1122|       await expect(
+    1123|         store.getFileMetadata('raw-sources', 'file1'),
+    1124|       ).rejects.toMatchObject({
+       |        ^
+    1125|         code: 'SERVER_ERROR',
+    1126|         safeMessage: 'Response context mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > file metadata bucket context (real bucketId field) > refuses non-string bucket context values when present
+AssertionError: promise resolved "{ '$id': 'file1', name: 'f.bin', …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$id": "file1",
++   "$permissions": [],
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
++   "bucketId": 7,
++   "name": "f.bin",
++   "sizeOriginal": 16,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:1150:8
+    1148|       await expect(
+    1149|         store.getFileMetadata('raw-sources', 'file1'),
+    1150|       ).rejects.toMatchObject({
+       |        ^
+    1151|         code: 'SERVER_ERROR',
+    1152|         safeMessage: 'Response context mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 54 passed (58)
+   Start at  21:37:48
+   Duration  228ms (transform 36ms, setup 0ms, import 54ms, tests 69ms, environment 0ms)

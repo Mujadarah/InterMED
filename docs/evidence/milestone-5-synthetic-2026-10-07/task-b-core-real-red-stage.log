@@ -1,0 +1,363 @@
+== npx vitest run tests/importer/stage.test.ts ==
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/importer/stage.test.ts (33 tests | 21 failed) 51ms
+     ├ù quarantines a snapshot that is not marked synthetic 4ms
+     ├ù always quarantines partial and incomplete snapshots with no candidate 9ms
+     ├ù always quarantines empty snapshots and never writes a candidate 1ms
+     ├ù enforces config row bounds during staging 1ms
+     ├ù quarantines conflicting duplicate rows 1ms
+     ├ù quarantines rows with foreign provenance 1ms
+     ├ù quarantines dangling entity references 1ms
+     ├ù quarantines when a non-empty baseline has no catalogue 1ms
+     ├ù quarantines conflicting and unsupported encoding requests 1ms
+     ├ù stages a candidate whose generation identity equals the real dataset version id 2ms
+     ├ù derives the generation only from raw SHA and canonical config before sealing 1ms
+     ├ù produces baseline-independent deterministic bytes 3ms
+     ├ù does not report an unchanged next generation as all changed 4ms
+     ├ù counts added, changed, renamed and removed products 2ms
+     ├ù treats an equal count replacement as one addition and one removal 2ms
+     ├ù detects related ingredient link changes as product changes 2ms
+     ├ù detects form changes as product changes 2ms
+     ├ù writes a private large-drop quarantine and keeps the candidate reviewable 2ms
+     ├ù does not flag a large drop when nothing is removed 1ms
+     ├ù keeps run summaries and logs free of source text 1ms
+     ├ù continues staging when the log sink fails 1ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 21 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines a snapshot that is not marked synthetic
+AssertionError: expected 'malformed-snapshot' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "malformed-snapshot"
+
+ Γ¥» tests/importer/stage.test.ts:78:39
+     76|     const result = await runStage(store, rawBytes(document));
+     77|     expect(result.status).toBe('quarantined');
+     78|     expect(result.completenessStatus).toBe('rejected');
+       |                                       ^
+     79|     expect(store.candidates.size).toBe(0);
+     80|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > always quarantines partial and incomplete snapshots
+with no candidate
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ Γ¥» tests/importer/stage.test.ts:103:29
+    101|       });
+    102|       const result = await runStage(store, rawBytes(document));
+    103|       expect(result.status).toBe('quarantined');
+       |                             ^
+    104|       expect(store.candidates.size).toBe(0);
+    105|     }
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > always quarantines empty snapshots and never writes a
+candidate
+AssertionError: expected 'rejected' to be 'empty-snapshot' // Object.is equality
+
+Expected: "empty-snapshot"
+Received: "rejected"
+
+ Γ¥» tests/importer/stage.test.ts:113:39
+    111|     const result = await runStage(store, bytes);
+    112|     expect(result.status).toBe('quarantined');
+    113|     expect(result.completenessStatus).toBe('empty-snapshot');
+       |                                       ^
+    114|     expect(store.candidates.size).toBe(0);
+    115|     expect(store.reviews.size).toBe(0);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > enforces config row bounds during staging
+AssertionError: expected 'malformed-snapshot' to be 'row-bound-exceeded' // Object.is equality
+
+Expected: "row-bound-exceeded"
+Received: "malformed-snapshot"
+
+ Γ¥» tests/importer/stage.test.ts:134:39
+    132|     const result = await runStage(store, bytes, testConfig({ maxRows: ΓÇª
+    133|     expect(result.status).toBe('quarantined');
+    134|     expect(result.completenessStatus).toBe('row-bound-exceeded');
+       |                                       ^
+    135|   });
+    136|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines conflicting duplicate rows
+AssertionError: expected 'malformed-snapshot' to be 'conflicting-duplicate' // Object.is equality
+
+Expected: "conflicting-duplicate"
+Received: "malformed-snapshot"
+
+ Γ¥» tests/importer/stage.test.ts:143:39
+    141|     const result = await runStage(store, rawBytes(document));
+    142|     expect(result.status).toBe('quarantined');
+    143|     expect(result.completenessStatus).toBe('conflicting-duplicate');
+       |                                       ^
+    144|   });
+    145|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines rows with foreign provenance
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ Γ¥» tests/importer/stage.test.ts:152:27
+    150|     document.products[0]!.datasetVersionKey = 'missing-version';
+    151|     const result = await runStage(store, rawBytes(document));
+    152|     expect(result.status).toBe('quarantined');
+       |                           ^
+    153|     expect(result.completenessStatus).toBe('provenance-mismatch');
+    154|     expect(store.candidates.size).toBe(0);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines dangling entity references
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ Γ¥» tests/importer/stage.test.ts:174:27
+    172|     };
+    173|     const result = await runStage(store, rawBytes(document));
+    174|     expect(result.status).toBe('quarantined');
+       |                           ^
+    175|     expect(result.completenessStatus).toBe('referential-integrity');
+    176|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines when a non-empty baseline has no catalogue
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ Γ¥» tests/importer/stage.test.ts:186:27
+    184|     const bytes = rawBytes(buildRawDocument({ products: [fictivolProduΓÇª
+    185|     const result = await runStage(store, bytes);
+    186|     expect(result.status).toBe('quarantined');
+       |                           ^
+    187|     expect(result.completenessStatus).toBe('baseline-unavailable');
+    188|     expect(store.candidates.size).toBe(0);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage quarantine guards > quarantines conflicting and unsupported encoding
+requests
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ Γ¥» tests/importer/stage.test.ts:200:26
+    198|       'windows-1250',
+    199|     );
+    200|     expect(first.status).toBe('quarantined');
+       |                          ^
+    201|     expect(first.completenessStatus).toBe('encoding-mismatch');
+    202|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage generation identity > stages a candidate whose generation identity equals
+the real dataset version id
+AssertionError: expected 'dv\u001fsource.fictivol\u001fsynthetiΓÇª' to be '6cbdb55815d49146' // Object.is equality
+
+Expected: "6cbdb55815d49146"
+Received: "dvsource.fictivolsynthetic-fictivol-v1"
+
+ Γ¥» tests/importer/stage.test.ts:219:45
+    217|     const candidate = store.candidates.get(result.identity.datasetVersΓÇª
+    218|     const snapshot = deserialized(candidate);
+    219|     expect(snapshot.datasetVersions[0]!.id).toBe(
+       |                                             ^
+    220|       result.identity.datasetVersionId,
+    221|     );
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage generation identity > derives the generation only from raw SHA and
+canonical config before sealing
+TypeError: Cannot read properties of undefined (reading 'trim')
+ Γ¥» keyIssue packages/domain/src/ids.ts:85:13
+     83|   field: 'sourceId' | 'sourceRecordKey',
+     84| ): IdIssue | undefined {
+     85|   if (value.trim() === '' || value !== value.trim())
+       |             ^
+     86|     return { code: 'empty-source-key', field };
+     87|   if (hasControlCharacter(value))
+ Γ¥» deriveStableId packages/domain/src/ids.ts:117:5
+ Γ¥» tests/importer/stage.test.ts:239:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage generation identity > produces baseline-independent deterministic bytes
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» tests/importer/stage.test.ts:272:20
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage generation identity > does not report an unchanged next generation as all
+changed
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» tests/importer/stage.test.ts:298:20
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > counts added, changed, renamed and
+removed products
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:372:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > treats an equal count replacement as
+one addition and one removal
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:394:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[15/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > detects related ingredient link
+changes as product changes
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:422:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[16/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > detects form changes as product
+changes
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:435:24
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[17/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > writes a private large-drop
+quarantine and keeps the candidate reviewable
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:453:31
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[18/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage product diff against real baselines > does not flag a large drop when
+nothing is removed
+TypeError: deepEqual is not a function
+ Γ¥» stage packages/importer/src/stage.ts:261:23
+    259|           if (np.commercialName !== pp.commercialName) {
+    260|             renamed++;
+    261|           } else if (!deepEqual(np, pp)) {
+       |                       ^
+    262|             changed++;
+    263|           }
+ Γ¥» diffAgainst tests/importer/stage.test.ts:349:20
+ Γ¥» tests/importer/stage.test.ts:471:31
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[19/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage bounded private records > keeps run summaries and logs free of source text
+TypeError: Cannot read properties of undefined (reading 'length')
+ Γ¥» tests/importer/stage.test.ts:504:33
+    502|     }
+    503|     for (const summary of store.runSummaries.values()) {
+    504|       expect(summary.issueCodes.length).toBeLessThanOrEqual(20);
+       |                                 ^
+    505|     }
+    506|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[20/21]ΓÄ»
+
+ FAIL  tests/importer/stage.test.ts > stage bounded private records > continues staging when the log sink fails
+Error: log sink down
+ Γ¥» transportFault tests/importer/support/fake-ports.ts:301:19
+    299|
+    300| export function transportFault(message: string): FaultSpec {
+    301|   return { error: new Error(message) };
+       |                   ^
+    302| }
+    303|
+ Γ¥» tests/importer/stage.test.ts:521:27
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[21/21]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed | 12 passed (33)
+   Start at  21:05:05
+   Duration  331ms (transform 84ms, setup 0ms, import 168ms, tests 51ms, environment 0ms)
+
+EXIT=1

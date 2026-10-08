@@ -1,0 +1,85 @@
+{
+  "files": [
+    {
+      "file": "task-b-gemini-pr13-65c35ee-review.log",
+      "sha256": "066733c840b952a1a799392035737a0a4c7949bea5738c695a936ae3dc2d6ba1",
+      "lines": 20
+    },
+    {
+      "file": "task-b-gemini-pr13-core-focused-review.log",
+      "sha256": "b1d1938297dc1806e49a93e1f38ac61ef1c09f2480c3238a876e4b5bc05d7be1",
+      "lines": 61
+    },
+    {
+      "file": "task-b-gemini-pr13-fixture-focused-review.log",
+      "sha256": "2126d2683979934699c7e25894bf0193a47d144916204df5bbf095c6e127df24",
+      "lines": 15
+    },
+    {
+      "file": "task-b-gemini-pr13-fixture-protected-payload.json",
+      "sha256": "b455b11d46207603cba1dca80674a4540c3c04b4972833af441f5d8200c6dc73",
+      "lines": 22
+    },
+    {
+      "file": "task-b-gemini-pr13-fixture-protected-review.log",
+      "sha256": "89af651d2c7dac23d9c9c413aaff7996b96ddc0cf0fdcb4356f0fcf00eb0b0b5",
+      "lines": 35
+    },
+    {
+      "file": "task-b-PR13-core-red-correction.md",
+      "sha256": "b4008348ebda9976ddd1d99ce55df913cda9e337b750fffbec8f29b041e89001",
+      "lines": 55
+    },
+    {
+      "file": "task-b-ROOT-PR13-codacy-url-0e387d4-FULL.log",
+      "sha256": "3a7f443cfac671a80f5b0a886e1de2d9a0a5b52a339860ae4d4980b650efff16",
+      "lines": 244
+    },
+    {
+      "file": "task-b-ROOT-PR13-core-9e0a908-FULL.log",
+      "sha256": "56f2d44ffead7e5ed83fa92d2c3d7da1dc9baa2d244f5f63b6cb221e53b8fd8f",
+      "lines": 244
+    },
+    {
+      "file": "task-b-ROOT-PR13-core-corrected-RED.log",
+      "sha256": "a04a9879151cae5e08b763c0f0a14001d754282b56fecb1f1c1e2375801d6e68",
+      "lines": 217
+    },
+    {
+      "file": "task-b-ROOT-PR13-core-immutable-RED.log",
+      "sha256": "6eb38ac8281b5e1c582243a56452fa8210166c56ae9a63501cc56986542b3f30",
+      "lines": 185
+    },
+    {
+      "file": "task-b-ROOT-PR13-fixture-27e0912-focused.log",
+      "sha256": "4666ec86e54e385efc8141369d27e3cb28581940f9add32eb46a902b1a6cb09d",
+      "lines": 10
+    },
+    {
+      "file": "task-b-ROOT-PR13-fixture-47fbf90-focused.log",
+      "sha256": "cb897aaf895655137d11e3e75592a32db3a3f3a521a0f0f2ca38abb38818a2f2",
+      "lines": 38
+    },
+    {
+      "file": "task-b-ROOT-PR13-integration-4743531-FULL.log",
+      "sha256": "85048f685a1a38500654a8853a2a276c46b3d6f7e7ad9d2090e80fc4e43a9b63",
+      "lines": 26
+    },
+    {
+      "file": "task-b-ROOT-PR13-integration-4743531-repeat-FULL.log",
+      "sha256": "7405cecf73a4f0cbefc6d57af8c91d6791e41b6e5d4a16017d619254a2e7a9db",
+      "lines": 247
+    },
+    {
+      "file": "task-b-ROOT-PR13-integration-f5dce13-FULL.log",
+      "sha256": "b2a1b6846645cd5d08f77590c91abdc7e2e50f0018e9166621b4e28ef68e4082",
+      "lines": 247
+    },
+    {
+      "file": "task-b-ROOT-store-redirect-65c35ee.json",
+      "sha256": "f1ef45ad5f59040f0299a5ca3a14478008429056d375c595bd55eac23cd5e165",
+      "lines": 2
+    }
+  ],
+  "redaction": "Windows or POSIX machine path prefixes and owner username replaced by neutral placeholders; all results preserved"
+}

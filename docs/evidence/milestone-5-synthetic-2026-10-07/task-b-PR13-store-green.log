@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 <worktrees>/m5-pr-store-review
+
+
+ Test Files  1 passed (1)
+      Tests  60 passed (60)
+   Start at  12:18:00
+   Duration  244ms (transform 36ms, setup 0ms, import 63ms, tests 75ms, environment 0ms)
+
+

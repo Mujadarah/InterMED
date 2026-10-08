@@ -1,0 +1,18 @@
+# Handler Independent Review - 01f7a45
+
+## Scope
+Review of `infra/appwrite/functions/import-anmdmr/src/intent.js` and `infra/appwrite/functions/import-anmdmr/src/storage-bridge.js` against the M5 orchestration requirements.
+
+## Findings
+1. **Canonical DatasetVersionId U+001F**: Successfully persists the canonical 512-character string containing U+001F in `dataset-versions` and `dataset-bundles`. The readback properly uses the DB values without restoring from runtime parameters, keeping the physical Appwrite `$id` decoupled and safe (<= 36 characters using `publicationRowId()`).
+2. **Download URL**: `resolvePublicUrl` correctly provides a flat HTTPS URL (`publicBundleDownloadUrl`) avoiding fragment markers, which is cleanly serialized during the `readPublishedDescriptor` readback.
+3. **Intent Validation**: `isVersionId()` effectively limits IDs to 512 characters, permits U+001F, and denies unsafe control codes `< 0x20` and `0x7F`. Private intents successfully bind candidate constraints and ensure integrity.
+4. **Collision and Retry**: The implementation properly handles `409` Appwrite conflicts with `createPublic()` correctly emitting ambiguous states and re-reading baselines safely, maintaining the exact lock and lifecycle guarantees. Duplicate publications simply result in `already-published` without re-creating rows.
+5. **Testing**: `handler-reader-identity.test.ts` perfectly asserts the separation of physical `$id` and canonical `datasetVersionId` across generations and correctly ensures that embedded domains and manifest metadata match.
+
+## Blocker Assessment
+No concrete reproducible blockers were identified. The domain rules for `\u001f` delimited canonical identities, direct HTTPS project downloads, Appwrite physical `$id` separation, and lineage agreements are implemented correctly.
+
+## Verdict
+**VERDICT: ACCEPTED**
+No fixes required.

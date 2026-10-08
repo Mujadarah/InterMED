@@ -1,0 +1,39 @@
+
+ RUN  v4.1.11 <worktrees>/m5-pr-store-review
+
+ ❯ tests/importer/appwrite-store.test.ts (59 tests | 1 failed) 78ms
+       × refuses to follow redirects and never forwards credentials to second origin 28ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > credential protection and redirect safety > refuses to follow redirects and never forwards credentials to second origin
+AssertionError: expected StoreError: Missing $id in response { …(2) } to match object { code: 'SERVER_ERROR', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ StoreError {
+    "code": "SERVER_ERROR",
+-   "safeMessage": "Network error",
++   "safeMessage": "Missing $id in response",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:1525:10
+    1523|         await expect(
+    1524|           store.getRow('import-runs', 'probe-row'),
+    1525|         ).rejects.toMatchObject({
+       |          ^
+    1526|           code: 'SERVER_ERROR',
+    1527|           safeMessage: 'Network error',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 58 passed (59)
+   Start at  12:14:27
+   Duration  241ms (transform 34ms, setup 0ms, import 59ms, tests 78ms, environment 0ms)
+
+

@@ -1,0 +1,21 @@
+{
+  "sha": "474353181d899fb1e889d18ee96e82816784cfb4",
+  "files": [
+    {
+      "file": "tests/importer/registry-tarball.ts",
+      "sha256": "f2b615c86a536540fbde84c2882e7e5b49cabd4d3bdca13d09871010c2363f47"
+    },
+    {
+      "file": "tests/importer/fixture-security.test.ts",
+      "sha256": "d9790f789d303b6c2610d095589e56fb0d67c6210b9a23e9e133b5c5cdc3cb50"
+    },
+    {
+      "file": "tests/importer/artifact.test.ts",
+      "sha256": "d009983a063de783cb7aabfa8f919c4a72774dfdb51bb78acba641cb5693ceb2"
+    },
+    {
+      "file": "tests/importer/fake-appwrite-rest.mjs",
+      "sha256": "764cbf2aaa800226179816522ab27dece908dcea4ffbbebabc70c3284acbb052"
+    }
+  ]
+}

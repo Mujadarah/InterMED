@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 <worktree>security
+
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > accepts the committed lockfile pin and other well-formed declared tarball paths 1ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > fails closed on URLs outside the exact registry tarball boundary 1ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > fetches the exact declared pin once, forbids redirects and verifies integrity 10ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > does not hardcode the current pinned version 0ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > rejects tampered tarball bytes for a valid pin (fail closed) 1ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > rejects registry error statuses 0ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > rejects a redirect response without following it 0ms
+ ✓ tests/importer/fixture-security.test.ts > registry tarball install boundary (Codacy PR13 blocker A) > refuses http, foreign origins, userinfo, query and fragment pins before ANY fetch 1ms
+ ✓ tests/importer/fixture-security.test.ts > fake Appwrite REST path dispatch (Codacy PR13 blocker B) > serves the tablesdb rows routes unchanged 3ms
+ ✓ tests/importer/fixture-security.test.ts > fake Appwrite REST path dispatch (Codacy PR13 blocker B) > serves the storage bucket file routes unchanged 2ms
+ ✓ tests/importer/fixture-security.test.ts > fake Appwrite REST path dispatch (Codacy PR13 blocker B) > keeps the REST authorization surface intact 1ms
+ ✓ tests/importer/fixture-security.test.ts > fake Appwrite REST path dispatch (Codacy PR13 blocker B) > refuses malformed paths with the same not_found mapping 1ms
+ ✓ tests/importer/fixture-security.test.ts > fake Appwrite REST path dispatch (Codacy PR13 blocker B) > refuses long adversarial paths in linear time (ReDoS regression guard) 2ms
+ ✓ tests/importer/handler-artifact-flow.test.ts > compiled artifact positive flow (Node 22) > stages and publishes through the isolated artifact with fake HTTP only 2932ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > builds a disjoint isolated runtime artifact and rejects safely 5314ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > builds under the OS temp directory when no output parent is supplied 1055ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > copies function relative JS helpers transitively into src/ 877ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > includes function re-exports in the runtime closure: export { presentField as field } from '@intermed/domain'; 1239ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > includes function re-exports in the runtime closure: export * as domain from '@intermed/domain'; 1242ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > includes function re-exports in the runtime closure: export * from '@intermed/domain'; 1216ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > pins function-direct external imports and runs positive offline 2509ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > fails closed on unpinned function dependencies 750ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > pins literal dynamic imports and fails closed on computed ones 2263ms
+ ✓ tests/importer/artifact.test.ts > importer function artifact > pins the exact handler runtime root dependencies without registry metadata 3380ms
+ ✓ tests/importer/artifact.test.ts > derived runtime lock > keeps the exact transitive closure with root registry integrity 1ms
+ ✓ tests/importer/artifact.test.ts > derived runtime lock > fails closed on unpinned and mismatched external dependencies 0ms
+ ✓ tests/importer/artifact.test.ts > derived runtime lock > fails closed on incomplete, conflicting or unsupported registry pins 0ms
+ ✓ tests/importer/artifact.test.ts > derived runtime lock > fails closed when a workspace dependency leaves the vendored closure 0ms
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  13:22:29
+   Duration  20.19s (transform 266ms, setup 0ms, import 719ms, tests 22.81s, environment 0ms)
+

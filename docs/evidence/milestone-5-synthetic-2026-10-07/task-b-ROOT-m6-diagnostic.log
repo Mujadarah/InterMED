@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 <user-home>/AppData/Local/Temp/opencode/coord-m6
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  11:03:36
+   Duration  688ms (transform 154ms, setup 0ms, import 515ms, tests 27ms, environment 0ms)
+

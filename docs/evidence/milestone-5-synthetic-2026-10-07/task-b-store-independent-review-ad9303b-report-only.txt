@@ -1,0 +1,168 @@
+# Task B — Independent read-only follow-up review of `ad9303b` (Appwrite REST store client + 58 tests)
+
+Reviewer: independent worker (not the author). Review date: 2026-10-07.
+Verdict: **PASS — no code blockers.** D1–D4 of the `cd0d86c` review are
+confirmed fixed (D3 resolved as documented, behaviour deliberately unchanged).
+The previously open `queries[]` vs `queries[N]` encoding question is **closed by
+Root's live evidence**. One minor residual over-restriction (N1) and one
+robustness nit (N2); one bounded live-proof gap remains (N3, out of scope here).
+
+---
+
+## 1. Exact scope, immutability, method
+
+- SHA under review: `ad9303b6c160d8a0dc440cccf7d36681f5c00ad2` — resolved and
+  confirmed equal to HEAD of `codex/m5-appwrite-query-fix`; worktree clean
+  (`git status --porcelain` empty), so on-disk source equals the commit.
+- Scope per brief: **only** the two files, read-only:
+  - `infra/appwrite/functions/import-anmdmr/src/appwrite-store.js` (764 lines)
+  - `tests/importer/appwrite-store.test.ts` (1477 lines, exactly **58** `it`
+    blocks — count verified; 48 at `cd0d86c` + 10 added by the two fix commits)
+- Fix deltas verified via git objects and confined to those two files:
+  `cd0d86c → 42bd88c` (333 insertions/8 deletions) and
+  `42bd88c → ad9303b` (129 insertions/3 deletions).
+- Evidence consulted (pre-existing, cited not reproduced): Root
+  `task-b-independent-public-query-shape.json` (indexed `queries[N]`, live 200),
+  **Root `task-b-independent-public-query-arrayparam.json` + Root
+  `task-b-root-latest-verification.md` (live `queries[]`, HTTP 200, `total: 1`,
+  row `version-aba05ea1b8fc3e49f18d517b`, public project header only,
+  `credentials: omit`)**, M3 recordings at `2f08e8f`
+  (`adapter-published-recording/request-1.json`: `queries[0..3]`, status 200),
+  `store-final-api.md` (client report), prior review
+  `task-b-store-independent-review-cd0d86c.md`.
+- Primary-doc cross-check (public web, no Appwrite/private calls): official
+  `appwrite/sdk-for-web` `src/query.ts` (full `Query` method surface + `{method,
+attribute, values}` wire shape) and `src/client.ts` (`Client.flatten` →
+  indexed `queries[N]` array keys). The appwrite.io reference pages are
+  JS-rendered and returned no endpoint content offline; per Root's latest
+  instruction no further web probing of this shape was pursued.
+- Own verification: one focused read-only test run under pinned Node
+  `v24.21.0` / npm `11.19.0` — `npx vitest run
+tests/importer/appwrite-store.test.ts` → **58/58 passed, exit 0**
+  (`task-b-independent-store-ad9303b-check.log`). No source writes, no commits,
+  no agents, no watchers, no browser, no cloud, no secrets. The root full gate
+  is owned by Root's serial run.
+
+---
+
+## 2. Disposition of the four `cd0d86c` defects
+
+### D1 — query dialect — **FIXED** (`42bd88c`), encoding sub-gap **CLOSED**
+
+- Query strings must now `JSON.parse` to a bounded SDK query **object**
+  (`appwrite-store.js:221-300` `validateQueryObject`; own-key allowlist
+  `method|attribute|values` at `:223-225`, per-method families at `:36-74`).
+  The invented `["equal","status",["x"]]` array dialect is refused before fetch
+  (`:222` non-object → `Invalid queries`).
+- Real recorded shapes accepted and forwarded **verbatim** as the same JSON
+  strings (`:320-321`, `:638-648`): tests `:646-656` use the byte-identical
+  recorded strings (`equal`/`orderDesc`/`limit`), `:670-680` adds
+  `orderAsc('$id')` + `cursorAfter`, `:682-718` exercises 29 legitimate flat
+  forms, `:720-773` refuses 36 malformed objects (incl. `__proto__` and
+  unknown/composite methods) with the constant `Invalid queries` error and
+  asserts no payload echo.
+- Invented arrays rejected pre-fetch: tests `:658-668`, `:558-581`.
+- Parameter key encoding — the flagged open item — **closed**: the client
+  appends repeated `queries[]` (`:644`); Root's live anonymous public read with
+  the client's exact `queries[]` key + SDK-object values returned HTTP 200,
+  `total: 1`, the expected version row (`task-b-independent-public-query-
+arrayparam.json`). Indexed `queries[N]` (M3 recording, official SDK
+  `Client.flatten`, Root's first probe) is likewise live-verified 200. Both
+  encodings are now directly evidenced against the real backend; no residual
+  encoding risk on the read path.
+
+### D2 — file metadata context — **FIXED** (`ad9303b`)
+
+- `verifyContext` now checks the real Storage `bucketId` field (no `$`) against
+  the requested bucket (`appwrite-store.js:375-377`), and the legacy `$bucketId`
+  key is never accepted as real evidence: when present it must be a
+  non-conflicting match, so it can neither substitute for nor mask a conflicting
+  `bucketId` (`:378-380`). Required shape unchanged (`verifyFileShape`
+  `:416-433`).
+- Tests are seeded from the recorded shape (`bucketId`, tests `:244-245`,
+  `:356-367`) and cover: real mismatch rejected (`:1078-1090`), real match
+  accepted (`:1092-1102`), legacy key substitution/masking refused and
+  legacy-only treated as absent (`:1104-1141`), non-string context refused
+  (`:1143-1154`), plus row `$databaseId`/`$tableId` mismatch (`:930-959`).
+
+### D3 — `CONFLICT` without HTTP 409 — **RESOLVED as documented**
+
+- Behaviour deliberately unchanged and still tested: `statusToError` maps only
+  HTTP 409 → `CONFLICT`/`Resource conflict` (`:435-437`), a 400 body saying
+  "Conflict: …" stays `BAD_REQUEST` (test `:1314-1322`), and `releaseLock`
+  raises `CONFLICT`/`Foreign lock refusal` on the HTTP-200 read path
+  (`:737-740`, test `:1422-1434`).
+- The false blanket invariant is gone from the docs: `store-final-api.md`
+  `:203`, `:206-217` now names the two distinct `CONFLICT` causes and scopes
+  "no status other than 409 ever does" to the status mapping only. Matches code.
+
+### D4 — positive 5 MiB boundary test — **FIXED** (`ad9303b`)
+
+- New test `:598-623` uploads exactly `5 MiB` and `5 MiB − 1` as real
+  Blobs through a Response round trip and asserts both succeed
+  (`sizeOriginal` 5 MiB / 5 MiB − 1, two fetches). Pre-fetch rejection of
+  `5 MiB + 1` remains (`:534-540`). Cap is inclusive as documented
+  (`store-final-api.md:177-181`).
+
+---
+
+## 3. Violation sweep (per brief: reproducible violations?)
+
+| Attack surface                         | Result     | Evidence (line refs at `ad9303b`)                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Protocol errors (paths/methods/bodies) | none found | rows `POST/GET/DELETE /tablesdb/intermed-datasets/tables/{t}/rows[/{id}]` (`:593-649`, `:741-745`); files `POST/GET /storage/buckets/{b}/files[/{id}[/download]]` (`:651-704`); list query key `queries[]` live-verified; query-object dialect live-verified; create-row body `{rowId, data, permissions}` (`:325-340`) unchanged from `cd0d86c` (checklist item 5 PASS then)                                                                                                  |
+| Auth / secret reflection               | none found | endpoint + project pinned constants (`:544-549`); server key only in `X-Appwrite-Key` (`:567`); every `StoreError` message is a constant (`:100-107`, `:252-262`, `:435-445`, `:477-532`); canary tests `:1270-1293`, `:1338-1366` + URL/body canary asserts `:787`, `:794`; query violations never echo payload (`:769`)                                                                                                                                                      |
+| Unsafe ACL / permissions               | none found | private row `permissions: []` (`:596`); publish row `['read("any")']` only on `dataset-versions`/`dataset-bundles` (`:614`, allowlist `:86`); private upload sends **no** permission entries (`:662-664`, `:673-678`); publish file exactly one `read("any")` on `published-datasets` only (`:680-685`); `$`-prefixed row-data keys refused (`:330-334`); no exported delete/update (`:752-763`, test `:1370-1383`); tests `:465-494`, `:839-866`                              |
+| Body bounds                            | none found | pre-send byte caps (`:597-599`, `:615-617`); upload `Blob` size strict + `> maxBytes` refused pre-FormData (`:168-178`, `:655`); streamed read enforces the budget on actual bytes and cancels on overflow (`:505-523`), `Content-Length` used only as a strictly-parsed early-refusal signal (`:483-494`, `DECIMAL_LENGTH_PATTERN` `:18`); tests `:1157-1293` (lying CL `:1199-1210`, over-declared early refusal ≤ 1 pull `:1212-1227`, hostile chunks/streams `:1250-1268`) |
+| List / response shape                  | none found | `{total, rows}` envelope + per-row `$id`/context/permissions (`:384-414`); legacy `documents`, bad totals, non-object envelopes rejected (tests `:961-1018`); file `sizeOriginal` bounded numeric (`:426-428`, tests `:1041-1068`)                                                                                                                                                                                                                                             |
+| Lock ownership                         | none found | `acquireLock` sends exactly the 7 configured columns (`:706-717`, test `:1393-1413`); contention → `false`, winner kept (`:1415-1420`); flat `approvalReference` strict string match only, nested `data` ignored, foreign/malformed refused with **zero** DELETEs (`:725-750`, tests `:1422-1434`, `:1455-1475`); explicit `NOT_FOUND` tolerated on release only (`:731-733`, `:747-748`, test `:1446-1453`); no TTL/CAS claims                                                |
+
+---
+
+## 4. Residual findings (minor; not blocking)
+
+- **N1 — MINOR, fail-closed over-restriction:** the flat real SDK methods
+  `containsAny` and `containsAll` (`appwrite/sdk-for-web` `src/query.ts`) fall
+  through to the unknown-method refusal (`appwrite-store.js:297-299`) and are
+  named neither in the method tables (`:36-74`) nor in the refusal note
+  (`:297-298`, `store-final-api.md:239-241`, which lists only composite and
+  distance/vector/geo). Impact: a legitimate flat array-attribute filter is
+  refused pre-fetch — no wrong data, no reflection, recorded usage
+  (`equal`/`orderDesc`/`limit`/`cursorAfter`/`select`) unaffected. Fix options:
+  add a bounded `attribute` + scalar-list family for them, or name them in the
+  documented refusal note.
+- **N2 — NIT, hostile-stream integrity:** `readBoundedBody` accumulates chunk
+  views and copies once at the end (`:502-531`); a stream that reuses/mutates a
+  shared backing buffer across chunks could corrupt the decoded bytes
+  (allocation stays bounded; worst case is a shape/JSON rejection). Copying each
+  chunk at read time would close it. Direction of trust is hostile-toward-
+  importer-server, so cosmetic here.
+- **N3 — BOUNDED PROOF GAP:** this client's write/lock paths have only fake-
+  server evidence; no live Appwrite acceptance run is possible in scope (no
+  cloud mutations). Documented as a known limitation
+  (`store-final-api.md:234-238`). Root reports the full client suite green at
+  `ad9303b` (385 unit + 135 browser, exit 0 — `task-b-root-latest-
+verification.md`), cited, not re-run by me.
+
+## 5. Verdict
+
+**PASS — no code blockers at `ad9303b`.** The query/list primary read path is
+correct against the real dialect and its `queries[]` encoding is live-verified;
+the file-context guard now keys the real `bucketId`; the lock, ACL, secret and
+body-bound behaviours from the `cd0d86c` sweep remain verified. N1 is worth a
+tiny follow-up (or a one-line doc note); N2/N3 need no action in this task.
+
+## 6. Limits and non-claims
+
+- Offline review plus one focused fake-server test run under pinned Node
+  `v24.21.0` / npm `11.19.0`; no live/end-to-end acceptance claim is made on
+  that basis. All live statements cited come from Root's public-read probes
+  (`task-b-independent-public-query-shape.json`,
+  `task-b-independent-public-query-arrayparam.json`) and the M3 recordings at
+  `2f08e8f`, quoted as evidence, not reproduced here (no cloud, no secrets).
+- Root's full serial `npm run check` (which reports exit 0 at `ad9303b`) was not
+  re-run by me; my run covers `tests/importer/appwrite-store.test.ts` only
+  (58/58, `task-b-independent-store-ad9303b-check.log`).
+- Not reviewed (other pending tasks): importer core, stage/publisher, function
+  handler `main.js`, artifact build, publication retry coordination.
+- This task was strictly read-only: no commits, no repo file writes, no push.

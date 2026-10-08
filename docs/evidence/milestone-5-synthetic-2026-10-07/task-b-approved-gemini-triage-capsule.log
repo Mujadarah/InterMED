@@ -1,0 +1,13 @@
+=== WORKER REPORT ===
+
+| ID | Status | Location | Required Action |
+|:---|:---|:---|:---|
+| F2 | deliberatelimit | `appwrite-store.js:429` `acquireLock` | Add safe owner recovery documentation since automatic lock stealing is rejected. |
+| F3 | notproven | `storage-bridge.js:408` `createPrivateRowSemantics` | None. Outcomes are immutable/deterministic, so skipping the `rowMatches` check does not cause inconsistent staging. |
+| F4 | falsepositive | `parser-facade.ts:51` `ParseQuarantineReason` | Reject claim. `ParseQuarantineReason` is a strict, fixed literal string union, so there is no untrusted free-text leakage. |
+| F5 | falsepositive | `intent.js:15` / `envelope.js:15` | None. `OPERATION_PATTERN` regexes are identical copies and there is no current mismatch. |
+| F6 | falsepositive | `normalize.ts:1` `normalizeKey` | None. Because `toLowerCase()` commutes with case-insensitive equality, it's impossible for an intent to be accepted by `intent.js` but rejected by `stage.ts`. |
+| F7 | falsepositive | `parser-facade.ts:182` `normalizeRowList` | None. The strict `5MiB` / `maxRawBytes` limits ensure duplicate accumulation remains far below V8 memory thresholds. |
+| F8 | falsepositive | `storage-bridge.js:192` `listBaselineRows` | None. The query uses `queryOrderDesc('publishedAt')`, which naturally guarantees picking the correct newest baseline within the defensive 100-row guard. |
+| F9 | confirmedcurrentbug | `intent.js:358` `publicationRowId` | Fix the stale comment that claims opaque 36-char limits are used everywhere when actual `datasetVersionId` lengths store up to 512 chars. |
+| F10 | deliberatelimit | `main.js:70` `catch (error)` block | None. Bridge errors (`artifact-too-large`, `dataset-mismatch`) safely throw up to the root block and trigger a fail-closed HTTP 500 response without leaking details. |

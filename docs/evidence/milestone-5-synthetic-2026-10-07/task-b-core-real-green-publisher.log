@@ -1,0 +1,11 @@
+== npx vitest run tests/importer/publisher.test.ts ==
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  41 passed (41)
+   Start at  21:25:30
+   Duration  393ms (transform 108ms, setup 0ms, import 196ms, tests 89ms, environment 0ms)
+
+EXIT=0

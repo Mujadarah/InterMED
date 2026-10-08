@@ -1,0 +1,6 @@
+{
+  "node": "v24.21.0",
+  "externalRequests": 0,
+  "loopbackRedirectRequests": 1,
+  "fakeCredentialForwarded": true
+}

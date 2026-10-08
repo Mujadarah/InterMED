@@ -1,0 +1,22 @@
+== DOCS worker focused format check (2026-10-07) ==
+
+Scope: this worker owns only the five documentation files and the Milestone 5
+evidence pack. Per brief, no full npm run check, no browser run, no cloud, no
+agents, no watchers were executed here.
+
+$ npx prettier --check docs/MILESTONE_5_EVIDENCE.md docs/decisions/0003-synthetic-importer-boundaries.md docs/APPWRITE_RUNBOOK.md docs/DEVELOPMENT.md packages/README.md "docs/evidence/milestone-5-synthetic-2026-10-07/**/*.{md,json}"
+
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+
+Run 2 after the DOCS- logs were added to the staged tree: same command,
+"All matched files use Prettier code style!", EXIT=0 (22:42).
+
+Note on one earlier mis-invocation (honestly recorded): the same check was once
+run with explicit "*.log" and "*.txt" paths included. Prettier then fails with
+"No parser could be inferred" (exit 2) because evidence .log/.txt copies are
+outside its parser scope. That was a command error by this worker, not a
+formatting failure; the repository gate "npm run format:check"
+(prettier --check .) skips those extensions, and the corrected focused command
+above exits 0.

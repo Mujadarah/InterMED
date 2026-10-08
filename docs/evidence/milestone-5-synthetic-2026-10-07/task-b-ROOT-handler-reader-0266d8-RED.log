@@ -1,0 +1,64 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/handler-reader-identity.test.ts (1 test | 1 failed) 34ms
+     × keeps one public identity from the manifest row id to the embedded catalogue 34ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/handler-reader-identity.test.ts > writer-to-reader public identity (handler -> REST -> M3 reader) > keeps one public identity from the manifest row id to the embedded catalogue
+AssertionError: the embedded DatasetVersion.id must be the manifest row $id: expected 'dv\u001fsource.synthetic\u001fgen-3f5…' to be 'gen1880d3fcb069e3140bd5446770dd2f256' // Object.is equality
+
+Expected: "gen1880d3fcb069e3140bd5446770dd2f256"
+Received: "dvsource.syntheticgen-3f5dc856ec9e65ccb842338d6fd2799147f9d09fc6ba960ba3c0c6eadf6da4e9"
+
+ ❯ tests/importer/handler-reader-identity.test.ts:226:10
+    224|           'the embedded DatasetVersion.id must be the manifest row $id…
+    225|         )
+    226|         .toBe(manifest.datasetVersionId);
+       |          ^
+    227|       expect
+    228|         .soft(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/importer/handler-reader-identity.test.ts > writer-to-reader public identity (handler -> REST -> M3 reader) > keeps one public identity from the manifest row id to the embedded catalogue
+AssertionError: the embedded DatasetVersion.id must itself be a valid Appwrite row id: expected 'dv\u001fsource.synthetic\u001fgen-3f5…' to match /^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,35}$/
+
+- Expected:
+/^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,35}$/
+
++ Received:
+"dvsource.syntheticgen-3f5dc856ec9e65ccb842338d6fd2799147f9d09fc6ba960ba3c0c6eadf6da4e9"
+
+ ❯ tests/importer/handler-reader-identity.test.ts:232:10
+    230|           'the embedded DatasetVersion.id must itself be a valid Appwr…
+    231|         )
+    232|         .toMatch(APPWRITE_ID);
+       |          ^
+    233|       for (const id of provenanceVersionIds(snapshot)) {
+    234|         expect
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/importer/handler-reader-identity.test.ts > writer-to-reader public identity (handler -> REST -> M3 reader) > keeps one public identity from the manifest row id to the embedded catalogue
+AssertionError: every provenance datasetVersionId must be the manifest row $id: expected 'dv\u001fsource.synthetic\u001fgen-3f5…' to be 'gen1880d3fcb069e3140bd5446770dd2f256' // Object.is equality
+
+Expected: "gen1880d3fcb069e3140bd5446770dd2f256"
+Received: "dvsource.syntheticgen-3f5dc856ec9e65ccb842338d6fd2799147f9d09fc6ba960ba3c0c6eadf6da4e9"
+
+ ❯ tests/importer/handler-reader-identity.test.ts:239:12
+    237|             'every provenance datasetVersionId must be the manifest ro…
+    238|           )
+    239|           .toBe(manifest.datasetVersionId);
+       |            ^
+    240|       }
+    241|     } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  00:15:10
+   Duration  362ms (transform 134ms, setup 0ms, import 224ms, tests 34ms, environment 0ms)

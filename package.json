@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json",
     "test": "vitest run",
     "test:browser": "playwright test",
     "check:boundaries": "node scripts/check-boundaries.mjs",

@@ -1,0 +1,105 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/appwrite-store.test.ts (53 tests | 5 failed) 56ms
+       × accepts the recorded SDK query objects and forwards them verbatim 4ms
+       × rejects the invented array query shapes before fetch 14ms
+       × accepts the official orderAsc $id and cursorAfter paging shapes 0ms
+       × accepts every legitimate flat SDK query form without over-restricting 0ms
+       × encodes list queries as queries[] parameters without changing the path 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > SDK query object protocol (recorded Appwrite shapes) > accepts the recorded SDK query objects and forwards them verbatim
+AssertionError: promise rejected "StoreError: Invalid queries { …(2) }" instead of resolving
+ ❯ tests/importer/appwrite-store.test.ts:619:8
+    617|       await expect(
+    618|         store.listRows('dataset-versions', RECORDED_QUERIES),
+    619|       ).resolves.toBeDefined();
+       |        ^
+    620|       const [call] = calls();
+    621|       if (!call) expect.unreachable('no call recorded');
+
+Caused by: StoreError: Invalid queries
+ ❯ infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:143:13
+ ❯ validateQueries infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:128:18
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:457:21
+ ❯ tests/importer/appwrite-store.test.ts:618:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'BAD_REQUEST', safeMessage: 'Invalid queries' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > SDK query object protocol (recorded Appwrite shapes) > rejects the invented array query shapes before fetch
+AssertionError: promise resolved "{ total: +0, rows: [] }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "rows": [],
++   "total": 0,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:632:10
+    630|         await expect(
+    631|           store.listRows('dataset-versions', [bad]),
+    632|         ).rejects.toMatchObject({
+       |          ^
+    633|           code: 'BAD_REQUEST',
+    634|           safeMessage: 'Invalid queries',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > SDK query object protocol (recorded Appwrite shapes) > accepts the official orderAsc $id and cursorAfter paging shapes
+StoreError: Invalid queries
+ ❯ infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:143:13
+    141|     }
+    142|     if (!Array.isArray(parsed) || parsed.length === 0) {
+    143|       throw new StoreError('BAD_REQUEST', 'Invalid queries');
+       |             ^
+    144|     }
+    145|     if (typeof parsed[0] !== 'string') {
+ ❯ validateQueries infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:128:18
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:457:21
+ ❯ tests/importer/appwrite-store.test.ts:646:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > SDK query object protocol (recorded Appwrite shapes) > accepts every legitimate flat SDK query form without over-restricting
+StoreError: Invalid queries
+ ❯ infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:143:13
+    141|     }
+    142|     if (!Array.isArray(parsed) || parsed.length === 0) {
+    143|       throw new StoreError('BAD_REQUEST', 'Invalid queries');
+       |             ^
+    144|     }
+    145|     if (typeof parsed[0] !== 'string') {
+ ❯ validateQueries infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:128:18
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:457:21
+ ❯ tests/importer/appwrite-store.test.ts:684:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > exact REST shape > encodes list queries as queries[] parameters without changing the path
+StoreError: Invalid queries
+ ❯ infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:143:13
+    141|     }
+    142|     if (!Array.isArray(parsed) || parsed.length === 0) {
+    143|       throw new StoreError('BAD_REQUEST', 'Invalid queries');
+       |             ^
+    144|     }
+    145|     if (typeof parsed[0] !== 'string') {
+ ❯ validateQueries infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:128:18
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:457:21
+ ❯ tests/importer/appwrite-store.test.ts:802:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 48 passed (53)
+   Start at  21:06:04
+   Duration  436ms (transform 48ms, setup 0ms, import 70ms, tests 56ms, environment 0ms)
