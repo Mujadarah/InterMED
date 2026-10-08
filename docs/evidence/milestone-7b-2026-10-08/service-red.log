@@ -1,0 +1,35 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/application/medication-detail.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/application/medication-detail.test.ts (0 test)
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/application/medication-detail.test.ts [ apps/web/src/application/medication-detail.test.ts ]
+Error: Cannot find module './medication-detail' imported from
+<worktree>/apps/web/src/application/medication-detail.test.ts
+ ❯ apps/web/src/application/medication-detail.test.ts:8:1
+      6| } from '@intermed/domain';
+      7| import { product as makeProduct } from '../../../../tests/domain/build…
+      8| import {
+       | ^
+      9|   createMedicationDetailService,
+     10|   MedicationDetailGenerationChangedError,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:23:33
+   Duration  161ms (transform 46ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)

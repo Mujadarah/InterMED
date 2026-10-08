@@ -8,11 +8,16 @@ import {
   unavailableMedicationSearch,
   type MedicationSearchService,
 } from './medication-search';
+import {
+  unavailableMedicationDetail,
+  type MedicationDetailService,
+} from './medication-detail';
 
 export interface AppServices {
   readonly info: BootstrapInfo;
   readonly dataset: DatasetStateSource;
   readonly medicationSearch: MedicationSearchService;
+  readonly medicationDetail: MedicationDetailService;
 }
 
 /**
@@ -25,7 +30,13 @@ export function createServices(
   provider: BootstrapInfoProvider,
   dataset: DatasetStateSource,
   medicationSearch: MedicationSearchService = unavailableMedicationSearch,
+  medicationDetail: MedicationDetailService = unavailableMedicationDetail,
 ): AppServices {
   if (config.mode !== 'mock') throw new Error('Only mock mode is supported');
-  return { info: provider.getInfo(), dataset, medicationSearch };
+  return {
+    info: provider.getInfo(),
+    dataset,
+    medicationSearch,
+    medicationDetail,
+  };
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
   DatasetUpdateState,
@@ -41,9 +41,76 @@ function generationOf(
   return 'generation' in state ? state.generation : null;
 }
 
-function SearchResult({ row }: { row: DisambiguatedSearchResult }) {
+function SearchResultDetails({ row }: { row: DisambiguatedSearchResult }) {
+  return (
+    <dl className="search-result-details">
+      <div>
+        <dt>Active ingredient(s)</dt>
+        <dd>{row.ingredients}</dd>
+      </div>
+      <div>
+        <dt>Strength</dt>
+        <dd>{row.strength}</dd>
+      </div>
+      <div>
+        <dt>Dosage form</dt>
+        <dd>{row.dosageForm}</dd>
+      </div>
+      <div>
+        <dt>Route</dt>
+        <dd>{row.route}</dd>
+      </div>
+      <div>
+        <dt>Authorization status</dt>
+        <dd>{row.authorization}</dd>
+      </div>
+      <div>
+        <dt>Manufacturer</dt>
+        <dd>{row.manufacturer}</dd>
+      </div>
+      <div>
+        <dt>Pack/presentation</dt>
+        <dd>{row.pack}</dd>
+      </div>
+      <div>
+        <dt>CIM</dt>
+        <dd>{row.cim}</dd>
+      </div>
+      <div>
+        <dt>Catalogue record status</dt>
+        <dd>{row.catalogueStatus}</dd>
+      </div>
+      {row.sourceProductIdSuffix && (
+        <div>
+          <dt>Source product ID</dt>
+          <dd>{row.sourceProductIdSuffix}</dd>
+        </div>
+      )}
+      {row.productIdSuffix && (
+        <div>
+          <dt>Product ID</dt>
+          <dd>{row.productIdSuffix}</dd>
+        </div>
+      )}
+    </dl>
+  );
+}
+
+function SearchResult({
+  row,
+  query,
+}: {
+  row: DisambiguatedSearchResult;
+  query: string;
+}) {
   const product = row.match.record.product;
-  const href = `/medication/${encodeURIComponent(product.id)}`;
+  const path = `/medication/${encodeURIComponent(product.id)}`;
+  const href = query.trim()
+    ? {
+        pathname: path,
+        search: `?${new URLSearchParams({ q: query }).toString()}`,
+      }
+    : path;
   const sourceProductId = row.sourceProductIdSuffix
     ? `. Source product ID: ${row.sourceProductIdSuffix}`
     : '';
@@ -59,56 +126,7 @@ function SearchResult({ row }: { row: DisambiguatedSearchResult }) {
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
       >
         <span className="search-result-name">{product.commercialName}</span>
-        <dl className="search-result-details">
-          <div>
-            <dt>Active ingredient(s)</dt>
-            <dd>{row.ingredients}</dd>
-          </div>
-          <div>
-            <dt>Strength</dt>
-            <dd>{row.strength}</dd>
-          </div>
-          <div>
-            <dt>Dosage form</dt>
-            <dd>{row.dosageForm}</dd>
-          </div>
-          <div>
-            <dt>Route</dt>
-            <dd>{row.route}</dd>
-          </div>
-          <div>
-            <dt>Authorization status</dt>
-            <dd>{row.authorization}</dd>
-          </div>
-          <div>
-            <dt>Manufacturer</dt>
-            <dd>{row.manufacturer}</dd>
-          </div>
-          <div>
-            <dt>Pack/presentation</dt>
-            <dd>{row.pack}</dd>
-          </div>
-          <div>
-            <dt>CIM</dt>
-            <dd>{row.cim}</dd>
-          </div>
-          <div>
-            <dt>Catalogue record status</dt>
-            <dd>{row.catalogueStatus}</dd>
-          </div>
-          {row.sourceProductIdSuffix && (
-            <div>
-              <dt>Source product ID</dt>
-              <dd>{row.sourceProductIdSuffix}</dd>
-            </div>
-          )}
-          {row.productIdSuffix && (
-            <div>
-              <dt>Product ID</dt>
-              <dd>{row.productIdSuffix}</dd>
-            </div>
-          )}
-        </dl>
+        <SearchResultDetails row={row} />
       </Link>
     </li>
   );
@@ -125,10 +143,29 @@ export function MedicationSearchPage({
   const state = useSyncExternalStore(dataset.subscribe, dataset.getState);
   const generation = generationOf(state);
   const generationId = generation?.generationId ?? null;
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const requestRevision = useRef(0);
+
+  // Keep the settled query in the URL so the browser Back button restores it.
+  // The write is debounced like the search itself and replaces the current
+  // history entry, so typing never creates history entries.
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          if (query.trim()) next.set('q', query);
+          else next.delete('q');
+          return next;
+        },
+        { replace: true },
+      );
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timeout);
+  }, [query, setSearchParams]);
 
   useEffect(() => {
     const revision = ++requestRevision.current;
@@ -301,7 +338,11 @@ export function MedicationSearchPage({
           aria-label="Medication search results"
         >
           {createDisambiguatedSearchResults(result.results).map((row) => (
-            <SearchResult key={row.match.record.product.id} row={row} />
+            <SearchResult
+              key={row.match.record.product.id}
+              row={row}
+              query={query}
+            />
           ))}
         </ol>
       )}

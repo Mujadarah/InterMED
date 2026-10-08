@@ -1,0 +1,33 @@
+
+> intermed@0.0.0 test:browser
+> playwright test tests/browser/medication-search.spec.ts
+
+node.exe : [WebServer] (node:14572) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:38544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 3 workers
+
+(node:41700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:50996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:38056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 2 [chromium-desktop] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (1.1s)
+  ok 1 [webkit-phone] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (5.1s)
+  -  5 [webkit-phone] › tests\browser\medication-search.spec.ts:414:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+  ok 3 [webkit-tablet] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (5.3s)
+  -  6 [webkit-tablet] › tests\browser\medication-search.spec.ts:414:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":1918.3,"localStoreStagingMilliseconds":5184.1,"totalFixtureMilliseconds":7102.4,"indexMilliseconds":590.9,"indexedProductCount":20000,"warmupKeyToRenderMilliseconds":845.8,"keyToRenderP95Milliseconds":{"oneCharacter":266.9,"twoCharacters":255,"fourCharacters":253.4},"coreSearchP95Milliseconds":{"oneCharacter":6.1,"twoCharacters":4.2,"fourCharacters":6}}
+  ok 4 [chromium-desktop] › tests\browser\medication-search.spec.ts:414:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue (24.1s)
+
+  2 skipped
+  4 passed (32.7s)

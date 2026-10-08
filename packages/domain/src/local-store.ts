@@ -9,8 +9,15 @@
 
 import type {
   ActiveIngredient,
+  ATCCode,
+  DataSource,
+  DatasetVersion,
+  DosageForm,
+  Manufacturer,
+  MarketingAuthorizationHolder,
   MedicationIngredient,
   MedicationProduct,
+  RegulatoryDocument,
 } from './entities';
 import type { MedicationSearchRecord } from './medication-search';
 import type {
@@ -64,6 +71,26 @@ export interface LocalDatasetCandidate {
   readonly generationId: string;
   readonly version: string;
   readonly publishedAt: string | null;
+}
+
+/** One ingredient join and its optional canonical ingredient from a detail read. */
+export interface MedicationProductDetailIngredient {
+  readonly medicationIngredient: MedicationIngredient;
+  readonly activeIngredient: ActiveIngredient | null;
+}
+
+/** Source-preserving related records assembled from one pinned generation. */
+export interface MedicationProductDetail {
+  readonly generation: LocalDatasetGeneration;
+  readonly product: MedicationProduct;
+  readonly ingredients: readonly MedicationProductDetailIngredient[];
+  readonly dosageForm: DosageForm | null;
+  readonly atcCodes: readonly ATCCode[];
+  readonly manufacturers: readonly Manufacturer[];
+  readonly marketingAuthorizationHolder: MarketingAuthorizationHolder | null;
+  readonly regulatoryDocuments: readonly RegulatoryDocument[];
+  readonly dataSource: DataSource | null;
+  readonly datasetVersion: DatasetVersion | null;
 }
 
 /**
@@ -167,6 +194,10 @@ export interface GenerationReader {
   productIngredients(
     productId: MedicationProductId,
   ): Promise<readonly MedicationIngredient[]>;
+  /** Related product detail records from this reader's pinned generation. */
+  productDetail(
+    productId: MedicationProductId,
+  ): Promise<MedicationProductDetail | null>;
   /** Generation-scoped name lookup. Prefix is matched on a folded name. */
   productsByNamePrefix(prefix: string): Promise<readonly MedicationProduct[]>;
   /** Generation-scoped DCI lookup. Prefix is matched on a folded DCI token. */

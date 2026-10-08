@@ -1,0 +1,47 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/MedicationDetailPage.test.tsx
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx (0 test)
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx [
+apps/web/src/presentation/MedicationDetailPage.test.tsx ]
+Error: Failed to resolve import "./MedicationDetailPage" from
+"apps/web/src/presentation/MedicationDetailPage.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File:
+<worktree>/apps/web/src/presentation/MedicationDetailPage.test.tsx:28:37
+  7  |  import { MISSING, presentField, unknownField } from "@intermed/domain";
+  8  |  import { atc, document, dosageForm, emptyCatalogue, ingredient, join, manufacturer, holder, product as
+makeProduct } ...
+  9  |  import { MedicationDetailPage } from "./MedicationDetailPage";
+     |                                        ^
+  10 |  var _jsxFileName =
+"<worktree>/apps/web/src/presentation/MedicationDetail...
+  11 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/node.js:8766:39
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/node.js:8763:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/node.js:26423:18
+ ❯ node_modules/vite/dist/node/chunks/node.js:26493:30
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/node.js:26459:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/node.js:8545:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/node.js:19988:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:25:40
+   Duration  9.92s (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 9.78s)

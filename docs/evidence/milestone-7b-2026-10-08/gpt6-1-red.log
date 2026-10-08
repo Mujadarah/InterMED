@@ -1,0 +1,70 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (25 tests | 8 failed) 1219ms
+   × rejects a detail read whose ATCCode reference no longer resolves 94ms
+   × rejects a detail read whose Manufacturer reference no longer resolves 35ms
+   × rejects a detail read whose RegulatoryDocument reference no longer resolves 32ms
+   × rejects a detail read whose DosageForm reference no longer resolves 30ms
+   × rejects a detail read whose MarketingAuthorizationHolder reference no longer resolves 32ms
+   × rejects a detail read whose DataSource reference no longer resolves 27ms
+   × rejects a detail read whose DatasetVersion reference no longer resolves 24ms
+   × rejects a detail read whose ActiveIngredient reference no longer resolves 44ms
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx (11 tests | 1 failed) 804ms
+   × reports damaged local records instead of blaming the source 22ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose ATCCode reference no longer resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose Manufacturer reference no longer resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose RegulatoryDocument reference no longer
+resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose DosageForm reference no longer resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose MarketingAuthorizationHolder reference
+no longer resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose DataSource reference no longer resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose DatasetVersion reference no longer
+resolves
+ FAIL  packages/local-store/src/readers.test.ts > rejects a detail read whose ActiveIngredient reference no longer
+resolves
+AssertionError: expected { generation: { …(12) }, …(9) } to be an instance of MedicationDetailIntegrityError
+ ❯ packages/local-store/src/readers.test.ts:104:19
+    102|       .catch((thrown: unknown) => thrown);
+    103|
+    104|     expect(error).toBeInstanceOf(MedicationDetailIntegrityError);
+       |                   ^
+    105|     expect((error as Error).name).toBe('MedicationDetailIntegrityError…
+    106|     expect((error as Error).message).toContain(kind);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx > reports damaged local records instead of blaming the
+source
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  Some locally stored records for this product are missing or damaged. The source may have provided them. Check
+dataset status.
+Received:
+  Medication detail could not be read. Try again or check dataset status.
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx:321:17
+    319|
+    320|   const alert = await screen.findByRole('alert');
+    321|   expect(alert).toHaveTextContent(
+       |                 ^
+    322|     'Some locally stored records for this product are missing or damag…
+    323|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  9 failed | 27 passed (36)
+   Start at  00:01:48
+   Duration  4.16s (transform 523ms, setup 0ms, import 1.40s, tests 2.02s, environment 2.08s)

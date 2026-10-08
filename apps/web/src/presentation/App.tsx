@@ -11,20 +11,18 @@ import { useEffect, useRef } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
+import { MedicationDetailPage } from './MedicationDetailPage';
 import { MedicationSearchPage } from './MedicationSearchPage';
 import { ShellStatus } from './ShellStatus';
 
-function MedicationDetailPlaceholder() {
+function MedicationDetailRoute({ services }: { services: AppServices }) {
   const { productId } = useParams();
   return (
-    <section aria-labelledby="medication-detail-title">
-      <h1 id="medication-detail-title">
-        Medication detail is not available yet
-      </h1>
-      <p>
-        Product id: <code>{productId ?? 'Not provided by source'}</code>
-      </p>
-    </section>
+    <MedicationDetailPage
+      productId={productId ?? ''}
+      dataset={services.dataset}
+      detail={services.medicationDetail}
+    />
   );
 }
 
@@ -44,7 +42,12 @@ export function App({
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef(pathname);
   useEffect(() => {
-    if (previousPath.current !== pathname) main.current?.focus();
+    if (previousPath.current !== pathname) {
+      const heading =
+        main.current?.querySelector<HTMLElement>('h1[tabindex="-1"]');
+      if (heading) heading.focus();
+      else main.current?.focus();
+    }
     previousPath.current = pathname;
   }, [pathname]);
 
@@ -182,7 +185,7 @@ export function App({
           />
           <Route
             path="/medication/:productId"
-            element={<MedicationDetailPlaceholder />}
+            element={<MedicationDetailRoute services={services} />}
           />
           <Route
             path="*"

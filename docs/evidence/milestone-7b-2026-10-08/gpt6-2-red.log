@@ -1,0 +1,239 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx (14 tests | 3 failed) 597ms
+   × states the source active-ingredient text before the individual ingredient rows 42ms
+   × explains a composition that has source DCI text but no ingredient records 22ms
+   × calls the composition missing only when the source provided neither 21ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx > states the source active-ingredient text before the
+individual ingredient rows
+TestingLibraryElementError: Unable to find an element with the text: Active ingredient(s) as stated by source. This
+could be because the text is broken up by multiple elements. In this case, you can provide a function for your text
+matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<section
+  aria-labelledby="medication-composition-title"
+>
+  <h2
+    id="medication-composition-title"
+  >
+    Composition
+  </h2>
+  <ol
+    aria-label="Product ingredients"
+    class="detail-card-list"
+  >
+    <li
+      class="detail-card"
+    >
+      <h3>
+        Fictional ingredient text from source
+      </h3>
+      <dl
+        class="detail-list detail-list-compact"
+      >
+        <div>
+          <dt>
+            Source ingredient text
+          </dt>
+          <dd>
+            Fictional ingredient text from source
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Mapping status
+          </dt>
+          <dd>
+            Confirmed mapping
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Preferred name
+          </dt>
+          <dd>
+            Preferred fictitious name
+          </dd>
+        </div>
+        <div>
+          <dt>
+            DCI
+          </dt>
+          <dd>
+            Source DCI text
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Strength as stated by source
+          </dt>
+          <dd>
+            500,125 mg?
+          </dd>
+        </div>
+      </dl>
+      <div
+        class="data-quality-note"
+      >
+        <h4>
+          Data-quality notes
+        </h4>
+        <ul>
+          <li>
+            invalid-unit
+          </li>
+          <li>
+            ambiguous-decimal
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li
+      class="detail-card"
+    >
+      <h3>
+        Fictional unresolved ingredient text
+      </h3>
+      <dl
+        class="detail-list detail-list-compact"
+      >
+        <div>
+          <dt>
+            Source ingredient text
+          </dt>
+          <dd>
+            Fictional unresolved ingredient text
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Mapping status
+          </dt>
+          <dd>
+            Unresolved or ambiguous mapping
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Unconfirmed candidate name
+          </dt>
+          <dd>
+            Not provided by source
+          </dd>
+        </div>
+        <div>
+          <dt>
+            DCI
+          </dt>
+          <dd>
+            Not provided by source
+          </dd>
+        </div>
+        <div>
+          <dt>
+            Strength as stated by source
+          </dt>
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 11 passed (14)
+   Start at  00:11:07
+   Duration  2.39s (transform 127ms, setup 0ms, import 496ms, tests 597ms, environment 1.11s)
+
+          <dd>
+            Not provided by source
+          </dd>
+        </div>
+      </dl>
+    </li>
+  </ol>
+</section>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx:442:25
+    440|   const composition = screen.getByRole('region', { name: 'Composition'…
+    441|   expect(
+    442|     within(composition).getByText('Active ingredient(s) as stated by s…
+       |                         ^
+    443|   ).toBeVisible();
+    444|   const sourceDci = within(composition).getByText('Original source DCI…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx > explains a composition that has source DCI text but
+no ingredient records
+TestingLibraryElementError: Unable to find an element with the text: Synthetic verbatim source DCI text. This could be
+because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to
+make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<section
+  aria-labelledby="medication-composition-title"
+>
+  <h2
+    id="medication-composition-title"
+  >
+    Composition
+  </h2>
+  <p>
+    Not provided by source
+  </p>
+</section>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx:474:25
+    472|   const composition = screen.getByRole('region', { name: 'Composition'…
+    473|   expect(
+    474|     within(composition).getByText('Synthetic verbatim source DCI text'…
+       |                         ^
+    475|   ).toBeVisible();
+    476|   expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx > calls the composition missing only when the source
+provided neither
+TestingLibraryElementError: Unable to find an element with the text: Active ingredient(s) as stated by source. This
+could be because the text is broken up by multiple elements. In this case, you can provide a function for your text
+matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<section
+  aria-labelledby="medication-composition-title"
+>
+  <h2
+    id="medication-composition-title"
+  >
+    Composition
+  </h2>
+  <p>
+    Not provided by source
+  </p>
+</section>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx:498:25
+    496|   const composition = screen.getByRole('region', { name: 'Composition'…
+    497|   expect(
+    498|     within(composition).getByText('Active ingredient(s) as stated by s…
+       |                         ^
+    499|   ).toBeVisible();
+    500|   expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯

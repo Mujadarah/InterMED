@@ -8,14 +8,15 @@ type HarnessWindow = Window & {
 
 // Core-search p95 is the product budget and is asserted on every machine.
 // Index build, IndexedDB staging and key-to-render are wall-clock figures that
-// swing with machine load (staging measured 4.8–10.5 s locally and 13–26 s on
-// GitHub runners for the same code), so they are asserted only as broad
-// regression guards. Their targets (index < 5 s, staging < 5 s, key-to-render
-// p95 < 300 ms including the 200 ms debounce) are reported in the logged
-// measurements and tracked in docs/MILESTONE_7_EVIDENCE.md.
+// swing with machine load (staging measured 4.8â€“10.5 s locally, 13â€“26 s on
+// Linux GitHub runners and 26â€“72 s on the same Windows runner image for the
+// same code), so they are asserted only as broad regression guards. Their
+// targets (index < 5 s, staging < 5 s, key-to-render p95 < 300 ms including
+// the 200 ms debounce) are reported in the logged measurements and tracked in
+// docs/MILESTONE_7_EVIDENCE.md.
 const SEARCH_PERFORMANCE_BUDGETS = {
   indexMilliseconds: 15_000,
-  stagingMilliseconds: 60_000,
+  stagingMilliseconds: 120_000,
   keyToRenderMilliseconds: 750,
   coreSearchMilliseconds: 100,
 };
@@ -357,12 +358,63 @@ test.describe.serial('medication search browser coverage', () => {
       }
       await expect(candidate).toBeFocused();
       await page.keyboard.press('Enter');
+      const detailTitle = page.getByRole('heading', {
+        name: 'Fictivol alpha',
+        level: 1,
+      });
+      await expect(detailTitle).toBeVisible();
+      await expect(detailTitle).toBeFocused();
+      for (const sectionName of [
+        'Identification',
+        'Composition',
+        'ATC codes',
+        'Manufacturers and marketing authorization holder',
+        'Regulatory documents',
+        'Source and dataset provenance',
+      ])
+        await expect(
+          page.getByRole('heading', { name: sectionName, level: 2 }),
+        ).toBeVisible();
       await expect(
-        page.getByRole('heading', {
-          name: 'Medication detail is not available yet',
+        page.getByText('illustrative, not an official classification', {
+          exact: true,
         }),
       ).toBeVisible();
-      await expect(page.locator('code')).toContainText('SP-FICTIVOL');
+      const backLink = page.getByRole('link', {
+        name: 'Back to results for fictivol',
+      });
+      await expect(backLink).toHaveAttribute('href', '/search?q=fictivol');
+      expect(
+        (await backLink.boundingBox())?.height ?? 0,
+      ).toBeGreaterThanOrEqual(44);
+      const documentLink = page.getByRole('link', {
+        name: /Open source document in a new tab/,
+      });
+      await expect(documentLink).toBeVisible();
+      expect(
+        (await documentLink.boundingBox())?.height ?? 0,
+      ).toBeGreaterThanOrEqual(44);
+
+      await page.context().setOffline(true);
+      await expect(
+        page.getByText(
+          'This document link needs an internet connection. It is unavailable while offline.',
+          { exact: true },
+        ),
+      ).toBeVisible();
+      await expect(documentLink).not.toBeVisible();
+      await expect(detailTitle).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Composition', level: 2 }),
+      ).toBeVisible();
+
+      // The browser Back button must restore the query and the same results:
+      // the search page keeps the settled query in the URL.
+      await page.goBack();
+      await expect(page).toHaveURL(/\/search\?q=fictivol$/);
+      await expect(input).toHaveValue('fictivol');
+      await expect(status).toHaveText('1 medication candidate found.');
+      await expect(candidate).toBeVisible();
     } finally {
       await server.close();
     }
@@ -372,7 +424,7 @@ test.describe.serial('medication search browser coverage', () => {
     page,
   }, testInfo: TestInfo) => {
     test.skip(testInfo.project.name !== 'chromium-desktop');
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
 
     const server = await productionServer();
     server.revision('harness');

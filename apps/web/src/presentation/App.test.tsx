@@ -3,8 +3,14 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { afterEach, expect, it } from 'vitest';
-import type { DatasetStateSource, DatasetUpdateState } from '@intermed/domain';
+import { afterEach, expect, it, vi } from 'vitest';
+import type {
+  DatasetStateSource,
+  DatasetUpdateState,
+  LocalDatasetGeneration,
+} from '@intermed/domain';
+import { presentField } from '@intermed/domain';
+import { product as makeProduct } from '../../../../tests/domain/builders';
 import { App } from './App';
 
 afterEach(cleanup);
@@ -13,6 +19,31 @@ const dataset: DatasetStateSource = {
   getState: () => neverDownloaded,
   subscribe: () => () => {},
 };
+const appGeneration: LocalDatasetGeneration = {
+  generationId: 'generation-app-test',
+  dataset: 'synthetic-medication-catalogue',
+  version: 'synthetic-app-test',
+  schemaVersion: 'medication-catalogue-1',
+  sourceIds: [],
+  publishedAt: null,
+  importedAt: '2026-10-01T00:00:00Z',
+  downloadedAt: '2026-10-02T00:00:00Z',
+  checksum: 'synthetic-app-checksum',
+  coverage: 'Synthetic fixture only.',
+  recordCounts: { products: 1 },
+  synthetic: true,
+};
+const appDatasetState: DatasetUpdateState = {
+  status: 'ready',
+  generation: appGeneration,
+};
+const appDataset: DatasetStateSource = {
+  getState: () => appDatasetState,
+  subscribe: () => () => {},
+};
+const appProduct = makeProduct('SP-APP-TEST', 'Fictivol app test', {
+  strengthText: presentField('250 fictional units'),
+});
 const services = {
   info: {
     label: 'Synthetic contributor mode',
@@ -29,6 +60,9 @@ const services = {
       indexDurationMilliseconds: 0,
       searchDurationMilliseconds: 0,
     }),
+  },
+  medicationDetail: {
+    productDetail: async () => null,
   },
 };
 
@@ -97,16 +131,53 @@ it('registers the medication search route in navigation', async () => {
   );
 });
 
-it('registers the part A medication detail placeholder with the product id', () => {
+it('opens a local candidate, restores its search query, and focuses the detail heading', async () => {
+  const search = vi.fn(async () => ({
+    generationId: appGeneration.generationId,
+    results: [
+      {
+        record: {
+          product: appProduct,
+          ingredientNames: ['Fictivolinum'],
+          atcCodes: ['SYN-APP'],
+          dosageFormName: 'fictional tablet',
+          manufacturerNames: ['Fictional Works'],
+        },
+        rank: 'exact' as const,
+      },
+    ],
+    total: 1,
+    truncated: false,
+    indexedProductCount: 1,
+    indexDurationMilliseconds: 0,
+    searchDurationMilliseconds: 0,
+  }));
+  const productDetail = vi.fn(async () => null);
+  const user = userEvent.setup();
   render(
-    <MemoryRouter initialEntries={['/medication/synthetic-product-id']}>
-      <App services={services} />
+    <MemoryRouter initialEntries={['/search?q=fictivol']}>
+      <App
+        services={{
+          ...services,
+          dataset: appDataset,
+          medicationSearch: { search },
+          medicationDetail: { productDetail },
+        }}
+      />
     </MemoryRouter>,
   );
+  expect(await screen.findByRole('searchbox')).toHaveValue('fictivol');
+  const candidate = await screen.findByRole('link', {
+    name: /Open Fictivol app test/,
+  });
+  await user.click(candidate);
+
   expect(
-    screen.getByRole('heading', {
-      name: 'Medication detail is not available yet',
-    }),
-  ).toBeVisible();
-  expect(screen.getByText('synthetic-product-id')).toBeVisible();
+    await screen.findByRole('heading', { name: 'Product not found' }),
+  ).toHaveFocus();
+  expect(productDetail).toHaveBeenCalledWith(appProduct.id);
+  expect(
+    screen.getByRole('link', { name: 'Back to results for fictivol' }),
+  ).toHaveAttribute('href', '/search?q=fictivol');
+  expect(search).toHaveBeenCalledWith('fictivol', expect.any(AbortSignal));
 });

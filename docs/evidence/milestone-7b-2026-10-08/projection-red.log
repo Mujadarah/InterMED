@@ -1,0 +1,89 @@
+
+> intermed@0.0.0 test
+> vitest run packages/local-store/src/readers.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (17 tests | 5 failed) 378ms
+   × assembles a product detail from its pinned generation 13ms
+   × keeps missing source fields and absent relationships explicit in the projection 8ms
+   × returns removed and unresolved products with multiple documents and a missing URL 10ms
+   × preserves unmapped composition and the nonfatal quality tokens 11ms
+   × returns null for a product id absent from the pinned generation 6ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > assembles a product detail from its pinned generation
+TypeError: pinned.productDetail is not a function
+ ❯ packages/local-store/src/readers.test.ts:429:31
+    427|
+    428|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    429|   const detail = await pinned.productDetail(alpha.productIds['SP-PLACE…
+       |                               ^
+    430|
+    431|   expect(detail).not.toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > keeps missing source fields and absent relationships explicit in the
+projection
+TypeError: reader.productDetail is not a function
+ ❯ packages/local-store/src/readers.test.ts:530:31
+    528|   const reader = (await store.openReader())!;
+    529|
+    530|   const detail = await reader.productDetail(
+       |                               ^
+    531|     fixture.productIds['SP-FICTIVOL']!,
+    532|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > returns removed and unresolved products with multiple documents and
+a missing URL
+TypeError: reader.productDetail is not a function
+ ❯ packages/local-store/src/readers.test.ts:623:32
+    621|   database.close();
+    622|
+    623|   const removed = await reader.productDetail(
+       |                                ^
+    624|     fixture.productIds['SP-FICTIVOL']!,
+    625|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > preserves unmapped composition and the nonfatal quality tokens
+TypeError: reader.productDetail is not a function
+ ❯ packages/local-store/src/readers.test.ts:667:31
+    665|   const reader = (await store.openReader())!;
+    666|
+    667|   const detail = await reader.productDetail(
+       |                               ^
+    668|     fixture.productIds['SP-FICTIVOL']!,
+    669|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > returns null for a product id absent from the pinned generation
+TypeError: reader.productDetail is not a function
+ ❯ packages/local-store/src/readers.test.ts:706:23
+    704|   if (!absentId.ok) throw new Error('The synthetic product id was reje…
+    705|
+    706|   await expect(reader.productDetail(absentId.id)).resolves.toBeNull();
+       |                       ^
+    707|   reader.release();
+    708| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 12 passed (17)
+   Start at  21:22:28
+   Duration  612ms (transform 89ms, setup 0ms, import 138ms, tests 378ms, environment 0ms)

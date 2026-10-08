@@ -1,0 +1,48 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx (16 tests | 1 failed) 633ms
+   × keeps focus on an element the user reached while the read was loading 20ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/MedicationDetailPage.test.tsx > keeps focus on an element the user reached while the
+read was loading
+Error: expect(element).toHaveFocus()
+
+Expected element with focus:
+  <a
+  class="detail-back-link"
+  data-discover="true"
+  href="/search"
+>
+  Back to medication search
+</a>
+Received element with focus:
+  <h1
+  id="medication-detail-title"
+  tabindex="-1"
+>
+  Fictivol detail
+</h1>
+ ❯ apps/web/src/presentation/MedicationDetailPage.test.tsx:600:20
+    598|   await act(async () => read.settle());
+    599|
+    600|   expect(backLink).toHaveFocus();
+       |                    ^
+    601| });
+    602|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 passed (16)
+   Start at  00:21:26
+   Duration  2.29s (transform 125ms, setup 0ms, import 469ms, tests 633ms, environment 1.00s)
