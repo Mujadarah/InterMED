@@ -22,10 +22,33 @@ import { developmentShell } from './application/shell';
  * once per page and never downloads anything by itself.
  */
 let browserDataset: LocalDatasetStore | undefined;
+const medicationSearchServices = new WeakMap<
+  LocalDatasetStore,
+  MedicationSearchService
+>();
 
 function browserDatasetStore(): LocalDatasetStore {
   browserDataset ??= createLocalDatasetStore();
   return browserDataset;
+}
+
+function medicationSearchFor(
+  store: LocalDatasetStore,
+): MedicationSearchService {
+  let service = medicationSearchServices.get(store);
+  if (!service) {
+    service = createMedicationSearchService({
+      activeGenerationId: () => {
+        const state = store.getState();
+        return 'generation' in state
+          ? (state.generation?.generationId ?? null)
+          : null;
+      },
+      openReader: () => store.openReader(),
+    });
+    medicationSearchServices.set(store, service);
+  }
+  return service;
 }
 
 /**
@@ -37,11 +60,13 @@ export function Bootstrap({
   env,
   shell = developmentShell,
   dataset,
+  localStore: injectedLocalStore,
   medicationSearch,
 }: {
   env: Record<string, unknown>;
   shell?: ShellController;
   dataset?: DatasetStateSource;
+  localStore?: LocalDatasetStore;
   medicationSearch?: MedicationSearchService;
 }) {
   let config: AppConfig;
@@ -63,20 +88,13 @@ export function Bootstrap({
       </div>
     );
   }
-  const localStore = dataset ? undefined : browserDatasetStore();
+  const localStore =
+    injectedLocalStore ?? (dataset ? undefined : browserDatasetStore());
   const datasetSource = dataset ?? localStore!;
   const searchService =
     medicationSearch ??
     (localStore
-      ? createMedicationSearchService({
-          activeGenerationId: () => {
-            const state = datasetSource.getState();
-            return 'generation' in state
-              ? (state.generation?.generationId ?? null)
-              : null;
-          },
-          openReader: () => localStore.openReader(),
-        })
+      ? medicationSearchFor(localStore)
       : unavailableMedicationSearch);
   return (
     <App

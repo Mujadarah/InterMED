@@ -22,6 +22,7 @@ import type {
   MedicationSearchService,
 } from '../application/medication-search';
 import { MedicationSearchPage } from './MedicationSearchPage';
+import { getSearchStatusMessage } from './search-status';
 
 afterEach(() => {
   cleanup();
@@ -376,6 +377,135 @@ const unavailableStates: readonly [string, DatasetUpdateState, RegExp][] = [
     /storage is full and no active copy is available/,
   ],
 ];
+
+it.each(unavailableStates)(
+  'builds a status message for the %s dataset state',
+  (_name, state, expected) => {
+    expect(
+      getSearchStatusMessage({ datasetState: state, query: '', search: null }),
+    ).toMatch(expected);
+  },
+);
+
+it.each([
+  [
+    'ready',
+    { status: 'ready', generation } satisfies DatasetUpdateState,
+    'Enter a name, active ingredient, ATC code, or manufacturer to search.',
+  ],
+  [
+    'checking',
+    { status: 'checking', generation } satisfies DatasetUpdateState,
+    'Checking for a dataset update. The active local dataset remains available.',
+  ],
+  [
+    'update-available',
+    {
+      status: 'update-available',
+      generation,
+      candidate: {
+        generationId: 'candidate-generation',
+        version: 'synthetic-next',
+        publishedAt: null,
+      },
+    } satisfies DatasetUpdateState,
+    'A newer dataset synthetic-next is available but is not downloaded. Search uses the currently active dataset.',
+  ],
+  [
+    'downloading',
+    {
+      status: 'downloading',
+      generation,
+      candidate: {
+        generationId: 'candidate-generation',
+        version: 'synthetic-next',
+        publishedAt: null,
+      },
+    } satisfies DatasetUpdateState,
+    'A dataset update is downloading. Search uses the currently active dataset.',
+  ],
+  [
+    'staging',
+    {
+      status: 'staging',
+      generation,
+      candidate: {
+        generationId: 'candidate-generation',
+        version: 'synthetic-next',
+        publishedAt: null,
+      },
+    } satisfies DatasetUpdateState,
+    'A dataset update is being prepared. Search uses the currently active dataset.',
+  ],
+  [
+    'update-failed',
+    {
+      status: 'update-failed',
+      reason: 'bundle-unavailable',
+      generation,
+    } satisfies DatasetUpdateState,
+    'The dataset update failed. The previously active dataset remains available.',
+  ],
+  [
+    'storage-quota',
+    { status: 'storage-quota', generation } satisfies DatasetUpdateState,
+    'Browser storage is full. The previously active dataset remains available.',
+  ],
+])(
+  'builds a status message for an active generation during %s',
+  (_name, state, expected) => {
+    expect(
+      getSearchStatusMessage({
+        datasetState: state,
+        query: '',
+        search: null,
+      }),
+    ).toBe(expected);
+  },
+);
+
+it('covers pending, error, empty, singular, plural, and truncated search status', () => {
+  const ready: DatasetUpdateState = { status: 'ready', generation };
+  expect(
+    getSearchStatusMessage({
+      datasetState: ready,
+      query: 'fictivol',
+      search: { status: 'pending' },
+    }),
+  ).toBe('Searching the active local medication dataset.');
+  expect(
+    getSearchStatusMessage({
+      datasetState: ready,
+      query: 'fictivol',
+      search: { status: 'error' },
+    }),
+  ).toBe(
+    'Search is temporarily unavailable. Try again or check dataset status.',
+  );
+  for (const [total, truncated, expected] of [
+    [0, false, 'No medication products match this search.'],
+    [1, false, '1 medication candidate found.'],
+    [2, false, '2 medication candidates found.'],
+    [73, true, 'Showing 50 of 73 — refine your search.'],
+  ] as const) {
+    expect(
+      getSearchStatusMessage({
+        datasetState: ready,
+        query: 'fictivol',
+        search: {
+          status: 'success',
+          response: response(
+            Array.from({ length: Math.min(total, 50) }, (_, index) =>
+              candidate(`SP-STATUS-${index}`),
+            ),
+            total,
+            truncated,
+          ),
+        },
+      }),
+    ).toBe(expected);
+  }
+});
 
 it.each(unavailableStates)(
   'explains the %s state and links to dataset status',
