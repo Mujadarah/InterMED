@@ -57,7 +57,7 @@ dist/index.html                   1.58 kB │ gzip:   0.64 kB
 dist/assets/index-DOYJIIIf.css    6.57 kB │ gzip:   1.83 kB
 dist/assets/index-CJvC-D9w.js   546.13 kB │ gzip: 165.99 kB
 
-[plugin builtin:vite-reporter] 
+[plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
@@ -264,7 +264,7 @@ M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":4966.2,"l
   ok 156 [webkit-tablet] › tests\browser\storage-recovery.spec.ts:102:1 › a replacement cannot remove the prior shell when active storage status is unavailable (2.0s)
 
 
-  1) [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell 
+  1) [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell
 
     Error: page.goto: FetchEvent.respondWith received an error: TypeError: Load failed
     Call log:
@@ -290,7 +290,7 @@ M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":4966.2,"l
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  2) [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline 
+  2) [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline
 
     Error: page.goto: FetchEvent.respondWith received an error: TypeError: Load failed
     Call log:
@@ -317,7 +317,7 @@ M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":4966.2,"l
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  3) [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation 
+  3) [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation
 
     Error: expect(locator).toBeVisible() failed
 
@@ -351,7 +351,7 @@ M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":4966.2,"l
 
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-  4) [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline 
+  4) [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline
 
     Error: page.goto: FetchEvent.respondWith received an error: TypeError: Load failed
     Call log:
@@ -379,10 +379,10 @@ M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":4966.2,"l
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
   4 failed
-    [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell 
-    [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline 
-    [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation 
-    [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline 
+    [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell
+    [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline
+    [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation
+    [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline
   2 skipped
   150 passed (3.3m)
 CHECK_EXIT=1

@@ -6,7 +6,9 @@ before/after schema, counts, exact command results and unresolved checks.
 Raw captures were written to scratch outside the repository first. These
 copies redact machine paths to `<repo>`, `<temp>`, `<worktree-root>` and
 `<user-home>`, use UTF-8 without BOM and LF endings, and preserve observed
-failures. Keys/session tokens are absent. UTC capture dates are October 8;
+failures. Copied log lines have trailing spaces/tabs removed for Git whitespace
+checks; their factual text/results are unchanged, and raw logs remain in scratch.
+Keys/session tokens are absent. UTC capture dates are October 8;
 the execution date in Europe/Bucharest is October 9.
 
 - `commands.json`: exact targeted schema/readback CLI invocations and exit
