@@ -462,6 +462,96 @@ function applyQueries(rows, queries) {
   return output;
 }
 
+/**
+ * Explicit linear route matching for the fake REST surface: fixed slash
+ * segments compared against fixed literals only — no regular expressions —
+ * so any path, malformed or arbitrarily long, is matched or refused in
+ * linear time. Empty segments never match, exactly like the previous
+ * anchored `[^/]+` captures.
+ */
+
+/** Split a fake REST path into its non-empty slash segments, or null when it cannot match any route. */
+function routeSegments(path) {
+  if (!path.startsWith('/')) return null;
+  const segments = path.slice(1).split('/');
+  return segments.every((segment) => segment.length > 0) ? segments : null;
+}
+
+/** `/tablesdb/{databaseId}/tables/{tableId}/rows` — list (GET) and create (POST). */
+function tableRowsRoute(segments) {
+  if (
+    segments &&
+    segments.length === 5 &&
+    segments[0] === 'tablesdb' &&
+    segments[2] === 'tables' &&
+    segments[4] === 'rows'
+  ) {
+    return { databaseId: segments[1], tableId: segments[3] };
+  }
+  return null;
+}
+
+/** `/tablesdb/{databaseId}/tables/{tableId}/rows/{rowId}` — read (GET) and delete (DELETE). */
+function tableRowRoute(segments) {
+  if (
+    segments &&
+    segments.length === 6 &&
+    segments[0] === 'tablesdb' &&
+    segments[2] === 'tables' &&
+    segments[4] === 'rows'
+  ) {
+    return {
+      databaseId: segments[1],
+      tableId: segments[3],
+      rowId: segments[5],
+    };
+  }
+  return null;
+}
+
+/** `/storage/buckets/{bucketId}/files` — create file (POST). */
+function bucketFilesRoute(segments) {
+  if (
+    segments &&
+    segments.length === 4 &&
+    segments[0] === 'storage' &&
+    segments[1] === 'buckets' &&
+    segments[3] === 'files'
+  ) {
+    return { bucketId: segments[2] };
+  }
+  return null;
+}
+
+/** `/storage/buckets/{bucketId}/files/{fileId}` — file metadata (GET). */
+function bucketFileRoute(segments) {
+  if (
+    segments &&
+    segments.length === 5 &&
+    segments[0] === 'storage' &&
+    segments[1] === 'buckets' &&
+    segments[3] === 'files'
+  ) {
+    return { bucketId: segments[2], fileId: segments[4] };
+  }
+  return null;
+}
+
+/** `/storage/buckets/{bucketId}/files/{fileId}/(download|view)` — file bytes (GET). */
+function bucketContentRoute(segments) {
+  if (
+    segments &&
+    segments.length === 6 &&
+    segments[0] === 'storage' &&
+    segments[1] === 'buckets' &&
+    segments[3] === 'files' &&
+    (segments[5] === 'download' || segments[5] === 'view')
+  ) {
+    return { bucketId: segments[2], fileId: segments[4], verb: segments[5] };
+  }
+  return null;
+}
+
 /** Create an in-memory REST fixture with schema checks, permissions and injectable faults. */
 export function createFakeAppwriteRest(options) {
   const projectId = options.projectId ?? 'intermed-dev';
@@ -587,16 +677,15 @@ export function createFakeAppwriteRest(options) {
         stored.permissions.includes('read("any")'));
 
     const path = call.url.slice(endpoint.length).split('?')[0] ?? '';
-    const tableRows = /^\/tablesdb\/([^/]+)\/tables\/([^/]+)\/rows$/;
-    const tableRow = /^\/tablesdb\/([^/]+)\/tables\/([^/]+)\/rows\/([^/]+)$/;
-    const bucketFiles = /^\/storage\/buckets\/([^/]+)\/files$/;
-    const bucketFile = /^\/storage\/buckets\/([^/]+)\/files\/([^/]+)$/;
-    const bucketContent =
-      /^\/storage\/buckets\/([^/]+)\/files\/([^/]+)\/(download|view)$/;
+    const segments = routeSegments(path);
+    const rowsMatch = tableRowsRoute(segments);
+    const rowMatch = tableRowRoute(segments);
+    const filesMatch = bucketFilesRoute(segments);
+    const contentMatch = bucketContentRoute(segments);
+    const fileMatch = bucketFileRoute(segments) ?? contentMatch;
 
-    const rowsMatch = tableRows.exec(path);
     if (rowsMatch && method === 'GET') {
-      const tableId = rowsMatch[2];
+      const tableId = rowsMatch.tableId;
       if (!FAKE_TABLES[tableId]) return problem(404, 'table_not_found');
       let queries;
       try {
@@ -616,7 +705,7 @@ export function createFakeAppwriteRest(options) {
       return jsonResponse(200, { total: filtered.length, rows: filtered });
     }
     if (rowsMatch && method === 'POST') {
-      const tableId = rowsMatch[2];
+      const tableId = rowsMatch.tableId;
       if (!FAKE_TABLES[tableId]) return problem(404, 'table_not_found');
       let body;
       try {
@@ -645,22 +734,23 @@ export function createFakeAppwriteRest(options) {
       storage.set(rowId, stored);
       return jsonResponse(201, flatRow(tableId, rowId, stored));
     }
-    const rowMatch = tableRow.exec(path);
     if (rowMatch && method === 'GET') {
-      const stored = rows.get(rowMatch[2])?.get(rowMatch[3]);
+      const stored = rows.get(rowMatch.tableId)?.get(rowMatch.rowId);
       if (!stored || !isPublicRow(stored)) return problem(404, 'row_not_found');
-      return jsonResponse(200, flatRow(rowMatch[2], rowMatch[3], stored));
+      return jsonResponse(
+        200,
+        flatRow(rowMatch.tableId, rowMatch.rowId, stored),
+      );
     }
     if (rowMatch && method === 'DELETE') {
-      const storage = rows.get(rowMatch[2]);
-      if (!storage?.has(rowMatch[3])) return problem(404, 'row_not_found');
-      storage.delete(rowMatch[3]);
+      const storage = rows.get(rowMatch.tableId);
+      if (!storage?.has(rowMatch.rowId)) return problem(404, 'row_not_found');
+      storage.delete(rowMatch.rowId);
       return new Response(null, { status: 204 });
     }
 
-    const filesMatch = bucketFiles.exec(path);
     if (filesMatch && method === 'POST') {
-      const bucketId = filesMatch[1];
+      const bucketId = filesMatch.bucketId;
       const storage = files.get(bucketId);
       if (!storage) return problem(404, 'bucket_not_found');
       const form = init?.body;
@@ -680,14 +770,13 @@ export function createFakeAppwriteRest(options) {
       }
       return createFileResponse(bucketId, fileId, file, form, storage);
     }
-    const fileMatch = bucketFile.exec(path) ?? bucketContent.exec(path);
     if (fileMatch && method === 'GET') {
-      const bucketId = fileMatch[1];
-      const fileId = fileMatch[2];
+      const bucketId = fileMatch.bucketId;
+      const fileId = fileMatch.fileId;
       const stored = files.get(bucketId)?.get(fileId);
       if (!stored || !isPublicFile(stored))
         return problem(404, 'file_not_found');
-      if (bucketContent.test(path)) {
+      if (contentMatch !== null) {
         return bytesResponse(200, stored.bytes);
       }
       return jsonResponse(200, flatFile(bucketId, fileId, stored));

@@ -17,6 +17,11 @@ import {
   buildImporterFunctionArtifact,
   deriveRuntimeLock,
 } from '../../scripts/build-importer-function.mjs';
+import {
+  integrityDigest,
+  matchesIntegrity,
+  registryTarballBytes,
+} from './registry-tarball';
 
 interface LockEntry {
   version?: string;
@@ -90,25 +95,13 @@ function resolveNpmInvocation(): { command: string; args: string[] } {
     : { command: npm, args: [] };
 }
 
-/** First ssri digest of an integrity string (`sha512-<base64>`). */
-function integrityDigest(integrity: string): {
-  algorithm: string;
-  expected: string;
-} {
-  const first = integrity.trim().split(/\s+/)[0] ?? '';
-  const dash = first.indexOf('-');
-  return {
-    algorithm: first.slice(0, dash),
-    expected: first.slice(dash + 1),
-  };
-}
-
-function matchesIntegrity(bytes: Buffer, integrity: string): boolean {
-  const { algorithm, expected } = integrityDigest(integrity);
-  return createHash(algorithm).update(bytes).digest('base64') === expected;
-}
-
-/** cacache content store path for a digest (npm cache root, `_cacache` inside). */
+/**
+ * cacache content store path for a digest (npm cache root, `_cacache` inside).
+ * The install network boundary itself lives in `registry-tarball.ts`:
+ * only the exact https registry.npmjs.org tarball declared by the committed
+ * lock may ever be fetched, validated before ANY fetch and SHA512-verified
+ * before the bytes are cached (fail closed).
+ */
 function contentPathFor(cacheRoot: string, integrity: string): string {
   const { algorithm, expected } = integrityDigest(integrity);
   const hex = Buffer.from(expected, 'base64').toString('hex');
@@ -158,25 +151,6 @@ function localTarballBytes(integrity: string): Buffer | null {
     if (matchesIntegrity(bytes, integrity)) return bytes;
   }
   return null;
-}
-
-async function registryTarballBytes(
-  resolved: string,
-  integrity: string,
-): Promise<Buffer> {
-  const response = await fetch(resolved);
-  if (!response.ok) {
-    throw new Error(
-      `Pinned tarball fetch failed for ${resolved}: HTTP ${response.status}`,
-    );
-  }
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (!matchesIntegrity(bytes, integrity)) {
-    throw new Error(
-      `Pinned tarball failed integrity verification: ${resolved}`,
-    );
-  }
-  return bytes;
 }
 
 /**
