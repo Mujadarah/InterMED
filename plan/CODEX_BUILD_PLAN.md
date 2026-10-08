@@ -76,7 +76,7 @@ Acceptance: no query request per keystroke when local data exist; synthetic repr
 
 Part A status: implemented and verified; the full `npm run check` passes on this branch.
 
-Part A adds offline search against one pinned active IndexedDB generation, ranked local matching for commercial/DCI/ATC/manufacturer fields, disambiguating candidate rows, accessible keyboard navigation, `/search`, and the Part B detail placeholder route. The pinned reader exposes `searchRecords()` and this extension requires no schema migration; the published dataset contract is unchanged. Red/green and final validation logs are checked in under [`npm-run-check.log`](../docs/evidence/milestone-7a-2026-10-08/npm-run-check.log). Scope decisions and performance/browser measurements are recorded in the Tempo Docs note “M7A Search Implementation Evidence.”
+Part A adds offline search against one pinned active IndexedDB generation, ranked local matching for commercial/DCI/ATC/manufacturer fields, disambiguating candidate rows, accessible keyboard navigation, `/search`, and the Part B detail placeholder route. The pinned reader exposes `searchRecords()` and this extension requires no schema migration; the published dataset contract is unchanged. Red/green and final validation logs are checked in under [`npm-run-check.log`](../docs/evidence/milestone-7a-2026-10-08/npm-run-check.log). Scope decisions and performance/browser measurements are recorded in [`MILESTONE_7_EVIDENCE.md`](../docs/MILESTONE_7_EVIDENCE.md).
 
 Part B remains open for medication detail content, source links, and detail provenance requirements.
 
