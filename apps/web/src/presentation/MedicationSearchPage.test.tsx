@@ -7,7 +7,7 @@ import {
   render,
   screen,
 } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type {
   DatasetStateSource,
@@ -46,6 +46,15 @@ const generation: LocalDatasetGeneration = {
 
 function dataset(state: DatasetUpdateState): DatasetStateSource {
   return { getState: () => state, subscribe: () => () => {} };
+}
+
+/** Renders the current router location search so tests can assert the URL. */
+function LocationProbe() {
+  return <div data-testid="location-search-probe">{useLocation().search}</div>;
+}
+
+function locationSearch(): string {
+  return screen.getByTestId('location-search-probe').textContent ?? '';
 }
 
 function candidate(
@@ -162,6 +171,61 @@ it('shows local provenance and keeps duplicate names distinct with complete sour
   );
   expect(input).toHaveFocus();
   expect(search.search).toHaveBeenCalledOnce();
+});
+
+it('keeps the settled query in the URL for browser back', async () => {
+  vi.useFakeTimers();
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-BACK-QUERY')])),
+  };
+  render(
+    <MemoryRouter initialEntries={['/search']}>
+      <LocationProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={search}
+      />
+    </MemoryRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  expect(locationSearch()).toBe('');
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  expect(locationSearch()).toBe('?q=fictivol');
+});
+
+it('removes the query from the URL when the input is cleared', async () => {
+  vi.useFakeTimers();
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-CLEARED-QUERY')])),
+  };
+  render(
+    <MemoryRouter initialEntries={['/search?q=fictivol']}>
+      <LocationProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={search}
+      />
+    </MemoryRouter>,
+  );
+  const input = screen.getByRole('searchbox');
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationSearch()).toBe('?q=fictivol');
+
+  fireEvent.change(input, { target: { value: '' } });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  expect(locationSearch()).toBe('');
 });
 
 it('visibly and accessibly distinguishes same-name tablets by active ingredient', async () => {

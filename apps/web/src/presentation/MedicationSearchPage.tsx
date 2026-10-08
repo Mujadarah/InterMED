@@ -137,11 +137,29 @@ export function MedicationSearchPage({
   const state = useSyncExternalStore(dataset.subscribe, dataset.getState);
   const generation = generationOf(state);
   const generationId = generation?.generationId ?? null;
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const requestRevision = useRef(0);
+
+  // Keep the settled query in the URL so the browser Back button restores it.
+  // The write is debounced like the search itself and replaces the current
+  // history entry, so typing never creates history entries.
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          if (query.trim()) next.set('q', query);
+          else next.delete('q');
+          return next;
+        },
+        { replace: true },
+      );
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timeout);
+  }, [query, setSearchParams]);
 
   useEffect(() => {
     const revision = ++requestRevision.current;

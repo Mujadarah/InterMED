@@ -1,0 +1,182 @@
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/MedicationSearchPage.test.tsx
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx (46 tests | 2 failed) 324ms
+   × keeps the settled query in the URL for browser back 10ms
+   × removes the query from the URL when the input is cleared 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > keeps the settled query in the URL for browser back
+AssertionError: expected '' to be '?q=fictivol' // Object.is equality
+
+- Expected
++ Received
+
+- ?q=fictivol
+
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx:200:28
+    198|   });
+    199|
+    200|   expect(locationSearch()).toBe('?q=fictivol');
+       |                            ^
+    201| });
+    202|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > removes the query from the URL when the input is cleared
+AssertionError: expected '?q=fictivol' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?q=fictivol
+
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx:228:28
+    226|   });
+    227|
+    228|   expect(locationSearch()).toBe('');
+       |                            ^
+    229| });
+    230|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 44 passed (46)
+   Start at  23:28:53
+   Duration  1.37s (transform 90ms, setup 0ms, import 259ms, tests 324ms, environment 673ms)
+
+> intermed@0.0.0 test:browser
+> playwright test tests/browser/medication-search.spec.ts
+
+[WebServer] (node:52740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:55604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 3 workers
+
+(node:51744) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:38660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  3 [chromium-desktop] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (6.2s)
+  -  4 [chromium-desktop] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+  x  2 [webkit-phone] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (9.8s)
+  -  5 [webkit-phone] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+  x  1 [webkit-tablet] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (10.2s)
+  -  6 [webkit-tablet] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+
+
+  1) [chromium-desktop] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/search\?q=fictivol$/
+    Received string:  "http://127.0.0.1:55881/search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 5000ms
+        14 × locator resolved to <html lang="en" data-intermed-shell-revision="harness">…</html>
+           - unexpected value "http://127.0.0.1:55881/search"
+
+
+      411 |       // the search page keeps the settled query in the URL.
+      412 |       await page.goBack();
+    > 413 |       await expect(page).toHaveURL(/\/search\?q=fictivol$/);
+          |                          ^
+      414 |       await expect(input).toHaveValue('fictivol');
+      415 |       await expect(status).toHaveText('1 medication candidate found.');
+      416 |       await expect(candidate).toBeVisible();
+        at <worktree>\tests\browser\medication-search.spec.ts:413:26
+
+    Error Context: test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-chromium-desktop\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-chromium-desktop\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-chromium-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [webkit-phone] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/search\?q=fictivol$/
+    Received string:  "http://127.0.0.1:64063/search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 5000ms
+        14 × locator resolved to <html lang="en" data-intermed-shell-revision="harness">…</html>
+           - unexpected value "http://127.0.0.1:64063/search"
+
+
+      411 |       // the search page keeps the settled query in the URL.
+      412 |       await page.goBack();
+    > 413 |       await expect(page).toHaveURL(/\/search\?q=fictivol$/);
+          |                          ^
+      414 |       await expect(input).toHaveValue('fictivol');
+      415 |       await expect(status).toHaveText('1 medication candidate found.');
+      416 |       await expect(candidate).toBeVisible();
+        at <worktree>\tests\browser\medication-search.spec.ts:413:26
+
+    Error Context: test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-phone\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-phone\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [webkit-tablet] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/search\?q=fictivol$/
+    Received string:  "http://127.0.0.1:64062/search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 5000ms
+        13 × locator resolved to <html lang="en" data-intermed-shell-revision="harness">…</html>
+           - unexpected value "http://127.0.0.1:64062/search"
+
+
+      411 |       // the search page keeps the settled query in the URL.
+      412 |       await page.goBack();
+    > 413 |       await expect(page).toHaveURL(/\/search\?q=fictivol$/);
+          |                          ^
+      414 |       await expect(input).toHaveValue('fictivol');
+      415 |       await expect(status).toHaveText('1 medication candidate found.');
+      416 |       await expect(candidate).toBeVisible();
+        at <worktree>\tests\browser\medication-search.spec.ts:413:26
+
+    Error Context: test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-tablet\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-tablet\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\medication-search-medicati-b8c8f-eyboard-after-going-offline-webkit-tablet\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium-desktop] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+    [webkit-phone] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+    [webkit-tablet] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline
+  3 did not run

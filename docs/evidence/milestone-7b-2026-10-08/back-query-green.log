@@ -1,0 +1,38 @@
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/MedicationSearchPage.test.tsx apps/web/src/presentation/App.test.tsx
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  2 passed (2)
+      Tests  51 passed (51)
+   Start at  23:28:38
+   Duration  1.63s (transform 140ms, setup 0ms, import 603ms, tests 820ms, environment 1.42s)
+
+> intermed@0.0.0 test:browser
+> playwright test tests/browser/medication-search.spec.ts
+
+[WebServer] (node:34596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:13916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 3 workers
+
+(node:55928) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30692) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:14516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 3 [chromium-desktop] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (1.3s)
+  ok 1 [webkit-phone] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (4.9s)
+  -  5 [webkit-phone] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+  ok 2 [webkit-tablet] › tests\browser\medication-search.spec.ts:248:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (5.2s)
+  -  6 [webkit-tablet] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":1951.2,"localStoreStagingMilliseconds":5151.8,"totalFixtureMilliseconds":7103,"indexMilliseconds":645.9,"indexedProductCount":20000,"warmupKeyToRenderMilliseconds":904.9,"keyToRenderP95Milliseconds":{"oneCharacter":286.5,"twoCharacters":263.7,"fourCharacters":259.2},"coreSearchP95Milliseconds":{"oneCharacter":6.8,"twoCharacters":5.4,"fourCharacters":7.7}}
+  ok 4 [chromium-desktop] › tests\browser\medication-search.spec.ts:422:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue (25.0s)
+
+  2 skipped
+  4 passed (31.5s)

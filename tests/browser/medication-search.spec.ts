@@ -406,6 +406,14 @@ test.describe.serial('medication search browser coverage', () => {
       await expect(
         page.getByRole('heading', { name: 'Composition', level: 2 }),
       ).toBeVisible();
+
+      // The browser Back button must restore the query and the same results:
+      // the search page keeps the settled query in the URL.
+      await page.goBack();
+      await expect(page).toHaveURL(/\/search\?q=fictivol$/);
+      await expect(input).toHaveValue('fictivol');
+      await expect(status).toHaveText('1 medication candidate found.');
+      await expect(candidate).toBeVisible();
     } finally {
       await server.close();
     }
