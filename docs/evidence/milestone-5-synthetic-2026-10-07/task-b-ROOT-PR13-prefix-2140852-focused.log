@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 <worktrees>/m5-ci-node22
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  12:40:41
+   Duration  3.60s (transform 198ms, setup 0ms, import 463ms, tests 3.03s, environment 0ms)
+

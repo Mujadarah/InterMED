@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 <worktrees>/m5-synthetic-importer-pr
+
+
+ Test Files  2 passed (2)
+      Tests  61 passed (61)
+   Start at  12:34:53
+   Duration  4.25s (transform 233ms, setup 0ms, import 501ms, tests 3.76s, environment 0ms)
+

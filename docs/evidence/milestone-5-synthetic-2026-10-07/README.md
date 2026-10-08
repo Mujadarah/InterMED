@@ -42,6 +42,18 @@ copy time. The repository path-hygiene guard
 (`tests/repository-path-hygiene.test.ts`) remains in force and was re-run over
 this pack.
 
+**PR13 capsule batch (2026-10-08).** The eleven PR13 proof files listed below
+arrived **already sanitized by root** (root eliminated absolute paths,
+usernames, raw snapshots and environment values, and recorded
+`sensitivePathMatches: 0`, `knownCredentialMatches: 0`, `rawSnapshotsIncluded:
+0` and `environmentValuesIncluded: 0` in the capsule's own manifest). This
+worker therefore applied **no path redaction**: only encoding/whitespace
+normalization — eight files are byte-identical, two full-run logs lost one
+trailing-whitespace occurrence each (newline counts unchanged), and the capsule
+manifest went CRLF → LF. Per-file capsule and copy SHA-256 and line counts are
+recorded in `pr13-capsule-copy-validation.json`, and the capsule's own nine
+manifest hash entries were re-verified against the copies.
+
 ## Where the numbers come from
 
 Unit and browser counts in [the Milestone 5 evidence
@@ -172,6 +184,41 @@ Notes:
   and any raw worker stdout or inventory log.
 - This documentation worker's own logs are `DOCS-FREE-FINAL-`-prefixed and are
   written only to the orchestration store.
+
+## Follow-up update — 2026-10-08 (PR13 proof capsule at `923a060`)
+
+Eleven bounded copies (ten payload files plus the capsule's own
+`sanitization-manifest.json`) from the root pre-sanitized capsule
+`<temp>/sanitized-pr13-proof-923a060`, archived unchanged under the copy and
+redaction policy above (no line added, removed, reordered or reworded; no
+version line or result inserted). This worker ran **no test, browser, npm, or
+network command**: the files are copies only, and the copy validation is
+metadata-only (`pr13-capsule-copy-validation.json`).
+
+| File                                                 | What it shows                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sanitization-manifest.json`                         | Root's capsule manifest: nine payload SHA-256 entries (all re-verified against the copies), `sensitivePathMatches: 0`, `knownCredentialMatches: 0`, `rawSnapshotsIncluded: 0`, `environmentValuesIncluded: 0`, `externalRequestsInLoopbackProbe: 0`, contents "test runner results, boolean loopback proof, scoped static review prose only"; counters cover this capsule only |
+| `task-b-ROOT-CodeRabbit-861fe81-focused.log`         | Root focused run of the public CodeRabbit `861fe81` changes: **5 files, 115 tests, passed**                                                                                                                                                                                                                                                                                    |
+| `task-b-ROOT-PR13-store-298497d-FULL.log`            | Root full `npm run check` at author store head `298497d` (worktree `<worktrees>/m5-pr-store-review`): **746 tests (47 files), 150 browser, exit 0**; the log prints no version line and none was added — root reports Node `v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2` flow; integrated at `8e9a89e`                                                            |
+| `task-b-PR13-store-red.log`                          | Author red for the redirect/credential repair: **1 failed / 58 passed (59)**, `appwrite-store.test.ts`                                                                                                                                                                                                                                                                         |
+| `task-b-PR13-store-green.log`                        | Author green after the repair: **60 passed (60)**, exit 0                                                                                                                                                                                                                                                                                                                      |
+| `task-b-ROOT-store-redirect-RED.json`                | Native-`fetch` probe against two owned loopback servers, RED: `externalRequests: 0`, `loopbackRedirectRequests: 1`, `fakeCredentialForwarded: true` (Node `v24.21.0`)                                                                                                                                                                                                          |
+| `task-b-ROOT-store-redirect-GREEN.json`              | Same probe, GREEN: `externalRequests: 0`, `loopbackRedirectRequests: 0`, `fakeCredentialForwarded: false` (Node `v24.21.0`)                                                                                                                                                                                                                                                    |
+| `task-b-gemini-store-review-8e9a89e-report-only.txt` | Scoped Gemini 3.1 Pro store security review of **two files** (`appwrite-store.js`, `appwrite-store.test.ts`): verdict **Scoped ACCEPTED**; static prose only — the reviewer executed no command and no test, and claims no broad whole-patch acceptance; capsule content unchanged                                                                                             |
+| `task-b-ROOT-PR13-ci-d71f668-FULL.log`               | Root full `npm run check` at CI head `d71f668` (worktree `<worktrees>/m5-ci-node22`): **757 tests (47 files), 150 browser, exit 0**; integrated at `6c1c8d0`; no version line in the log, none added                                                                                                                                                                           |
+| `task-b-ROOT-PR13-store-ci-integration.log`          | Combined store + CI focused run: **2 files, 61 tests passed**                                                                                                                                                                                                                                                                                                                  |
+| `task-b-ROOT-PR13-prefix-2140852-focused.log`        | Runtime fake-key follow-up at `2140852` (worktree `<worktrees>/m5-ci-node22`): **1 file, 1 test passed**; integrated at `923a060`                                                                                                                                                                                                                                              |
+
+Notes:
+
+- **No fake credential literal and no superseded static prefix** from the
+  earlier Secrets failures is copied into this pack; both failures are
+  described narratively in [the Milestone 5 evidence
+  record](../../MILESTONE_5_EVIDENCE.md#pr13-repair-in-progress-dated-2026-10-08).
+- The proof shows **0 external requests** in both loopback probe states; that
+  counter describes this probe only and is not a repository-wide claim.
+- Copy validation (hashes, line counts, transformations):
+  [`pr13-capsule-copy-validation.json`](pr13-capsule-copy-validation.json).
 
 ## Inventory
 

@@ -1,0 +1,139 @@
+{
+  "generated": "2026-10-08",
+  "sourceCapsule": "<temp>/sanitized-pr13-proof-923a060",
+  "integrationCommit": "923a060",
+  "pack": "docs/evidence/milestone-5-synthetic-2026-10-07",
+  "method": "SHA-256 of capsule bytes versus copied bytes, plus a line-by-line comparison after trimming line-end whitespace and normalizing CRLF to LF; no line was added, removed, reordered, or reworded, and no test name, count, identifier, exit code, or result was altered.",
+  "summary": {
+    "filesCopied": 11,
+    "byteIdentical": 8,
+    "transformed": 3,
+    "lineCountsUnchanged": 11,
+    "lineForLineIdenticalAfterWhitespaceNormalization": 11,
+    "capsuleManifestHashEntriesChecked": 9,
+    "capsuleManifestHashEntriesMatching": 9
+  },
+  "transformations": [
+    "task-b-ROOT-PR13-ci-d71f668-FULL.log and task-b-ROOT-PR13-store-298497d-FULL.log: one trailing-whitespace occurrence removed per file, newline count unchanged (246 newlines, 247 lines before and after).",
+    "sanitization-manifest.json: CRLF line endings normalized to LF to match the pack encoding policy; 64 newlines before and after."
+  ],
+  "files": [
+    {
+      "name": "sanitization-manifest.json",
+      "lines": 65,
+      "capsuleBytes": 2048,
+      "copiedBytes": 1984,
+      "capsuleSha256": "5BC90120ADD762907604F3E8064A525D3F31B21E255167EA0A6446FD3B03C3B7",
+      "copiedSha256": "C0942564E2D40E758A7EAB1FF024DC226887CE93FDDD4D61CEF291F6E3DBF806",
+      "transformation": "CRLF to LF only",
+      "byteIdentical": false
+    },
+    {
+      "name": "task-b-gemini-store-review-8e9a89e-report-only.txt",
+      "lines": 23,
+      "capsuleBytes": 2002,
+      "copiedBytes": 2002,
+      "capsuleSha256": "CE74E9A58ADEC0A58A16A70A6AD890308A7727C34C7D6C49F844585D4B25481D",
+      "copiedSha256": "CE74E9A58ADEC0A58A16A70A6AD890308A7727C34C7D6C49F844585D4B25481D",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-PR13-store-green.log",
+      "lines": 11,
+      "capsuleBytes": 215,
+      "copiedBytes": 215,
+      "capsuleSha256": "BD4062E509AC9A547215331BF02039D70F7FFA4F2EE6F70B44CE2A559D65B463",
+      "copiedSha256": "BD4062E509AC9A547215331BF02039D70F7FFA4F2EE6F70B44CE2A559D65B463",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-PR13-store-red.log",
+      "lines": 40,
+      "capsuleBytes": 1337,
+      "copiedBytes": 1337,
+      "capsuleSha256": "2F7F90926C4EFD048AF38CA5DFE6E3834F5E9221E12AD2EF8117930839D7A697",
+      "copiedSha256": "2F7F90926C4EFD048AF38CA5DFE6E3834F5E9221E12AD2EF8117930839D7A697",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-ROOT-CodeRabbit-861fe81-focused.log",
+      "lines": 10,
+      "capsuleBytes": 227,
+      "copiedBytes": 227,
+      "capsuleSha256": "CC2EF1B1A0BCC23B5168690C480EBAA71308B3F0DC00BD36912AF9216BD1A6B2",
+      "copiedSha256": "CC2EF1B1A0BCC23B5168690C480EBAA71308B3F0DC00BD36912AF9216BD1A6B2",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-ROOT-PR13-ci-d71f668-FULL.log",
+      "lines": 247,
+      "capsuleBytes": 26242,
+      "copiedBytes": 26241,
+      "capsuleSha256": "6A7761633A8E95FC000489BDD9090F8290D4E12E8B9F11E0AFEB29711276DA52",
+      "copiedSha256": "16D61068FB49585D68917F7F10DAA0AEB1EA84E2EA8A2CE13E414226107C2044",
+      "transformation": "trailing whitespace stripped on one line, line count unchanged",
+      "byteIdentical": false
+    },
+    {
+      "name": "task-b-ROOT-PR13-prefix-2140852-focused.log",
+      "lines": 10,
+      "capsuleBytes": 209,
+      "copiedBytes": 209,
+      "capsuleSha256": "3249DE00EBD3D1E9A95904AD50253B2F1E908B998A4605690D746D3F46B1F0D6",
+      "copiedSha256": "3249DE00EBD3D1E9A95904AD50253B2F1E908B998A4605690D746D3F46B1F0D6",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-ROOT-PR13-store-298497d-FULL.log",
+      "lines": 247,
+      "capsuleBytes": 26255,
+      "copiedBytes": 26254,
+      "capsuleSha256": "14C9A96444AD2EBFE112660806B2D4E50B85BC3B7EBFC2C677EEA97E14E6615D",
+      "copiedSha256": "12320A602E4370F2DAA0DF5EF24B0980DA5C2A2390D7357BFF37B30486933750",
+      "transformation": "trailing whitespace stripped on one line, line count unchanged",
+      "byteIdentical": false
+    },
+    {
+      "name": "task-b-ROOT-PR13-store-ci-integration.log",
+      "lines": 10,
+      "capsuleBytes": 223,
+      "copiedBytes": 223,
+      "capsuleSha256": "C3281C1ACBE276F07D9FE52407EBE2EF549690AEF2D4E98117439C588A78D7B0",
+      "copiedSha256": "C3281C1ACBE276F07D9FE52407EBE2EF549690AEF2D4E98117439C588A78D7B0",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-ROOT-store-redirect-GREEN.json",
+      "lines": 2,
+      "capsuleBytes": 102,
+      "copiedBytes": 102,
+      "capsuleSha256": "06D107EC2D72399501188E5A1C356BACB26D7549701658B1A20E9BD1F6AA17D3",
+      "copiedSha256": "06D107EC2D72399501188E5A1C356BACB26D7549701658B1A20E9BD1F6AA17D3",
+      "transformation": "none",
+      "byteIdentical": true
+    },
+    {
+      "name": "task-b-ROOT-store-redirect-RED.json",
+      "lines": 2,
+      "capsuleBytes": 101,
+      "copiedBytes": 101,
+      "capsuleSha256": "63CF6EC706CC91BB56DE9498FF85286F9D37252C173C3E3C39AA32289CE930AB",
+      "copiedSha256": "63CF6EC706CC91BB56DE9498FF85286F9D37252C173C3E3C39AA32289CE930AB",
+      "transformation": "none",
+      "byteIdentical": true
+    }
+  ],
+  "scopedScan": {
+    "scope": "the 11 files of this capsule only",
+    "sensitiveAbsolutePathMatches": 0,
+    "knownCredentialPatternMatches": 0,
+    "note": "Counts apply to this scanned payload only and are not a claim that the repository, repository history, or any other file is free of secrets. Root pre-sanitized the capsule and recorded the same counters in sanitization-manifest.json."
+  },
+  "notAdded": "No version line, test result, count, timestamp, command, or exit code was added to any copied file."
+}

@@ -157,6 +157,68 @@ operation intent, no private staging/import, no Function execution, no
 deployment, no publication, no schema migration, and no cleanup. Production,
 the shell/hosting project, and source rights are unchanged.
 
+## PR13 repair in progress (dated 2026-10-08)
+
+**PR13 REPAIR IN PROGRESS — proof archived, no acceptance, no mergeable-PR
+claim.** Root supplied a pre-sanitized proof capsule
+(`<temp>/sanitized-pr13-proof-923a060`, 11 files) that is copied **unchanged,
+line for line**, into the evidence pack with metadata-only copy validation
+(`pr13-capsule-copy-validation.json`). This worker executed **no test, browser,
+npm, network, or live command**; every number below comes from the copied root
+or author logs, never from review text, and no credential literal or
+superseded prefix is reproduced anywhere in this pack.
+
+- **CodeRabbit public changes `861fe81` (root, focused): PASSED — 115 tests in
+  5 files** (`task-b-ROOT-CodeRabbit-861fe81-focused.log`).
+- **Author store head `298497d`, integrated at `8e9a89e` (root full): 746 unit
+  tests / 47 files / 150 browser, exit 0**
+  (`task-b-ROOT-PR13-store-298497d-FULL.log`), run by root on Node `v24.21.0` /
+  npm `11.19.0` with the actual Node `v22.23.2` flow; the log prints no version
+  line and none was added.
+- **Native `fetch` redirect/credential repair, two owned loopback servers:**
+  probe **RED — 1 loopback redirect request, `fakeCredentialForwarded: true`,
+  external requests 0** → **GREEN — 0 redirect requests, `false`, external
+  requests 0** (`task-b-ROOT-store-redirect-RED.json`,
+  `task-b-ROOT-store-redirect-GREEN.json`); author red/green
+  **1 failed | 58 passed of 59** → **60 passed**
+  (`task-b-PR13-store-red.log`, `task-b-PR13-store-green.log`).
+- **Scoped Gemini 3.1 Pro store security review of two files: ACCEPTED
+  (static, report-only).** The reviewer read only `appwrite-store.js` and
+  `appwrite-store.test.ts`, executed no command and no test, and claims no
+  broad whole-patch acceptance; the capsule file is unchanged
+  (`task-b-gemini-store-review-8e9a89e-report-only.txt`).
+- **CI head `d71f668`, integrated at `6c1c8d0` (root full): 757 unit tests /
+  47 files / 150 browser, exit 0** (`task-b-ROOT-PR13-ci-d71f668-FULL.log`);
+  the **combined store + CI focused run: 61 tests passed / 2 files**
+  (`task-b-ROOT-PR13-store-ci-integration.log`).
+- **Runtime fake-key follow-up `2140852`, integrated at `923a060` (root,
+  focused): 1 artifact test passed** (`task-b-ROOT-PR13-prefix-2140852-focused.log`).
+
+**Secrets failure history — narrative only; no old credential literal and no
+old prefix is copied.** Two distinct failures are on record. The first was an
+**original test-fixture literal**, an actual fake credential value committed
+inside a fixture; after that literal was removed, the second failure was a
+**static prefix that stayed constant despite a randomized suffix**, so the
+scanner still classified the value as a credential. The public provider's scan
+records **`96eaf261` — FAIL at `6c1c8d0`** versus **`faf599dd` — SUCCESS at
+`923a060`**. These are the linked public check identifiers only.
+
+**CI status.** The **latest two CI runs are pending**. The older **Ubuntu run
+`37757667353` / job `113246098566` at `6c1c8d0` PASSED**; the **Windows leg is
+not yet confirmed**.
+
+**Open repairs.** **Codacy:** 2 fixture blockers, being repaired. **Greptile:**
+3 P1 findings with the **retry-identity test first**, in progress.
+
+**Boundaries unchanged.** **No M5 acceptance**, **no "PR is mergeable" claim**,
+and **no M5 schema change, deployment, private import, Function execution, or
+publication was authorized or run**. Source rights stay **blocked**, M6 stays
+with **issue #12 as owner scope in a separate PR**, and **contract changes:
+none**. This section **supersedes only the CI status** in the dated PR13 note
+above (latest runs pending rather than a single red run); every earlier RED,
+failure, and pending cell keeps its recorded meaning, and root will supply the
+final proof update later.
+
 ## Scope and safety boundary
 
 The importer is limited to fictional synthetic fixtures such as `Synthetica`,

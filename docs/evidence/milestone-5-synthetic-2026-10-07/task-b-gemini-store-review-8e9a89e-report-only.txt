@@ -1,0 +1,22 @@
+=== WORKER REPORT ===
+
+**Files Read:**
+1. `infra/appwrite/functions/import-anmdmr/src/appwrite-store.js`
+2. `tests/importer/appwrite-store.test.ts`
+
+**Verified Line References (`appwrite-store.js`):**
+- **Lines 595-620:** Path boundary enforcement. Verified `path.startsWith('/')` and `!path.startsWith('//')` constraints. The `new URL()` resolution securely normalizes path traversals (e.g. `/%2e%2e/` strictly resolves to `/`), and the `targetUrl.pathname !== TRUSTED_PATH_PREFIX && !targetUrl.pathname.startsWith(TRUSTED_PATH_PREFIX + '/')` check robustly prevents escaping the `/v1` prefix.
+- **Lines 629-631:** Redirect and credential protection. Verified `redirect: 'error'` is statically applied *after* `...options` and `headers` in the `fetch` call. This prevents caller-injected options from overriding the redirect policy and successfully mitigates 302 credential forwarding.
+
+**Verified Line References (`appwrite-store.test.ts`):**
+- **Lines 1484-1547:** Trap server regression test correctly validates `targetRequests === 0` and `fakeKeyForwarded === false`.
+- **Lines 1549-1557:** Explicitly verifies `redirect: 'error'` is securely forced on all outgoing fetches.
+
+**Finding:**
+- **Verdict:** Scoped ACCEPTED.
+- Native `URL` constructors securely enforce the origin/path boundary. Query parameters are handled via `url.search` (Line 711) which accurately preserves normal queries/permissions without interfering with path validation checks.
+- The `redirect: 'error'` patch correctly blocks the previously identified loopback/second-origin credential leak.
+
+**Limitations:**
+- Review scoped strictly to URL boundary logic and `fetch` parameter overrides. Did not execute commands or tests. No broad whole-patch acceptance.
+The plan is approved, and the execution is complete since the required action was to perform a read-only review and output the final `WORKER REPORT` (which I have provided above). No further code changes or command executions are necessary for this scoped review.
