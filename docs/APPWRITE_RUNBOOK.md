@@ -553,11 +553,21 @@ result. Do not copy the artifact into the repository.
 
 Run these from the artifact's parent directory (`--code` must be inside the
 current directory) so the package is the fresh temp artifact, never repository
-source. Explicit function id, explicit development config:
+source. Explicit function id, explicit development config.
+
+The install command is `npm ci --ignore-scripts`: lockfile integrity pins the
+dependency tree, but a fresh Appwrite host starts with **no npm cache** (for
+example no `zod`), so `--offline` would fail with `ENOTCACHED`. **Network
+dependency retrieval is therefore required** for this deployment install, and
+the **offline smoke tests seed the cache explicitly** as a separate local step —
+an offline smoke result is not a deployment result. Nothing in this subsection
+has been executed: **no deployment and no schema approval or execution is
+claimed here**, and each live change keeps its own owner approval (10.3 is
+Approval 1).
 
 ```powershell
 cd <temp>
-npx --yes appwrite-cli@28.1.0 functions create-deployment --function-id import-anmdmr --code <temp>/intermed-importer-function-XXXXXX --entrypoint src/main.js --commands "npm ci --ignore-scripts --offline" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+npx --yes appwrite-cli@28.1.0 functions create-deployment --function-id import-anmdmr --code <temp>/intermed-importer-function-XXXXXX --entrypoint src/main.js --commands "npm ci --ignore-scripts" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
 npx --yes appwrite-cli@28.1.0 functions get-deployment --function-id import-anmdmr --deployment-id <DEPLOYMENT_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
 npx --yes appwrite-cli@28.1.0 functions update-function-deployment --function-id import-anmdmr --deployment-id <DEPLOYMENT_ID> --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
 npx --yes appwrite-cli@28.1.0 functions get --function-id import-anmdmr --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
@@ -617,8 +627,11 @@ Only after an approved diff review: turn on the publish flag in the Console
 function variables (`INTERMED_SYNTHETIC_PUBLISH_ENABLED` exactly `true`), write
 the publish intent (exact schema in 10.0; `approvedAt` pins the publication
 time; `candidateVersionId`, `candidateSha256`, `stageOperationId`, and the
-baseline binding copy the reviewed values), upload it under its reserved name,
-and execute:
+baseline binding copy the reviewed values), then upload it under its reserved
+name. The intent file id is derived from the `operationId`, so the publish
+intent gets **its own id** (`<PUBLISH_OID1_RESULT>` below), **distinct from the
+stage intent's `<OID1_RESULT>`** in 10.4 — never reuse the stage file id — and
+execute:
 
 ```powershell
 node -e "const c=require('node:crypto');const op='op-publish-synth-2026-10-07-a';console.log('oid1'+c.createHash('sha256').update('intermed-op-intent-file/v1|'+op).digest('hex').slice(0,32))"

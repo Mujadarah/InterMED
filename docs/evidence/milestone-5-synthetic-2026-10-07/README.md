@@ -3,7 +3,11 @@
 **Status (updated 2026-10-08, repair verified + focused review accepted):**
 offline **code repaired and root-verified at `9a40644`** (744 tests / 47 files /
 150 browser, exit 0) and the **focused repair review ACCEPTED (repair scope
-only)**; **CI/PR pending**. This pack is **not** an M5 acceptance claim. No M5
+only)**; **CI/PR pending**. The **PR13 documentation review repair is IN
+PROGRESS (2026-10-08)** — see the dated note in
+[`docs/MILESTONE_5_EVIDENCE.md`](../../MILESTONE_5_EVIDENCE.md); no
+acceptance-passed claim is made until root supplies the final results. This
+pack is **not** an M5 acceptance claim. No M5
 live action — raw operation
 intents, private staging/import, Function execution, deployment, schema
 migration, publication, or cleanup — was authorized or executed while it was
