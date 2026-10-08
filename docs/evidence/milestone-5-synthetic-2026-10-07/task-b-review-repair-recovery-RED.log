@@ -1,0 +1,132 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/publication-resume-review.test.ts (10 tests | 7 failed) 52ms
+     × rejects stale-baseline on retry when candidate A has file persisted but descriptor and manifest missing, after baseline advances to B 21ms
+     × rejects stale-baseline on retry when candidate A has file and descriptor persisted but manifest missing, after baseline advances to B 5ms
+     × rejects stale-baseline during recovery when ambiguous write on missing manifest settles as partial, after baseline advances to B 5ms
+     × rejects stale-baseline during recovery when conflict write on missing descriptor settles as partial, after baseline advances to B 4ms
+     × rejects stale-baseline during genuine recovery when injected ambiguous write persists prefix and advances baseline to B 4ms
+     × rejects stale-baseline during genuine recovery when injected conflict on bundle file persists prefix and advances baseline to B 3ms
+     × rejects stored divergent manifest with extra recordCounts key as publication-collision without updating or deleting any objects 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline on retry when candidate A has file persisted but descriptor and manifest missing, after baseline advances to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:85:27
+     83|     // Retry candidate A: must recheck baseline under lock and reject …
+     84|     const retryA = await publishRequest(store, candA);
+     85|     expect(retryA.status).toBe('rejected');
+       |                           ^
+     86|     expect(retryA.reason).toBe('stale-baseline');
+     87|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline on retry when candidate A has file and descriptor persisted but manifest missing, after baseline advances to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:136:27
+    134|     // Retry candidate A: must recheck baseline under lock and reject …
+    135|     const retryA = await publishRequest(store, candA);
+    136|     expect(retryA.status).toBe('rejected');
+       |                           ^
+    137|     expect(retryA.reason).toBe('stale-baseline');
+    138|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline during recovery when ambiguous write on missing manifest settles as partial, after baseline advances to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:181:27
+    179|     const result = await publishRequest(store, candA);
+    180|
+    181|     expect(result.status).toBe('rejected');
+       |                           ^
+    182|     expect(result.reason).toBe('stale-baseline');
+    183|     expect(store.manifests.size).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline during recovery when conflict write on missing descriptor settles as partial, after baseline advances to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:222:27
+    220|     const result = await publishRequest(store, candA);
+    221|
+    222|     expect(result.status).toBe('rejected');
+       |                           ^
+    223|     expect(result.reason).toBe('stale-baseline');
+    224|     expect(store.manifests.size).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline during genuine recovery when injected ambiguous write persists prefix and advances baseline to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:272:27
+    270|
+    271|     expect(injectedFaultCalls).toBe(1);
+    272|     expect(result.status).toBe('rejected');
+       |                           ^
+    273|     expect(result.reason).toBe('stale-baseline');
+    274|     expect(recoveryWriteManifestCalls).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > publisher resumed and recovered baseline recheck under lock (Root confirmed F1) > rejects stale-baseline during genuine recovery when injected conflict on bundle file persists prefix and advances baseline to B
+AssertionError: expected 'published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:332:27
+    330|
+    331|     expect(injectedFaultCalls).toBe(1);
+    332|     expect(result.status).toBe('rejected');
+       |                           ^
+    333|     expect(result.reason).toBe('stale-baseline');
+    334|     expect(recoveryWriteDescriptorCalls).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  tests/importer/publication-resume-review.test.ts > manifest record counts bidirectional equality (Root confirmed F11) > rejects stored divergent manifest with extra recordCounts key as publication-collision without updating or deleting any objects
+AssertionError: expected 'already-published' to be 'rejected' // Object.is equality
+
+Expected: "rejected"
+Received: "already-published"
+
+ ❯ tests/importer/publication-resume-review.test.ts:424:27
+    422|     const result = await publishRequest(store, candA);
+    423|
+    424|     expect(result.status).toBe('rejected');
+       |                           ^
+    425|     expect(result.reason).toBe('publication-collision');
+    426|     expect(result.issues).toContain('publication-manifest-conflict');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 3 passed (10)
+   Start at  11:28:11
+   Duration  355ms (transform 105ms, setup 0ms, import 194ms, tests 52ms, environment 0ms)
+

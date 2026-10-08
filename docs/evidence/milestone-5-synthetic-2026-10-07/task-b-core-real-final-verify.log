@@ -1,0 +1,45 @@
+== FINAL VERIFY AT HEAD 6ad7009 ==
+== node -v ==
+v24.21.0
+EXIT=0
+== npm -v ==
+11.19.0
+EXIT=0
+== npx vitest run tests/importer ==
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  6 passed (6)
+      Tests  116 passed (116)
+   Start at  21:38:13
+   Duration  431ms (transform 493ms, setup 0ms, import 985ms, tests 220ms, environment 0ms)
+
+EXIT=0
+== npm run typecheck ==
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+EXIT=0
+== npm run lint ==
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+EXIT=0
+== npm run format:check ==
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+== npm run check:boundaries ==
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (51 source files; dependency-free domain).
+EXIT=0

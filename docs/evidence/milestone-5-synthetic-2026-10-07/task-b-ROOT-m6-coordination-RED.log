@@ -1,0 +1,84 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/m6-coordination-repro.test.ts (3 tests | 3 failed) 39ms
+     × Gap 1: accepts a clean generation whose checksum is the SHA-256 of the uploaded bytes 31ms
+     × Gap 2: accepts a generation carrying only the preserved source-token notes 4ms
+     × Control: a genuinely fatal integrity issue still rejects the bundle 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/m6-coordination-repro.test.ts > M6 validator against the published transport contract > Gap 1: accepts a clean generation whose checksum is the SHA-256 of the uploaded bytes
+AssertionError: expected { ok: false, …(1) } to match object { ok: true, synthetic: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "synthetic": true,
++   "ok": false,
+  }
+
+ ❯ tests/m6-coordination-repro.test.ts:90:61
+     88|     // RED today: checkBundle compares an FNV-1a 64-bit fingerprint of…
+     89|     // bundle text with the `sha256:`-prefixed transport checksum.
+     90|     expect(checkBundle(published.manifest, published.text)).toMatchObj…
+       |                                                             ^
+     91|       ok: true,
+     92|       synthetic: true,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/m6-coordination-repro.test.ts > M6 validator against the published transport contract > Gap 2: accepts a generation carrying only the preserved source-token notes
+AssertionError: expected { ok: false, …(1) } to match object { ok: true, synthetic: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "synthetic": true,
++   "ok": false,
+  }
+
+ ❯ tests/m6-coordination-repro.test.ts:130:61
+    128|
+    129|     // RED today for Gap 1, and still red for Gap 2 if only Gap 1 is f…
+    130|     expect(checkBundle(published.manifest, published.text)).toMatchObj…
+       |                                                             ^
+    131|       ok: true,
+    132|       synthetic: true,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/m6-coordination-repro.test.ts > M6 validator against the published transport contract > Control: a genuinely fatal integrity issue still rejects the bundle
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: false, …(1) }
+
+- Expected
++ Received
+
+  {
+    "ok": false,
+-   "reason": "integrity-failed",
++   "reason": "checksum-mismatch",
+  }
+
+ ❯ tests/m6-coordination-repro.test.ts:157:68
+    155|       .update(text, 'utf8')
+    156|       .digest('hex')}`;
+    157|     expect(checkBundle({ ...published.manifest, checksum }, text)).toE…
+       |                                                                    ^
+    158|       ok: false,
+    159|       reason: 'integrity-failed',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  10:53:46
+   Duration  1.16s (transform 279ms, setup 0ms, import 854ms, tests 39ms, environment 0ms)
+

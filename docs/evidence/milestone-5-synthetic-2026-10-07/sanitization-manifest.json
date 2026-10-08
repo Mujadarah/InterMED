@@ -1,0 +1,64 @@
+{
+  "knownCredentialMatches": 0,
+  "files": [
+    {
+      "name": "task-b-PR13-store-red.log",
+      "lines": 40,
+      "bytes": 1337,
+      "sha256": "2F7F90926C4EFD048AF38CA5DFE6E3834F5E9221E12AD2EF8117930839D7A697"
+    },
+    {
+      "name": "task-b-PR13-store-green.log",
+      "lines": 11,
+      "bytes": 215,
+      "sha256": "BD4062E509AC9A547215331BF02039D70F7FFA4F2EE6F70B44CE2A559D65B463"
+    },
+    {
+      "name": "task-b-ROOT-PR13-store-298497d-FULL.log",
+      "lines": 247,
+      "bytes": 26255,
+      "sha256": "14C9A96444AD2EBFE112660806B2D4E50B85BC3B7EBFC2C677EEA97E14E6615D"
+    },
+    {
+      "name": "task-b-ROOT-PR13-ci-d71f668-FULL.log",
+      "lines": 247,
+      "bytes": 26242,
+      "sha256": "6A7761633A8E95FC000489BDD9090F8290D4E12E8B9F11E0AFEB29711276DA52"
+    },
+    {
+      "name": "task-b-ROOT-CodeRabbit-861fe81-focused.log",
+      "lines": 10,
+      "bytes": 227,
+      "sha256": "CC2EF1B1A0BCC23B5168690C480EBAA71308B3F0DC00BD36912AF9216BD1A6B2"
+    },
+    {
+      "name": "task-b-ROOT-PR13-store-ci-integration.log",
+      "lines": 10,
+      "bytes": 223,
+      "sha256": "C3281C1ACBE276F07D9FE52407EBE2EF549690AEF2D4E98117439C588A78D7B0"
+    },
+    {
+      "name": "task-b-ROOT-PR13-prefix-2140852-focused.log",
+      "lines": 10,
+      "bytes": 209,
+      "sha256": "3249DE00EBD3D1E9A95904AD50253B2F1E908B998A4605690D746D3F46B1F0D6"
+    },
+    {
+      "name": "task-b-ROOT-store-redirect-RED.json",
+      "lines": 2,
+      "bytes": 101,
+      "sha256": "63CF6EC706CC91BB56DE9498FF85286F9D37252C173C3E3C39AA32289CE930AB"
+    },
+    {
+      "name": "task-b-ROOT-store-redirect-GREEN.json",
+      "lines": 2,
+      "bytes": 102,
+      "sha256": "06D107EC2D72399501188E5A1C356BACB26D7549701658B1A20E9BD1F6AA17D3"
+    }
+  ],
+  "externalRequestsInLoopbackProbe": 0,
+  "environmentValuesIncluded": 0,
+  "rawSnapshotsIncluded": 0,
+  "contents": "test runner results, boolean loopback proof, scoped static review prose only",
+  "sensitivePathMatches": 0
+}

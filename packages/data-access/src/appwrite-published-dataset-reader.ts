@@ -5,6 +5,7 @@ import type {
   PublishedDatasetReader,
   PublishedDatasetUnavailable,
 } from '@intermed/domain';
+import { parseStableId } from '@intermed/domain';
 import { z } from 'zod';
 
 /** Minimal response surface of a `fetch`-like function. */
@@ -44,9 +45,19 @@ const rowListSchema = z.object({
   rows: z.array(z.unknown()),
 });
 
+/** Canonical DatasetVersionId schema enforcing domain structure and 512 bound. */
+const canonicalDatasetVersionIdSchema = z
+  .string()
+  .min(1)
+  .max(512)
+  .refine((id) => parseStableId('DatasetVersion', id).ok, {
+    message: 'datasetVersionId must be a canonical DatasetVersionId',
+  });
+
 /** Publication metadata row, validated at the transport boundary. */
 const versionRowSchema = z.object({
   $id: z.string().min(1),
+  datasetVersionId: canonicalDatasetVersionIdSchema.nullish(),
   dataset: z.string().min(1),
   version: z.string().min(1),
   sourceIds: z.array(z.string().min(1)),
@@ -61,14 +72,14 @@ const versionRowSchema = z.object({
   coverage: z.string().min(1),
   rightsApprovalReference: z.string().min(1),
   clinicalReviewReference: z.string().min(1),
-  previousVersionId: z.string().nullish(),
+  previousVersionId: z.string().max(512).nullish(),
   status: z.string().min(1),
 });
 
 /** Bundle descriptor row, validated at the transport boundary. */
 const bundleRowSchema = z.object({
   $id: z.string().min(1),
-  datasetVersionId: z.string().min(1),
+  datasetVersionId: z.string().min(1).max(512),
   fileId: z.string().min(1),
   fileName: z.string().min(1),
   contentType: z.string().min(1),
@@ -190,6 +201,13 @@ export function createAppwritePublishedDatasetReader(
   options: AppwritePublishedDatasetReaderOptions,
 ): PublishedDatasetReader {
   return {
+    /**
+     * Read the latest published manifest by publication time. Uses the canonical
+     * datasetVersionId when present, falling back to the row ID only for an
+     * absent or null attribute. Returns `absent` for an empty listing and
+     * `unavailable` for transport, HTTP or response-validation failures.
+     * Rejects with Error for a blank dataset identifier.
+     */
     getManifest: async (dataset) => {
       if (!dataset.trim()) throw new Error('dataset identifier is required');
       const listed = await listRows(options, options.versionsTableId, [
@@ -210,7 +228,7 @@ export function createAppwritePublishedDatasetReader(
         return { status: 'unavailable', reason: 'invalid-response' };
       const manifest: PublishedDatasetManifest = {
         dataset: row.data.dataset,
-        datasetVersionId: row.data.$id,
+        datasetVersionId: row.data.datasetVersionId ?? row.data.$id,
         version: row.data.version,
         sourceIds: row.data.sourceIds,
         upstreamVersion: row.data.upstreamVersion ?? null,
@@ -228,9 +246,18 @@ export function createAppwritePublishedDatasetReader(
       };
       return { status: 'available', value: manifest };
     },
+    /**
+     * Read the first descriptor whose stored datasetVersionId exactly matches
+     * the supplied identifier. Returns `absent` for an empty listing and
+     * `unavailable` for transport, HTTP, malformed or mismatched responses.
+     * Rejects with Error for an empty or blank identifier or one longer than
+     * 512 UTF-16 code units, before making a request.
+     */
     getBundleDescriptor: async (datasetVersionId) => {
-      if (!datasetVersionId.trim())
+      if (!datasetVersionId || datasetVersionId.trim().length === 0)
         throw new Error('dataset version identifier is required');
+      if (datasetVersionId.length > 512)
+        throw new Error('dataset version identifier exceeds 512 characters');
       const listed = await listRows(options, options.bundlesTableId, [
         equalQuery('datasetVersionId', datasetVersionId),
         limitQuery(1),
@@ -240,6 +267,8 @@ export function createAppwritePublishedDatasetReader(
       if (raw === undefined) return { status: 'absent', reason: 'not-found' };
       const row = bundleRowSchema.safeParse(raw);
       if (!row.success)
+        return { status: 'unavailable', reason: 'invalid-response' };
+      if (row.data.datasetVersionId !== datasetVersionId)
         return { status: 'unavailable', reason: 'invalid-response' };
       const descriptor: PublishedBundleDescriptor = {
         id: row.data.$id,

@@ -1,0 +1,30 @@
+== DOCS worker repository path-hygiene guard (2026-10-07) ==
+
+The guard itself (tests/repository-path-hygiene.test.ts) is unchanged and stays
+in force. This worker only runs it over the staged documentation/evidence
+changes and records the result here. Machine path segments in this log are
+redacted with the pack placeholders per the pack README policy.
+
+$ npx vitest run tests/repository-path-hygiene.test.ts
+
+RUN 1 (over the staged tree including the copied evidence):
+
+ RUN  v4.1.11 <worktree>
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  22:39:09
+   Duration  392ms (transform 14ms, setup 0ms, import 26ms, tests 265ms, environment 0ms)
+
+EXIT=0
+
+RUN 2 (after the DOCS- logs themselves were added to the staged tree):
+
+ RUN  v4.1.11 <worktree>
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  22:42:21
+   Duration  395ms (transform 14ms, setup 0ms, import 25ms, tests 267ms, environment 0ms)
+
+EXIT=0

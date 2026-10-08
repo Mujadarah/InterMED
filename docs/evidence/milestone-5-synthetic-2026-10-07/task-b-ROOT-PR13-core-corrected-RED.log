@@ -1,0 +1,216 @@
+
+ RUN  v4.1.11 <worktree>sts/importer/stage.test.ts (47 tests | 9 failed) 78ms
+     × quarantines a mixed snapshot whose products rows disagree with the declared version key 5ms
+     × quarantines a mixed snapshot whose activeIngredients rows disagree with the declared version key 2ms
+     × quarantines a mixed snapshot whose medicationIngredients rows disagree with the declared version key 1ms
+     × quarantines a mixed snapshot whose atcCodes rows disagree with the declared version key 2ms
+     × quarantines a mixed snapshot whose dosageForms rows disagree with the declared version key 2ms
+     × quarantines a mixed snapshot whose manufacturers rows disagree with the declared version key 2ms
+     × quarantines a mixed snapshot whose marketingAuthorizationHolders rows disagree with the declared version key 1ms
+     × quarantines a mixed snapshot whose regulatoryDocuments rows disagree with the declared version key 2ms
+     × quarantines an envelope dataset version key that disagrees with the declared version 1ms
+ ❯ tests/importer/handler-intent.test.ts (53 tests | 1 failed) 24ms
+     × accepts the optional bounded quarantine reason a real large-removal stage emits 3ms
+ ❯ tests/importer/publisher.test.ts (43 tests | 2 failed) 104ms
+     × read verifies the committed generation when the recovery loop loses another write response 4ms
+     × fails with a constant rejection when the recovery write did not land 2ms
+ ❯ tests/importer/handler-bridge.test.ts (28 tests | 8 failed) 56ms
+     × falls back to the bounded physical row id for legacy rows (absent: undefined) 4ms
+     × falls back to the bounded physical row id for legacy rows (absent: null) 1ms
+     × rejects manifest rows with an empty or malformed canonical attribute without exposing the value 1ms
+     × rejects manifest rows whose present attribute is a plain non-canonical token 0ms
+     × rejects manifest rows whose present attribute is a canonical id of the wrong entity kind 0ms
+     × rejects manifest rows whose present attribute is a canonical id with a blank source segment 0ms
+     × rejects manifest rows whose present attribute is a canonical id with padded key segments 0ms
+     × rejects manifest rows whose present attribute is a canonical id with a truncated key segment 0ms
+ ❯ tests/importer/handler-flow.test.ts (22 tests | 2 failed) 94ms
+     × does not report already-published for a manifest row missing its canonical dataset version id 6ms
+     × stages a substantial drop and publishes it only with explicit large-removal approval 5ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > falls back to the bounded physical row id for legacy rows (absent: undefined)
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > falls back to the bounded physical row id for legacy rows (absent: null)
+AssertionError: expected 'dv\u001fsource.synthetic\u001fsynthet…' to be 'gen1fdf681f802a408104901b55d0d09ed7f' // Object.is equality
+
+Expected: "gen1fdf681f802a408104901b55d0d09ed7f"
+Received: "dvsource.syntheticsynthetic-2026-10-06"
+
+ ❯ tests/importer/handler-bridge.test.ts:743:42
+    741|       // The legacy fallback is the physical row id only: the caller's
+    742|       // candidate id is never substituted for a missing stored attrib…
+    743|       expect(manifest?.datasetVersionId).toBe(rowId);
+       |                                          ^
+    744|       expect(manifest?.datasetVersionId).not.toBe(CANDIDATE_ID);
+    745|       harness.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows with an empty or malformed canonical attribute without exposing the value
+AssertionError: expected '' to be 'manifest datasetVersionId invalid' // Object.is equality
+
+- Expected
++ Received
+
+- manifest datasetVersionId invalid
+
+ ❯ tests/importer/handler-bridge.test.ts:764:23
+    762|         message = (error as Error).message;
+    763|       }
+    764|       expect(message).toBe('manifest datasetVersionId invalid');
+       |                       ^
+    765|       expect(message).not.toContain('xxx');
+    766|       harness.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows whose present attribute is a plain non-canonical token
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows whose present attribute is a canonical id of the wrong entity kind
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows whose present attribute is a canonical id with a blank source segment
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows whose present attribute is a canonical id with padded key segments
+ FAIL  tests/importer/handler-bridge.test.ts > publication retry reads > rejects manifest rows whose present attribute is a canonical id with a truncated key segment
+AssertionError: expected '' to be 'manifest datasetVersionId invalid' // Object.is equality
+
+- Expected
++ Received
+
+- manifest datasetVersionId invalid
+
+ ❯ tests/importer/handler-bridge.test.ts:804:23
+    802|         message = (error as Error).message;
+    803|       }
+    804|       expect(message).toBe('manifest datasetVersionId invalid');
+       |                       ^
+    805|       expect(message).not.toContain('synthetic');
+    806|       harness.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  tests/importer/handler-flow.test.ts > publish flows > does not report already-published for a manifest row missing its canonical dataset version id
+AssertionError: expected 200 to be 409 // Object.is equality
+
+- Expected
++ Received
+
+- 409
++ 200
+
+ ❯ tests/importer/handler-flow.test.ts:684:26
+    682|     const before = stateOf(harness);
+    683|     const retry = await harness.call({ bodyJson: envelope(PUBLISH_OPER…
+    684|     expect(retry.status).toBe(409);
+       |                          ^
+    685|     expect(retry.body.code).toBe('publication-collision');
+    686|     expect(stateOf(harness)).toBe(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  tests/importer/handler-flow.test.ts > large-removal approval flow > stages a substantial drop and publishes it only with explicit large-removal approval
+AssertionError: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ tests/importer/handler-flow.test.ts:836:31
+    834|         bodyJson: envelope('op-publish-0003'),
+    835|       });
+    836|       expect(accepted.status).toBe(200);
+       |                               ^
+    837|       expect(accepted.body.code).toBe('published');
+    838|       expect(harness.rest.fileIds('published-datasets')).toHaveLength(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  tests/importer/handler-intent.test.ts > private intent schemas > accepts the optional bounded quarantine reason a real large-removal stage emits
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/importer/handler-intent.test.ts:446:23
+    444|       }),
+    445|     );
+    446|     expect(parsed.ok).toBe(true);
+       |                       ^
+    447|     if (parsed.ok) {
+    448|       expect(parsed.review.quarantineReason).toBe('large-removal');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > read verifies the committed generation when the recovery loop loses another write response
+AmbiguousWriteError: The write result is unknown and must be read back
+ ❯ ambiguousFault tests/importer/support/fake-ports.ts:295:19
+    293|
+    294| export function ambiguousFault(applyBeforeThrow = true): FaultSpec {
+    295|   return { error: new AmbiguousWriteError(), applyBeforeThrow };
+       |                   ^
+    296| }
+    297|
+ ❯ tests/importer/publisher.test.ts:774:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯
+
+ FAIL  tests/importer/publisher.test.ts > publish fault injection and commit point > fails with a constant rejection when the recovery write did not land
+AmbiguousWriteError: The write result is unknown and must be read back
+ ❯ ambiguousFault tests/importer/support/fake-ports.ts:295:19
+    293|
+    294| export function ambiguousFault(applyBeforeThrow = true): FaultSpec {
+    295|   return { error: new AmbiguousWriteError(), applyBeforeThrow };
+       |                   ^
+    296| }
+    297|
+ ❯ tests/importer/publisher.test.ts:799:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯
+
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose products rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose activeIngredients rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose medicationIngredients rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose atcCodes rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose dosageForms rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose manufacturers rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose marketingAuthorizationHolders rows disagree with the declared version key
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines a mixed snapshot whose regulatoryDocuments rows disagree with the declared version key
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ ❯ tests/importer/stage.test.ts:287:29
+    285|       }
+    286|       const result = await runStage(store, rawBytes(document));
+    287|       expect(result.status).toBe('quarantined');
+       |                             ^
+    288|       expect(result.completenessStatus).toBe('provenance-mismatch');
+    289|       expect(result.issues).toContain(`row-version-key-mismatch:${name…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯
+
+ FAIL  tests/importer/stage.test.ts > stage dataset version key controls > quarantines an envelope dataset version key that disagrees with the declared version
+AssertionError: expected 'staged' to be 'quarantined' // Object.is equality
+
+Expected: "quarantined"
+Received: "staged"
+
+ ❯ tests/importer/stage.test.ts:302:27
+    300|     });
+    301|     const result = await runStage(store, rawBytes(document));
+    302|     expect(result.status).toBe('quarantined');
+       |                           ^
+    303|     expect(result.completenessStatus).toBe('provenance-mismatch');
+    304|     expect(result.issues).toContain('envelope-version-key-mismatch');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/22]⎯
+
+
+ Test Files  5 failed | 1 passed (6)
+      Tests  22 failed | 172 passed (194)
+   Start at  13:19:59
+   Duration  1.26s (transform 1.50s, setup 0ms, import 3.86s, tests 400ms, environment 0ms)
+

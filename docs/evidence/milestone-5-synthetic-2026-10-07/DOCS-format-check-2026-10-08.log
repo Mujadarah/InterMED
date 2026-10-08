@@ -1,0 +1,7 @@
+DOCS worker format gate (docs/evidence milestone-5 pack owner)
+started: 2026-10-08T11:07:18.425Z
+command: prettier --check .  (prettier 3.9.9 from the integration worktree node_modules)
+runtime: v24.21.0
+exit code: 0
+Checking formatting...
+All matched files use Prettier code style!

@@ -1,0 +1,39 @@
+# WORKER REPORT: Independent Core Review
+
+**Immutable SHAs:**
+- Baseline Parent: `d1200c7f9d0b4a385dc310fe6bd30b7c3fa55a10`
+- Target Review Commit (Core Repair): `b0fdde81791fb53abacf8dbf80b0d5b2f6221dba`
+- Context Checked-out Commit: `2bbbc38...`
+
+**Exact Files Modifed in Scope:**
+- `packages/importer/src/core.ts`
+- `packages/importer/src/parser-facade.ts`
+- `packages/importer/src/publisher.ts`
+- `packages/importer/src/stage.ts`
+- `tests/importer/core-stage-to-publish.test.ts`
+- `tests/importer/public-identity.test.ts`
+- `tests/importer/published-reader-compatibility.test.ts`
+- `tests/importer/publisher.test.ts`
+- `tests/importer/stage.test.ts`
+- `tests/importer/support/fake-ports.ts`
+- `tests/importer/support/harness.ts`
+
+**Findings Severity:**
+- **Severity**: None (ACCEPTABLE)
+- No domain contract regressions or leaky physical data structures were found. The canonical `datasetVersionId` (incorporating `U+001F`) is correctly preserved and safely derived into a maximum 36-character descriptor ID exclusively for physical Appwrite rows using a deterministic SHA-256 slice.
+- `isNumericSemver` operates exactly as specified ("numeric trimmed x.y.z max50 minclient") properly quarantining padded inputs or irregular forms.
+- Explicit lineage logic handles the 3-state matrix (initial null, expected previous, active=self retry overrides) correctly, leaving immutable files and lease conflicts untouched when retrying active self.
+- Public URL validations are comprehensive and accurately block fragments, control characters, and HTTP credentials before attempting any physical write.
+- Actual tests in `tests/importer/public-identity.test.ts` do not fake Appwrite IDs, successfully testing against the `^[A-Za-z0-9._-]{1,36}$` physical constraint manually.
+
+**Actionable Test-First Suggestions:**
+- The implemented tests are highly exhaustive and precisely constructed.
+- *Information/Optional:* For future-proofing, you could add a test simulating a `PublicationConflict` when `activeIsSelf` is true but the underlying file storage crashes or hangs (to verify the quarantine catch block), but the current logic of squashing `isPublicationConflict` covers the concrete production bug as requested.
+
+**Runs Actually Done:**
+- Executed git log and diff analyses for the scope `d1200c7..b0fdde8`.
+- Ran `npm test -- tests/importer/` probes. Results: 137 passed out of 137 (8 test files).
+- Conducted static source code inspection of `publisher.ts` and `stage.ts` against the brief's strict architectural directives.
+
+**Bounded Verdict:**
+- **ACCEPTED**. Code precisely fulfills the canonical public identity repair constraints and safe Appwrite descriptor requirements without speculative feature expansion. It is safe to proceed.

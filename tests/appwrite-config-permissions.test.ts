@@ -59,10 +59,7 @@ const importerStubPath = 'infra/appwrite/functions/import-anmdmr/src/main.js';
 const stubForbiddenWords = [
   'node-appwrite',
   'fetch(',
-  'require(',
-  'import ',
   'x-appwrite-key',
-  'process.env',
   'createrow',
   'createfile',
   'updaterow',
@@ -244,6 +241,93 @@ describe.each([
         );
       }
     });
+
+    it('declares the canonical datasetVersionId and 512-capacity identifier columns in dataset tables', () => {
+      const versionsTable = findResource(config, 'tables', 'dataset-versions');
+      const bundlesTable = findResource(config, 'tables', 'dataset-bundles');
+      const versionColumns = (versionsTable.columns ?? []) as readonly {
+        key: string;
+        type: string;
+        size?: number;
+        required: boolean;
+        array?: boolean;
+      }[];
+      const bundleColumns = (bundlesTable.columns ?? []) as readonly {
+        key: string;
+        type: string;
+        size?: number;
+        required: boolean;
+        array?: boolean;
+      }[];
+
+      const versionCol = versionColumns.find(
+        (c) => c.key === 'datasetVersionId',
+      );
+      expect(versionCol, `${label}/dataset-versions datasetVersionId`).toEqual({
+        key: 'datasetVersionId',
+        type: 'varchar',
+        size: 512,
+        required: false,
+        array: false,
+      });
+
+      const prevVersionCol = versionColumns.find(
+        (c) => c.key === 'previousVersionId',
+      );
+      expect(
+        prevVersionCol,
+        `${label}/dataset-versions previousVersionId`,
+      ).toEqual({
+        key: 'previousVersionId',
+        type: 'varchar',
+        size: 512,
+        required: false,
+        array: false,
+      });
+
+      const bundleCol = bundleColumns.find((c) => c.key === 'datasetVersionId');
+      expect(bundleCol, `${label}/dataset-bundles datasetVersionId`).toEqual({
+        key: 'datasetVersionId',
+        type: 'varchar',
+        size: 512,
+        required: true,
+        array: false,
+      });
+
+      const versionIndexes = (versionsTable.indexes ?? []) as readonly {
+        key: string;
+        type: string;
+        columns: readonly string[];
+      }[];
+      const versionIdIndex = versionIndexes.find(
+        (idx) => idx.key === 'datasetVersionId_unique',
+      );
+      expect(
+        versionIdIndex,
+        `${label}/dataset-versions datasetVersionId_unique`,
+      ).toEqual({
+        key: 'datasetVersionId_unique',
+        type: 'unique',
+        columns: ['datasetVersionId'],
+      });
+
+      const bundleIndexes = (bundlesTable.indexes ?? []) as readonly {
+        key: string;
+        type: string;
+        columns: readonly string[];
+      }[];
+      const bundleIdIndex = bundleIndexes.find(
+        (idx) => idx.key === 'datasetVersionId_unique',
+      );
+      expect(
+        bundleIdIndex,
+        `${label}/dataset-bundles datasetVersionId_unique`,
+      ).toEqual({
+        key: 'datasetVersionId_unique',
+        type: 'unique',
+        columns: ['datasetVersionId'],
+      });
+    });
   },
 );
 
@@ -253,9 +337,8 @@ it('isolates development and production projects from each other', () => {
   expect(production.projectId).toBe('intermed-prod');
 });
 
-it('runs the importer stub as a non-clinical stub without side effects', async () => {
+it('runs the importer offline handler without forbidden side effects', async () => {
   const source = (await readTextFile(importerStubPath)).toLowerCase();
   for (const word of stubForbiddenWords)
-    expect(source, `import-anmdmr stub mentions "${word}"`).not.toContain(word);
-  expect(source).toContain('stub-not-implemented');
+    expect(source, `import-anmdmr mentions "${word}"`).not.toContain(word);
 });

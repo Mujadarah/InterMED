@@ -1,0 +1,60 @@
+=== WORKER REPORT ===
+
+Based on a strictly read-only inspection of PR13 (at `65c35ee`), the 7 specified regressions correctly enter their actual defective paths rather than failing on invalid setups.
+
+Here are the exact findings mapped to their implementations:
+
+**1. Mixed version keys**
+- **File:** `tests/importer/stage.test.ts` (L274-292)
+- **Trigger:** `rows[0]!.datasetVersionKey = FOREIGN_KEY;` (L281)
+- **Predicates:**
+  - `expect(result.status).toBe('quarantined');` (L287)
+  - `expect(result.completenessStatus).toBe('provenance-mismatch');` (L288)
+
+**2. Recovery: final manifest committed but response lost**
+- **File:** `tests/importer/publisher.test.ts` (L764-791)
+- **Trigger:**
+  - `store.setFault('writeBundleFile', ambiguousFault(true));`
+  - `store.setFault('writeManifestRow', ambiguousFault(true));`
+- **Predicates:**
+  - `expect(result.status).toBe('published');` (L776)
+  - `expect(result.warnings).toContain('post-commit-read-verified');` (L777)
+  - `expect(retry.status).toBe('already-published');` (L784)
+*(Note: Partial failure with rollback is also correctly covered at L793-810)*
+
+**3. `largeRemovalApproval` guard**
+- **File:** `tests/importer/handler-flow.test.ts` (L762-841)
+- **Trigger:** Toggling `largeRemovalApproval: false` vs `true` in payload during quarantine review.
+- **Predicates:**
+  - `expect(refused.status).toBe(403);` (L825) - When false/omitted.
+  - `expect(accepted.status).toBe(200);` (L836) - When true.
+
+**4. Optional `quarantineReason`**
+- **File:** `tests/importer/handler-intent.test.ts` (L439-449)
+- **Trigger:** `quarantineReason: 'large-removal'` provided in the schema validator intent payload.
+- **Predicates:** `expect(parsed.review.quarantineReason).toBe('large-removal');` (L448). Unknown/invalid extra fields correctly fail closed (L467-473).
+
+**5. Canonical present malformed**
+- **File:** `tests/importer/handler-flow.test.ts` (L688-698)
+- **Trigger:** Manually corrupting the row state via `(manifestRow... ).datasetVersionId = 'not-a-canonical-dataset-version-id';`
+- **Predicate:** `expect(invalidRetry.status).toBe(500);` (L696) - Specifically catching the 500 state vs a generic already-published.
+
+**6. `legacymissingattribute` fallback**
+- **File:** `tests/importer/handler-bridge.test.ts` (L729-747)
+- **Trigger:** `manifestRowFixture({ datasetVersionId: absentValue })` simulating the missing legacy property.
+- **Predicates:**
+  - `expect(manifest?.datasetVersionId).toBe(rowId);` (L742)
+  - `expect(manifest?.datasetVersionId).not.toBe(CANDIDATE_ID);` (L743)
+*(Note: `handler-flow.test.ts` L664-686 confirms this yields a 409 collision, not an 'already-published' success).*
+
+**7. Name + semantic changes (diff summarizer)**
+- **File:** `tests/importer/stage.test.ts` (L592-607)
+- **Trigger:** Modifying multiple properties at once: `commercialName: 'Fictivol Renamed', strengthText: '1000 mg'`
+- **Predicate:** `expect(review?.diffSummary).toEqual({ added: 0, changed: 1, renamed: 0, removed: 0, netProducts: 1, });` (L600-606).
+
+---
+**Operational Limits Acknowledged:**
+This inspection was strictly read-only. ZERO execution occurred. No commands were run, no tests were executed, no network requests were made, and no environment changes were applied. No project files were modified; only local artifacts were created to aid analysis. No public contract changes have been inferred beyond explicit validation in the tests above.
+This task is strictly scoped as a read-only inspection, and the brief explicitly prohibits any execution (ZERO execution, no commands, no tests).
+
+The `=== WORKER REPORT ===` above concludes the analysis as requested. Is there anything else you need me to review?

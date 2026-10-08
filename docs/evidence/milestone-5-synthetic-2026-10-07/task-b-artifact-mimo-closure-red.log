@@ -1,0 +1,38 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/artifact.test.ts (2 tests | 2 failed) 3856ms
+     × builds a disjoint isolated runtime artifact and rejects safely 2686ms
+     × copies function relative JS helpers transitively into function-entry 1170ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/artifact.test.ts > importer function artifact > builds a disjoint isolated runtime artifact and rejects safely
+AssertionError: expected [ 'function-entry/main.js', …(903) ] to not include 'vendor/@intermed/data-access/src/publ…'
+ ❯ tests/importer/artifact.test.ts:121:25
+    119|         ),
+    120|       ).toBe(false);
+    121|       expect(files).not.toContain(
+       |                         ^
+    122|         'vendor/@intermed/data-access/src/published-dataset-mock.js',
+    123|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/importer/artifact.test.ts > importer function artifact > copies function relative JS helpers transitively into function-entry
+AssertionError: expected [ 'function-entry/main.js', …(32) ] to include 'function-entry/appwrite-store.js'
+ ❯ tests/importer/artifact.test.ts:298:21
+    296|       const files = listFiles(artifact);
+    297|       expect(files).toContain('function-entry/main.js');
+    298|       expect(files).toContain('function-entry/appwrite-store.js');
+       |                     ^
+    299|       expect(files).toContain('function-entry/helpers/store-client.js'…
+    300|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  20:42:50
+   Duration  4.15s (transform 52ms, setup 0ms, import 191ms, tests 3.86s, environment 0ms)

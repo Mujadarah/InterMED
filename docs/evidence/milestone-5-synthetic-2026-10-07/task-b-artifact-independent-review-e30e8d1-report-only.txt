@@ -1,0 +1,15 @@
+# Worker Report: Artifact Builder Independent Review
+**Commit SHA:** `e30e8d1a782430d502148287e24755ef4b196e2b`
+
+## Findings: Lock Projection & Supply Chain
+- **Pure Lock Projection:** `writeRuntimeLock` successfully replaces `installRuntimeLock`. It synthesizes the artifact's `package-lock.json` purely by projecting entries from the root lockfile, completely eliminating ambient `npm` execution, registry metadata fetching, or cache mutations during artifact construction.
+- **Registry Integrity & Resolution:** The projection strictly retains exact `version`, `resolved` (tarball URL boundary), and `integrity` hashes from the root lock. It fails closed if any of these are missing, ensuring a downstream `npm ci` relies solely on exact pinned integrity.
+- **Transitive & Peer Dependencies:** The derivation correctly fails closed if a transitive dependency declares `peerDependencies`, or if multiple versions of the same dependency are encountered (nested version conflicts).
+- **Optional Dependencies:** Handled correctly via traversal. If a package is discovered as both required and optional in the graph, the required status takes precedence (`requiredExternals.add(name)`).
+- **Vendor Constraints & Escaping:** Explicitly verifies that workspace `file:` dependencies resolve strictly within the internal vendored closure (`vendor/@intermed/...`). Attempts to link outside this boundary throw an error.
+- **External Pinning:** Ensures all direct external dependencies match a statically defined exact pin (`runtimeDependencyPins`), failing closed on mismatches.
+
+## Bounded Limitations
+- **Unchanged Helpers:** The internal mechanics of `resolveRegistryEntry` and `normalizeVendoredPath` are assumed correct based on their clear invocation context; they were not modified in this specific diff.
+- **Entrypoint / Mocks:** Verification of `src/main.js` generation and the exclusion of mocks/env files was introduced in prior commits (e.g., `57eb71f`), although updated tests in this diff continue to assert these conditions.
+- **No Execution:** As instructed, no browser tests or physical build gates were executed. This is a static, read-only review of the provided diff.

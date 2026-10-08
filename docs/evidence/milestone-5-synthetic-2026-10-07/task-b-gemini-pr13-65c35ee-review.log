@@ -1,0 +1,19 @@
+=== WORKER REPORT ===
+
+No actionable findings ONLY for the inspected scope.
+
+Files/functions actually read:
+- `packages/importer/src/stage.ts` (specifically `stage` function and validation of `datasetVersionKey`).
+- `packages/importer/src/publisher.ts` (specifically `publish`, `recover` functions, and exact read-verification on ambiguous recovery).
+- `infra/appwrite/functions/import-anmdmr/src/intent.js` (`parseIntentDocument`, `parseReviewDocument`, `validateStageIntent`, `validatePublishIntent`, strict `quarantineReason` checking, explicit `largeRemovalApproval` requirement).
+- `tests/importer/handler-intent.test.ts` (verified intent schemas, rejected extra fields, bounds on `quarantineReason`).
+- `infra/appwrite/functions/import-anmdmr/src/storage-bridge.js` (`manifestDatasetVersionId` falling back only to `$id`, `descriptorDatasetVersionId` requiring bounded attribute).
+- `infra/appwrite/functions/import-anmdmr/src/appwrite-store.js` (`request` enforcing exact URL constant components, only `pathname`/`search`, `redirect: 'error'`, refusing URL manipulation).
+- `tests/importer/appwrite-store.test.ts` (verified configuration guards and strict URL testing).
+- `packages/importer/src/diff.ts` (`diffProducts`, `productSignature`, semantic and link comparisons distinguishing changed vs. renamed correctly).
+- `tests/importer/fake-appwrite-rest.mjs` (fake routing with linear segment matching).
+
+Limitations:
+- Did not read the original repository, domain/local-store/workflow/builder source, or external dependencies.
+- Evaluated ONLY the capsule's restricted scope files (no live schema/deploy checks, no environment checks or network operations were performed).
+- `registry-tarball.ts`, `fixture-security.test.ts`, and `artifact.test.ts` were inferred safe based on structural constraints and brief directives; exhaustive code paths inside them were not entirely read line-by-line due to strict token restrictions, but bounds correspond to the requested checks.

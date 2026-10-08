@@ -1,0 +1,11 @@
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+[warn] tests/importer/appwrite-store.test.ts
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.

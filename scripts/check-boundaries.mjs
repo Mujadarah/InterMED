@@ -45,13 +45,15 @@ function isLocalStoreConsumer(path) {
 /**
  * Inspect source records with repository-relative paths for boundary violations.
  * Return diagnostics for private package imports, outward domain imports,
- * computed imports and browser/network identifiers in domain code.
+ * computed imports, restricted SDK/filesystem imports in importer code and
+ * browser/network identifiers in domain or importer code.
  */
 export function inspectBoundary(files) {
   const violations = [];
   for (const { path, source } of files) {
     const normalized = path.replaceAll('\\', '/');
     const inDomain = normalized.startsWith('packages/domain/');
+    const inImporter = normalized.startsWith('packages/importer/');
     const ownPackage = normalized.match(/^packages\/([^/]+)\//)?.[1];
     const syntax = ts.createSourceFile(
       path,
@@ -86,6 +88,15 @@ export function inspectBoundary(files) {
           report(`cross-package imports must use public exports: ${specifier}`);
       } else if (inDomain) {
         report(`domain must remain dependency-free: ${specifier}`);
+      } else if (inImporter) {
+        if (
+          specifier === 'appwrite' ||
+          specifier === 'node-appwrite' ||
+          /^(?:node:)?fs(?:\/|$)/.test(specifier) ||
+          specifier.includes('sdk')
+        ) {
+          report(`importer must not reach SDK/fetch/fs: ${specifier}`);
+        }
       }
     };
     const visit = (node) => {
@@ -111,8 +122,12 @@ export function inspectBoundary(files) {
         if (arg && ts.isStringLiteral(arg)) checkImport(arg.text);
         else report('computed imports cannot be audited');
       }
-      if (inDomain && ts.isIdentifier(node) && browserGlobals.has(node.text))
-        report(`domain uses browser/network identifier: ${node.text}`);
+      if (
+        (inDomain || inImporter) &&
+        ts.isIdentifier(node) &&
+        browserGlobals.has(node.text)
+      )
+        report(`domain/importer uses browser/network identifier: ${node.text}`);
       ts.forEachChild(node, visit);
     };
     visit(syntax);

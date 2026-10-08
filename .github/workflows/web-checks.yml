@@ -21,12 +21,48 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
+      # Pin the exact Node 22 runtime the compiled-artifact test executes.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.23.2
+      - name: Capture Node 22 runtime path
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_version="$(node --version | tr -d '\r')"
+          if [ "$runtime_version" != "v22.23.2" ]; then
+            echo "::error::Expected the pinned Node 22 runtime v22.23.2, got $runtime_version"
+            exit 1
+          fi
+          runtime_path="$(node -p 'process.execPath' | tr -d '\r')"
+          if [ -z "$runtime_path" ]; then
+            echo "::error::Could not resolve process.execPath for the pinned Node 22 runtime"
+            exit 1
+          fi
+          echo "INTERMED_NODE22_RUNTIME=$runtime_path" >> "$GITHUB_ENV"
+          echo "Captured INTERMED_NODE22_RUNTIME=$runtime_path ($runtime_version)"
+      # Restore the repository runtime from .node-version for install and checks.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
       - name: Verify pinned runtime
-        run: node --version && npm --version
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --version && npm --version
+          expected_node="v$(tr -d '[:space:]' < .node-version)"
+          expected_node="v${expected_node#v}"
+          actual_node="$(node --version | tr -d '\r')"
+          if [ "$actual_node" != "$expected_node" ]; then
+            echo "::error::Expected repository runtime $expected_node, got $actual_node"
+            exit 1
+          fi
+          actual_npm="$(npm --version | tr -d '\r')"
+          if [ "$actual_npm" != "11.19.0" ]; then
+            echo "::error::Expected npm 11.19.0, got $actual_npm"
+            exit 1
+          fi
       - name: Reproducible install
         run: npm ci --no-fund
       - name: Install browser binaries and OS dependencies

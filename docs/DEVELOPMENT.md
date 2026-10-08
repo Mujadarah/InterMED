@@ -4,7 +4,7 @@ This is Milestone 2 of [the sequential build plan](../plan/CODEX_BUILD_PLAN.md):
 
 ## Requirements and installation
 
-Use **Node 24.21.0 with its bundled npm 11.19.0** on Windows x64 or CI Linux. `.node-version`, `.nvmrc`, package engines and `packageManager` pin the runtime. Engine checks reject another runtime. One root `package-lock.json` locks all workspaces; do not create a lockfile under apps/packages. Use the official [Node release downloads](https://nodejs.org/en/download/archive/v24.21.0) or your existing version manager. Restart the terminal after selecting the pinned runtime; `npm.cmd` is equivalent if local PowerShell script execution policy prevents `npm`.
+Use **Node 24.21.0 with its bundled npm 11.19.0** on Windows x64 or CI Linux. `.node-version`, `.nvmrc`, package engines and `packageManager` pin the runtime. Engine checks reject another runtime. One root `package-lock.json` locks all workspaces; do not create a lockfile under apps/packages. Use the official [Node release downloads](https://nodejs.org/en/download/archive/v24.21.0) or your existing version manager. Restart the terminal after selecting the pinned runtime; `npm.cmd` is equivalent if local PowerShell script execution policy prevents `npm`. This pinned runtime is the **primary** runtime and must stay first on `PATH`. It is not sufficient on its own: the compiled-artifact test also requires a separately installed official Node 22.23.2 runtime, so see [Secondary Node 22 runtime](#secondary-node-22-runtime-for-the-compiled-artifact-test) before the first `npm run test` or `npm run check`.
 
 From the repository root in PowerShell:
 
@@ -19,6 +19,38 @@ npm run check
 The same commands run on both GitHub Actions operating systems. Linux browser installation also installs OS libraries; on Windows it downloads browsers. Internet is required to install packages/browser binaries. The application makes only same-origin public-shell requests, with no external/backend requests. Actions runs on every `pull_request` event without a target-branch/path filter, and main pushes. It uses a read-only token, pinned action SHAs, no saved checkout credentials, no production secrets and no `pull_request_target` execution.
 
 Run `npm run dev` for the local Vite server. Run `npm run build`, then `npm run preview` for a local preview of `apps/web/dist`; neither command deploys anything. To override a port, call the workspace directly: `npm run preview --workspace @intermed/web -- --port 4173 --strictPort`. A future hosting adapter must configure SPA fallback for `/status`; local preview deep-link verification does not prove a deployed host's routing.
+
+### Secondary Node 22 runtime for the compiled-artifact test
+
+`tests/importer/handler-artifact-flow.test.ts` runs the real **compiled** Function artifact on a separately installed official Node 22 runtime, selected by the `INTERMED_NODE22_RUNTIME` environment variable. That suite **never skips**: a missing, non-executable or wrong-version runtime fails the run with an actionable error instead of being reported as skipped. Provisioning only the pinned Node 24.21.0/npm 11.19.0 primary runtime above is therefore not enough, and following the setup instructions alone without the steps below makes `npm run test` and `npm run check` fail.
+
+Provision an **independent official Node 22.23.2 binary** and keep it alongside the primary pinned Node 24.21.0/npm 11.19.0; both installations remain on disk at the same time. The distribution is the official Node release download for that exact version: <https://nodejs.org/dist/v22.23.2/>. Node 24 stays the primary `PATH` runtime: do **not** switch the primary `PATH` permanently, and do **not** repoint a version-manager shim (for example an `nvm`/`nvm-windows` symlink) at Node 22, because the test needs the actual independent executable rather than whatever `node` currently resolves to.
+
+Windows PowerShell, from the repository root, where `<node22-install>` is the directory holding the secondary Node 22.23.2 `node.exe`:
+
+```powershell
+$env:INTERMED_NODE22_RUNTIME = '<node22-install>\node.exe'
+& $env:INTERMED_NODE22_RUNTIME --version  # exactly v22.23.2
+node --version                            # v24.21.0 primary, unchanged
+npm --version                             # 11.19.0 primary, unchanged
+npm run test
+npm run check
+```
+
+POSIX shell, from the repository root, where `<node22-install>` is the prefix holding the secondary Node 22.23.2 binary:
+
+```sh
+export INTERMED_NODE22_RUNTIME="<node22-install>/bin/node"
+"$INTERMED_NODE22_RUNTIME" --version  # exactly v22.23.2
+node --version                        # v24.21.0 primary, unchanged
+npm --version                         # 11.19.0 primary, unchanged
+npm run test
+npm run check
+```
+
+`INTERMED_NODE22_RUNTIME` must point at the actual executable — `<node22-install>\node.exe` on Windows and `<node22-install>/bin/node` on POSIX — never at a directory, a shell wrapper or a version-manager alias. In the same shell, confirm the secondary `--version` is exactly `v22.23.2` and the primary `node --version`/`npm --version` are `v24.21.0`/`11.19.0` before every `npm run test` and `npm run check`.
+
+GitHub Actions already performs this for the runner: `.github/workflows/web-checks.yml` installs Node 22.23.2, writes its `process.execPath` to `INTERMED_NODE22_RUNTIME`, then restores the repository runtime from `.node-version` before `npm ci` and `npm run check`. That job provisions and restores the CI runner only; it does **not** set up a developer computer, so the steps above are required locally.
 
 ## Public configuration and mock mode
 
@@ -54,6 +86,64 @@ npx vitest run packages/data-access
 ```
 
 No Appwrite CLI invocation is part of any repository script. Provisioning, deployment and rollback commands live in [the Appwrite runbook](APPWRITE_RUNBOOK.md) and remain **NOT YET EXECUTED — requires maintainer approval**.
+
+Milestone 5 importer work is synthetic-only. As of 2026-10-08 the importer core,
+the Appwrite store client, the Function artifact builder, the repaired Function
+handler (including publication time and retries), and offline integration checks
+are verified. The recorded full repair run at `9a40644` passed 744 tests in 47
+files and 150 browser tests. CI, PR review, live actions, and owner approval
+remain pending; no M5 live action was authorized or executed. Do not add source
+credentials, real source material, network retrieval, or generated Function
+artifacts to the repository. The acceptance/evidence matrix, the recorded root
+test counts, and the separate approval sequence are in
+[MILESTONE_5_EVIDENCE.md](MILESTONE_5_EVIDENCE.md) and
+[APPWRITE_RUNBOOK.md](APPWRITE_RUNBOOK.md); the bounded copied logs and their
+copy/redaction policy are in
+[docs/evidence/milestone-5-synthetic-2026-10-07/](evidence/milestone-5-synthetic-2026-10-07/README.md).
+The implementation workers' focused offline suite is `npx vitest run
+tests/importer` in the implementation worktree; integrated gate runs stay with
+the lead.
+
+**PR13 documentation status — VERIFIED OFFLINE, 2026-10-08 (supersedes the
+"CI … remain pending" wording above for the current head; no overall acceptance
+claim).** The historical offline handler repair proof at `9a40644` **remains
+valid**: 744 unit tests in 47 files and 150 browser tests, exit 0, clean tree
+before and after. The **current** PR13 — the three new P1 repairs, the
+retry-identity repairs and the Codacy fixes — is **root-verified offline at
+the public head `474353181d899fb1e889d18ee96e82816784cfb4`**: `npm run check`
+passed **809 unit tests in 48 files plus 150 browser tests, exit 0**, clean
+tree before and after, on the pinned Node `v24.21.0` / npm `11.19.0` with the
+actual Node `v22.23.2` flow through `INTERMED_NODE22_RUNTIME`. GitHub Actions
+run `37765213291` has **both jobs SUCCESS** (Ubuntu `113271078278`, Windows
+`113271077989`), and **Codacy Static Code Analysis, DeepSource Secrets and
+CodeRabbit are SUCCESS on the same head** (provider facts from the GitHub API
+job logs); every code/runtime bot thread is replied/resolved, with only the
+CodeRabbit contributor status `4217007131` pending this documentation update.
+The first full run at that head died in a **native Windows process crash
+during Vitest** and recorded no valid result; the repeated, unchanged run
+passed and is the accepted proof. The **final documentation head's CI must be
+reverified by root — no future head PASS is claimed**. The **newly confirmed
+P1 regression** was first recorded as **17
+FAIL** against the original source at the root's immutable `613c055`
+(`test: preserve independently reproduced PR13 importer regression RED`), but
+**one of those 17 failures was an invalid test-harness error, not a production
+defect**: the retry probe passed the bare `sha256Hex` function to
+`publicationRowId`, which expects the `{ hash }` sha256 port object like every
+other derivation call site, so the invalid failure is **not** defect proof and
+the genuine original failures are **16**. The corrected tests-only corpus at
+`6fff95f` — production untouched at that commit — rerun against the original,
+unchanged `861fe81` production records **22 failures and 172 passing controls**
+of 194, all 22 genuine defect assertions, and that corrected run is now
+**root-verified**. Milestone 5 performs **no live Appwrite change** — no live
+schema change, deployment, staging, execution or publication (GitHub reads
+happened; no Appwrite actions); Milestone 6 remains an **issue 12 owner,
+separate PR** for the validator SHA-256/data-quality notes, the canonical
+`datasetVersionId` persistence data-access mapping and the offline Appwrite
+512 capacity configuration remain **future live schema requiring separate
+owner approval — not issue #12** — and the **domain, type and contract
+surfaces are unchanged**. All other milestone setup and documentation is
+deliberately left untouched so this documentation-only repair keeps a minimal
+scope that does not collide with the parallel owner M6 PR.
 
 The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever that build output already exists, and `npm run scan:dist` (`scripts/scan-dist-secrets.mjs`) scans it unconditionally as the `npm run check` step directly after `npm run build`, failing when the build output is missing instead of skipping. Both use the detector in `tests/support/secret-scan.ts` and report file names and pattern labels only, never matched values.
 

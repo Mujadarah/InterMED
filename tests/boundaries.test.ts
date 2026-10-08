@@ -5,6 +5,27 @@ import { basename, join } from 'node:path';
 // The production checker is plain JS so CI can run it independently of the app.
 import { inspectBoundary, sourceFiles } from '../scripts/check-boundaries.mjs';
 
+it.each([
+  'fs',
+  'fs/promises',
+  'node:fs',
+  'node:fs/promises',
+  'appwrite',
+  'node-appwrite',
+  'vendor-sdk',
+])('rejects importer access to %s', (specifier) => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'packages/importer/src/adapter.ts',
+        source: `import * as dependency from '${specifier}';`,
+      },
+    ]),
+  ).toEqual([
+    `packages/importer/src/adapter.ts: importer must not reach SDK/fetch/fs: ${specifier}`,
+  ]);
+});
+
 it('collects JavaScript and TypeScript files for boundary inspection', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'intermed-boundaries-'));
   const extensions = ['js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'mts', 'cts'];

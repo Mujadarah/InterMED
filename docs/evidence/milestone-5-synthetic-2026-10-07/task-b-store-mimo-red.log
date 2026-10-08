@@ -1,0 +1,544 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/importer/appwrite-store.test.ts (48 tests | 23 failed) 50ms
+       × rejects non-function fetch 3ms
+       × rejects invalid maxBytes budgets 1ms
+       × rejects non-string and malformed IDs instead of coercing them 14ms
+       × rejects non-object and metadata-spoofing row data 1ms
+       × rejects bad uploads with strict types before fetch 1ms
+       × rejects malformed or unbounded queries before fetch 1ms
+       × rejects invalid owner tokens before fetch 1ms
+       × uses exact GET/DELETE row paths 1ms
+       × encodes list queries as queries[] parameters without changing the path 0ms
+       × rejects rows without a string $id 1ms
+       × rejects mismatched database/table/bucket context metadata 1ms
+       × accepts the real { total, rows } list envelope 0ms
+       × rejects the legacy documents envelope and bad totals 1ms
+       × rejects malformed $permissions metadata 0ms
+       × validates file metadata size as bounded numeric data 0ms
+       × refuses and cancels an oversized streamed JSON body early 1ms
+       × never trusts a lying Content-Length header 1ms
+       × refuses early on a declared Content-Length over budget 0ms
+       × refuses oversized downloads without buffering them 1ms
+       × rejects hostile non-byte chunks and erroring streams safely 0ms
+       × maps 401 and 403 to UNAUTHORIZED without backend messages 0ms
+       × works when methods are detached from the store object 0ms
+       × ignores nested data wrappers and reads strict flat ownership 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 23 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > configuration guards (before network) > rejects non-function fetch
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/importer/appwrite-store.test.ts:375:9
+    373|       expect(() =>
+    374|         makeStore({ fetch: undefined as unknown as typeof fetch }),
+    375|       ).toThrow('Missing fetch');
+       |         ^
+    376|       expect(fakeFetch).not.toHaveBeenCalled();
+    377|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > configuration guards (before network) > rejects invalid maxBytes budgets
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/importer/appwrite-store.test.ts:383:11
+    381|         expect(() =>
+    382|           makeStore({ maxBytes: bad as unknown as number }),
+    383|         ).toThrow('Invalid max bytes');
+       |           ^
+    384|       }
+    385|       expect(fakeFetch).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > input validation (before network) > rejects non-string and malformed IDs instead of coercing them
+AssertionError: expected StoreError: Resource not found { …(2) } to match object { code: 'BAD_REQUEST', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Invalid ID",
++ StoreError {
++   "code": "NOT_FOUND",
++   "safeMessage": "Resource not found",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:409:10
+    407|         await expect(
+    408|           store.getRow('import-runs', badId as string),
+    409|         ).rejects.toMatchObject({ code: 'BAD_REQUEST', safeMessage: 'I…
+       |          ^
+    410|         await expect(
+    411|           store.createPrivateRow('import-runs', badId as string, { a: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > input validation (before network) > rejects non-object and metadata-spoofing row data
+AssertionError: promise resolved "{ '$id': 'row1', '$sequence': 1, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$databaseId": "intermed-datasets",
++   "$id": "row1",
++   "$permissions": [],
++   "$sequence": 1,
++   "$tableId": "import-runs",
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:461:10
+    459|         await expect(
+    460|           store.createPrivateRow('import-runs', 'row1', bad as JSONObj…
+    461|         ).rejects.toMatchObject({
+       |          ^
+    462|           code: 'BAD_REQUEST',
+    463|           safeMessage: 'Invalid row data',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > input validation (before network) > rejects bad uploads with strict types before fetch
+AssertionError: expected TypeError: FormData.append: Expected valu… to match object { code: 'BAD_REQUEST', …(1) }
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Invalid file",
++ TypeError {
++   "message": "FormData.append: Expected value (\"{ size: 4, name: 'x' }\") to be an instance of Blob.",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:490:8
+    488|           'f.txt',
+    489|         ),
+    490|       ).rejects.toMatchObject({ code: 'BAD_REQUEST', safeMessage: 'Inv…
+       |        ^
+    491|
+    492|       const huge = new Blob(['a'.repeat(FIVE_MIB + 1)]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > input validation (before network) > rejects malformed or unbounded queries before fetch
+AssertionError: expected TypeError: queries.forEach is not a funct… to match object { code: 'BAD_REQUEST', …(1) }
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Invalid queries",
++ TypeError {
++   "message": "queries.forEach is not a function",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:533:10
+    531|         await expect(
+    532|           store.listRows('import-runs', bad as string[]),
+    533|         ).rejects.toMatchObject({
+       |          ^
+    534|           code: 'BAD_REQUEST',
+    535|           safeMessage: 'Invalid queries',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > input validation (before network) > rejects invalid owner tokens before fetch
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/importer/appwrite-store.test.ts:547:45
+    545|           safeMessage: 'Invalid owner token',
+    546|         });
+    547|         await expect(store.releaseLock(bad)).rejects.toMatchObject({
+       |                                             ^
+    548|           code: 'BAD_REQUEST',
+    549|           safeMessage: 'Invalid owner token',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > exact REST shape > uses exact GET/DELETE row paths
+StoreError: Invalid list format
+ ❯ verifyListShape infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:58:11
+     56|     throw new StoreError('SERVER_ERROR', 'Invalid list response shape'…
+     57|   if (typeof list.total !== 'number' || !Array.isArray(list.documents))
+     58|     throw new StoreError('SERVER_ERROR', 'Invalid list format');
+       |           ^
+     59|   return list;
+     60| }
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:211:14
+ ❯ tests/importer/appwrite-store.test.ts:595:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > exact REST shape > encodes list queries as queries[] parameters without changing the path
+StoreError: Invalid list format
+ ❯ verifyListShape infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:58:11
+     56|     throw new StoreError('SERVER_ERROR', 'Invalid list response shape'…
+     57|   if (typeof list.total !== 'number' || !Array.isArray(list.documents))
+     58|     throw new StoreError('SERVER_ERROR', 'Invalid list format');
+       |           ^
+     59|   return list;
+     60| }
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:211:14
+ ❯ tests/importer/appwrite-store.test.ts:609:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > rejects rows without a string $id
+AssertionError: expected StoreError: Response ID mismatch { …(2) } to match object { code: 'SERVER_ERROR', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ StoreError {
+    "code": "SERVER_ERROR",
+-   "safeMessage": "Missing $id in response",
++   "safeMessage": "Response ID mismatch",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:674:60
+    672|         safeMessage: 'Missing $id in response',
+    673|       });
+    674|       await expect(store.getRow('dataset-bundles', 'row1')).rejects.to…
+       |                                                            ^
+    675|         code: 'SERVER_ERROR',
+    676|         safeMessage: 'Missing $id in response',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > rejects mismatched database/table/bucket context metadata
+AssertionError: promise resolved "{ '$id': 'row1', '$sequence': 1, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$databaseId": "intermed-datasets",
++   "$id": "row1",
++   "$permissions": [],
++   "$sequence": 1,
++   "$tableId": "dataset-bundles",
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:712:56
+    710|         $bucketId: 'quarantine',
+    711|       });
+    712|       await expect(store.getRow('import-runs', 'row1')).rejects.toMatc…
+       |                                                        ^
+    713|         code: 'SERVER_ERROR',
+    714|         safeMessage: 'Response context mismatch',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > accepts the real { total, rows } list envelope
+StoreError: Invalid list format
+ ❯ verifyListShape infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:58:11
+     56|     throw new StoreError('SERVER_ERROR', 'Invalid list response shape'…
+     57|   if (typeof list.total !== 'number' || !Array.isArray(list.documents))
+     58|     throw new StoreError('SERVER_ERROR', 'Invalid list format');
+       |           ^
+     59|   return list;
+     60| }
+ ❯ Object.listRows infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:211:14
+ ❯ tests/importer/appwrite-store.test.ts:730:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > rejects the legacy documents envelope and bad totals
+AssertionError: promise resolved "{ total: 1, documents: [] }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "documents": [],
++   "total": 1,
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:740:50
+    738|         jsonResponse({ total: 1, documents: [] }),
+    739|       );
+    740|       await expect(store.listRows('import-runs')).rejects.toMatchObjec…
+       |                                                  ^
+    741|         code: 'SERVER_ERROR',
+    742|         safeMessage: 'Invalid list format',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > rejects malformed $permissions metadata
+AssertionError: promise resolved "{ '$id': 'row1', '$sequence': 1, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "$createdAt": "2026-10-07T00:00:00.000+00:00",
++   "$databaseId": "intermed-datasets",
++   "$id": "row1",
++   "$permissions": "read(\"any\")",
++   "$sequence": 1,
++   "$tableId": "import-runs",
++   "$updatedAt": "2026-10-07T00:00:00.000+00:00",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:786:56
+    784|         $permissions: 'read("any")',
+    785|       });
+    786|       await expect(store.getRow('import-runs', 'row1')).rejects.toMatc…
+       |                                                        ^
+    787|         code: 'SERVER_ERROR',
+    788|         safeMessage: 'Invalid response permissions',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > response schema guards > validates file metadata size as bounded numeric data
+AssertionError: expected StoreError: Missing file size { …(2) } to match object { code: 'SERVER_ERROR', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ StoreError {
+    "code": "SERVER_ERROR",
+-   "safeMessage": "Invalid file size",
++   "safeMessage": "Missing file size",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:815:10
+    813|         await expect(
+    814|           store.getFileMetadata('raw-sources', 'file1'),
+    815|         ).rejects.toMatchObject({
+       |          ^
+    816|           code: 'SERVER_ERROR',
+    817|           safeMessage: 'Invalid file size',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > bounded response reads > refuses and cancels an oversized streamed JSON body early
+AssertionError: expected StoreError: Malformed JSON response { …(2) } to match object { code: 'BAD_REQUEST', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Response too large",
++ StoreError {
++   "code": "SERVER_ERROR",
++   "safeMessage": "Malformed JSON response",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:858:61
+    856|       fakeFetch.mockResolvedValueOnce(response);
+    857|       const smallStore = makeStore({ maxBytes: 128 });
+    858|       await expect(smallStore.getRow('import-runs', 'row1')).rejects.t…
+       |                                                             ^
+    859|         code: 'BAD_REQUEST',
+    860|         safeMessage: 'Response too large',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > bounded response reads > never trusts a lying Content-Length header
+AssertionError: expected StoreError: Malformed JSON response { …(2) } to match object { code: 'BAD_REQUEST', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Response too large",
++ StoreError {
++   "code": "SERVER_ERROR",
++   "safeMessage": "Malformed JSON response",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:870:61
+    868|       fakeFetch.mockResolvedValueOnce(response);
+    869|       const smallStore = makeStore({ maxBytes: 128 });
+    870|       await expect(smallStore.getRow('import-runs', 'row1')).rejects.t…
+       |                                                             ^
+    871|         code: 'BAD_REQUEST',
+    872|         safeMessage: 'Response too large',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > bounded response reads > refuses early on a declared Content-Length over budget
+AssertionError: expected StoreError: Malformed JSON response { …(2) } to match object { code: 'BAD_REQUEST', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "BAD_REQUEST",
+-   "safeMessage": "Response too large",
++ StoreError {
++   "code": "SERVER_ERROR",
++   "safeMessage": "Malformed JSON response",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:881:61
+    879|       fakeFetch.mockResolvedValueOnce(response);
+    880|       const smallStore = makeStore({ maxBytes: 128 });
+    881|       await expect(smallStore.getRow('import-runs', 'row1')).rejects.t…
+       |                                                             ^
+    882|         code: 'BAD_REQUEST',
+    883|         safeMessage: 'Response too large',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > bounded response reads > refuses oversized downloads without buffering them
+AssertionError: promise resolved "Blob { size: 1280, type: 'application/json' }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ Blob {
++   Symbol(kHandle): Blob {},
++   Symbol(kLength): 1280,
++   Symbol(kType): "application/json",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:897:68
+    895|       fakeFetch.mockResolvedValueOnce(response);
+    896|       const smallStore = makeStore({ maxBytes: 128 });
+    897|       await expect(smallStore.downloadFile('raw-sources', 'file1')).re…
+       |                                                                    ^
+    898|         {
+    899|           code: 'BAD_REQUEST',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > bounded response reads > rejects hostile non-byte chunks and erroring streams safely
+AssertionError: expected StoreError: Malformed JSON response { …(2) } to match object { code: 'SERVER_ERROR', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ StoreError {
+    "code": "SERVER_ERROR",
+-   "safeMessage": "Unsupported response chunk",
++   "safeMessage": "Malformed JSON response",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:917:56
+    915|         rawStreamResponse(singleChunkStream('not-bytes')),
+    916|       );
+    917|       await expect(store.getRow('import-runs', 'row1')).rejects.toMatc…
+       |                                                        ^
+    918|         code: 'SERVER_ERROR',
+    919|         safeMessage: 'Unsupported response chunk',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > status and error mapping > maps 401 and 403 to UNAUTHORIZED without backend messages
+AssertionError: expected StoreError: Backend error { …(2) } to match object { code: 'UNAUTHORIZED', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "UNAUTHORIZED",
+-   "safeMessage": "Unauthorized",
++ StoreError {
++   "code": "SERVER_ERROR",
++   "safeMessage": "Backend error",
+  }
+
+ ❯ tests/importer/appwrite-store.test.ts:984:58
+    982|       for (const status of [401, 403]) {
+    983|         fakeFetch.mockResolvedValueOnce(errorResponse(status, 'nope se…
+    984|         await expect(store.getRow('import-runs', 'row1')).rejects.toMa…
+       |                                                          ^
+    985|           code: 'UNAUTHORIZED',
+    986|           safeMessage: 'Unauthorized',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > lock ownership and export surface > works when methods are detached from the store object
+TypeError: Cannot read properties of undefined (reading 'createPrivateRow')
+ ❯ acquireLock infra/appwrite/functions/import-anmdmr/src/appwrite-store.js:281:20
+    279|       }
+    280|       try {
+    281|         await this.createPrivateRow('import-runs', 'lock', {
+       |                    ^
+    282|           sourceId: 'lock',
+    283|           snapshotVersion: 'lock',
+ ❯ tests/importer/appwrite-store.test.ts:1034:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/23]⎯
+
+ FAIL  tests/importer/appwrite-store.test.ts > Appwrite Store > lock ownership and export surface > ignores nested data wrappers and reads strict flat ownership
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/importer/appwrite-store.test.ts:1107:48
+    1105|         data: { approvalReference: 'owner1' },
+    1106|       });
+    1107|       await expect(store.releaseLock('owner1')).rejects.toMatchObject({
+       |                                                ^
+    1108|         code: 'CONFLICT',
+    1109|         safeMessage: 'Foreign lock refusal',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/23]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  23 failed | 25 passed (48)
+   Start at  20:34:10
+   Duration  228ms (transform 44ms, setup 0ms, import 59ms, tests 50ms, environment 0ms)

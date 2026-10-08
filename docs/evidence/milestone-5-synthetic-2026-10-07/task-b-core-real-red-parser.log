@@ -1,0 +1,324 @@
+== npx vitest run tests/importer/parser.test.ts ==
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/importer/parser.test.ts (24 tests | 16 failed) 13ms
+     ├ù normalizes decomposed NFD diacritics to NFC 3ms
+     ├ù parses a complete envelope and sorts rows deterministically 1ms
+     ├ù quarantines a non-object JSON root as invalid envelope 1ms
+     ├ù quarantines an envelope without the synthetic format marker 0ms
+     ├ù quarantines recordCounts that are not the canonical count keys 0ms
+     ├ù quarantines forged, negative or fractional declared counts 0ms
+     ├ù quarantines when declared counts do not describe the unique rows 0ms
+     ├ù enforces maxRows on actual rows even when declared counts are forged 0ms
+     ├ù enforces maxRawBytes before decoding 0ms
+     ├ù collapses identical duplicate rows before the counts check 0ms
+     ├ù fails closed on conflicting rows sharing one key 0ms
+     ├ù deduplicates rows keyed by source ingredient id as well 0ms
+     ├ù quarantines when the envelope contradicts the config source or schema 0ms
+     ├ù parses Windows-1250 snapshots under the config encoding policy 1ms
+     ├ù rejects a config whose encoding policy is unsupported 1ms
+     ├ù rejects non-finite or out-of-range config bounds 0ms
+node.exe :
+At line:1 char:1
++ & "<repo>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 16 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > decodeBytes > normalizes decomposed NFD diacritics to NFC
+AssertionError: expected 'Fictiv─â ├ó╠é ├«' to be 'Fictiv─â ├ó ├«' // Object.is equality
+
+Expected: "Fictiv─â ├ó ├«"
+Received: "Fictiv─â ├ó╠é ├«"
+
+ Γ¥» tests/importer/parser.test.ts:51:41
+     49|     const expected = 'Fictiv─â ├ó ├«';
+     50|     const bytes = new TextEncoder().encode(decomposed);
+     51|     expect(decodeBytes(bytes, 'utf-8')).toBe(expected);
+       |                                         ^
+     52|     expect(decodeBytes(bytes, 'utf-8')).toBe(
+     53|       decodeBytes(new TextEncoder().encode(expected), 'utf-8'),
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > parses a complete envelope and sorts
+rows deterministically
+AssertionError: expected 'quarantined' to be 'success' // Object.is equality
+
+Expected: "success"
+Received: "quarantined"
+
+ Γ¥» tests/importer/parser.test.ts:92:27
+     90|     document.products.reverse();
+     91|     const result = parseRawSnapshot(rawBytes(document), testConfig());
+     92|     expect(result.status).toBe('success');
+       |                           ^
+     93|     if (result.status !== 'success') return;
+     94|     expect(result.document.products.map((row) => row.sourceProductId))ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines a non-object JSON root as
+invalid envelope
+AssertionError: expected undefined to be 'invalid-envelope' // Object.is equality
+
+- Expected:
+"invalid-envelope"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:107:27
+    105|     expect(result.status).toBe('quarantined');
+    106|     if (result.status !== 'quarantined') return;
+    107|     expect(result.reason).toBe('invalid-envelope');
+       |                           ^
+    108|   });
+    109|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines an envelope without the
+synthetic format marker
+AssertionError: expected undefined to be 'invalid-envelope' // Object.is equality
+
+- Expected:
+"invalid-envelope"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:118:27
+    116|     expect(result.status).toBe('quarantined');
+    117|     if (result.status !== 'quarantined') return;
+    118|     expect(result.reason).toBe('invalid-envelope');
+       |                           ^
+    119|   });
+    120|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines recordCounts that are not
+the canonical count keys
+AssertionError: expected undefined to be 'invalid-envelope' // Object.is equality
+
+- Expected:
+"invalid-envelope"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:129:27
+    127|     expect(result.status).toBe('quarantined');
+    128|     if (result.status !== 'quarantined') return;
+    129|     expect(result.reason).toBe('invalid-envelope');
+       |                           ^
+    130|   });
+    131|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines forged, negative or
+fractional declared counts
+AssertionError: expected undefined to be 'invalid-envelope' // Object.is equality
+
+- Expected:
+"invalid-envelope"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:139:29
+    137|       expect(result.status).toBe('quarantined');
+    138|       if (result.status !== 'quarantined') return;
+    139|       expect(result.reason).toBe('invalid-envelope');
+       |                             ^
+    140|     }
+    141|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines when declared counts do not
+describe the unique rows
+AssertionError: expected undefined to be 'count-mismatch' // Object.is equality
+
+- Expected:
+"count-mismatch"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:160:27
+    158|     expect(result.status).toBe('quarantined');
+    159|     if (result.status !== 'quarantined') return;
+    160|     expect(result.reason).toBe('count-mismatch');
+       |                           ^
+    161|   });
+    162|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > enforces maxRows on actual rows even
+when declared counts are forged
+AssertionError: expected undefined to be 'row-bound-exceeded' // Object.is equality
+
+- Expected:
+"row-bound-exceeded"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:187:27
+    185|     expect(result.status).toBe('quarantined');
+    186|     if (result.status !== 'quarantined') return;
+    187|     expect(result.reason).toBe('row-bound-exceeded');
+       |                           ^
+    188|   });
+    189|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > enforces maxRawBytes before decoding
+AssertionError: expected undefined to be 'oversized-snapshot' // Object.is equality
+
+- Expected:
+"oversized-snapshot"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:198:27
+    196|     expect(result.status).toBe('quarantined');
+    197|     if (result.status !== 'quarantined') return;
+    198|     expect(result.reason).toBe('oversized-snapshot');
+       |                           ^
+    199|   });
+    200|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > collapses identical duplicate rows
+before the counts check
+AssertionError: expected 'quarantined' to be 'success' // Object.is equality
+
+Expected: "success"
+Received: "quarantined"
+
+ Γ¥» tests/importer/parser.test.ts:216:27
+    214|     };
+    215|     const result = parseRawSnapshot(rawBytes(document), testConfig());
+    216|     expect(result.status).toBe('success');
+       |                           ^
+    217|     if (result.status !== 'success') return;
+    218|     expect(result.document.products).toHaveLength(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > fails closed on conflicting rows sharing
+one key
+AssertionError: expected undefined to be 'conflicting-duplicate' // Object.is equality
+
+- Expected:
+"conflicting-duplicate"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:239:27
+    237|     expect(result.status).toBe('quarantined');
+    238|     if (result.status !== 'quarantined') return;
+    239|     expect(result.reason).toBe('conflicting-duplicate');
+       |                           ^
+    240|     expect(parseIssueList(result)).toContain('conflicting-duplicate:prΓÇª
+    241|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > deduplicates rows keyed by source
+ingredient id as well
+AssertionError: expected 'quarantined' to be 'success' // Object.is equality
+
+Expected: "success"
+Received: "quarantined"
+
+ Γ¥» tests/importer/parser.test.ts:258:27
+    256|     ];
+    257|     const result = parseRawSnapshot(rawBytes(document), testConfig());
+    258|     expect(result.status).toBe('success');
+       |                           ^
+    259|     if (result.status !== 'success') return;
+    260|     expect(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > quarantines when the envelope
+contradicts the config source or schema
+AssertionError: expected undefined to be 'config-envelope-mismatch' // Object.is equality
+
+- Expected:
+"config-envelope-mismatch"
+
++ Received:
+undefined
+
+ Γ¥» tests/importer/parser.test.ts:278:29
+    276|       expect(result.status).toBe('quarantined');
+    277|       if (result.status !== 'quarantined') return;
+    278|       expect(result.reason).toBe('config-envelope-mismatch');
+       |                             ^
+    279|     }
+    280|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > parseRawSnapshot envelope and bounds > parses Windows-1250 snapshots under the
+config encoding policy
+AssertionError: expected 'quarantined' to be 'success' // Object.is equality
+
+Expected: "success"
+Received: "quarantined"
+
+ Γ¥» tests/importer/parser.test.ts:297:27
+    295|       testConfig({ parserEncoding: 'windows-1250' }),
+    296|     );
+    297|     expect(result.status).toBe('success');
+       |                           ^
+    298|     if (result.status !== 'success') return;
+    299|     expect(result.document.products[0]!.commercialName).toBe(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > finite validated config > rejects a config whose encoding policy is unsupported
+AssertionError: expected undefined to be an instance of ImporterConfigError
+ Γ¥» tests/importer/parser.test.ts:330:20
+    328|       caught = error;
+    329|     }
+    330|     expect(caught).toBeInstanceOf(ImporterConfigError);
+       |                    ^
+    331|     expect((caught as ImporterConfigError).code).toBe('invalid-config'ΓÇª
+    332|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[15/16]ΓÄ»
+
+ FAIL  tests/importer/parser.test.ts > finite validated config > rejects non-finite or out-of-range config bounds
+AssertionError: expected undefined to be an instance of ImporterConfigError
+ Γ¥» tests/importer/parser.test.ts:348:22
+    346|         caught = error;
+    347|       }
+    348|       expect(caught).toBeInstanceOf(ImporterConfigError);
+       |                      ^
+    349|     }
+    350|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[16/16]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 8 passed (24)
+   Start at  21:05:04
+   Duration  200ms (transform 59ms, setup 0ms, import 80ms, tests 13ms, environment 0ms)
+
+EXIT=1
