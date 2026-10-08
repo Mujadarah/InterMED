@@ -492,7 +492,32 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
       if (!(await isBaselineCurrent())) {
         return reject('stale-baseline');
       }
-      for (const component of outcome.missing) await writeComponent(component);
+      try {
+        for (const component of outcome.missing)
+          await writeComponent(component);
+      } catch (writeError) {
+        // The recovery write itself failed (for example a second lost
+        // response). Read the final state back and succeed only when the
+        // exact fully committed generation is verified; anything else is a
+        // constant failure that never leaks the write error and never
+        // reports a partial publication as committed. The persisted prefix
+        // stays resumable, so a later retry can complete it.
+        const verified = await settle();
+        if (verified.kind === 'identical') {
+          if (isAmbiguousWrite(writeError)) {
+            warnings.push('post-commit-read-verified');
+            return {
+              datasetVersionId: candidateVersionId,
+              status: 'published',
+            };
+          }
+          return {
+            datasetVersionId: candidateVersionId,
+            status: 'already-published',
+          };
+        }
+        return reject('publication-recovery-failed');
+      }
       warnings.push('resumed-interrupted-publication');
       return { datasetVersionId: candidateVersionId, status: 'published' };
     }
