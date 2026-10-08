@@ -3,10 +3,7 @@ import { Link } from 'react-router';
 import type {
   DatasetStateSource,
   DatasetUpdateState,
-  FieldState,
   LocalDatasetGeneration,
-  MedicationProduct,
-  MedicationSearchMatch,
 } from '@intermed/domain';
 import type {
   MedicationSearchResponse,
@@ -15,10 +12,12 @@ import type {
 import { datasetAgeText } from './dataset-age';
 import { getSearchStatusMessage } from './search-status';
 import type { SearchStatus } from './search-status';
+import {
+  createDisambiguatedSearchResults,
+  type DisambiguatedSearchResult,
+} from './search-disambiguation';
 
 const SEARCH_DEBOUNCE_MS = 200;
-const NOT_PROVIDED = 'Not provided by source';
-
 type SearchState =
   | {
       status: 'success';
@@ -42,76 +41,73 @@ function generationOf(
   return 'generation' in state ? state.generation : null;
 }
 
-function availableField(field: FieldState<string>): string {
-  return field.status === 'present' && field.value.trim()
-    ? field.value
-    : NOT_PROVIDED;
-}
-
-function dosageForm(record: MedicationSearchMatch['record']): string {
-  return record.dosageFormName?.trim() || NOT_PROVIDED;
-}
-
-function manufacturers(record: MedicationSearchMatch['record']): string {
-  const names = record.manufacturerNames.filter((name) => name.trim());
-  return names.length > 0 ? names.join(', ') : NOT_PROVIDED;
-}
-
-function catalogueStatus(product: MedicationProduct): string {
-  switch (product.status) {
-    case 'active':
-      return 'Present in local dataset';
-    case 'removed':
-      return 'Removed from dataset';
-    case 'unresolved':
-      return 'Unresolved product record';
-  }
-}
-
-function SearchResult({ match }: { match: MedicationSearchMatch }) {
-  const product = match.record.product;
-  const values = {
-    strength: availableField(product.strengthText),
-    dosageForm: dosageForm(match.record),
-    route: availableField(product.route),
-    authorization: availableField(product.authorizationStatus),
-    manufacturer: manufacturers(match.record),
-  };
+function SearchResult({ row }: { row: DisambiguatedSearchResult }) {
+  const product = row.match.record.product;
   const href = `/medication/${encodeURIComponent(product.id)}`;
+  const sourceProductId = row.sourceProductIdSuffix
+    ? `. Source product ID: ${row.sourceProductIdSuffix}`
+    : '';
+  const productId = row.productIdSuffix
+    ? `. Product ID: ${row.productIdSuffix}`
+    : '';
 
   return (
     <li className="search-result">
       <Link
         to={href}
         tabIndex={0}
-        aria-label={`Open ${product.commercialName}. Strength: ${values.strength}. Dosage form: ${values.dosageForm}. Route: ${values.route}. Authorization status: ${values.authorization}. Manufacturer: ${values.manufacturer}. Catalogue record status: ${catalogueStatus(product)}.`}
+        aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
       >
         <span className="search-result-name">{product.commercialName}</span>
         <dl className="search-result-details">
           <div>
+            <dt>Active ingredient(s)</dt>
+            <dd>{row.ingredients}</dd>
+          </div>
+          <div>
             <dt>Strength</dt>
-            <dd>{values.strength}</dd>
+            <dd>{row.strength}</dd>
           </div>
           <div>
             <dt>Dosage form</dt>
-            <dd>{values.dosageForm}</dd>
+            <dd>{row.dosageForm}</dd>
           </div>
           <div>
             <dt>Route</dt>
-            <dd>{values.route}</dd>
+            <dd>{row.route}</dd>
           </div>
           <div>
             <dt>Authorization status</dt>
-            <dd>{values.authorization}</dd>
+            <dd>{row.authorization}</dd>
           </div>
           <div>
             <dt>Manufacturer</dt>
-            <dd>{values.manufacturer}</dd>
+            <dd>{row.manufacturer}</dd>
+          </div>
+          <div>
+            <dt>Pack/presentation</dt>
+            <dd>{row.pack}</dd>
+          </div>
+          <div>
+            <dt>CIM</dt>
+            <dd>{row.cim}</dd>
           </div>
           <div>
             <dt>Catalogue record status</dt>
-            <dd>{catalogueStatus(product)}</dd>
+            <dd>{row.catalogueStatus}</dd>
           </div>
+          {row.sourceProductIdSuffix && (
+            <div>
+              <dt>Source product ID</dt>
+              <dd>{row.sourceProductIdSuffix}</dd>
+            </div>
+          )}
+          {row.productIdSuffix && (
+            <div>
+              <dt>Product ID</dt>
+              <dd>{row.productIdSuffix}</dd>
+            </div>
+          )}
         </dl>
       </Link>
     </li>
@@ -304,8 +300,8 @@ export function MedicationSearchPage({
           className="search-result-list"
           aria-label="Medication search results"
         >
-          {result.results.map((match) => (
-            <SearchResult key={match.record.product.id} match={match} />
+          {createDisambiguatedSearchResults(result.results).map((row) => (
+            <SearchResult key={row.match.record.product.id} row={row} />
           ))}
         </ol>
       )}

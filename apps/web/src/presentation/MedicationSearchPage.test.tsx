@@ -51,17 +51,37 @@ function dataset(state: DatasetUpdateState): DatasetStateSource {
 function candidate(
   key: string,
   overrides: Parameters<typeof makeProduct>[2] = {},
+  ingredientNames: readonly string[] = ['Fictivolinum'],
 ): MedicationSearchMatch {
   return {
     record: {
       product: makeProduct(key, 'Fictivol', overrides),
-      ingredientNames: ['Fictivolinum'],
+      ingredientNames,
       atcCodes: ['SYN-SP-FICTIVOL'],
       dosageFormName: 'fictional tablet',
       manufacturerNames: ['Synthetica Laboratories'],
     },
     rank: 'exact',
   };
+}
+
+async function renderCandidateRows(matches: readonly MedicationSearchMatch[]) {
+  vi.useFakeTimers();
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response(matches)),
+  };
+  renderPage({ status: 'ready', generation }, search);
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  return Array.from(
+    screen
+      .getByRole('list', { name: 'Medication search results' })
+      .querySelectorAll('a'),
+  );
 }
 
 function response(
@@ -142,6 +162,75 @@ it('shows local provenance and keeps duplicate names distinct with complete sour
   );
   expect(input).toHaveFocus();
   expect(search.search).toHaveBeenCalledOnce();
+});
+
+it('visibly and accessibly distinguishes same-name tablets by active ingredient', async () => {
+  const rows = await renderCandidateRows([
+    candidate(
+      'SP-FICTIVOL-INGREDIENT-A',
+      { strengthText: presentField('250 mg') },
+      ['Fictivolinum'],
+    ),
+    candidate(
+      'SP-FICTIVOL-INGREDIENT-B',
+      { strengthText: presentField('250 mg') },
+      ['Placebexium'],
+    ),
+  ]);
+
+  expect(rows).toHaveLength(2);
+  expect(new Set(rows.map((row) => row.textContent)).size).toBe(2);
+  expect(new Set(rows.map((row) => row.getAttribute('aria-label'))).size).toBe(
+    2,
+  );
+  expect(rows[0]?.textContent).toContain('Fictivolinum');
+  expect(rows[1]?.textContent).toContain('Placebexium');
+});
+
+it('visibly and accessibly distinguishes same-name tablets by pack and CIM', async () => {
+  const rows = await renderCandidateRows([
+    candidate('SP-FICTIVOL-PACK-10', {
+      strengthText: presentField('500 mg'),
+      presentationOrPackDescription: presentField('10 tablets'),
+      cim: presentField('CIM-10'),
+    }),
+    candidate('SP-FICTIVOL-PACK-100', {
+      strengthText: presentField('500 mg'),
+      presentationOrPackDescription: presentField('100 tablets'),
+      cim: presentField('CIM-100'),
+    }),
+  ]);
+
+  expect(rows).toHaveLength(2);
+  expect(new Set(rows.map((row) => row.textContent)).size).toBe(2);
+  expect(new Set(rows.map((row) => row.getAttribute('aria-label'))).size).toBe(
+    2,
+  );
+  expect(rows[0]?.textContent).toContain('10 tablets');
+  expect(rows[0]?.textContent).toContain('CIM-10');
+  expect(rows[1]?.textContent).toContain('100 tablets');
+  expect(rows[1]?.textContent).toContain('CIM-100');
+});
+
+it('adds source product ids to visible and accessible names for fully colliding rows', async () => {
+  const rows = await renderCandidateRows([
+    candidate('SP-FICTIVOL-COLLISION-A'),
+    candidate('SP-FICTIVOL-COLLISION-B'),
+  ]);
+
+  expect(rows).toHaveLength(2);
+  expect(new Set(rows.map((row) => row.textContent)).size).toBe(2);
+  expect(new Set(rows.map((row) => row.getAttribute('aria-label'))).size).toBe(
+    2,
+  );
+  expect(rows[0]?.textContent).toContain('SP-FICTIVOL-COLLISION-A');
+  expect(rows[1]?.textContent).toContain('SP-FICTIVOL-COLLISION-B');
+  expect(rows[0]?.getAttribute('aria-label')).toContain(
+    'SP-FICTIVOL-COLLISION-A',
+  );
+  expect(rows[1]?.getAttribute('aria-label')).toContain(
+    'SP-FICTIVOL-COLLISION-B',
+  );
 });
 
 it('announces a truncated result count and caps the rendered list at 50', async () => {
