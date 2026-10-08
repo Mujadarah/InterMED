@@ -107,7 +107,7 @@ copied.
 
 ## Follow-up update — 2026-10-08 (handler proof, combined run, honest history)
 
-Twelve more bounded copies, same copy/redaction policy (machine path segments
+Sixteen more bounded copies, same copy/redaction policy (machine path segments
 only to `<worktree>` / `<repo>` / `<user-home>`, UTF-8 without BOM, LF,
 trailing whitespace stripped; **no line added or removed** — a line-by-line
 comparison against the sources shows identical line counts and differences only
@@ -127,6 +127,10 @@ in the redacted path segments):
 | `task-b-FINAL-independent-review-4cbc9ed-report-only.txt`   | **Final independent whole-patch static review at `4cbc9ed`: ACCEPTED, 0 reproducible blockers** — bounded static scope only (`git log`, `git diff`, patch analysis; exits 0), verdict "SCOPED VERDICT: PASS / ACCEPTED (Pending known M6 coordination issue)"; renamed `-report-only.txt` because it fails `prettier --check` as Markdown, content otherwise byte-identical. Static review, not execution evidence |
 | `task-b-ROOT-m6-coordination-RED.log`                       | Root's portable M6 coordination repro rerun (2026-10-08): **3 of 3 expected failures, exit 1**, pinned Node `v24.21.0` / npm `11.19.0` as reported by root (the log prints no version line and none was added); temporary test removed afterwards, M6 and the domain unchanged                                                                                                                                     |
 | `task-b-ROOT-m6-diagnostic.log`                             | Root's existing external diagnostic config with `COORD-m6-diagnostic.test.ts`: **2 of 2 passed, exit 0**, no M6 source edits and no activation — it neutralizes **Gap 1 only, in memory**, to expose the `invalid-unit` / `ambiguous-decimal` rejections; **not a fix**                                                                                                                                            |
+| `task-b-approved-free-first-pass-resume.log`                | Report-only stdout of the approved owner-payload first pass over the eleven copied files at `4cbc9ed` — static observations F1–F11, verified properties, and explicit missing-import limitations; no code executed, no network. Root verified the actual paths                                                                                                                                                     |
+| `task-b-approved-gemini-triage-capsule.log`                 | Gemini 3.1 Pro triage capsule stdout (F2–F10 statuses), from an **explicitly owner-approved** expanded payload with a clean local 42-file scan; **triage static only** — some line references are inaccurate and root's actual references are authoritative (the earlier auto-review rejection is dated history only)                                                                                              |
+| `payload-verification.json`                                 | Public identifiers only — file paths, blob ids, byte counts, string-literal counts and fixed public URLs; **no values**, 11 files at `4cbc9ed`, `credentialLiteralFindings: 0` for every file                                                                                                                                                                                                                      |
+| `task-b-ROOT-review-repair-ba3bff8-RED.log`                 | **Immutable root RED proof of the confirmed findings:** `tests/importer/publication-resume-review.test.ts` — **5 failed / 2 passed (7)**, exit 1: four stale-baseline-on-resume tests (**F1**) plus one divergent stored-manifest `recordCounts` test (**F11**). Tests only — the source is **not repaired yet**                                                                                                   |
 
 Notes:
 
@@ -144,6 +148,16 @@ Notes:
 - The **final whole-patch static review at `4cbc9ed` is ACCEPTED (0
   reproducible blockers)** and **CI/PR are pending**: the passing combined run
   is not an M5 acceptance.
+- **Later on 2026-10-08 that accepted review is superseded by confirmed
+  findings:** root's final triage confirms **F1** (partial/recovery manifest
+  resume bypasses the stale-baseline recheck) and **F11** (asymmetric stored
+  manifest `recordCounts`) via `task-b-ROOT-review-repair-ba3bff8-RED.log`
+  (5 failed / 2 passed), **F9** is a confirmed stale comment being corrected,
+  and the remaining eight (F2–F8, F10) stay **triage, static only**; the author
+  **GREEN run with actual source edits is underway, no pass yet**.
+  **No blanket first-pass PASS**
+  — the code is **NOT ready** until confirmed fixes, a root regression/full
+  check, and a fresh independent review.
 - **Not copied:** the dirty working-tree WIP handler proof
   (`task-b-ROOT-handler-canonical-WIP-FULL.log`, `…-WIP-node22.log`), which
   stays in the orchestration store labelled **nonfinal / not authoritative**,

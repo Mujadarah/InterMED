@@ -206,9 +206,9 @@ published-dataset contracts, or M3 public identifiers.
   integration `4cbc9edf89a12590f1fa7821428758ac8ac86bec` with M6 main merged:
   **734 tests / 46 files / 150 browser, exit 0**. The **final independent
   whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible
-  blockers** (bounded `git log` / `git diff` / patch analysis), while **CI/PR
-  are pending** and an additional eleven-file first-pass review is **running
-  (not yet reported)**, so B is not claimed ready and no M5 acceptance is
+  blockers** (bounded `git log` / `git diff` / patch analysis) while **CI/PR
+  are pending**; the eleven-file first-pass review has since been reported (next
+  bullet), so B is not claimed ready and no M5 acceptance is
   recorded here.
 - **Honest history kept.** The `0c16177` root failure (5 of 598) and the
   `0266d8` RED run (real canonical mismatch plus the invalid "canonical must
@@ -226,5 +226,24 @@ published-dataset contracts, or M3 public identifiers.
   workstream, and **no closure is claimed**. **Contract/type changes: none** —
   the optional storage mapping is
   still schema-only, and the live migration is **still not executed**.
+- **First-pass triage (later the same day):** the accepted `4cbc9ed` static
+  review is retained as historical record and **superseded by confirmed
+  findings** — **F1** (partial/recovery manifest resume bypasses the
+  stale-baseline recheck) and **F11** (asymmetric stored-manifest `recordCounts`
+  equality) are root-confirmed by the immutable RED
+  `task-b-ROOT-review-repair-ba3bff8-RED.log` (5 failed / 2 passed), **F9** is a
+  confirmed stale comment the author is correcting; the remaining eight
+  (F2-F8, F10) stay **triage, static only** (F2 deliberate fail-closed lock,
+  F3 not proven, F4-F6 and F8 false positives, F7 no proven OOM, F10 constant
+  500 policy). Author **GREEN with actual source edits is underway, no pass
+  yet**, so the code is **NOT ready** until confirmed fixes, a root
+  regression/full check, and a fresh independent review. **F2** keeps its
+  owner-only recovery prerequisite in [the runbook](../APPWRITE_RUNBOOK.md)
+  section 10.0.1 (**NOT EXECUTED**, no TTL stealing). The **Gemini 3.1 Pro
+  expanded payload was explicitly owner-approved** (local 42-file scan clean,
+  capsule triage complete in ask-b-approved-gemini-triage-capsule.log;
+  some line references are inaccurate and **root’s actual references are
+  authoritative**); the earlier auto-review rejection is kept only as dated
+  history. No blanket first-pass PASS.
 - **Live state unchanged:** no M5 live action, production untouched, shell
   project untouched, source rights unchanged.

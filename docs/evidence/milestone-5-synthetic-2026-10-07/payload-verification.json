@@ -1,0 +1,97 @@
+{
+  "sourceRevision": "4cbc9edf89a12590f1fa7821428758ac8ac86bec",
+  "files": [
+    {
+      "file": "packages/importer/src/stage.ts",
+      "blob": "1827712fa28f9f589479cc3c01c8e04b993f8f13",
+      "bytes": 10100,
+      "stringLiterals": 61,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "packages/importer/src/publisher.ts",
+      "blob": "b0d92995d07e7802b7f6face55ca4388d5c2015d",
+      "bytes": 18209,
+      "stringLiterals": 102,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": ["https://", "https://published.invalid"]
+    },
+    {
+      "file": "packages/importer/src/identity.ts",
+      "blob": "72a8f4603ab4805482ca70ba565b756dd69f3136",
+      "bytes": 1760,
+      "stringLiterals": 5,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/main.js",
+      "blob": "572084f1c689d25996c1b0536b3ea83d2e12b94a",
+      "bytes": 3147,
+      "stringLiterals": 17,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/envelope.js",
+      "blob": "0c3974dda7503913a1c01aa3a973bde1847b357e",
+      "bytes": 2196,
+      "stringLiterals": 6,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/runtime-config.js",
+      "blob": "dafacf5fbb9eca83dcfb46281601ae237b6dec66",
+      "bytes": 1939,
+      "stringLiterals": 19,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": ["https://fra.cloud.appwrite.io/v1"]
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/intent.js",
+      "blob": "ba57d65957c38b3abc306baf7647e465a8c5476d",
+      "bytes": 15650,
+      "stringLiterals": 112,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/operations.js",
+      "blob": "38f92348d90c596671ff2008dc2d704c4308d3c2",
+      "bytes": 8586,
+      "stringLiterals": 39,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/storage-bridge.js",
+      "blob": "eb808e3b6c6291fb0444e559b7d963eeee78598e",
+      "bytes": 25504,
+      "stringLiterals": 120,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/appwrite-store.js",
+      "blob": "e36a2db3d2aa1b2ca9a8a71faf52eb7051b7b3df",
+      "bytes": 23489,
+      "stringLiterals": 213,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": ["https://fra.cloud.appwrite.io/v1"]
+    },
+    {
+      "file": "infra/appwrite/functions/import-anmdmr/src/codes.js",
+      "blob": "be23b25466e8e8c63bb1d7fdc6dc3aebf503a087",
+      "bytes": 1963,
+      "stringLiterals": 34,
+      "credentialLiteralFindings": 0,
+      "fixedUrls": []
+    }
+  ],
+  "envFilesIncluded": false,
+  "envValuesRead": false,
+  "onlyPublicEndpointProjectIdentifiers": true,
+  "note": "Exact source-only snapshot. No fixtures, data rows or upstream ANMDMR retrieval payloads are included; code uses environment references, not credential values."
+}

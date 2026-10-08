@@ -1,0 +1,93 @@
+
+> build · mimo-v2.6-flash-free
+=== WORKER REPORT ===
+
+Scope: static first pass only, owner-approved payload = the eleven copied files at 4cbc9ed. No new files read, no code or tests executed, no network/Appwrite access, no environment values read, no files modified.
+
+## Coverage table
+
+| File | Reviewed focus | Verdict |
+|---|---|---|
+| importer/src/stage.ts | synthetic-only gates, quarantine, identity seal, manifest-free staging, bounded issues | F4, F6, F7 |
+| importer/src/publisher.ts | approval/review binding, idempotency-first, immutable settle, write order, baseline check | **F1**, F11 |
+| importer/src/identity.ts | generation key + stable id derivation, no time/baseline dependency | no findings |
+| src/main.js | env-only authz, strict body, constant codes, log allowlist | F10 |
+| src/envelope.js | bounded envelope, single-key body, id pattern | F5 |
+| src/runtime-config.js | env-only trusted runtime, publish flag, public ids/names only | no findings |
+| src/intent.js | purpose-bound schemas, prefix binding, deterministic reserved names, field bounds | F5, F6, F9 |
+| src/operations.js | ref→intent resolution, raw hash before parse, publish gate, code-only outcomes | F4 (sink) |
+| src/storage-bridge.js | create-only public writes, private reuse-on-identical, lease, resume ordering, baseline read | **F2**, **F3**, F8, F9 |
+| src/appwrite-store.js | endpoint/project/key checks, table/bucket allowlists, bounded bodies, constant errors, lock | **F2** |
+| src/codes.js | event allowlist, derived refs, marker regex | no findings |
+
+## Findings
+
+**F1 (Medium) — publisher.ts, `publish()` L495-499 and `recover()` L466-470; baseline check only on clean path L503-509.**
+Repro: fake ports; publish A throws after `descriptor` write (file+descriptor persisted, no manifest) → lock released; publish B (different candidate, same baseline) commits; retry A. `classify()` returns `partial` and `writeManifestRow` runs without comparing `readBaseline()` to `approval.baselineVersionId`.
+Impact: A's manifest commits with a stale `previousVersionId`, giving two published manifests with the same parent; `pickNewest()` (storage-bridge.js L494-506) then picks the baseline by `publishedAt`, and stage's baseline checks (stage.ts L231-242) misjudge later runs.
+Test: assert the retry of A returns `rejected/stale-baseline`; today it returns `published`.
+
+**F2 (Medium) — storage-bridge.js `acquirePublicationLock()` L751-768; appwrite-store.js `acquireLock()`/`releaseLock()` L706-750 (no TTL stated at L735-736).**
+Repro: acquire, then terminate the instance before `release` (publisher.ts `finally` L526-534 never runs); the `lock` row in `import-runs` persists; next `acquireLock()` returns `false`.
+Impact: every later publish returns 409 `publication-busy` indefinitely, with no in-code recovery; the stale row also surfaces in `import-runs` listings with `sourceId='lock'`.
+Test: acquire without release → assert second acquire fails and operation yields `publication-busy`; add a lease-expiry/reclaim test.
+
+**F3 (Low) — storage-bridge.js `createPrivateRowSemantics()` L404-413.**
+Repro: stage the same `(config, snapshot)` twice with the same runId (stage.ts L71-73) but a different baseline state or a different intent `issuedAt`; create returns CONFLICT and the fast path compares only `sourceId`, `snapshotVersion`, `importerVersion`, `completenessStatus`.
+Impact: `diffSummary`, `counts`, `validationFailures`, `startedAt`, `approvalReference` differences are silently dropped (e.g. "first generation" diff kept after a baseline exists); the generic `rowMatches` at L414 is bypassed for this table.
+Test: second stage must update `diffSummary`/`startedAt`; today unchanged.
+
+**F4 (Low) — stage.ts L110 `quarantine(parseResult.reason, ...)`; sinks storage-bridge.js `buildRunRow()` L198, L210-211 (length-50 only), intent.js `quarantineFileName()` L451-453, operations.js L106-114 → main.js `responseFor()` L37-46.**
+Repro: `parseRawSnapshot` returns a reason outside the fixed token set (no allowlist exists in approved code).
+Impact: parser-controlled text reaches the run row, a storage object name and the HTTP `summary.completenessStatus`, contradicting the code-only guarantee documented at stage.ts L52-59; length/charset bounds are not vocabulary bounds.
+Test: stubbed free-text reason must be rejected by both the run row and the response; today accepted.
+
+**F5 (Low) — envelope.js `OPERATION_ID_PATTERN` L19-20 and `isPublishReference()` L56-59; intent.js `OPERATION_PATTERN` L23 and `intentMatchesOperation()` L387-397; operations.js L250.**
+Repro: change one copy only.
+Impact: envelope and stored intent drift apart — either universal fail-closed `operation-rejected` (availability) or divergence in the prefix binding that keeps stage references from carrying publish intent.
+Test: single-source the pattern; corpus test asserting both modules classify the same id set identically.
+
+**F6 (Low) — stage.ts L121-124 (`normalizeKey`) vs intent.js L143-146 (`toLowerCase()`).**
+Repro: source key whose `normalizeKey` output differs from its lowercase form (body of `./normalize` not in scope, but the two call sites are demonstrably different functions).
+Impact: intent passes creation validation yet stages never succeed (`source-key-not-allowlisted`); fail-closed, so availability not integrity.
+Test: same key set through both normalizers; assert identical allowlist decisions.
+
+**F7 (Low) — stage.ts `provenance` array L127-146, bounded only inside `quarantine()` L79.**
+Repro: snapshot where every row fails provenance with `maxRows` up to 1,000,000 (intent.js L170-177).
+Impact: up to ~1M short strings allocated, then truncated to the cap — avoidable memory pressure inside a function memory limit.
+Test: large mismatching snapshot; assert pushes stop at the `boundedIssues` limit.
+
+**F8 (Low) — storage-bridge.js `listBaselineRows()` L464-492 with L40-42 constants; throw condition `collected.length > 100` at L480-485, maximum attainable = 4×25 = 100.**
+Repro: ≥101 published manifests.
+Impact: `baseline-unbounded` is unreachable; pagination silently stops at 100 rows. Currently masked only by `orderDesc('publishedAt')`, so the guard will not protect if ordering changes.
+Test: 101 fake rows; expect `baseline-unbounded`, today no throw.
+
+**F9 (Low) — intent.js L483-489 comment vs publisher.ts L370-402 and storage-bridge.js `buildDescriptorRow()` L218-236 / `buildManifestRow()` L238-305 / `writeManifestRow()` L806-809.**
+Repro: by inspection — the comment says descriptor `datasetVersionId` and `previousVersionId` links use the 36-char `publicationRowId` derivation because the domain id exceeds a `varchar(64)` column; the code stores the full domain id (`assertText(..., 512)`), and `publicationRowId` is used only as the manifest row `$id`.
+Impact: if the `varchar(64)` claim is real, publication fails at the backend after the public file and descriptor are already written (manifest-last), leaving partial public state; otherwise the documented invariant is wrong. Column widths are outside the approved payload.
+Test: assert serialized descriptor/manifest payloads match the documented derivation (fails today) or correct the comment; add a write test at the true column limit.
+
+**F10 (Low) — main.js L94-104.**
+Repro: force a `BridgeError` with a deterministic cause — `artifact-too-large` (storage-bridge.js L425-427, L771-774), `dataset-mismatch` (L796-803), `row-invalid` (L128-132).
+Impact: permanent, caller-actionable rejections are reported as 500 `operation-failed`, indistinguishable from transient faults; `dataset-mismatch` specifically fires inside `writeManifestRow` after public file+descriptor exist, so a 500 accompanies durable partial public state and every retry re-fails identically.
+Test: force the dataset mismatch; expect a distinct constant rejection code (403 `operation-rejected`), not 500.
+
+**F11 (Low) — publisher.ts `manifestMatches()` L131 uses one-directional `sameCounts`, unlike the bidirectional check at L318-324.**
+Repro: `readPublishedManifest` returns `recordCounts` with an extra key.
+Impact: foreign count keys in the commit-point row go undetected during idempotency classification, so a divergent manifest can classify `identical` and report `already-published`; requires backend-level tampering, so integrity exposure is limited but this is the check guarding the commit point.
+Test: extra key in stored counts; expect `publication-collision`, today `already-published`.
+
+## Properties verified, no finding
+
+- **Authorization**: env-only trusted runtime (runtime-config.js L36-55); body strictly `{operationId}` (envelope.js L44-54); intent resolved by deterministic id plus reserved-name check (operations.js L47-67); publish gate before any read (L250-252); no header/field/endpoint/key/actor/flag crosses the boundary; no writes before authorization.
+- **Synthetic-only**: synthetic flag, completeness, allowlist and per-row provenance all reject before any candidate write (stage.ts L115-191); raw hash verified before parse (operations.js L82-85); raw bytes from the trusted bucket only.
+- **Immutability / manifest-last**: public writes create-only, CONFLICT→conflict, SERVER_ERROR→ambiguous (storage-bridge.js L453-462); no update/delete of differing objects (publisher.ts L145-179); order file→descriptor→manifest with order-preserving resume lists (L174-177, L495-499, L466-470).
+- **Idempotency/retries**: idempotency resolved first under the lease (publisher.ts L484-518); publication time pinned to approval time (operations.js L199-200, intent.js L271-277); ambiguous writes read-verified against the commit point (L454-478); release failures become warnings only (L526-534); private reuse only on byte/field identity (storage-bridge.js L396-445).
+- **Canonical identity**: generation key from config+snapshot only, before sealing (identity.ts L16-22); sealed-catalogue cross-check (stage.ts L209-216); candidate/review/config/snapshot/approval hashes re-verified before publish (publisher.ts L255-283, L353-355).
+- **Logging/secret boundary**: core messages hashed to 12 hex chars (storage-bridge.js L552-554); event allowlist + marker regex (codes.js L27-62); responses carry constant codes, derived refs and aggregates; server key read from an env var *name*, sent only as `X-Appwrite-Key`, absent from all messages/errors/logs (appwrite-store.js L563-580). No credential literals or secret values in the eleven files; endpoint, project/function/bucket/table ids are public identifiers and `INTERMED_SERVER_KEY` / `INTERMED_SYNTHETIC_PUBLISH_ENABLED` are variable names.
+
+## Missing-import limitations
+
+Not read, so no behavior inferred: `@intermed/domain` (`serializeCatalogue`, `deserializeCatalogue`, `validateReferentialIntegrity`, `deriveStableId`), `@intermed/data-access` (`validateSyntheticSource`), `./core` (`assertValidConfig`, `boundedIssues`, `canonicalizeConfig`, `isPublicationConflict`, `isAmbiguousWrite`, `tryLog`, `hasControlCharacter`, the Publication*/AmbiguousWrite error classes and request/result types), `./parser-facade` (`parseRawSnapshot`, `ENTITY_LIST_NAMES`), `./parser` (`canonicalEncodingName`), `./normalize` (`normalizeKey`), `./diff` (`diffProducts`, `catalogueCounts`). Consequences unverifiable here: F4's reason vocabulary, F6's normalizer semantics, `diffProducts` null-baseline handling, and whether `tryLog` returns truthy on success as publisher.ts L539 assumes. Also out of scope: schema/infrastructure files and column widths (F9), tests/CI, the original repository, and live Appwrite response shapes asserted in appwrite-store.js. Findings are static first-pass observations for root verification and independent review before any PR.
+
+=== END WORKER REPORT ===

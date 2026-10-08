@@ -366,7 +366,11 @@ logs.
 > canonical round trip), and the final combined root run at `4cbc9ed` with M6
 > main merged also passed (734 / 46 / 150, exit 0); the **final independent
 > whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible blockers**
-> (bounded `git log` / `git diff` / patch analysis) while **CI/PR are pending**.
+> (bounded `git log` / `git diff` / patch analysis) while **CI/PR are pending** —
+> and that accepted review is now **superseded by two root-confirmed findings**
+> (**F1** stale-baseline resume bypass, **F11** asymmetric stored-manifest
+> `recordCounts`); the source is **not repaired yet**, so nothing here is
+> ready and section 10.0.1 records the **F2** lock recovery prerequisite.
 > The superseded `0c16177` root failure (5 of 598) and the `0266d8` RED run
 > (whose middle "canonical must equal the physical `$id`" assertion is an
 > invalid root assumption) are preserved as history. The owner-approved M6
@@ -485,6 +489,29 @@ and rejects control codes `< 0x20` and `0x7F`, which widens the `≤ 256`
   (404); `publication-busy`, `publication-collision`, `stale-baseline` (409);
   `backend-error`, `operation-failed` (500). Bodies add only 12-hex derived
   refs (`operationRef`, `runRef`, `datasetVersionRef`) and a bounded summary.
+
+### 10.0.1 Publication-lock owner recovery (F2) — prerequisite, NOT EXECUTED
+
+The persistent `lock` row in the `import-runs` table is **deliberate
+fail-closed behavior**: the publisher never steals a lock, so if an instance
+dies between acquire and release every later publish returns `publication-busy`
+(409) until the owner removes that one row. **Never use TTL-based lock
+stealing, and never execute anything from this subsection from this document —
+nothing here has been executed.** Each step below needs its own written owner
+approval, recorded separately:
+
+1. **Prevent new executions** and **prove that no running or paused old
+   publisher can resume**, before anything is inspected or changed.
+2. **Inspect, owner-only and read-only,** the exact lock record at
+   `intermed-dev` / `intermed-datasets` / `import-runs` / `lock`.
+3. **Separately approve deletion of only that lock row** — no other row, no
+   publication or run data.
+4. **Verify the lock row is absent**, then permit **one** already-approved
+   retry and verify its outcome before any further execution.
+
+Any CLI flag used later can have its syntax checked offline with
+`npx --yes appwrite-cli@28.1.0 <command> --help`; no command in this
+subsection is an executable instruction here.
 
 ### 10.1 Preconditions (no cloud change)
 
