@@ -39,24 +39,40 @@ shell. The repaired Function handler/authority layer and offline integration
 checks are verified (2026-10-08, full repair run at `9a40644`). The historical
 offline handler repair proof at `9a40644` — 744 unit tests in 47 files and 150
 browser tests — **remains valid**, while the **current** PR13 (the three new P1
-repairs, the retry-identity repairs and the Codacy fixes) **is in progress with
-no overall acceptance claim**. At the public head `923a060`, Ubuntu and Windows
-CI both PASS and DeepSource Secrets PASS (root real-API verified); Codacy is
-ACTION_REQUIRED with 4 findings still being addressed. The newly confirmed P1
+repairs, the retry-identity repairs and the Codacy fixes) is **root-verified
+offline at the public head `474353181d899fb1e889d18ee96e82816784cfb4`, with
+no overall acceptance claim**: `npm run check` passed **809 unit tests in 48
+files plus 150 browser tests, exit 0**, clean tree before and after, on the
+pinned Node `v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2` flow
+through `INTERMED_NODE22_RUNTIME`. GitHub Actions run `37765213291` has **both
+jobs SUCCESS** (Ubuntu `113271078278`, Windows `113271077989`), and Codacy
+Static Code Analysis, DeepSource Secrets and CodeRabbit are **SUCCESS on the
+same head** (provider facts from the GitHub API job logs); every code/runtime
+bot thread is replied/resolved, with only the CodeRabbit contributor status
+`4217007131` pending this documentation update. The first full run at that
+head died in a **native Windows process crash during Vitest** and recorded no
+valid result; the repeated, unchanged run passed and is the accepted proof.
+The **final documentation head's CI must be reverified by root — no future
+head PASS is claimed**. The newly confirmed P1
 regression was first recorded as 17 FAIL against the original source at the
 root's immutable `613c055`, but one of those 17 was an invalid test-harness
 error (a SHA-port probe passed the bare `sha256Hex` function instead of the
-`{ hash }` port object), not a production defect, so the genuine original
-failures are 16. The corrected tests-only corpus `6fff95f` — production
-untouched — rerun against the original, unchanged `861fe81` production records
-22 failures and 172 passing controls, all 22 genuine defect assertions; the root
-is independently repeating that corrected run, so it is not yet root-verified
-and no GREEN claim is made. Milestone 5 performs no
-live schema change, deployment, staging, execution or publication; Milestone 6
-stays with its issue 12 owner in a separate PR, and the domain, type and
-contract boundaries listed above are unchanged. All other milestone setup and
+`{ hash }` port object), not a production defect, so the invalid failure is
+not defect proof and the genuine original failures are 16. The corrected
+tests-only corpus `6fff95f` — production untouched — rerun against the
+original, unchanged `861fe81` production records 22 failures and 172 passing
+controls of 194, all 22 genuine defect assertions, and that corrected run is
+now **root-verified**. Milestone 5 performs no live Appwrite change — no live
+schema change, deployment, staging, execution or publication (GitHub reads
+happened; no Appwrite actions); Milestone 6 stays with its issue 12 owner in
+a separate PR for the validator SHA-256/data-quality notes, the canonical
+`datasetVersionId` persistence data-access mapping and the offline Appwrite
+512 capacity configuration remain **future live schema requiring separate
+owner approval — not issue #12** — and the domain, type and contract
+boundaries listed above are unchanged. All other milestone setup and
 documentation is untouched, keeping this repair minimal so it does not collide
-with the parallel owner M6 PR. CI, PR review, live actions, and owner approval
-remain pending for acceptance. See
+with the parallel owner M6 PR. The final documentation head's CI recheck by
+root and the owner merge remain pending; live actions and approvals stay
+blocked. See
 [the Milestone 5 evidence record](../docs/MILESTONE_5_EVIDENCE.md) and its
 [evidence pack](../docs/evidence/milestone-5-synthetic-2026-10-07/README.md).

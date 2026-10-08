@@ -104,33 +104,46 @@ The implementation workers' focused offline suite is `npx vitest run
 tests/importer` in the implementation worktree; integrated gate runs stay with
 the lead.
 
-**PR13 documentation status — IN PROGRESS, 2026-10-08 (supersedes the
+**PR13 documentation status — VERIFIED OFFLINE, 2026-10-08 (supersedes the
 "CI … remain pending" wording above for the current head; no overall acceptance
 claim).** The historical offline handler repair proof at `9a40644` **remains
 valid**: 744 unit tests in 47 files and 150 browser tests, exit 0, clean tree
 before and after. The **current** PR13 — the three new P1 repairs, the
-retry-identity repairs and the Codacy fixes — **is still in progress, so no
-overall acceptance is claimed**. At the public head `923a060` **both Ubuntu and
-Windows CI PASS** and **DeepSource Secrets PASS** (verified with the root's real
-API); **Codacy reports ACTION_REQUIRED with 4 findings** that are still being
-addressed. The **newly confirmed P1 regression** was first recorded as **17
+retry-identity repairs and the Codacy fixes — is **root-verified offline at
+the public head `474353181d899fb1e889d18ee96e82816784cfb4`**: `npm run check`
+passed **809 unit tests in 48 files plus 150 browser tests, exit 0**, clean
+tree before and after, on the pinned Node `v24.21.0` / npm `11.19.0` with the
+actual Node `v22.23.2` flow through `INTERMED_NODE22_RUNTIME`. GitHub Actions
+run `37765213291` has **both jobs SUCCESS** (Ubuntu `113271078278`, Windows
+`113271077989`), and **Codacy Static Code Analysis, DeepSource Secrets and
+CodeRabbit are SUCCESS on the same head** (provider facts from the GitHub API
+job logs); every code/runtime bot thread is replied/resolved, with only the
+CodeRabbit contributor status `4217007131` pending this documentation update.
+The first full run at that head died in a **native Windows process crash
+during Vitest** and recorded no valid result; the repeated, unchanged run
+passed and is the accepted proof. The **final documentation head's CI must be
+reverified by root — no future head PASS is claimed**. The **newly confirmed
+P1 regression** was first recorded as **17
 FAIL** against the original source at the root's immutable `613c055`
 (`test: preserve independently reproduced PR13 importer regression RED`), but
 **one of those 17 failures was an invalid test-harness error, not a production
 defect**: the retry probe passed the bare `sha256Hex` function to
 `publicationRowId`, which expects the `{ hash }` sha256 port object like every
-other derivation call site. The genuine original failures are therefore **16**.
-The corrected tests-only corpus at `6fff95f` — production untouched at that
-commit — rerun against the original, unchanged `861fe81` production records
-**22 failures and 172 passing controls**, all 22 being genuine defect
-assertions. The root is independently repeating that corrected run, so **its
-result is not yet root-verified and no GREEN claim is made for it**. Milestone 5 still
-performs **no live schema change, deployment, staging, execution or
-publication**; Milestone 6 remains an **issue 12 owner, separate PR**, and the
-**domain, type and contract surfaces are unchanged**. All other milestone setup
-and documentation is deliberately left untouched so this documentation-only
-repair keeps a minimal scope that does not collide with the parallel owner M6
-PR.
+other derivation call site, so the invalid failure is **not** defect proof and
+the genuine original failures are **16**. The corrected tests-only corpus at
+`6fff95f` — production untouched at that commit — rerun against the original,
+unchanged `861fe81` production records **22 failures and 172 passing controls**
+of 194, all 22 genuine defect assertions, and that corrected run is now
+**root-verified**. Milestone 5 performs **no live Appwrite change** — no live
+schema change, deployment, staging, execution or publication (GitHub reads
+happened; no Appwrite actions); Milestone 6 remains an **issue 12 owner,
+separate PR** for the validator SHA-256/data-quality notes, the canonical
+`datasetVersionId` persistence data-access mapping and the offline Appwrite
+512 capacity configuration remain **future live schema requiring separate
+owner approval — not issue #12** — and the **domain, type and contract
+surfaces are unchanged**. All other milestone setup and documentation is
+deliberately left untouched so this documentation-only repair keeps a minimal
+scope that does not collide with the parallel owner M6 PR.
 
 The built bundle is scanned twice. `npm run test` scans `apps/web/dist` whenever that build output already exists, and `npm run scan:dist` (`scripts/scan-dist-secrets.mjs`) scans it unconditionally as the `npm run check` step directly after `npm run build`, failing when the build output is missing instead of skipping. Both use the detector in `tests/support/secret-scan.ts` and report file names and pattern labels only, never matched values.
 

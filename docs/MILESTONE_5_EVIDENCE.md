@@ -44,20 +44,34 @@ known M6 coordination issue)"). It is a static review, not a live or execution
 proof. **CI and the PR are still pending**, and the independent review track is
 covered by the dated status below — **no acceptance is claimed for B**.
 
-**PR13 documentation review repair — IN PROGRESS (2026-10-08).** The PR13
-review repair is **open, not finished**: **CI is red** (the required Node 22
-runtime job is missing) and the secrets scanner flagged an **inert static
-fixture value**; workers are implementing the required runtime and a dynamic
-fake credential, and **three remaining P1s plus the retry-identity repairs are
-still pending**. The public `861fe81` CodeRabbit changes stay **provisional
-until independent verification** — root verified 115 tests of `861fe81`, origin
-advanced to `7a3bea3` (comments-only) while root keeps this `861fe81`-based
-commit, and **current CI is red**. API references for this pass come only from
-**freely available MiMo documentation — no real data, no credentials, no live
-calls**. **No acceptance-passed claim is made until root supplies the final
-results later.** The future live **nullable 512 `datasetVersionId` schema**
-remains a **separate owner approval** and an **M6 issue #12 owner, separate
-PR** item with **no contract changes**.
+**PR13 documentation repair — VERIFIED OFFLINE, 2026-10-08 (public
+head `474353181d899fb1e889d18ee96e82816784cfb4`; supersedes the
+"CI is red / still pending" wording above for the current head; no
+overall acceptance claim).** Root verified the public PR13 head
+offline: `npm run check` — **809 unit tests in 48 files plus 150
+browser tests, exit 0**, clean tree before and after, on the pinned
+Node `v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2`
+flow through `INTERMED_NODE22_RUNTIME`. GitHub Actions run
+`37765213291` has **both jobs SUCCESS** (Ubuntu `113271078278`,
+Windows `113271077989`), and Codacy Static Code Analysis, DeepSource
+Secrets and CodeRabbit are **SUCCESS on the same head** — those
+provider facts come from the GitHub API job logs, and only the
+Appwrite live changes were not run. Every code/runtime bot thread is
+replied/resolved, with only the CodeRabbit contributor status
+`4217007131` pending this documentation update. The **final
+documentation head's CI must be reverified by root — no future head
+PASS is claimed**, and the first full run at this head died in a
+native Windows process crash during Vitest with no valid result; the
+repeated, unchanged run passed and is the accepted proof. **No
+acceptance-passed claim is made**: the current source `4743531`
+offline checks and CI pass are facts, the final follow-up
+documentation head's CI is pending, and rights and live approvals
+stay blocked; the owner merges. M6 **issue #12** is the owner's
+separate PR for the validator SHA-256/data-quality notes and is
+**not** the schema item: the future live **nullable 512
+`datasetVersionId` schema** — the canonical persistence data-access
+mapping and the offline Appwrite 512 capacity configuration —
+remains a **separate owner approval** with **no contract changes**.
 
 **Status 2026-10-08 (first-pass triage → root-confirmed findings).** The
 accepted `4cbc9ed` whole-patch static review above is retained as historical
@@ -157,42 +171,68 @@ operation intent, no private staging/import, no Function execution, no
 deployment, no publication, no schema migration, and no cleanup. Production,
 the shell/hosting project, and source rights are unchanged.
 
-## PR13 repair in progress (dated 2026-10-08)
+## PR13 final repair (dated 2026-10-08)
 
-**PR13 REPAIR IN PROGRESS — proof archived, no acceptance, no mergeable-PR
-claim.** Root supplied a pre-sanitized proof capsule
-(`<temp>/sanitized-pr13-proof-923a060`, 11 files) that is copied **unchanged,
-line for line**, into the evidence pack with metadata-only copy validation
-(`pr13-capsule-copy-validation.json`). This worker executed **no test, browser,
-npm, network, or live command**; every number below comes from the copied root
-or author logs, never from review text, and no credential literal or
-superseded prefix is reproduced anywhere in this pack.
+**PR13 REPAIR VERIFIED OFFLINE at the public head
+`474353181d899fb1e889d18ee96e82816784cfb4` — no acceptance,
+no mergeable-PR claim.** Command: `npm run check` (pinned Node
+`v24.21.0` / npm `11.19.0` plus the actual Node `v22.23.2`
+flow through `INTERMED_NODE22_RUNTIME`). Result: **809 unit
+tests / 48 files / 150 browser, exit 0**, clean tree before
+and after. GitHub Actions run `37765213291` has **both jobs
+SUCCESS** (Ubuntu `113271078278`, Windows `113271077989`);
+Codacy Static Code Analysis, DeepSource Secrets and CodeRabbit
+are **SUCCESS on the same head**, every code/runtime bot thread
+is replied/resolved, and only the CodeRabbit contributor status
+`4217007131` is pending this update. The **final documentation
+head's CI must be reverified by root — no future head PASS is
+claimed**. This documentation-only repair edited public prose only
+and executed no test, browser, or npm command; the numbers come from
+root's logs and the GitHub API job logs — GitHub reads happened, and
+only the Appwrite live changes were not run.
 
-- **CodeRabbit public changes `861fe81` (root, focused): PASSED — 115 tests in
-  5 files** (`task-b-ROOT-CodeRabbit-861fe81-focused.log`).
-- **Author store head `298497d`, integrated at `8e9a89e` (root full): 746 unit
-  tests / 47 files / 150 browser, exit 0**
-  (`task-b-ROOT-PR13-store-298497d-FULL.log`), run by root on Node `v24.21.0` /
-  npm `11.19.0` with the actual Node `v22.23.2` flow; the log prints no version
-  line and none was added.
-- **Native `fetch` redirect/credential repair, two owned loopback servers:**
-  probe **RED — 1 loopback redirect request, `fakeCredentialForwarded: true`,
-  external requests 0** → **GREEN — 0 redirect requests, `false`, external
-  requests 0** (`task-b-ROOT-store-redirect-RED.json`,
-  `task-b-ROOT-store-redirect-GREEN.json`); author red/green
-  **1 failed | 58 passed of 59** → **60 passed**
-  (`task-b-PR13-store-red.log`, `task-b-PR13-store-green.log`).
-- **Scoped Gemini 3.1 Pro store security review of two files: ACCEPTED
-  (static, report-only).** The reviewer read only `appwrite-store.js` and
-  `appwrite-store.test.ts`, executed no command and no test, and claims no
-  broad whole-patch acceptance; the capsule file is unchanged
-  (`task-b-gemini-store-review-8e9a89e-report-only.txt`).
-- **CI head `d71f668`, integrated at `6c1c8d0` (root full): 757 unit tests /
-  47 files / 150 browser, exit 0** (`task-b-ROOT-PR13-ci-d71f668-FULL.log`);
-  the **combined store + CI focused run: 61 tests passed / 2 files**
-  (`task-b-ROOT-PR13-store-ci-integration.log`).
-- **Runtime fake-key follow-up `2140852`, integrated at `923a060` (root,
-  focused): 1 artifact test passed** (`task-b-ROOT-PR13-prefix-2140852-focused.log`).
+| Fixed repair (dated 2026-10-08)                                       | Proven result                                                                                                                                                                                                                            |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1 — bounded optional `quarantineReason` accepted in reviews          | exact keys survive; unknown extra/invalid tokens fail closed; real large removal 403 without approval, 200 with approval                                                                                                                 |
+| P1 — recovered publications read-verified                             | exact complete generation re-verified after a second lost response following a committed manifest; partial failure fails closed; retry idempotent                                                                                        |
+| P1 — CI installs the required Node 22.23.2 runtime                    | pinned setup-node SHA `49933ea5288caeca8642d1e84afbd3f7d6820020` on both operating systems, `INTERMED_NODE22_RUNTIME` exports the actual path, the primary Node 24 is restored, and the compiled artifact test never skips or falls back |
+| P1 — mixed dataset version keys quarantined before the rewrite        | optional envelope plus every original row version key must match the declared snapshot; mixed keys quarantine                                                                                                                            |
+| P2 — rename plus semantic change                                      | classified as a change, not a pure rename                                                                                                                                                                                                |
+| P2 — tmpdir production default with no `TEMP`/`TMP`/`TMPDIR` override | save/unset/restore test                                                                                                                                                                                                                  |
+| P2 — offline fresh-deploy cache runbook                               | `npm ci --ignore-scripts` with the pinned lockfile over the network, plus a separate seeded offline smoke                                                                                                                                |
+| P2 — retry identity parity (covers stored manifest id)                | canonical `parseStableId` when present; absent/`null` legacy physical `$id` never a candidate; the candidate id is never substituted for a stored manifest id; restage outcome/baseline journal identity fixed and its regression passes |
+
+**Earlier PR13 progress history (preserved, condensed).** Root
+supplied a pre-sanitized proof capsule
+(`<temp>/sanitized-pr13-proof-923a060`, 11 files) copied **unchanged,
+line for line**, into the evidence pack with metadata-only copy
+validation (`pr13-capsule-copy-validation.json`). CodeRabbit public
+changes `861fe81` (root, focused): PASSED — 115 tests in 5 files
+(`task-b-ROOT-CodeRabbit-861fe81-focused.log`). Author store head
+`298497d`, integrated at `8e9a89e` (root full): 746 unit tests /
+47 files / 150 browser, exit 0
+(`task-b-ROOT-PR13-store-298497d-FULL.log`), run by root on Node
+`v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2` flow;
+the log prints no version line and none was added. Native `fetch`
+redirect/credential repair, two owned loopback servers: probe
+**RED — 1 loopback redirect request, `fakeCredentialForwarded:
+true`, external requests 0** → **GREEN — 0 redirect requests,
+`false`, external requests 0** (`task-b-ROOT-store-redirect-RED.json`,
+`task-b-ROOT-store-redirect-GREEN.json`); author red/green
+**1 failed | 58 passed of 59** → **60 passed**
+(`task-b-PR13-store-red.log`, `task-b-PR13-store-green.log`).
+Scoped Gemini 3.1 Pro store security review of two files: ACCEPTED
+(static, report-only) — the reviewer read only `appwrite-store.js`
+and `appwrite-store.test.ts`, executed no command and no test, and
+claims no broad whole-patch acceptance
+(`task-b-gemini-store-review-8e9a89e-report-only.txt`). CI head
+`d71f668`, integrated at `6c1c8d0` (root full): 757 unit tests /
+47 files / 150 browser, exit 0
+(`task-b-ROOT-PR13-ci-d71f668-FULL.log`); the combined store + CI
+focused run: 61 tests passed / 2 files
+(`task-b-ROOT-PR13-store-ci-integration.log`). Runtime fake-key
+follow-up `2140852`, integrated at `923a060` (root, focused): 1
+artifact test passed (`task-b-ROOT-PR13-prefix-2140852-focused.log`).
 
 **Secrets failure history — narrative only; no old credential literal and no
 old prefix is copied.** Two distinct failures are on record. The first was an
@@ -203,21 +243,61 @@ scanner still classified the value as a credential. The public provider's scan
 records **`96eaf261` — FAIL at `6c1c8d0`** versus **`faf599dd` — SUCCESS at
 `923a060`**. These are the linked public check identifiers only.
 
-**CI status.** The **latest two CI runs are pending**. The older **Ubuntu run
-`37757667353` / job `113246098566` at `6c1c8d0` PASSED**; the **Windows leg is
-not yet confirmed**.
+**CI status.** Superseded: GitHub Actions run `37765213291` at the
+final head has **both jobs SUCCESS** (Ubuntu `113271078278`,
+Windows `113271077989`) — recorded in the dated final repair section
+above.
 
-**Open repairs.** **Codacy:** 2 fixture blockers, being repaired. **Greptile:**
-3 P1 findings with the **retry-identity test first**, in progress.
+**Open repairs.** Superseded: the Codacy fixture findings and the
+Greptile P1/P2 findings are fixed and verified as recorded in the
+dated final repair section above.
 
-**Boundaries unchanged.** **No M5 acceptance**, **no "PR is mergeable" claim**,
-and **no M5 schema change, deployment, private import, Function execution, or
-publication was authorized or run**. Source rights stay **blocked**, M6 stays
-with **issue #12 as owner scope in a separate PR**, and **contract changes:
-none**. This section **supersedes only the CI status** in the dated PR13 note
-above (latest runs pending rather than a single red run); every earlier RED,
-failure, and pending cell keeps its recorded meaning, and root will supply the
-final proof update later.
+**Historical exceptions (honest, unsoftened).** The original
+17-FAIL RED at the root's immutable `613c05517`
+(`test: preserve independently reproduced PR13 importer regression
+RED`) included **1 invalid SHA-port harness `TypeError`** — the
+retry probe passed the bare `sha256Hex` function to
+`publicationRowId`, which expects the `{ hash }` sha256 port object
+like every other derivation call site — so the genuine original
+failures are **16** and the invalid failure is **not** defect proof;
+the corrected tests-only corpus `6fff95f`, production untouched at
+that commit, rerun against the original, unchanged `861fe81`
+production records **22 FAIL / 172 PASS of 194**, all 22 genuine
+defect assertions, root-verified
+([`task-b-ROOT-PR13-core-corrected-RED.log`](evidence/milestone-5-synthetic-2026-10-07/task-b-ROOT-PR13-core-corrected-RED.log)).
+The initial wide GPro 65 review's unread-helper inference was
+rejected, and the fixture focused reviewer edited a disposable test
+copy despite the readonly instruction — root's hash caught it, the
+original repo was unaffected, and that reviewer's acceptance claim is
+rejected; the separate core focused report actually read the
+regression predicates, and the new protected 4-file GPro
+helper/security/default-temp review found **no actionable in-scope
+findings** with **0 hash mismatches** in its bounded scope
+([`task-b-gemini-pr13-fixture-protected-review.log`](evidence/milestone-5-synthetic-2026-10-07/task-b-gemini-pr13-fixture-protected-review.log)).
+The first full run at the final source head `4743531` died in a
+**native Windows process crash (`-1073740940`) during Vitest** and
+produced **no valid full result**; the log is retained unchanged,
+and the repeat on the unchanged head passed 809 + 150, exit 0
+([`task-b-ROOT-PR13-integration-4743531-repeat-FULL.log`](evidence/milestone-5-synthetic-2026-10-07/task-b-ROOT-PR13-integration-4743531-repeat-FULL.log)).
+
+**Limits.** **No M5 acceptance** and **no "PR is mergeable" claim**:
+the current source `4743531` offline checks and CI pass are facts,
+the final follow-up documentation head's CI is pending (root
+reverifies it), rights and live approvals stay blocked, and the owner
+merges. **No M5 live Appwrite change was authorized or run** — no
+live schema migration, deployment, private import, ingest, staging,
+Function execution, or publication (GitHub reads happened; no
+Appwrite actions); no real ANMDMR retrieval, layout, or data; source
+rights, clinical review, and real-format approvals stay **blocked**.
+**Domain, shared contract, and type changes: none.** M6 **issue
+#12** stays with its owner in a separate PR for the validator
+SHA-256/data-quality notes, entirely separate from the future
+Appwrite canonical 512 schema approval: the canonical
+`datasetVersionId` persistence data-access mapping and the offline
+Appwrite 512 capacity configuration remain **future live schema
+requiring separate owner approval**. This section supersedes the
+dated PR13 note above; every earlier RED, failure, and pending cell
+keeps its recorded meaning.
 
 ## Scope and safety boundary
 
