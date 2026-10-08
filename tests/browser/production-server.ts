@@ -47,7 +47,11 @@ export async function productionServer() {
     }
     try {
       const name =
-        path === '/' || path === '/status' || path === '/unavailable'
+        path === '/' ||
+        path === '/status' ||
+        path === '/unavailable' ||
+        path === '/search' ||
+        path.startsWith('/medication/')
           ? 'index.html'
           : path.slice(1);
       const root = resolve(`artifacts/pwa-${revision}`);

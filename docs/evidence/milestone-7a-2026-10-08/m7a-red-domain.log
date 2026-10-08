@@ -1,0 +1,107 @@
+
+> intermed@0.0.0 test
+> vitest run tests/domain/medication-search.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/medication-search.test.ts (6 tests | 6 failed) 4ms
+     × normalizes Romanian comma-below and legacy cedilla letters and whitespace 2ms
+     × ranks exact before prefix before partial and keeps ingredient exact matches 0ms
+     × searches active ingredient and manufacturer names and matches ATC by prefix only 0ms
+     × keeps same-name products distinct and orders ties by folded name then product id 0ms
+     × caps results and reports the full match count when truncated 0ms
+     × returns an empty page for an empty normalized query 0ms
+node.exe :
+At line:1 char:1
++ & "<repo>" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > normalizes Romanian comma-below and legacy
+cedilla letters and whitespace
+TypeError: normalizeMedicationSearchQuery is not a function
+ ❯ tests/domain/medication-search.test.ts:31:7
+     29|   it('normalizes Romanian comma-below and legacy cedilla letters and w…
+     30|     expect(
+     31|       normalizeMedicationSearchQuery('  Fictășî   Fictăşî\n Ț  '),
+       |       ^
+     32|     ).toBe('fictasi fictasi t');
+     33|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > ranks exact before prefix before partial and
+keeps ingredient exact matches
+TypeError: createMedicationSearchIndex is not a function
+ ❯ tests/domain/medication-search.test.ts:36:19
+     34|
+     35|   it('ranks exact before prefix before partial and keeps ingredient ex…
+     36|     const index = createMedicationSearchIndex([
+       |                   ^
+     37|       document('partial', 'Ultra Fictivol'),
+     38|       document('prefix', 'Fictivol Plus'),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > searches active ingredient and manufacturer
+names and matches ATC by prefix only
+TypeError: createMedicationSearchIndex is not a function
+ ❯ tests/domain/medication-search.test.ts:63:19
+     61|
+     62|   it('searches active ingredient and manufacturer names and matches AT…
+     63|     const index = createMedicationSearchIndex([
+       |                   ^
+     64|       document('matched', 'Brand Fictional', {
+     65|         ingredients: ['Imaginary Compound'],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > keeps same-name products distinct and orders
+ties by folded name then product id
+TypeError: normalizeMedicationSearchQuery is not a function
+ ❯ tests/domain/medication-search.test.ts:86:26
+     84|     const expected = [...records]
+     85|       .sort((left, right) => {
+     86|         const leftName = normalizeMedicationSearchQuery(
+       |                          ^
+     87|           left.product.commercialName,
+     88|         );
+ ❯ tests/domain/medication-search.test.ts:85:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > caps results and reports the full match
+count when truncated
+TypeError: createMedicationSearchIndex is not a function
+ ❯ tests/domain/medication-search.test.ts:116:7
+    114|
+    115|     const page = searchMedicationIndex(
+    116|       createMedicationSearchIndex(records),
+       |       ^
+    117|       'fictivol',
+    118|       50,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/domain/medication-search.test.ts > local medication search > returns an empty page for an empty
+normalized query
+TypeError: createMedicationSearchIndex is not a function
+ ❯ tests/domain/medication-search.test.ts:128:7
+    126|   it('returns an empty page for an empty normalized query', () => {
+    127|     const page = searchMedicationIndex(
+    128|       createMedicationSearchIndex([document('one', 'Fictivol')]),
+       |       ^
+    129|       '   \n  ',
+    130|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  17:07:34
+   Duration  488ms (transform 57ms, setup 0ms, import 83ms, tests 4ms, environment 0ms)

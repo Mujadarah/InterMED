@@ -1,0 +1,35 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/Bootstrap.test.tsx
+
+
+ RUN  v4.1.11 <WORKTREE>
+
+ ❯ apps/web/src/Bootstrap.test.tsx (5 tests | 1 failed) 1290ms
+   × reuses the search service and in-memory index across Bootstrap renders 890ms
+node.exe :
+At line:1 char:1
++ & "<NODE24>/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/Bootstrap.test.tsx > reuses the search service and in-memory index across Bootstrap renders
+AssertionError: expected "vi.fn()" to be called once, but got 2 times
+ ❯ apps/web/src/Bootstrap.test.tsx:146:32
+    144|   expect(await screen.findByRole('link', { name: /Open Fictivol/ })).t…
+    145|
+    146|   expect(fakeStore.openReader).toHaveBeenCalledOnce();
+       |                                ^
+    147|   expect(searchRecords).toHaveBeenCalledOnce();
+    148|   expect(release).toHaveBeenCalledOnce();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  20:02:23
+   Duration  4.99s (transform 457ms, setup 0ms, import 1.55s, tests 1.29s, environment 1.83s)

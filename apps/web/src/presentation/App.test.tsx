@@ -19,6 +19,17 @@ const services = {
     referenceData: 'unavailable' as const,
   },
   dataset,
+  medicationSearch: {
+    search: async () => ({
+      generationId: null,
+      results: [],
+      total: 0,
+      truncated: false,
+      indexedProductCount: 0,
+      indexDurationMilliseconds: 0,
+      searchDurationMilliseconds: 0,
+    }),
+  },
 };
 
 it('labels the shell as development and keeps clinical capabilities unavailable', () => {
@@ -49,7 +60,7 @@ it('navigates to limitations using an accessible link', async () => {
   expect(screen.getByRole('main')).toHaveFocus();
   expect(
     screen.getByText(
-      /Medication lookup and interaction checking are unavailable/,
+      /Local medication search uses only an active dataset stored in this browser/,
     ),
   ).toBeVisible();
 });
@@ -66,4 +77,36 @@ it('offers a recovery link for an unknown route', () => {
   expect(
     screen.getByRole('link', { name: 'Return to overview' }),
   ).toHaveAttribute('href', '/');
+});
+
+it('registers the medication search route in navigation', async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  await user.click(screen.getByRole('link', { name: 'Medication search' }));
+  expect(
+    screen.getByRole('heading', { name: 'Local medication search' }),
+  ).toBeVisible();
+  expect(screen.getByRole('searchbox')).toBeDisabled();
+  expect(screen.getByRole('link', { name: 'Dataset status' })).toHaveAttribute(
+    'href',
+    '/status',
+  );
+});
+
+it('registers the part A medication detail placeholder with the product id', () => {
+  render(
+    <MemoryRouter initialEntries={['/medication/synthetic-product-id']}>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  expect(
+    screen.getByRole('heading', {
+      name: 'Medication detail is not available yet',
+    }),
+  ).toBeVisible();
+  expect(screen.getByText('synthetic-product-id')).toBeVisible();
 });

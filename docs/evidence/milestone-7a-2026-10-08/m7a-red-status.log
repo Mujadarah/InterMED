@@ -1,0 +1,114 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/MedicationSearchPage.test.tsx
+
+
+ RUN  v4.1.11 <WORKTREE>
+
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx (41 tests | 21 failed) 633ms
+   × builds a status message for the opening dataset state 3ms
+   × builds a status message for the never-downloaded dataset state 0ms
+   × builds a status message for the checking dataset state 1ms
+   × builds a status message for the update-available dataset state 0ms
+   × builds a status message for the downloading dataset state 0ms
+   × builds a status message for the staging dataset state 0ms
+   × builds a status message for the evicted dataset state 0ms
+   × builds a status message for the unsupported-schema dataset state 0ms
+   × builds a status message for the reload-required dataset state 0ms
+   × builds a status message for the storage-unavailable dataset state 0ms
+   × builds a status message for the storage-restricted dataset state 0ms
+   × builds a status message for the update-failed dataset state 0ms
+   × builds a status message for the storage-quota dataset state 0ms
+   × builds a status message for an active generation during ready 0ms
+   × builds a status message for an active generation during checking 0ms
+   × builds a status message for an active generation during update-available 0ms
+   × builds a status message for an active generation during downloading 0ms
+   × builds a status message for an active generation during staging 0ms
+   × builds a status message for an active generation during update-failed 0ms
+   × builds a status message for an active generation during storage-quota 0ms
+   × covers pending, error, empty, singular, plural, and truncated search status 0ms
+node.exe :
+At line:1 char:1
++ & "<NODE24>/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the opening dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the never-downloaded
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the checking dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the update-available
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the downloading dataset
+state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the staging dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the evicted dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the unsupported-schema
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the reload-required
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the storage-unavailable
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the storage-restricted
+dataset state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the update-failed dataset
+state
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for the storage-quota dataset
+state
+TypeError: getSearchStatusMessage is not a function
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx:387:7
+    385|   (_name, state, expected) => {
+    386|     expect(
+    387|       getSearchStatusMessage({ datasetState: state, query: '', search:…
+       |       ^
+    388|     ).toMatch(expected);
+    389|   },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during ready
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during checking
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during update-available
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during downloading
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during staging
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during update-failed
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > builds a status message for an active generation
+during storage-quota
+TypeError: getSearchStatusMessage is not a function
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx:460:7
+    458|   (_name, state, expected) => {
+    459|     expect(
+    460|       getSearchStatusMessage({
+       |       ^
+    461|         datasetState: state,
+    462|         query: '',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > covers pending, error, empty, singular, plural, and
+truncated search status
+TypeError: getSearchStatusMessage is not a function
+ ❯ apps/web/src/presentation/MedicationSearchPage.test.tsx:472:5
+    470|   const ready: DatasetUpdateState = { status: 'ready', generation };
+    471|   expect(
+    472|     getSearchStatusMessage({
+       |     ^
+    473|       datasetState: ready,
+    474|       query: 'fictivol',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed | 20 passed (41)
+   Start at  20:01:19
+   Duration  3.69s (transform 174ms, setup 0ms, import 733ms, tests 633ms, environment 2.00s)

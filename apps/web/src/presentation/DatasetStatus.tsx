@@ -5,13 +5,14 @@ import type {
   DatasetUpdateState,
   LocalDatasetGeneration,
 } from '@intermed/domain';
+import { datasetAgeText } from './dataset-age';
 
 /**
  * Present the local dataset state on the status page in plain, nonclinical
- * wording. This milestone stores and shows state only: it offers no download,
- * search or favorites action. A synthetic active generation is always labelled
- * "not for clinical use", and storage is described as best-effort because
- * browsers can evict or restrict it.
+ * wording. This component reports state only; search lives on `/search`, and
+ * this component has no download or favorites action. A synthetic active
+ * generation is always labelled "not for clinical use", and storage is
+ * described as best-effort because browsers can evict or restrict it.
  */
 
 const FAILURE_TEXT: Record<DatasetUpdateFailureReason, string> = {
@@ -29,16 +30,6 @@ const FAILURE_TEXT: Record<DatasetUpdateFailureReason, string> = {
     'the local dataset was cleared while the update was running',
 };
 
-function ageText(downloadedAt: string): string {
-  const days = Math.floor(
-    (Date.now() - Date.parse(downloadedAt)) / (24 * 60 * 60 * 1000),
-  );
-  if (!Number.isFinite(days) || days < 0) return 'age unknown';
-  if (days === 0) return 'today';
-  if (days === 1) return '1 day ago';
-  return `${days} days ago`;
-}
-
 function keptText(generation: LocalDatasetGeneration | null): string {
   return generation
     ? 'The previously downloaded dataset is kept.'
@@ -54,7 +45,7 @@ function summary(state: DatasetUpdateState): string | null {
     case 'opening':
       return 'Opening the local dataset in this browser.';
     case 'never-downloaded':
-      return 'No medication dataset has been downloaded into this browser. Medication lookup stays unavailable until one is downloaded.';
+      return 'No medication dataset has been downloaded into this browser. Local medication search stays unavailable until one is downloaded.';
     case 'ready':
       return 'A downloaded medication dataset is active.';
     case 'checking':
@@ -78,7 +69,7 @@ function summary(state: DatasetUpdateState): string | null {
         state,
       )}. It becomes active only after validation.`;
     case 'evicted':
-      return 'The downloaded dataset is missing from this browser. It may have been evicted or deleted. Download it again to use medication lookup.';
+      return 'The downloaded dataset is missing from this browser. It may have been evicted or deleted. Search is unavailable, and this build has no re-download control.';
     case 'unsupported-schema':
       return 'The stored data was written by a newer version of this app. Nothing was deleted. Update or reload the app to use it.';
     case 'reload-required':
@@ -139,7 +130,7 @@ export function DatasetStatus({ dataset }: { dataset: DatasetStateSource }) {
           </div>
           <div>
             <dt>Age</dt>
-            <dd>{ageText(generation.downloadedAt)}</dd>
+            <dd>{datasetAgeText(generation.downloadedAt)}</dd>
           </div>
           <div>
             <dt>Coverage</dt>

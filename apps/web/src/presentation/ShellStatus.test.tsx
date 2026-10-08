@@ -43,7 +43,9 @@ it('does not equate cached shell availability with medication availability', () 
       })}
     />,
   );
-  expect(screen.getByText(/Medication dataset: unavailable/)).toBeVisible();
+  expect(
+    screen.getByText(/No cloud medication service is enabled/),
+  ).toBeVisible();
   expect(
     screen.queryByRole('button', { name: 'Install development app' }),
   ).not.toBeInTheDocument();

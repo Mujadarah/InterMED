@@ -1,4 +1,4 @@
-import { foldLegacyCedilla, type FieldState } from '@intermed/domain';
+import { foldForMedicationSearch, type FieldState } from '@intermed/domain';
 
 /**
  * Fold a verbatim name into an index key.
@@ -10,10 +10,7 @@ import { foldLegacyCedilla, type FieldState } from '@intermed/domain';
  * expand or correct anything.
  */
 export function foldForIndex(value: string): string {
-  return foldLegacyCedilla(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  return foldForMedicationSearch(value);
 }
 
 /** Fold a present field and return an empty key for missing/unknown values. */

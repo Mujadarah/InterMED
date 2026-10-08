@@ -219,9 +219,9 @@ test('caches only the shell and launches/reloads existing deep links offline', a
       page.getByText('Shell available offline', { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText(
-        /Medication lookup and interaction checking are unavailable/,
-      ),
+      page
+        .getByRole('complementary', { name: 'Application shell' })
+        .getByText(/No cloud medication service is enabled/),
     ).toBeVisible();
     const freshPage = await context.newPage();
     await freshPage.goto(server.url);

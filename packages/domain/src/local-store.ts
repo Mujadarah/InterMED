@@ -12,6 +12,7 @@ import type {
   MedicationIngredient,
   MedicationProduct,
 } from './entities';
+import type { MedicationSearchRecord } from './medication-search';
 import type {
   ActiveIngredientId,
   DatasetVersionId,
@@ -174,6 +175,12 @@ export interface GenerationReader {
   productsByAtcCode(code: string): Promise<readonly MedicationProduct[]>;
   /** Product ids of the pinned generation, in stable id order. */
   productIds(): Promise<readonly MedicationProductId[]>;
+  /**
+   * Search projections of products and their searchable labels from this
+   * pinned generation only. Implementations may scan once to build an
+   * in-memory index; callers must not combine rows from another generation.
+   */
+  searchRecords(): Promise<readonly MedicationSearchRecord[]>;
   /**
    * Release the retention pin this reader holds on its generation. Optional:
    * an unreleased pin only retains data longer, never less.

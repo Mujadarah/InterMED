@@ -1,10 +1,32 @@
 import type { AppServices } from '../application/services';
-import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
+import {
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from 'react-router';
 import { useEffect, useRef } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
+import { MedicationSearchPage } from './MedicationSearchPage';
 import { ShellStatus } from './ShellStatus';
+
+function MedicationDetailPlaceholder() {
+  const { productId } = useParams();
+  return (
+    <section aria-labelledby="medication-detail-title">
+      <h1 id="medication-detail-title">
+        Medication detail is not available yet
+      </h1>
+      <p>
+        Product id: <code>{productId ?? 'Not provided by source'}</code>
+      </p>
+    </section>
+  );
+}
 
 /**
  * Render the nonclinical navigation shell using the supplied services.
@@ -45,6 +67,9 @@ export function App({
           <NavLink to="/" end tabIndex={0}>
             Overview
           </NavLink>
+          <NavLink to="/search" tabIndex={0}>
+            Medication search
+          </NavLink>
           <NavLink to="/status" tabIndex={0}>
             Development status
           </NavLink>
@@ -68,10 +93,15 @@ export function App({
                 <div className="scope-note">
                   <h2>What you can explore</h2>
                   <p>
-                    Navigate this shell and read its current limitations.
-                    Medication lookup, interaction checking and calculators are
-                    not available.
+                    Local medication search reads candidates only from a dataset
+                    already stored in this browser. It does not provide clinical
+                    guidance. Interaction checking and calculators are
+                    unavailable.
                   </p>
+                  <Link to="/search" tabIndex={0}>
+                    Search local medication data
+                  </Link>
+                  <br />
                   <Link to="/status" tabIndex={0}>
                     Read current limitations
                   </Link>
@@ -87,13 +117,14 @@ export function App({
                 <h1 id="status-title">Development status</h1>
                 <p className="lead">Development PWA shell</p>
                 <p>
-                  Medication lookup and interaction checking are unavailable. No
-                  clinical capability has been validated.
+                  Local medication search uses only an active dataset stored in
+                  this browser. Interaction checking is unavailable. No clinical
+                  capability has been validated.
                 </p>
                 <dl className="status-list">
                   <div>
-                    <dt>Reference data</dt>
-                    <dd>Unavailable</dd>
+                    <dt>Medication data</dt>
+                    <dd>Local browser data, when available</dd>
                   </div>
                   <div>
                     <dt>Offline use and installation</dt>
@@ -139,6 +170,19 @@ export function App({
                 </p>
               </section>
             }
+          />
+          <Route
+            path="/search"
+            element={
+              <MedicationSearchPage
+                dataset={services.dataset}
+                search={services.medicationSearch}
+              />
+            }
+          />
+          <Route
+            path="/medication/:productId"
+            element={<MedicationDetailPlaceholder />}
           />
           <Route
             path="*"

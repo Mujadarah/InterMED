@@ -1,0 +1,53 @@
+
+> intermed@0.0.0 test:browser
+> playwright test tests/browser/medication-search.spec.ts --project=chromium-desktop
+
+node.exe : [WebServer] (node:51300) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:1 char:1
++ & "<NODE24>/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:15264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:3524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium-desktop] › tests\browser\medication-search.spec.ts:250:3 › medication search browser coverage › searches and opens a local candidate by keyboard after going offline (1.5s)
+M7A_SEARCH_PERFORMANCE {"productCount":20000,"bundleBuildMilliseconds":2933.3,"localStoreStagingMilliseconds":10303.5,"totalFixtureMilliseconds":13236.8,"indexMilliseconds":1139.2,"indexedProductCount":20000,"warmupKeyToRenderMilliseconds":1414.3,"keyToRenderP95Milliseconds":{"oneCharacter":279.9,"twoCharacters":275.4,"fourCharacters":271.7},"coreSearchP95Milliseconds":{"oneCharacter":9.2,"twoCharacters":7.5,"fourCharacters":7.9}}
+  x  2 [chromium-desktop] › tests\browser\medication-search.spec.ts:373:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue (34.2s)
+
+
+  1) [chromium-desktop] › tests\browser\medication-search.spec.ts:373:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 6000
+    Received:   10303.5
+
+      401 |         SEARCH_PERFORMANCE_BUDGETS.indexMilliseconds,
+      402 |       );
+    > 403 |       expect(staging.localStoreStagingMilliseconds).toBeLessThan(
+          |                                                     ^
+      404 |         SEARCH_PERFORMANCE_BUDGETS.stagingMilliseconds,
+      405 |       );
+      406 |       expect(percentile95(samples.coreOne)).toBeLessThan(
+        at <WORKTREE>\tests\browser\medication-search.spec.ts:403:53
+
+    Error Context: test-results\medication-search-medicati-58f71-product-fictional-catalogue-chromium-desktop\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\medication-search-medicati-58f71-product-fictional-catalogue-chromium-desktop\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\medication-search-medicati-58f71-product-fictional-catalogue-chromium-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium-desktop] › tests\browser\medication-search.spec.ts:373:3 › medication search browser coverage › measures local search on a 20,000-product fictional catalogue
+  1 passed (46.2s)

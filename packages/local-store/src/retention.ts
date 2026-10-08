@@ -3,7 +3,10 @@
  * completeness check a generation must pass before it is trusted, and the
  * deletion of one generation's rows (Greptile review fixes G2, G3, G7).
  */
-import type { GenerationReader } from '@intermed/domain';
+import type {
+  GenerationReader,
+  MedicationSearchRecord,
+} from '@intermed/domain';
 import Dexie, { type Transaction } from 'dexie';
 import { foldForIndex } from './fold';
 import type { MaintenanceTask } from './maintenance';
@@ -143,6 +146,82 @@ export function createRetention(deps: RetentionDeps): Retention {
           .equals(generationId)
           .toArray();
         return rows.map((row) => row.entity.id).sort();
+      },
+      searchRecords: async () => {
+        const db = deps.requireDatabase();
+        const [
+          products,
+          ingredients,
+          links,
+          atcCodes,
+          dosageForms,
+          manufacturers,
+        ] = await Promise.all([
+          db.products.where('generationId').equals(generationId).toArray(),
+          db.ingredients.where('generationId').equals(generationId).toArray(),
+          db.productIngredients
+            .where('generationId')
+            .equals(generationId)
+            .toArray(),
+          db.atcCodes.where('generationId').equals(generationId).toArray(),
+          db.dosageForms.where('generationId').equals(generationId).toArray(),
+          db.manufacturers.where('generationId').equals(generationId).toArray(),
+        ]);
+        const ingredientById = new Map(
+          ingredients.map((row) => [row.id, row.entity]),
+        );
+        const linksByProduct = new Map<string, typeof links>();
+        for (const link of links) {
+          const productLinks = linksByProduct.get(link.productId);
+          if (productLinks) productLinks.push(link);
+          else linksByProduct.set(link.productId, [link]);
+        }
+        const atcById = new Map(
+          atcCodes.map((row) => [row.id, row.entity.code]),
+        );
+        const dosageFormById = new Map(
+          dosageForms.map((row) => [row.id, row.entity.displayName]),
+        );
+        const manufacturerById = new Map(
+          manufacturers.map((row) => [row.id, row.entity.name]),
+        );
+
+        const documents: MedicationSearchRecord[] = products.map((row) => {
+          const product = row.entity;
+          const ingredientNames = new Set<string>();
+          if (product.originalDciText.status === 'present')
+            ingredientNames.add(product.originalDciText.value);
+          for (const link of linksByProduct.get(product.id) ?? []) {
+            if (link.entity.sourceIngredientText.trim())
+              ingredientNames.add(link.entity.sourceIngredientText);
+            if (link.entity.ingredientId.status !== 'present') continue;
+            const ingredient = ingredientById.get(
+              link.entity.ingredientId.value,
+            );
+            if (!ingredient) continue;
+            ingredientNames.add(ingredient.preferredName);
+            if (ingredient.dci.status === 'present')
+              ingredientNames.add(ingredient.dci.value);
+          }
+
+          return {
+            product,
+            ingredientNames: [...ingredientNames],
+            atcCodes: product.atcCodeIds.flatMap((id) => {
+              const code = atcById.get(id);
+              return code === undefined ? [] : [code];
+            }),
+            dosageFormName:
+              product.dosageFormId.status === 'present'
+                ? (dosageFormById.get(product.dosageFormId.value) ?? null)
+                : null,
+            manufacturerNames: product.manufacturerIds.flatMap((id) => {
+              const name = manufacturerById.get(id);
+              return name === undefined ? [] : [name];
+            }),
+          };
+        });
+        return documents;
       },
       release: () => {
         if (released) return;

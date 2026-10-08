@@ -346,3 +346,39 @@ it('looks up names, DCI, links and ATC codes inside the pinned generation only',
   reader.release();
   current.release();
 });
+
+it('builds search records only from the reader’s pinned generation', async () => {
+  const store = testStore();
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const pinned = (await store.openReader())!;
+
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  const documents = await pinned.searchRecords();
+
+  expect(documents).toHaveLength(2);
+  const fictivol = documents.find(
+    (document) => document.product.commercialName === 'Fictivol alpha',
+  );
+  expect(fictivol).toMatchObject({
+    ingredientNames: ['Fictivolinum alpha'],
+    atcCodes: ['SYN-SP-FICTIVOL'],
+    dosageFormName: 'fictional tablet alpha',
+    manufacturerNames: ['Synthetica Laboratories'],
+  });
+  expect(
+    documents.some((document) =>
+      document.product.commercialName.endsWith(' beta'),
+    ),
+  ).toBe(false);
+
+  const current = (await store.openReader())!;
+  expect(
+    (await current.searchRecords()).map(
+      (document) => document.product.commercialName,
+    ),
+  ).toEqual(['Fictivol beta', 'Placebex beta']);
+  pinned.release();
+  current.release();
+});
