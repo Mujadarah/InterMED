@@ -434,13 +434,16 @@ describe('importer function artifact', () => {
   }, 60_000);
 
   it('builds under the OS temp directory when no output parent is supplied', () => {
-    // TEMP/TMP are unset (and restored afterwards) so the default parent must
-    // come from the OS itself, never from an inherited override, and the
-    // generated child must never land inside the repository.
+    // TEMP/TMP (Windows) and TMPDIR (Linux/macOS) are unset (and restored
+    // afterwards) so the default parent must come from the OS itself, never
+    // from an inherited override, and the generated child must never land
+    // inside the repository.
     const priorTemp = process.env.TEMP;
     const priorTmp = process.env.TMP;
+    const priorTmpdir = process.env.TMPDIR;
     delete process.env.TEMP;
     delete process.env.TMP;
+    delete process.env.TMPDIR;
     let artifact = '';
     try {
       artifact = buildImporterFunctionArtifact();
@@ -466,6 +469,8 @@ describe('importer function artifact', () => {
       else process.env.TEMP = priorTemp;
       if (priorTmp === undefined) delete process.env.TMP;
       else process.env.TMP = priorTmp;
+      if (priorTmpdir === undefined) delete process.env.TMPDIR;
+      else process.env.TMPDIR = priorTmpdir;
     }
   }, 60_000);
 
