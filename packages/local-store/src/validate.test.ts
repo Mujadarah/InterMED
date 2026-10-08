@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import {
   assessQuantity,
   deserializeCatalogue,
@@ -118,6 +118,21 @@ it('rejects FNV-style and non-prefixed checksums with checksum-mismatch', async 
     alpha.text,
   );
   expect(unprefixed).toEqual({ ok: false, reason: 'checksum-mismatch' });
+});
+
+it('fails closed with checksum-mismatch when the digest cannot be computed', async () => {
+  const alpha = await bundle('alpha');
+  // A context without Web Crypto, or a digest that rejects, cannot verify
+  // the transport checksum: the bundle fails closed instead of throwing.
+  const digest = vi
+    .spyOn(globalThis.crypto.subtle, 'digest')
+    .mockRejectedValueOnce(new Error('Synthetic digest failure'));
+  try {
+    const validation = await checkBundle(alpha.manifest, alpha.text);
+    expect(validation).toEqual({ ok: false, reason: 'checksum-mismatch' });
+  } finally {
+    digest.mockRestore();
+  }
 });
 
 it('accepts a bundle that carries only the preserved data-quality notes', async () => {

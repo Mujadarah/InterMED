@@ -205,6 +205,13 @@ const RECORD_COUNT_KEYS: Readonly<Record<string, true>> = {
  * Rejects corrupted bytes, malformed or non-integral catalogues, a bundle that
  * does not identify the manifest's generation, and published count mismatches.
  * Asynchronous because the SHA-256 transport digest is (Web Crypto).
+ *
+ * Never throws for the digest itself: a context without `crypto.subtle` (a
+ * non-secure origin) or a rejecting `digest` cannot verify the transport
+ * checksum, so the bundle fails closed as `checksum-mismatch`. The caller
+ * (`stageUnlocked`) has already set `staging` by then, and a throw here would
+ * strand the whole pipeline in that state. `sha256TransportChecksum` stays
+ * as it is and may reject; the handling belongs to this boundary (issue #12).
  */
 export async function checkBundle(
   manifest: PublishedDatasetManifest,
@@ -213,7 +220,14 @@ export async function checkBundle(
   if (!TRANSPORT_CHECKSUM_PATTERN.test(manifest.checksum))
     return { ok: false, reason: 'checksum-mismatch' };
   const bundleBytes = new TextEncoder().encode(bundleText);
-  if ((await sha256TransportChecksum(bundleBytes)) !== manifest.checksum)
+  // An unverifiable bundle is one whose checksum cannot be shown to match.
+  let transport: string;
+  try {
+    transport = await sha256TransportChecksum(bundleBytes);
+  } catch {
+    return { ok: false, reason: 'checksum-mismatch' };
+  }
+  if (transport !== manifest.checksum)
     return { ok: false, reason: 'checksum-mismatch' };
   const decoded = deserializeCatalogue(bundleText);
   if (!decoded.ok) return { ok: false, reason: 'invalid-bundle' };

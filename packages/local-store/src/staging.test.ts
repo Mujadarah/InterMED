@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { MEDICATION_CATALOGUE_SCHEMA_VERSION } from '@intermed/domain';
 import type { DatasetStoreEvent } from './events';
 import type { DatasetWriterLock } from './locks';
@@ -129,6 +129,38 @@ it('rejects a corrupted bundle, keeps the previous generation and stages nothing
   expect(await store.openPinnedReader(beta.generationId)).toBeNull();
   const reader = await store.openReader();
   expect(reader?.generationId).toBe(alpha.generationId);
+});
+
+it('fails the update, not the pipeline, when the transport digest cannot be computed', async () => {
+  const store = testStore();
+  const alpha = await bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const beta = await bundle('beta');
+
+  // A context without Web Crypto (or a rejecting digest) must not strand the
+  // pipeline in `staging`: the update resolves as failed, never rejects, and
+  // the previously active generation stays active and readable.
+  const digest = vi
+    .spyOn(globalThis.crypto.subtle, 'digest')
+    .mockRejectedValue(new Error('Synthetic digest failure'));
+  try {
+    const state = await store.updates.stageAndActivate(
+      beta.manifest,
+      beta.text,
+    );
+    expect(state).toMatchObject({
+      status: 'update-failed',
+      reason: 'checksum-mismatch',
+    });
+    expect(store.getState()).toMatchObject({
+      status: 'update-failed',
+      reason: 'checksum-mismatch',
+      generation: { generationId: alpha.generationId },
+    });
+  } finally {
+    digest.mockRestore();
+  }
+  expect((await store.openReader())?.generationId).toBe(alpha.generationId);
 });
 
 it('rejects a bundle that fails referential integrity', async () => {
