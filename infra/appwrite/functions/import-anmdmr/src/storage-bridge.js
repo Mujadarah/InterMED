@@ -25,6 +25,7 @@ import {
   runRowId,
   toSafeFileName,
 } from './intent.js';
+import { parseStableId } from '@intermed/domain';
 import { safeLog } from './codes.js';
 import {
   BUCKETS,
@@ -325,8 +326,40 @@ function buildManifestRow(manifest) {
   return row;
 }
 
-/** Decode manifest counts and map stored fields, using the supplied or row ID fallback. */
-function projectManifestRow(row, fallbackDatasetVersionId) {
+/**
+ * Stored canonical dataset version id of a manifest row, validated exactly
+ * like the public reader's `canonicalDatasetVersionIdSchema`: a present
+ * attribute must be a bounded non-empty string that parses as a canonical
+ * `DatasetVersion` stable id, or the row is rejected; an absent or null
+ * attribute is the legacy M3 shape and falls back to the bounded physical
+ * row id. A caller-supplied candidate id is never substituted for a missing
+ * stored attribute.
+ */
+function manifestDatasetVersionId(row) {
+  const stored = row.datasetVersionId;
+  if (stored === null || stored === undefined) {
+    if (
+      typeof row.$id !== 'string' ||
+      row.$id.length === 0 ||
+      row.$id.length > 36
+    ) {
+      throw new BridgeError('row-invalid', 'manifest physical row id invalid');
+    }
+    return row.$id;
+  }
+  if (
+    typeof stored !== 'string' ||
+    stored.length === 0 ||
+    stored.length > 512 ||
+    !parseStableId('DatasetVersion', stored).ok
+  ) {
+    throw new BridgeError('row-invalid', 'manifest datasetVersionId invalid');
+  }
+  return stored;
+}
+
+/** Decode manifest counts and map the validated stored identity and fields. */
+function projectManifestRow(row) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'manifest row invalid');
   }
@@ -336,10 +369,7 @@ function projectManifestRow(row, fallbackDatasetVersionId) {
   } catch {
     throw new BridgeError('row-invalid', 'manifest counts invalid');
   }
-  const datasetVersionId =
-    typeof row.datasetVersionId === 'string' && row.datasetVersionId.length > 0
-      ? row.datasetVersionId
-      : (fallbackDatasetVersionId ?? row.$id);
+  const datasetVersionId = manifestDatasetVersionId(row);
   return {
     dataset: row.dataset,
     datasetVersionId,
@@ -360,15 +390,30 @@ function projectManifestRow(row, fallbackDatasetVersionId) {
   };
 }
 
+/**
+ * Stored canonical dataset version id of a descriptor row. Descriptor rows
+ * are only ever listed by an exact `datasetVersionId` query, so the
+ * attribute is required: absent, null, empty or oversized values fail
+ * closed exactly like the public reader's bundle row schema.
+ */
+function descriptorDatasetVersionId(row) {
+  const stored = row.datasetVersionId;
+  if (
+    typeof stored !== 'string' ||
+    stored.length === 0 ||
+    stored.length > 512
+  ) {
+    throw new BridgeError('row-invalid', 'descriptor datasetVersionId invalid');
+  }
+  return stored;
+}
+
 /** Map stored descriptor fields and a resolved public URL into the core contract. */
-function projectDescriptorRow(row, publicUrl, fallbackDatasetVersionId) {
+function projectDescriptorRow(row, publicUrl) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'descriptor row invalid');
   }
-  const datasetVersionId =
-    typeof row.datasetVersionId === 'string' && row.datasetVersionId.length > 0
-      ? row.datasetVersionId
-      : (fallbackDatasetVersionId ?? row.$id);
+  const datasetVersionId = descriptorDatasetVersionId(row);
   return {
     id: row.$id,
     datasetVersionId,
@@ -807,11 +852,7 @@ export function createPublishBridge(options) {
       );
       const row = rows[0];
       if (!row) return null;
-      return projectDescriptorRow(
-        row,
-        publicBundleDownloadUrl(row.fileId),
-        versionId,
-      );
+      return projectDescriptorRow(row, publicBundleDownloadUrl(row.fileId));
     },
     /**
      * Read the manifest at the physical row ID derived from the canonical ID.
@@ -829,7 +870,7 @@ export function createPublishBridge(options) {
         if (!isNotFound(error)) throw error;
       }
       if (row === null) return null;
-      return projectManifestRow(row, versionId);
+      return projectManifestRow(row);
     },
     /**
      * Acquire the shared publication lock with a fresh owner token or throw
