@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { MEDICATION_CATALOGUE_SCHEMA_VERSION } from '@intermed/domain';
 import type { DatasetStoreEvent } from './events';
 import type { DatasetWriterLock } from './locks';
@@ -49,7 +49,7 @@ function plantedRecord(
 it('stages and activates a bundle, then reads the same generation after a restart', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   expect(store.getState()).toMatchObject({
     status: 'ready',
@@ -76,8 +76,8 @@ it('stages and activates a bundle, then reads the same generation after a restar
 
 it('keeps staged rows invisible until one atomic pointer switch', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
 
   await store.updates.stageBundle(beta.manifest, beta.text);
@@ -102,7 +102,7 @@ it('keeps staged rows invisible until one atomic pointer switch', async () => {
 
 it('is idempotent when the same generation is staged twice', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   expect(store.getState()).toMatchObject({
@@ -115,9 +115,9 @@ it('is idempotent when the same generation is staged twice', async () => {
 
 it('rejects a corrupted bundle, keeps the previous generation and stages nothing', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   const corrupted = `${beta.text}corrupted`;
 
   await store.updates.stageBundle(beta.manifest, corrupted);
@@ -131,11 +131,44 @@ it('rejects a corrupted bundle, keeps the previous generation and stages nothing
   expect(reader?.generationId).toBe(alpha.generationId);
 });
 
+it('fails the update, not the pipeline, when the transport digest cannot be computed', async () => {
+  const store = testStore();
+  const alpha = await bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const beta = await bundle('beta');
+
+  // A context without Web Crypto (or a rejecting digest) must not strand the
+  // pipeline in `staging`: the update resolves as failed, never rejects, and
+  // the previously active generation stays active and readable.
+  const digest = vi
+    .spyOn(globalThis.crypto.subtle, 'digest')
+    .mockRejectedValue(new Error('Synthetic digest failure'));
+  try {
+    const state = await store.updates.stageAndActivate(
+      beta.manifest,
+      beta.text,
+    );
+    expect(state).toMatchObject({
+      status: 'update-failed',
+      reason: 'checksum-mismatch',
+    });
+    expect(store.getState()).toMatchObject({
+      status: 'update-failed',
+      reason: 'checksum-mismatch',
+      generation: { generationId: alpha.generationId },
+    });
+  } finally {
+    digest.mockRestore();
+  }
+  expect((await store.openReader())?.generationId).toBe(alpha.generationId);
+});
+
 it('rejects a bundle that fails referential integrity', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
-  const broken = integrityBrokenBundle(bundle('beta'));
+  const beta = await bundle('beta');
+  const broken = await integrityBrokenBundle(beta);
 
   await store.updates.stageBundle(broken.manifest, broken.text);
   expect(store.getState()).toMatchObject({
@@ -143,12 +176,12 @@ it('rejects a bundle that fails referential integrity', async () => {
     reason: 'integrity-failed',
     generation: { generationId: alpha.generationId },
   });
-  expect(await store.openPinnedReader(bundle('beta').generationId)).toBeNull();
+  expect(await store.openPinnedReader(beta.generationId)).toBeNull();
 });
 
 it('rejects published count mismatches against the bundle', async () => {
   const store = testStore();
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await store.updates.stageBundle(
     {
       ...beta.manifest,
@@ -165,7 +198,7 @@ it('rejects published count mismatches against the bundle', async () => {
 
 it('rejects an unsupported manifest schema or client requirement', async () => {
   const store = testStore();
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await store.updates.stageBundle(
     { ...beta.manifest, schemaVersion: 'medication-catalogue-9' },
     beta.text,
@@ -186,7 +219,7 @@ it('rejects an unsupported manifest schema or client requirement', async () => {
 
 it('rejects a manifest that is not for this dataset or has no expected counts', async () => {
   const store = testStore();
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await store.updates.stageBundle(
     { ...beta.manifest, dataset: 'another-dataset' },
     beta.text,
@@ -207,8 +240,8 @@ it('rejects a manifest that is not for this dataset or has no expected counts', 
 
 it('rejects a bundle that does not identify the manifest generation', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   // A correctly checksummed bundle published under another generation's id.
   await store.updates.stageBundle(
     { ...beta.manifest, checksum: alpha.manifest.checksum },
@@ -229,9 +262,9 @@ it('keeps the old active generation when staging is interrupted', async () => {
         throw new Error('Synthetic interruption');
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   interrupt = true;
 
   await store.updates.stageBundle(beta.manifest, beta.text);
@@ -257,9 +290,9 @@ it('keeps the old active generation on a quota error and reports storage-quota',
         });
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   fillQuota = true;
 
   await store.updates.stageBundle(beta.manifest, beta.text);
@@ -273,7 +306,7 @@ it('keeps the old active generation on a quota error and reports storage-quota',
 });
 
 it('downloads through the injected published source and reports size mismatches', async () => {
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   const healthy = fakePublishedSource(alpha);
   const store = testStore(healthy);
   await store.updates.downloadAndActivate();
@@ -282,7 +315,7 @@ it('downloads through the injected published source and reports size mismatches'
     generation: { generationId: alpha.generationId },
   });
 
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   const wrongSize = fakePublishedSource(beta, {
     descriptor: { ...beta.descriptor, byteSize: beta.descriptor.byteSize + 1 },
   });
@@ -295,8 +328,26 @@ it('downloads through the injected published source and reports size mismatches'
   });
 });
 
+it('reports bundle-unavailable when the loader receives malformed UTF-8 bytes', async () => {
+  const alpha = await bundle('alpha');
+  // A concrete loader must decode strictly and report `unavailable` instead
+  // of a lossy replacement; the pipeline surfaces that as bundle-unavailable.
+  const source = fakePublishedSource(alpha, {
+    bytes: new Uint8Array([0x22, 0xff, 0x22]),
+  });
+  const store = testStore(source);
+
+  await store.updates.downloadAndActivate();
+  expect(store.getState()).toMatchObject({
+    status: 'update-failed',
+    reason: 'bundle-unavailable',
+    generation: null,
+  });
+  expect(await store.openReader()).toBeNull();
+});
+
 it('reports update-available after a background check and fails without touching data', async () => {
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   const store = testStore(fakePublishedSource(alpha));
   await store.updates.downloadAndActivate();
   expect(store.getState()).toMatchObject({ status: 'ready' });
@@ -307,7 +358,7 @@ it('reports update-available after a background check and fails without touching
     generation: { generationId: alpha.generationId },
   });
 
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   const newer = testStore(fakePublishedSource(beta));
   await newer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await newer.updates.checkForUpdate();
@@ -355,7 +406,7 @@ it('keeps a committed activation successful when preference reconciliation fails
         });
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -363,7 +414,7 @@ it('keeps a committed activation successful when preference reconciliation fails
     lastKnownDatasetVersionId: alpha.generationId,
   });
   // The replacement drops the favorite, so reconciliation writes a tombstone.
-  const beta = bundle('beta', {
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
   });
   failMaintenance = true;
@@ -415,10 +466,10 @@ it('keeps a committed activation successful when post-commit collection fails', 
         });
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   failCollection = true;
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
 
   const state = await store.updates.stageAndActivate(beta.manifest, beta.text);
   expect(state).toMatchObject({
@@ -442,14 +493,14 @@ it('keeps a committed activation successful when post-commit collection fails', 
 it('finishes a preference reconciliation that a crash interrupted', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
     lastKnownDisplayName: 'Fictivol alpha',
     lastKnownDatasetVersionId: alpha.generationId,
   });
-  const beta = bundle('beta', {
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
   });
   await store.updates.stageAndActivate(beta.manifest, beta.text);
@@ -481,12 +532,12 @@ it('finishes a preference reconciliation that a crash interrupted', async () => 
 
 it('installs a manifest that declares only some counts', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
 
   // A published manifest may declare only some counts: the missing ones are
   // never asserted, and the stored completeness marker covers every store.
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(
     { ...beta.manifest, recordCounts: { products: 2 } },
     beta.text,
@@ -500,7 +551,7 @@ it('installs a manifest that declares only some counts', async () => {
   reader.release();
 
   // A declared count that does not match is still rejected.
-  const delta = bundle('delta');
+  const delta = await bundle('delta');
   await store.updates.stageBundle(
     { ...delta.manifest, recordCounts: { products: 99 } },
     delta.text,
@@ -536,7 +587,7 @@ it('keeps a generation that becomes active while startup cleanup runs', async ()
       }
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
   // The half-written staging record looks abandoned to a scan that runs now.
@@ -564,7 +615,7 @@ it('keeps a generation that becomes active while startup cleanup runs', async ()
 it('refuses to activate a generation whose staging never completed', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const rows = await testDatabase(name);
   // A crash mid-stage leaves a record whose catalogue rows were never written.
@@ -582,7 +633,7 @@ it('refuses to activate a generation whose staging never completed', async () =>
 it('re-verifies the stored row counts before switching the pointer', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const rows = await testDatabase(name);
   // Marked complete, but the rows it promises are not there.
@@ -615,8 +666,8 @@ it('removes an incomplete staging generation on the next open', async () => {
 
 it('recovers an evicted generation by re-downloading and replacing its rows', async () => {
   const name = uniqueName();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   const source = fakePublishedSource(alpha);
   const store = testStore({
     name,
@@ -662,9 +713,9 @@ it('recovers an evicted generation by re-downloading and replacing its rows', as
 
 it('rejects a bundle whose embedded dataset version disagrees with its manifest', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
-  const mismatched = versionMismatchBundle(bundle('beta'), {
+  const mismatched = await versionMismatchBundle(await bundle('beta'), {
     schemaVersion: 'medication-catalogue-2',
   });
 
@@ -677,32 +728,36 @@ it('rejects a bundle whose embedded dataset version disagrees with its manifest'
   expect((await store.openReader())?.generationId).toBe(alpha.generationId);
 });
 
-it('applies the manifest compatibility checks to the embedded version too', () => {
-  const source = bundle('beta');
-  expect(checkBundle(source.manifest, source.text).ok).toBe(true);
+it('applies the manifest compatibility checks to the embedded version too', async () => {
+  const source = await bundle('beta');
+  expect((await checkBundle(source.manifest, source.text)).ok).toBe(true);
 
-  const schemaMismatch = versionMismatchBundle(source, {
+  const schemaMismatch = await versionMismatchBundle(source, {
     schemaVersion: 'medication-catalogue-2',
   });
-  expect(checkBundle(schemaMismatch.manifest, schemaMismatch.text)).toEqual({
+  expect(
+    await checkBundle(schemaMismatch.manifest, schemaMismatch.text),
+  ).toEqual({
     ok: false,
     reason: 'invalid-bundle',
   });
-  const clientMismatch = versionMismatchBundle(source, {
+  const clientMismatch = await versionMismatchBundle(source, {
     minimumClientVersion: '1.0.0',
   });
-  expect(checkBundle(clientMismatch.manifest, clientMismatch.text)).toEqual({
+  expect(
+    await checkBundle(clientMismatch.manifest, clientMismatch.text),
+  ).toEqual({
     ok: false,
     reason: 'invalid-bundle',
   });
 
   // The same compatibility checks the manifest gets are applied to the
   // embedded version when the two agree on an unsupported requirement.
-  const unsupportedSchema = versionMismatchBundle(source, {
+  const unsupportedSchema = await versionMismatchBundle(source, {
     schemaVersion: 'medication-catalogue-2',
   });
   expect(
-    checkBundle(
+    await checkBundle(
       {
         ...unsupportedSchema.manifest,
         schemaVersion: 'medication-catalogue-2',
@@ -710,11 +765,11 @@ it('applies the manifest compatibility checks to the embedded version too', () =
       unsupportedSchema.text,
     ),
   ).toEqual({ ok: false, reason: 'incompatible-schema' });
-  const tooNewClient = versionMismatchBundle(source, {
+  const tooNewClient = await versionMismatchBundle(source, {
     minimumClientVersion: '9.0.0',
   });
   expect(
-    checkBundle(
+    await checkBundle(
       { ...tooNewClient.manifest, minimumClientVersion: '9.0.0' },
       tooNewClient.text,
     ),

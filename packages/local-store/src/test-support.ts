@@ -7,7 +7,6 @@ import type {
 } from '@intermed/domain';
 import {
   deserializeCatalogue,
-  fingerprint,
   sealCatalogue,
   serializeCatalogue,
 } from '@intermed/domain';
@@ -24,6 +23,7 @@ import {
   createLocalDatasetStore,
   type LocalDatasetStoreOptions,
 } from './store';
+import { decodeBundleBytes, sha256TransportChecksum } from './validate';
 
 /**
  * Shared helpers for the local-store test suites. Every case gets its own
@@ -62,10 +62,10 @@ export function testClock(
 }
 
 /** One synthetic bundle. Product names carry the label to tell generations apart. */
-export function bundle(
+export async function bundle(
   label: string,
   options: Partial<SyntheticBundleOptions> = {},
-): SyntheticBundle {
+): Promise<SyntheticBundle> {
   return buildSyntheticCatalogueBundle({ label, ...options });
 }
 
@@ -147,10 +147,12 @@ export async function testMarkerLock(
  * no longer in the snapshot. Re-sealed and re-checksummed, so only the domain
  * integrity check can reject it.
  */
-export function integrityBrokenBundle(bundleToBreak: SyntheticBundle): {
+export async function integrityBrokenBundle(
+  bundleToBreak: SyntheticBundle,
+): Promise<{
   readonly manifest: PublishedDatasetManifest;
   readonly text: string;
-} {
+}> {
   const decoded = deserializeCatalogue(bundleToBreak.text);
   if (!decoded.ok) throw new Error('The synthetic bundle did not deserialize');
   const sealed = sealCatalogue({
@@ -163,7 +165,7 @@ export function integrityBrokenBundle(bundleToBreak: SyntheticBundle): {
   return {
     manifest: {
       ...bundleToBreak.manifest,
-      checksum: fingerprint(text),
+      checksum: await sha256TransportChecksum(new TextEncoder().encode(text)),
       recordCounts: Object.fromEntries(Object.entries(version.recordCounts)),
     },
     text,
@@ -175,16 +177,16 @@ export function integrityBrokenBundle(bundleToBreak: SyntheticBundle): {
  * everything else still validates: the version fields are rewritten and the
  * bundle re-sealed and re-checksummed.
  */
-export function versionMismatchBundle(
+export async function versionMismatchBundle(
   source: SyntheticBundle,
   fields: {
     readonly schemaVersion?: string;
     readonly minimumClientVersion?: string;
   },
-): {
+): Promise<{
   readonly manifest: PublishedDatasetManifest;
   readonly text: string;
-} {
+}> {
   const decoded = deserializeCatalogue(source.text);
   if (!decoded.ok) throw new Error('The synthetic bundle did not deserialize');
   const [first, ...rest] = decoded.snapshot.datasetVersions;
@@ -195,18 +197,29 @@ export function versionMismatchBundle(
   });
   const text = serializeCatalogue(sealed);
   return {
-    manifest: { ...source.manifest, checksum: fingerprint(text) },
+    manifest: {
+      ...source.manifest,
+      checksum: await sha256TransportChecksum(new TextEncoder().encode(text)),
+    },
     text,
   };
 }
 
-/** Published source fake serving exactly one synthetic bundle. */
+/**
+ * Published source fake serving exactly one synthetic bundle. The loader acts
+ * like a concrete `PublishedBundleLoader`: it holds raw bundle bytes and hands
+ * them through the strict `decodeBundleBytes` boundary, reporting
+ * `unavailable` (`invalid-response`) when they are not valid UTF-8 instead of
+ * a lossy replacement.
+ */
 export function fakePublishedSource(
   syntheticBundle: SyntheticBundle,
   options: {
     readonly descriptor?: PublishedBundleDescriptor;
     readonly manifest?: PublishedDatasetManifest;
     readonly text?: string;
+    /** Raw bundle bytes to serve; they replace `text` and go through the strict decode boundary. */
+    readonly bytes?: Uint8Array;
     readonly manifestStatus?: 'available' | 'absent' | 'unavailable';
   } = {},
 ): {
@@ -216,6 +229,7 @@ export function fakePublishedSource(
   const manifest = options.manifest ?? syntheticBundle.manifest;
   const descriptor = options.descriptor ?? syntheticBundle.descriptor;
   const text = options.text ?? syntheticBundle.text;
+  const bytes = options.bytes ?? new TextEncoder().encode(text);
   return {
     reader: {
       getManifest: async () => {
@@ -231,7 +245,12 @@ export function fakePublishedSource(
           : { status: 'absent', reason: 'not-found' },
     },
     loader: {
-      loadBundle: async () => ({ status: 'available', text }),
+      loadBundle: async () => {
+        const decoded = decodeBundleBytes(bytes);
+        return decoded === null
+          ? { status: 'unavailable', reason: 'invalid-response' }
+          : { status: 'available', text: decoded };
+      },
     },
   };
 }

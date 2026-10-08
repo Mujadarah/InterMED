@@ -36,8 +36,8 @@ it('refuses a concurrent update instead of racing another writer', async () => {
     },
   });
   const other = testStore({ name });
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
 
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
@@ -102,12 +102,12 @@ it('lets other tabs switch at a safe boundary while pinned readers continue', as
   const events = sharedBus();
   const tabA = testStore({ name, events });
   const tabB = testStore({ name, events });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
   const tabAPinned = (await tabA.openReader())!;
   const tabBPinned = (await tabB.openReader())!;
 
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await tabB.updates.stageAndActivate(beta.manifest, beta.text);
   await vi.waitFor(() =>
     expect(tabA.getState()).toMatchObject({
@@ -194,8 +194,8 @@ it('aborts an activation whose writer lease was lost to another tab', async () =
     },
   });
   const other = testStore({ name, now: clock.now });
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
 
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
@@ -241,7 +241,7 @@ it('stops staging and keeps the new writer rows when the lease is lost mid-stagi
     },
   });
   const takeover = testStore({ name, now: clock.now });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
 
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
@@ -277,7 +277,7 @@ it('tells other tabs when one tab clears the local data', async () => {
     const name = uniqueName();
     const tabA = testStore({ name, events: eventsA });
     const tabB = testStore({ name, events: eventsB });
-    const alpha = bundle('alpha');
+    const alpha = await bundle('alpha');
     await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
     await vi.waitFor(() =>
       expect(tabB.getState()).toMatchObject({
@@ -301,7 +301,7 @@ it('reports a failed background refresh instead of an unhandled rejection', asyn
   const name = uniqueName();
   const events = sharedBus();
   const store = testStore({ name, events });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
 
   // A poisoned generation record makes the next background refresh throw.
@@ -366,7 +366,7 @@ it('uses unpredictable UUIDs for writer tokens and tab ids', async () => {
       }
     },
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
 

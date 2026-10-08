@@ -22,16 +22,16 @@ file exist?
   6  |  var _jsxFileName = "<worktree>/apps/web/src/presentation/DatasetStatus.test.tsx";
   7  |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
  Γ¥» TransformPluginContext._formatLog
-../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8766:39
+<worktree>/node_modules/vite/dist/node/chunks/node.js:8766:39
  Γ¥» TransformPluginContext.error
-../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8763:14
- Γ¥» normalizeUrl ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26423:18
- Γ¥» ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26493:30
+<worktree>/node_modules/vite/dist/node/chunks/node.js:8763:14
+ Γ¥» normalizeUrl <worktree>/node_modules/vite/dist/node/chunks/node.js:26423:18
+ Γ¥» <worktree>/node_modules/vite/dist/node/chunks/node.js:26493:30
  Γ¥» TransformPluginContext.transform
-../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:26459:4
+<worktree>/node_modules/vite/dist/node/chunks/node.js:26459:4
  Γ¥» EnvironmentPluginContainer.transform
-../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8545:14
- Γ¥» loadAndTransform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:19988:26
+<worktree>/node_modules/vite/dist/node/chunks/node.js:8545:14
+ Γ¥» loadAndTransform <worktree>/node_modules/vite/dist/node/chunks/node.js:19988:26
 
 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
 

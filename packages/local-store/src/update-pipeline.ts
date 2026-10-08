@@ -169,7 +169,7 @@ export function createUpdatePipeline(deps: PipelineDeps): UpdatePipeline {
       generation: currentGeneration,
       candidate,
     });
-    const bundle = checkBundle(manifest, bundleText);
+    const bundle = await checkBundle(manifest, bundleText);
     if (!bundle.ok) return { ok: false, state: await deps.fail(bundle.reason) };
     const rows: CatalogueRows = toCatalogueRows(generationId, bundle.snapshot);
     const record: GenerationRecord = {

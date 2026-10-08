@@ -10,7 +10,7 @@ import { bundle, testStore, uniqueName } from './test-support';
 it('migrates a v1 database with favorites and keeps the active generation', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -45,7 +45,7 @@ it('migrates a v1 database with favorites and keeps the active generation', asyn
 it('refuses a newer on-disk schema and leaves its data untouched', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -75,7 +75,7 @@ it('refuses a newer on-disk schema and leaves its data untouched', async () => {
 it('reports evicted when the active pointer outlives its rows', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   store.close();
 
@@ -136,7 +136,7 @@ it('reports storage-restricted when the browser refuses to open a database', asy
 it('surfaces reload-required instead of blocking when another tab upgrades', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
