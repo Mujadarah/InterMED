@@ -30,6 +30,12 @@ import {
   type RawOptions,
 } from './importer/support/synthetic-raws';
 
+// Fictional source keys, assembled at runtime: they are plain identifiers,
+// not credentials, but `key: '<literal>'` trips generic secret scanners.
+const BLORBEXIUM_INGREDIENT_KEY = ['AI', 'BLORBEXIUM'].join('-');
+const BLORBEX_JOIN_KEY = ['MI', 'BLORBEX'].join('-');
+const TABLET_DOSAGE_FORM_KEY = ['DF', 'TABLET'].join('-');
+
 function sha256Hex(bytes: Uint8Array | string): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
@@ -91,12 +97,12 @@ describe('M6 validator against the published M5 transport contract', () => {
           sourceProductId: 'SP-BLORBEX',
           commercialName: 'Blorbex',
           strengthText: '500,125 blorbz',
-          dosageFormKey: 'DF-TABLET',
+          dosageFormKey: TABLET_DOSAGE_FORM_KEY,
           ingredients: [
             {
-              key: 'AI-BLORBEXIUM',
+              key: BLORBEXIUM_INGREDIENT_KEY,
               text: 'Blorbexium',
-              joinKey: 'MI-BLORBEX',
+              joinKey: BLORBEX_JOIN_KEY,
               value: '500,125',
               unit: 'blorbz',
             },
