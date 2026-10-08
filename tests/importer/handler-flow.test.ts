@@ -24,6 +24,7 @@ import {
   vi,
 } from './handler-fixtures';
 import { bytesToText } from './fake-appwrite-rest.mjs';
+import { parseStableId } from '@intermed/domain';
 
 const { intentFileId, intentFileName, reviewFileId } = derivations;
 
@@ -129,6 +130,69 @@ async function stageOnce(harness: Harness, bytes = snapshotBytes()) {
 }
 
 describe('stage flows', () => {
+  it('re-stages a quarantined snapshot after its baseline is published', async () => {
+    const harness = createHarness({ publishEnabled: true });
+    try {
+      expect((await stageOnce(harness)).body.code).toBe('staged');
+      const baselineReview = writtenReview(harness);
+      const baselineId = parseStableId(
+        'DatasetVersion',
+        baselineReview.candidateVersionId,
+      );
+      if (!baselineId.ok) throw new Error('invalid baseline ID');
+      const raw = JSON.parse(bytesToText(snapshotBytes()));
+      raw.datasetVersion.previousVersionKey = {
+        status: 'present',
+        value: baselineId.sourceRecordKey,
+      };
+      raw.datasetVersion.version = 'synthetic-2';
+      const bytes = new TextEncoder().encode(JSON.stringify(raw));
+      harness.seedFile('raw-sources', 'raw-src-0002', 'next.json', bytes);
+      const operationId = 'op-stage-0002';
+      harness.seedFile(
+        'import-run-logs',
+        intentFileId(operationId),
+        intentFileName(operationId),
+        JSON.stringify(
+          stageIntentDocument(operationId, {
+            rawSnapshotFileId: 'raw-src-0002',
+            rawSnapshotSha256: sha256Hex(bytes),
+          }),
+        ),
+      );
+      const quarantined = await harness.call({
+        bodyJson: envelope(operationId),
+      });
+      expect(quarantined.status).toBe(200);
+      expect(quarantined.body.code).toBe('quarantined');
+      expect(quarantined.body.summary).toMatchObject({
+        completenessStatus: 'baseline-mismatch',
+      });
+      const quarantinedRows = [
+        ...harness.rest.rows.get('import-runs')!.entries(),
+      ];
+      seedPublishIntent(harness, baselineReview);
+      expect(
+        (await harness.call({ bodyJson: envelope(PUBLISH_OPERATION) })).body
+          .code,
+      ).toBe('published');
+      const restaged = await harness.call({ bodyJson: envelope(operationId) });
+      expect(restaged.status).toBe(200);
+      expect(restaged.body.code).toBe('staged');
+      expect(harness.rest.rowIds('import-runs')).toHaveLength(3);
+      for (const [id, row] of quarantinedRows) {
+        expect(harness.rest.rows.get('import-runs')!.get(id)).toEqual(row);
+      }
+      const after = stateOf(harness);
+      expect(
+        (await harness.call({ bodyJson: envelope(operationId) })).body.code,
+      ).toBe('staged');
+      expect(stateOf(harness)).toBe(after);
+    } finally {
+      harness.dispose();
+    }
+  });
+
   it('stages a full valid generation with private writes only', async () => {
     const harness = createHarness();
     const result = await stageOnce(harness);

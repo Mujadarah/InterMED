@@ -10,6 +10,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { isBuiltin } from 'node:module';
+import { tmpdir } from 'node:os';
 import {
   dirname,
   extname,
@@ -700,6 +701,16 @@ function analyzeRuntimeClosure({ program, functionFacts }) {
 
   // Seed the closure with the real function entry and its JS helpers.
   for (const facts of functionFacts) {
+    for (const record of facts.reexports) {
+      if (isRelativeSpecifier(record.specifier)) continue;
+      const resolved = resolveSpecifier(facts.file, record.specifier);
+      if (resolved.kind !== 'workspace') continue;
+      include(resolved.file);
+      if (record.kind === 'named') {
+        for (const element of record.elements)
+          demand(resolved.file, element.source);
+      } else demandAll(resolved.file);
+    }
     for (const edge of facts.imports) {
       if (isRelativeSpecifier(edge.specifier)) continue;
       const resolved = resolveSpecifier(facts.file, edge.specifier);
@@ -1314,9 +1325,7 @@ export function buildImporterFunctionArtifact(options = {}) {
     typeof options.functionSourceDir === 'string'
       ? resolve(options.functionSourceDir)
       : defaultFunctionSourceDir;
-  const parent = resolve(
-    outputParent ?? process.env.TEMP ?? process.env.TMP ?? rootDir,
-  );
+  const parent = resolve(outputParent ?? tmpdir());
   mkdirSync(parent, { recursive: true });
   const staging = mkdtempSync(join(parent, 'intermed-importer-function-'));
   try {

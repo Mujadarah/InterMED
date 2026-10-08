@@ -35,7 +35,8 @@ bundle-hash activation claim. File, network, Appwrite, credential, clock, and
 logging behavior
 belongs behind injected ports; the Function adapter is not a domain dependency.
 Synthetic source validation and private staging remain outside the browser
-shell. The Function handler/authority layer and final integration are still
-pending. See
+shell. The repaired Function handler/authority layer and offline integration
+checks are verified (2026-10-08, full repair run at `9a40644`). CI, PR review,
+live actions, and owner approval remain pending. See
 [the Milestone 5 evidence record](../docs/MILESTONE_5_EVIDENCE.md) and its
 [evidence pack](../docs/evidence/milestone-5-synthetic-2026-10-07/README.md).

@@ -90,8 +90,8 @@ export function inspectBoundary(files) {
       } else if (inImporter) {
         if (
           specifier === 'appwrite' ||
-          specifier.startsWith('node:fs') ||
-          specifier === 'fs' ||
+          specifier === 'node-appwrite' ||
+          /^(?:node:)?fs(?:\/|$)/.test(specifier) ||
           specifier.includes('sdk')
         ) {
           report(`importer must not reach SDK/fetch/fs: ${specifier}`);

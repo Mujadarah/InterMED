@@ -97,15 +97,15 @@ export function diffProducts(
       added += 1;
       continue;
     }
-    if (product.commercialName !== before.commercialName) {
-      renamed += 1;
-      continue;
-    }
     const unchanged = deepEqual(
-      productSignature(product, candidateJoins.get(product.id) ?? []),
+      productSignature(
+        { ...product, commercialName: before.commercialName },
+        candidateJoins.get(product.id) ?? [],
+      ),
       productSignature(before, previousJoins.get(before.id) ?? []),
     );
     if (!unchanged) changed += 1;
+    else if (product.commercialName !== before.commercialName) renamed += 1;
   }
 
   for (const key of previousProducts.keys()) {

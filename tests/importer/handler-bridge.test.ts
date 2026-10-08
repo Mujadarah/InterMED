@@ -31,7 +31,6 @@ import {
   publicationRowId,
   quarantineFileId,
   reviewFileId,
-  runRowId,
 } from '../../infra/appwrite/functions/import-anmdmr/src/intent.js';
 import {
   APPROVED_AT,
@@ -335,9 +334,7 @@ describe('run row projection', () => {
       issueCodes: ['note one', 'note two'],
       largeRemovalRequired: false,
     });
-    const row = harness.rest.rows
-      .get('import-runs')
-      ?.get(runRowId(sha256, 'run-1'));
+    const row = [...harness.rest.rows.get('import-runs')!.values()][0];
     expect(row).toBeDefined();
     const keys = Object.keys(row ?? {})
       .filter((key) => !key.startsWith('$'))
@@ -399,32 +396,27 @@ describe('run row projection', () => {
     };
     await bridge.ports.writeRunSummary('run-3', summary);
     await bridge.ports.writeRunSummary('run-3', summary);
-    expect(harness.rest.rowIds('import-runs')).toEqual([
-      runRowId(sha256, 'run-3'),
-    ]);
+    const rowIds = harness.rest.rowIds('import-runs');
+    expect(rowIds).toHaveLength(1);
+    const rowId = rowIds[0]!;
 
     const clash = createHarness();
     const other = stageBridge(clash);
     await other.ports.writeReview(CANDIDATE_ID, reviewData());
-    await storeFor(clash).createPrivateRow(
-      'import-runs',
-      runRowId(sha256, 'run-3'),
-      {
-        sourceId: 'source.other',
-        snapshotVersion: 'other',
-        importerVersion: 'other',
-        startedAt: '2026-10-07T09:00:00.000Z',
-        completenessStatus: 'other',
-        publicationStatus: 'other',
-      },
-    );
+    await storeFor(clash).createPrivateRow('import-runs', rowId, {
+      sourceId: 'source.other',
+      snapshotVersion: 'other',
+      importerVersion: 'other',
+      startedAt: '2026-10-07T09:00:00.000Z',
+      completenessStatus: 'other',
+      publicationStatus: 'other',
+    });
     await expect(other.ports.writeRunSummary('run-3', summary)).rejects.toThrow(
       /collision/i,
     );
-    expect(
-      clash.rest.rows.get('import-runs')?.get(runRowId(sha256, 'run-3'))
-        ?.sourceId,
-    ).toBe('source.other');
+    expect(clash.rest.rows.get('import-runs')?.get(rowId)?.sourceId).toBe(
+      'source.other',
+    );
     clash.dispose();
     harness.dispose();
   });

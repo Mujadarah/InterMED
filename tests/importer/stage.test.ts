@@ -426,40 +426,48 @@ describe('stage product diff against real baselines', () => {
     });
   });
 
-  it('detects related ingredient link changes as product changes', async () => {
-    const baseline = await stageBaseline([fictivolProduct()]);
-    const changed = fictivolProduct();
-    changed.ingredients = [
-      {
-        key: 'AI-FICTIVOLINUM',
-        text: 'Fictivolinum',
-        joinKey: 'MI-FICTIVOL',
-        value: '600',
-        unit: 'mg',
-      },
-    ];
-    const { review } = await diffAgainst(baseline, [changed]);
-    expect(review?.diffSummary).toEqual({
-      added: 0,
-      changed: 1,
-      renamed: 0,
-      removed: 0,
-      netProducts: 1,
-    });
-  });
+  it.each([false, true])(
+    'detects related ingredient link changes as product changes (renamed: %s)',
+    async (renamed) => {
+      const baseline = await stageBaseline([fictivolProduct()]);
+      const changed = fictivolProduct();
+      if (renamed) changed.commercialName = 'Fictivol Renamed';
+      changed.ingredients = [
+        {
+          key: 'AI-FICTIVOLINUM',
+          text: 'Fictivolinum',
+          joinKey: 'MI-FICTIVOL',
+          value: '600',
+          unit: 'mg',
+        },
+      ];
+      const { review } = await diffAgainst(baseline, [changed]);
+      expect(review?.diffSummary).toEqual({
+        added: 0,
+        changed: 1,
+        renamed: 0,
+        removed: 0,
+        netProducts: 1,
+      });
+    },
+  );
 
-  it('detects form changes as product changes', async () => {
-    const baseline = await stageBaseline([fictivolProduct()]);
-    const changed = { ...fictivolProduct(), dosageFormKey: 'DF-CAPSULE' };
-    const { review } = await diffAgainst(baseline, [changed]);
-    expect(review?.diffSummary).toEqual({
-      added: 0,
-      changed: 1,
-      renamed: 0,
-      removed: 0,
-      netProducts: 1,
-    });
-  });
+  it.each([false, true])(
+    'detects form changes as product changes (renamed: %s)',
+    async (renamed) => {
+      const baseline = await stageBaseline([fictivolProduct()]);
+      const changed = { ...fictivolProduct(), dosageFormKey: 'DF-CAPSULE' };
+      if (renamed) changed.commercialName = 'Fictivol Renamed';
+      const { review } = await diffAgainst(baseline, [changed]);
+      expect(review?.diffSummary).toEqual({
+        added: 0,
+        changed: 1,
+        renamed: 0,
+        removed: 0,
+        netProducts: 1,
+      });
+    },
+  );
 
   it('writes a private large-drop quarantine and keeps the candidate reviewable', async () => {
     const products = [

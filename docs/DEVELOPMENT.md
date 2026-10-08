@@ -55,12 +55,12 @@ npx vitest run packages/data-access
 
 No Appwrite CLI invocation is part of any repository script. Provisioning, deployment and rollback commands live in [the Appwrite runbook](APPWRITE_RUNBOOK.md) and remain **NOT YET EXECUTED — requires maintainer approval**.
 
-Milestone 5 importer work is synthetic-only. As of 2026-10-07 the importer core,
-the Appwrite store client, the Function artifact builder, and the
-core-producer → published-reader compatibility are verified offline (tests and
-logs only), while the Function handler (publication-time defect open, retries
-unproven) and final integration remain pending; no M5 live action was
-authorized or executed. Do not add source
+Milestone 5 importer work is synthetic-only. As of 2026-10-08 the importer core,
+the Appwrite store client, the Function artifact builder, the repaired Function
+handler (including publication time and retries), and offline integration checks
+are verified. The recorded full repair run at `9a40644` passed 744 tests in 47
+files and 150 browser tests. CI, PR review, live actions, and owner approval
+remain pending; no M5 live action was authorized or executed. Do not add source
 credentials, real source material, network retrieval, or generated Function
 artifacts to the repository. The acceptance/evidence matrix, the recorded root
 test counts, and the separate approval sequence are in

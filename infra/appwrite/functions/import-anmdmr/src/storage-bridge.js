@@ -617,7 +617,16 @@ export function createStageBridge(options) {
       const reviewData = journal.reviewData;
       await shared.createPrivateRowSemantics(
         TABLES.runs,
-        runRowId(sha256, runId),
+        runRowId(
+          sha256,
+          JSON.stringify([
+            runId,
+            summary.status,
+            summary.completenessStatus,
+            journal.baseline.baselineVersionId,
+            journal.baseline.baselineFingerprint,
+          ]),
+        ),
         buildRunRow({
           config,
           issuedAt,

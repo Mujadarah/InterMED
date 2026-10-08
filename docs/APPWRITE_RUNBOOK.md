@@ -621,7 +621,8 @@ baseline binding copy the reviewed values), upload it under its reserved name,
 and execute:
 
 ```powershell
-npx --yes appwrite-cli@28.1.0 storage create-file --bucket-id import-run-logs --file-id <OID1_RESULT> --file <temp>/op-intent-v1.op-publish-synth-2026-10-07-a.json --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
+node -e "const c=require('node:crypto');const op='op-publish-synth-2026-10-07-a';console.log('oid1'+c.createHash('sha256').update('intermed-op-intent-file/v1|'+op).digest('hex').slice(0,32))"
+npx --yes appwrite-cli@28.1.0 storage create-file --bucket-id import-run-logs --file-id <PUBLISH_OID1_RESULT> --file <temp>/op-intent-v1.op-publish-synth-2026-10-07-a.json --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
 npx --yes appwrite-cli@28.1.0 functions create-execution --function-id import-anmdmr --body "{\"operationId\":\"op-publish-synth-2026-10-07-a\"}" --config-file <repo>/infra/appwrite/appwrite.config.development.json --json
 ```
 

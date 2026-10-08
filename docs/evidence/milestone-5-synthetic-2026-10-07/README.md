@@ -9,7 +9,7 @@ intents, private staging/import, Function execution, deployment, schema
 migration, publication, or cleanup — was authorized or executed while it was
 assembled. Only read-only GET probes against the already-published Milestone 3
 synthetic objects were run (see
-[Read-only public wire-format probes](#read-only-public-wire-format-probes)).
+[Read-only public wire-format probes](../../MILESTONE_5_EVIDENCE.md#read-only-public-wire-format-verification)).
 No real ANMDMR format, name, document, or source material was fetched; the
 source format stays a synthetic placeholder to be replaced after rights
 approval and review.

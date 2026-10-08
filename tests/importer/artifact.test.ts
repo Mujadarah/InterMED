@@ -527,6 +527,53 @@ describe('importer function artifact', () => {
     }
   }, 60_000);
 
+  it.each([
+    [
+      "export { presentField as field } from '@intermed/domain';",
+      'module.field',
+    ],
+    [
+      "export * as domain from '@intermed/domain';",
+      'module.domain.presentField',
+    ],
+    ["export * from '@intermed/domain';", 'module.presentField'],
+  ])(
+    'includes function re-exports in the runtime closure: %s',
+    async (source, access) => {
+      const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-reexport-'));
+      const functionSourceDir = join(parent, 'function-src');
+      mkdirSync(functionSourceDir);
+      writeFileSync(
+        join(functionSourceDir, 'main.js'),
+        "export * from './exports.js';",
+      );
+      writeFileSync(join(functionSourceDir, 'exports.js'), source);
+      try {
+        const artifact = buildImporterFunctionArtifact({
+          outputParent: parent,
+          functionSourceDir,
+        });
+        await installArtifactOffline(artifact);
+        const runner = join(artifact, '.reexport-smoke.mjs');
+        writeFileSync(
+          runner,
+          `
+        import assert from 'node:assert/strict';
+        const module = await import('./src/main.js');
+        assert.deepEqual(${access}('synthetic'), { status: 'present', value: 'synthetic' });
+      `,
+        );
+        execFileSync(process.execPath, [runner], {
+          cwd: artifact,
+          stdio: 'pipe',
+        });
+      } finally {
+        rmSync(parent, { recursive: true, force: true });
+      }
+    },
+    60_000,
+  );
+
   it('pins function-direct external imports and runs positive offline', async () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-external-'));
     const functionSourceDir = join(parent, 'function-src');
