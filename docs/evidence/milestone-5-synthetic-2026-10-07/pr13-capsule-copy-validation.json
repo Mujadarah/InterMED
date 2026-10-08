@@ -135,5 +135,41 @@
     "knownCredentialPatternMatches": 0,
     "note": "Counts apply to this scanned payload only and are not a claim that the repository, repository history, or any other file is free of secrets. Root pre-sanitized the capsule and recorded the same counters in sanitization-manifest.json."
   },
+  "postFormatSupersession": {
+    "date": "2026-10-08",
+    "scope": "the two redirect probe JSON copies of this earlier capsule only",
+    "note": "The `copiedSha256` / `copiedBytes` values recorded above for these two files are the hashes of the copies as they stood before `npx prettier --write` reformatted them at commit 70c2392 (docs(evidence): format the two redirect probe JSON files with prettier). They stay as recorded history and no longer match the files in this pack byte for byte; the current hashes are listed here. The reformatting is whitespace only (minified one-line JSON expanded to the repository JSON style): the parsed values, the probe results and the line counts are unchanged.",
+    "files": [
+      {
+        "name": "task-b-ROOT-store-redirect-RED.json",
+        "recordedPreFormatSha256": "63CF6EC706CC91BB56DE9498FF85286F9D37252C173C3E3C39AA32289CE930AB",
+        "recordedPreFormatBytes": 101,
+        "currentPackSha256": "6cf2a6a7b424cd38c7db61f20fa88f793fac903c2c97c615f0854a01b3b855c2",
+        "currentPackBytes": 118,
+        "currentPackLines": 7,
+        "currentParsedValues": {
+          "node": "v24.21.0",
+          "externalRequests": 0,
+          "loopbackRedirectRequests": 1,
+          "fakeCredentialForwarded": true
+        }
+      },
+      {
+        "name": "task-b-ROOT-store-redirect-GREEN.json",
+        "recordedPreFormatSha256": "06D107EC2D72399501188E5A1C356BACB26D7549701658B1A20E9BD1F6AA17D3",
+        "recordedPreFormatBytes": 102,
+        "currentPackSha256": "7d725283cb9cc15bce44e3ddc7b0d2661f3d290a8cee7bc48cbd76f4d6e3d576",
+        "currentPackBytes": 119,
+        "currentPackLines": 7,
+        "currentParsedValues": {
+          "node": "v24.21.0",
+          "externalRequests": 0,
+          "loopbackRedirectRequests": 0,
+          "fakeCredentialForwarded": false
+        }
+      }
+    ],
+    "successor": "pr13-final-capsule-copy-validation.json records the current, regenerated 17-file capsule and its own per-file hashes."
+  },
   "notAdded": "No version line, test result, count, timestamp, command, or exit code was added to any copied file."
 }

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 <worktree>security
+
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  13:34:00
+   Duration  19.82s (transform 95ms, setup 0ms, import 256ms, tests 19.53s, environment 0ms)
+

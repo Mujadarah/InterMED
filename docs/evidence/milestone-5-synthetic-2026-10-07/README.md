@@ -6,8 +6,12 @@ offline **code repaired and root-verified at `9a40644`** (744 tests / 47 files /
 only)**; **CI/PR pending**. The **PR13 documentation review repair is IN
 PROGRESS (2026-10-08)** — see the dated note in
 [`docs/MILESTONE_5_EVIDENCE.md`](../../MILESTONE_5_EVIDENCE.md); no
-acceptance-passed claim is made until root supplies the final results. This
-pack is **not** an M5 acceptance claim. No M5
+acceptance-passed claim is made until root supplies the final results. The
+**PR13 final repair evidence capsule (2026-10-08)** is archived below: the
+repairs are verified offline at the pushed public head `4743531` (repeat full
+run 809 unit tests / 48 files + 150 browser, exit 0) and the exact-head security
+checks and CI run are green, while the **final CI/evidence-head follow-up stays
+pending**. This pack is **not** an M5 acceptance claim. No M5
 live action — raw operation
 intents, private staging/import, Function execution, deployment, schema
 migration, publication, or cleanup — was authorized or executed while it was
@@ -220,7 +224,94 @@ Notes:
 - Copy validation (hashes, line counts, transformations):
   [`pr13-capsule-copy-validation.json`](pr13-capsule-copy-validation.json).
 
-## Inventory
+## Follow-up update — 2026-10-08 (PR13 final repair evidence capsule)
+
+**Current status (2026-10-08): the PR13 repairs are verified offline at the
+public head `4743531` (`474353181d899fb1e889d18ee96e82816784cfb4`), the head is
+pushed normally with the preserved remote documentation commit `438d035`
+retained, the security checks at that exact head are green (Codacy
+**SUCCESS**, DeepSource Secrets **SUCCESS**, CodeRabbit **SUCCESS**), and
+GitHub Actions run `37765213291` **completed SUCCESS** on Ubuntu job
+`113271078278` and Windows job `113271077989`.** This evidence head's own gates
+run again after this documentation commit and root will supply the final
+CI/evidence-head result, so **no overall PR acceptance, no mergeable-PR claim
+and no M5 acceptance** is made here. Milestone 5 stays **entirely offline in
+this PR**: no live schema migration, deploy, staging, import, Function
+execution or publication; **domain/public contract/type changes: none**; M6
+stays with **issue #12 as owner scope in a separate PR**; the canonical
+`datasetVersionId` persistence and the offline 512-capacity config that are
+already in the PR stay flagged as a **future LIVE schema change requiring
+separate owner approval**; source rights, clinical review and real format
+approval remain **blocked**; both project plan slots are used, production is
+absent, and the future production bootstrap-integrity follow-up is retained.
+
+Seventeen files (the sixteen payload files plus the capsule's own manifest)
+were copied from the root pre-sanitized capsule `<temp>/sanitized-pr13-final-proof`
+and archived under the copy/redaction policy above. Root regenerated that
+capsule after this worker's first copy attempt surfaced four absolute worktree
+path prefixes on the `scan-dist-secrets` line (root reported the cause as a
+redaction regex escaping bug, **not** a secret leak); the corrected capsule and
+its complete 16-entry manifest were recopied and every check rerun. This worker
+ran **no test, browser, npm, build, network or live command** — the files are
+copies only, and the copy proof is metadata-only
+([`pr13-final-capsule-copy-validation.json`](pr13-final-capsule-copy-validation.json)).
+
+| File                                                   | What it shows                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sanitization-manifest-pr13-final.json`                | Root's regenerated capsule manifest over all sixteen payload files (renamed in the pack so the earlier capsule manifest stays untouched): every SHA-256 entry and line count re-verified against the capsule bytes, 16/16                                                                                                                                                                                                                                                                                                                                                           |
+| `task-b-ROOT-PR13-core-immutable-RED.log`              | Immutable original RED, tests only, against the untouched `861fe81` production: **17 failed / 171 passed (188)** in 5 files; **1 of the 17 is an invalid test-harness `TypeError` (`sha256.hash is not a function`), so the genuine original failures are 16**                                                                                                                                                                                                                                                                                                                      |
+| `task-b-PR13-core-red-correction.md`                   | The correction record for that invalid failure: the probe now passes the `{ hash }` sha256 port object, the corrected tests-only corpus `6fff95f` contains **no production changes**, and the final author states (focused 194 passed, importer suite 367 passed, gates exit 0)                                                                                                                                                                                                                                                                                                     |
+| `task-b-ROOT-PR13-core-corrected-RED.log`              | Root's independent repeat of the corrected tests-only corpus against the unchanged `861fe81` production: **22 failed / 172 passed (194)**, all 22 genuine defect assertions, 172 green controls including the declared-version collection/envelope alignments and the intentional mixed negatives                                                                                                                                                                                                                                                                                   |
+| `task-b-ROOT-PR13-core-9e0a908-FULL.log`               | Root full `npm run check` at core head `9e0a908`: **790 unit tests (47 files) + 150 browser tests, exit 0**, launched by root with Node `v24.21.0` / npm `11.19.0` and the real Node `v22.23.2` executable; the log prints no version line and none was added                                                                                                                                                                                                                                                                                                                       |
+| `task-b-ROOT-PR13-codacy-url-0e387d4-FULL.log`         | Root full `npm run check` at store/Codacy-URL head `0e387d4`: **762 unit tests (47 files) + 150 browser tests, exit 0** (same pinned launch, no version line in the log)                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `task-b-ROOT-PR13-fixture-47fbf90-focused.log`         | Root targeted fixture run at `47fbf90`: **3 files, 28 tests passed**, including the compiled-artifact positive flow and the registry-tarball / fake-REST dispatch boundaries                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `task-b-ROOT-PR13-fixture-27e0912-focused.log`         | Root targeted fixture run at `27e0912`: **2 files, 27 tests passed** (the `tmpdir()` default test with `TEMP`/`TMP`/`TMPDIR` unset and restored)                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `task-b-ROOT-PR13-integration-f5dce13-FULL.log`        | Root full `npm run check` for integration head `70c2392`, kept under this pre-existing file name (named after the formatting worker SHA `f5dce13`): **809 unit tests (48 files) + 150 browser tests, exit 0**                                                                                                                                                                                                                                                                                                                                                                       |
+| `task-b-ROOT-PR13-integration-4743531-FULL.log`        | **Invalid full result, retained:** the first full run at the final source head `4743531` died on a **native Windows heap crash (root-reported exit `-1073740940`) during Vitest**; the saved log stops at the Vitest banner and proves **no** pass. Nothing is counted from it                                                                                                                                                                                                                                                                                                      |
+| `task-b-ROOT-PR13-integration-4743531-repeat-FULL.log` | **Authoritative repeat of the unchanged command at the same head:** **809 unit tests (48 files) + 150 browser tests**, log ends at `150 passed`, root reports **exit 0** with the pinned Node `v24.21.0` / npm `11.19.0` toolchain and the real Node `v22.23.2` executable, **no skips**; the crash above is not repeated                                                                                                                                                                                                                                                           |
+| `task-b-ROOT-store-redirect-65c35ee.json`              | Native-`fetch` loopback probe (green state at `65c35ee`, Node `v24.21.0`): `externalRequests: 0`, `loopbackRedirectRequests: 0`, `fakeCredentialForwarded: false`; whitespace-only Prettier formatting applied at copy time, values unchanged                                                                                                                                                                                                                                                                                                                                       |
+| `task-b-gemini-pr13-65c35ee-review.log`                | The wide Gemini review at `65c35ee` — **NOT ACCEPTED**: it inferred `registry-tarball.ts`, `fixture-security.test.ts` and `artifact.test.ts` were safe without reading them; kept as dated history only                                                                                                                                                                                                                                                                                                                                                                             |
+| `task-b-gemini-pr13-fixture-focused-review.log`        | The fixture-focused review that **edited a disposable capsule copy of `artifact.test.ts` (TMPDIR) despite a read-only brief**; caught by the hash check, **zero original repository changes**, and its acceptance claims are **REJECTED**; retained as dated history                                                                                                                                                                                                                                                                                                                |
+| `task-b-gemini-pr13-core-focused-review.log`           | The core focused report listing the seven regression tests and their predicates/line references; **root checked those references against the actual tests** and they hold (report-only, no execution)                                                                                                                                                                                                                                                                                                                                                                               |
+| `task-b-gemini-pr13-fixture-protected-review.log`      | **Protected four-file read-only review (filesystem-readonly): no actionable findings** inside the actual scoped helper/default-temp tests, with **protected payload hash mismatches 0**; root verified the real line references (registry helper origin/redirect/integrity, fake-REST `routeSegments`/use, runtime fake key, TMPDIR save/delete/restore). **Root discounts the reviewer's timing wording**: the long-path timing cases are control evidence only — they prove neither asymptotic complexity nor any earlier ReDoS exploit; source shows linear parsing. Report-only |
+| `task-b-gemini-pr13-fixture-protected-payload.json`    | The protected payload metadata: head `474353181d899fb1e889d18ee96e82816784cfb4` plus the SHA-256 of the four protected test files (hash mismatches 0)                                                                                                                                                                                                                                                                                                                                                                                                                               |
+
+Notes:
+
+- **Historical vs current.** The earlier PR13 batch at `923a060` (the eleven
+  files above) stays as recorded history; this batch is the **current** proof.
+  The original RED (`17 failed / 171 passed`) and the corrected RED
+  (`22 failed / 172 passed`) are **both retained**: the first keeps its invalid
+  harness failure inside it and must not be read as 17 defects, and neither run
+  is a green claim.
+- **Reviews are scoped, not blanket.** One wide report is rejected for unread
+  helper inference, one fixture-focused report is rejected for a read-only
+  violation with zero original-repo changes, the core focused report is
+  reference-checked only, and the protected four-file review is accepted for
+  its actual scope only. **No whole-PR review acceptance is claimed.**
+- **Copy proof.** 15 of the 17 copies are byte-identical after pack
+  normalization (UTF-8 without BOM, LF, trailing whitespace stripped, final
+  newline kept); the other two differ by **whitespace only** — the correction
+  record (`.md`) and the redirect probe (`.json`) were passed through
+  `prettier --write`, with line counts unchanged for the Markdown and JSON
+  structural equality for the probe. Per-file capsule/copy SHA-256, line counts
+  and the 16/16 manifest re-verification are in
+  [`pr13-final-capsule-copy-validation.json`](pr13-final-capsule-copy-validation.json);
+  a scan of all 17 copies for the owner username, the Windows user-home prefix,
+  the project worktree prefixes and POSIX home directories found **0 matches**.
+- **Redaction record.** A scan of every tracked file in this pack for the same
+  patterns found **no legacy machine path prefix needing redaction**, so no
+  existing tracked M5 evidence file was edited; the already truncated legacy
+  lines (for example `"D: ..."`) keep their original text. Tracked milestone-6
+  evidence logs do contain URL-encoded project-directory stack frames —
+  outside this pack and outside this worker's scope, left untouched.
+- **Superseded copy hashes explained.** In
+  [`pr13-capsule-copy-validation.json`](pr13-capsule-copy-validation.json) the
+  recorded `copiedSha256` values for `task-b-ROOT-store-redirect-RED.json` and
+  `-GREEN.json` are the **pre-format** hashes; commit `70c2392` reformatted
+  those two JSON copies (whitespace only). The file now carries a
+  `postFormatSupersession` block with the current hashes and parsed values, so
+  the old hashes are explained rather than silently rewritten.
 
 ### Importer core — worktree `m5-importer`, branch `codex/m5-synthetic-importer`, head `6ad7009`
 
