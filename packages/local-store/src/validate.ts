@@ -25,8 +25,23 @@ import {
  * publication and controlled manifest promotion.
  */
 
-/** Shape the published contract requires of `manifest.checksum`. */
-const TRANSPORT_CHECKSUM_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const TRANSPORT_CHECKSUM_PREFIX = 'sha256:';
+const SHA256_HEX_LENGTH = 64;
+const LOWER_HEX_DIGITS = '0123456789abcdef';
+
+/**
+ * Shape the published contract requires of `manifest.checksum`:
+ * `sha256:` followed by exactly 64 lowercase hex digits. A plain character
+ * scan (no regular expression) over a bounded-length string.
+ */
+function isTransportChecksum(value: string): boolean {
+  if (value.length !== TRANSPORT_CHECKSUM_PREFIX.length + SHA256_HEX_LENGTH)
+    return false;
+  if (!value.startsWith(TRANSPORT_CHECKSUM_PREFIX)) return false;
+  for (const char of value.slice(TRANSPORT_CHECKSUM_PREFIX.length))
+    if (!LOWER_HEX_DIGITS.includes(char)) return false;
+  return true;
+}
 
 /** Shared strict UTF-8 decoder: malformed bytes throw, a BOM is preserved. */
 const STRICT_UTF8_DECODER = new TextDecoder('utf-8', {
@@ -217,7 +232,7 @@ export async function checkBundle(
   manifest: PublishedDatasetManifest,
   bundleText: string,
 ): Promise<BundleValidation> {
-  if (!TRANSPORT_CHECKSUM_PATTERN.test(manifest.checksum))
+  if (!isTransportChecksum(manifest.checksum))
     return { ok: false, reason: 'checksum-mismatch' };
   const bundleBytes = new TextEncoder().encode(bundleText);
   // An unverifiable bundle is one whose checksum cannot be shown to match.

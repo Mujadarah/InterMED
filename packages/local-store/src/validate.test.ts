@@ -118,6 +118,13 @@ it('rejects FNV-style and non-prefixed checksums with checksum-mismatch', async 
     alpha.text,
   );
   expect(unprefixed).toEqual({ ok: false, reason: 'checksum-mismatch' });
+
+  // The right digest in uppercase hex is not the contract's lowercase form.
+  const uppercase = await checkBundle(
+    { ...alpha.manifest, checksum: `sha256:${hex.toUpperCase()}` },
+    alpha.text,
+  );
+  expect(uppercase).toEqual({ ok: false, reason: 'checksum-mismatch' });
 });
 
 it('fails closed with checksum-mismatch when the digest cannot be computed', async () => {
