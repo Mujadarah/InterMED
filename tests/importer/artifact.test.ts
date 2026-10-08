@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   buildImporterFunctionArtifact,
@@ -430,6 +430,42 @@ describe('importer function artifact', () => {
       );
     } finally {
       rmSync(parent, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('builds under the OS temp directory when no output parent is supplied', () => {
+    // TEMP/TMP are unset (and restored afterwards) so the default parent must
+    // come from the OS itself, never from an inherited override, and the
+    // generated child must never land inside the repository.
+    const priorTemp = process.env.TEMP;
+    const priorTmp = process.env.TMP;
+    delete process.env.TEMP;
+    delete process.env.TMP;
+    let artifact = '';
+    try {
+      artifact = buildImporterFunctionArtifact();
+      // The generated child sits directly under the OS temp directory...
+      expect(resolve(dirname(artifact)).toLowerCase()).toBe(
+        resolve(tmpdir()).toLowerCase(),
+      );
+      expect(basename(artifact).startsWith('intermed-importer-function-')).toBe(
+        true,
+      );
+      // ...and never inside this repository.
+      expect(
+        resolve(artifact)
+          .toLowerCase()
+          .startsWith(`${resolve(process.cwd()).toLowerCase()}${sep}`),
+      ).toBe(false);
+      expect(existsSync(join(artifact, 'src/main.js'))).toBe(true);
+    } finally {
+      // Cleanup removes only the verified generated child, never its parent.
+      if (basename(artifact).startsWith('intermed-importer-function-'))
+        rmSync(artifact, { recursive: true, force: true });
+      if (priorTemp === undefined) delete process.env.TEMP;
+      else process.env.TEMP = priorTemp;
+      if (priorTmp === undefined) delete process.env.TMP;
+      else process.env.TMP = priorTmp;
     }
   }, 60_000);
 

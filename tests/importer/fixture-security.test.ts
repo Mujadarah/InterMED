@@ -15,7 +15,7 @@
  *    malformed and long adversarial paths are refused and route matching
  *    stays linear for any input length (ReDoS regression guard).
  */
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -220,7 +220,12 @@ describe('registry tarball install boundary (Codacy PR13 blocker A)', () => {
 
 const REST_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const REST_PROJECT = 'intermed-dev';
-const REST_SERVER_KEY = 'fake-rest-server-key-fixture';
+/**
+ * Runtime-generated fake credential: the fake REST server key is created per
+ * run, so no credential-shaped literal ever exists in committed source. It is
+ * never printed; it only authenticates the in-process fake REST surface.
+ */
+const REST_SERVER_KEY = randomBytes(24).toString('hex');
 
 const ROW_DATA = {
   dataset: 'synthetic-medication-catalogue',
