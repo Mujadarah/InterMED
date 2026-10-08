@@ -138,16 +138,32 @@ export async function stage(req: StageRequest): Promise<StageResult> {
   if (raw.dataSource.sourceKey !== raw.sourceKey) {
     provenance.push('data-source-provenance');
   }
-  if (!isText(raw.datasetVersion.version)) {
+  const declaredVersionKey = isText(raw.datasetVersion.version)
+    ? raw.datasetVersion.version
+    : null;
+  if (declaredVersionKey === null) {
     provenance.push('dataset-version-key-missing');
+  }
+  // A valid delivery is complete: the optional envelope key and every
+  // collection row key equal the declared dataset version. A mixed or
+  // partially stamped snapshot is quarantined before anything is rewritten
+  // to this generation.
+  if (
+    raw.datasetVersionKey !== undefined &&
+    raw.datasetVersionKey !== declaredVersionKey
+  ) {
+    provenance.push('envelope-version-key-mismatch');
   }
   for (const name of ENTITY_LIST_NAMES) {
     for (const row of raw[name]) {
       if (row.sourceKey !== raw.sourceKey) {
         provenance.push(`row-provenance:${name}`);
       }
-      if (!isText(row.datasetVersionKey)) {
+      const rowKey = row.datasetVersionKey;
+      if (!isText(rowKey)) {
         provenance.push(`row-version-key:${name}`);
+      } else if (rowKey !== declaredVersionKey) {
+        provenance.push(`row-version-key-mismatch:${name}`);
       }
     }
   }
