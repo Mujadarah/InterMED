@@ -358,13 +358,23 @@ logs.
 > written owner approval, and each approval is recorded separately. The live
 > `import-anmdmr` Function is still the deliberate 501 stub; no M5 live check,
 > staging, execution, deployment, publication, cleanup, or **schema migration**
-> has been authorized or run. Handler acceptance is **not** claimed: handler
-> `0c16177` has committed positive detached Node 22 flows, but the root full
-> gate failed (5 of 598 tests; `task-b-ROOT-handler-0c16177-FULL.log`), the
-> follow-up root run at `0266` is RED on a real canonical mismatch (its middle
-> "canonical must equal the physical `$id`" assertion is an invalid root
-> assumption), and the handler canonical-mapping repair, the real first/second
-> generation and retry proof, and a fresh root full check are pending. Commands
+> has been authorized or run. **M5 acceptance is not claimed**: the handler
+> repair is verified offline at `01f7a4556e17608edb0865bacb3d421d23550847`
+> (root immutable full: 634 tests / 38 files / 135 browser, exit 0, Node
+> `v24.21.0` / npm `11.19.0` and official Node `v22.23.2`, including the real
+> compiled Node 22 stage → publish → retry path and the real public-reader
+> canonical round trip), and the final combined root run at `4cbc9ed` with M6
+> main merged also passed (734 / 46 / 150, exit 0); the **final independent
+> whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible blockers**
+> (bounded `git log` / `git diff` / patch analysis) while **CI/PR are pending**.
+> The superseded `0c16177` root failure (5 of 598) and the `0266d8` RED run
+> (whose middle "canonical must equal the physical `$id`" assertion is an
+> invalid root assumption) are preserved as history. The owner-approved M6
+> coordination issue **is posted**: <https://github.com/Mujadarah/InterMED/issues/12>;
+> its two gaps (the FNV-only versus public SHA-256 hard reject and the
+> `invalid-unit` / `ambiguous-decimal` note handling) are **not fixed here**, and
+> root's portable repro rerun is RED 3/3 as expected with the temporary test
+> removed. Commands
 > below are exact Appwrite CLI **28.1.0**
 > invocations (verified with `--help` and the public CLI docs on 2026-10-07) and
 > match the handler schema actually implemented in the handler worktree; confirm
@@ -423,8 +433,12 @@ Ordering and safety rules:
 
 ### 10.0 Verified handler contract (source of truth for the steps below)
 
-From the handler source at `0c16177` (repair edits in progress; re-read before
-executing — the schema may still change until the final handler report):
+Documented from the handler source at `0c16177`; the repaired head is
+`01f7a4556e17608edb0865bacb3d421d23550847` (offline-verified, root full exit 0) — **re-read the source at `01f7a45` before executing**, and confirm any
+bound it changed. In particular the `01f7a45` API report states that
+`isVersionId` accepts canonical ids up to **512** characters including `U+001F`
+and rejects control codes `< 0x20` and `0x7F`, which widens the `≤ 256`
+`candidateVersionId` bound recorded below from `0c16177`:
 
 - Trusted runtime context (read from environment only, no header fallback):
   `APPWRITE_ENDPOINT` must be `https://fra.cloud.appwrite.io/v1`,

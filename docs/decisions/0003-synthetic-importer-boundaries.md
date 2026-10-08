@@ -163,23 +163,68 @@ published-dataset contracts, or M3 public identifiers.
   `task-b-ROOT-toolchain-recheck-2026-10-08.log` records the current toolchain
   and heads without repeating any suite. The three static reviews are
   **report-only with no blockers**.
-- **Still pending:** the handler canonical-mapping repair, the real
+- **Superseded later the same day (see the next update):** at the time of this
+  correction the handler canonical-mapping repair, the real
   handler/public-reader first and second generation proof and retry, the
-  compiled Node 22 positive flow, final integration, the serial root full run,
-  the whole-patch review, CI, and the PR. The `0c16177` root failure (5 of 598)
-  is retained as recorded; the follow-up `0266` run is RED on a **real**
-  canonical mismatch, while its middle assertion that the canonical id must
-  equal the physical Appwrite `$id` is an **invalid root assumption** — this is
-  **not** three production bugs.
+  compiled Node 22 positive flow, and final integration were still pending; all
+  four are now verified offline (`01f7a45` and `4cbc9ed`, both exit 0). The
+  **final whole-patch static review has since been ACCEPTED at `4cbc9ed` (0
+  reproducible blockers)**, so what remains pending is **CI and the
+  PR**. The `0c16177` root failure (5 of 598) is retained as recorded, and the
+  follow-up `0266` run is RED on a **real** canonical mismatch while its middle
+  assertion that the canonical id must equal the physical Appwrite `$id` is an
+  **invalid root assumption** — this is **not** three production bugs.
 - **M6:** PR10 merged (merge `729ccfc`, head `8ef6fd8`); the FNV-only consumer
   versus the established public SHA-256 contract stays a **hard reject**, and
-  the intentional domain unit-separator/ambiguous-decimal forms are rejected by
-  that consumer. M6 and the domain are unchanged; **contract changes to M6:
+  the intentional `invalid-unit` / `ambiguous-decimal` **note codes** are
+  rejected by
+  that consumer (the `U+001F` separator is unrelated: it only delimits the
+  canonical id). M6 and the domain are unchanged; **contract changes to M6:
   none** (only the optional storage schema mapping above). The coordination
-  issue remains **not authorized and not opened**, and the legacy M3 opaque
-  public `$id` versus inner canonical id is a **known bounded fallback**, not an
-  M6 activation claim.
+  issue was then **awaiting owner permission** and unopened; it is **now
+  authorized with a draft pending root posting** (see the next update), and the
+  legacy M3 opaque public `$id` versus inner canonical id is a **known bounded
+  fallback**, not an M6 activation claim.
 - **Rights and live state:** synthetic rights stay `not-approved`, synthetic
   clinical references stay `not-reviewed`, and no M5 live action (raw intents,
   staging/import, Function execution, deploy, migration, publication, cleanup)
   was authorized or executed.
+
+## Status update — 2026-10-08 (handler proof and combined run)
+
+- **Handler repair verified offline, acceptance not claimed.** At
+  `01f7a4556e17608edb0865bacb3d421d23550847` root's immutable full run is exit
+  0 with 634 tests / 38 files / 135 browser tests on Node `v24.21.0` / npm
+  `11.19.0` and official Node `v22.23.2`, including the real compiled generated
+  Node 22 stage → publish → retry path and the real public-reader canonical
+  round trip (first and second generation, advancing-clock idempotency,
+  `active = self` restaging, baseline tampering). The changed-repair static
+  review is **ACCEPTED with no blockers**, scoped to the two changed source
+  files and the changed tests, with no new tests by the reviewer — it is not a
+  comprehensive whole-patch review. Author red/green logs are copied.
+- **Final combined run passed.** Root's immutable full run at the clean
+  integration `4cbc9edf89a12590f1fa7821428758ac8ac86bec` with M6 main merged:
+  **734 tests / 46 files / 150 browser, exit 0**. The **final independent
+  whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible
+  blockers** (bounded `git log` / `git diff` / patch analysis), while **CI/PR
+  are pending** and an additional eleven-file first-pass review is **running
+  (not yet reported)**, so B is not claimed ready and no M5 acceptance is
+  recorded here.
+- **Honest history kept.** The `0c16177` root failure (5 of 598) and the
+  `0266d8` RED run (real canonical mismatch plus the invalid "canonical must
+  equal physical `$id`" assertion) are copied and explained; a dirty WIP handler
+  proof exists in the orchestration store and is labelled **nonfinal / not
+  authoritative**.
+- **M6 coordination issue posted.** The owner approved it and root posted it:
+  **<https://github.com/Mujadarah/InterMED/issues/12>**. Root also reran the
+  portable M6 coordination repro on 2026-10-08 — `task-b-ROOT-m6-coordination-RED.log`,
+  **3/3 expected failures, exit 1**, pinned Node `v24.21.0` / npm `11.19.0`, with
+  the temporary test removed afterwards and M6/the domain unchanged. The
+  FNV-only versus public SHA-256 hard reject and the `invalid-unit` /
+  `ambiguous-decimal` note codes are **not fixed here**; Claude will
+  fix them in a **separate PR closing that issue**, with no M6 edits in this
+  workstream, and **no closure is claimed**. **Contract/type changes: none** —
+  the optional storage mapping is
+  still schema-only, and the live migration is **still not executed**.
+- **Live state unchanged:** no M5 live action, production untouched, shell
+  project untouched, source rights unchanged.

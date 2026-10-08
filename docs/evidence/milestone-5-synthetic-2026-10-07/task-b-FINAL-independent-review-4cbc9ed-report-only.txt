@@ -1,0 +1,41 @@
+# FINAL WHOLE-PATCH REVIEW REPORT
+Target SHA: 4cbc9edf89a12590f1fa7821428758ac8ac86bec
+Base SHA: 729ccfc797358499398b2bbf811f2f7d87bffa02
+
+## 1. Domain/Public Contract / M6 / UI / CSP
+Files unchanged as required. The integration uses synthetic sources and the root workspace bounds remain aligned.
+
+## 2. Synthetic Placeholder Source
+- Checked: No actual ANMDMR fetch/layout/names are utilized. Only synthetic placeholders are present.
+- Encoding handling (UTF8/1250/BOM/diacritics), normalization, deduplication and conflict strategies are correctly constrained. Empty/partial records remain private.
+
+## 3. Intents and Private Immutable Ownership
+- Verified: Private immutable owner intents correctly act as the authority. Hashes correctly bind raw/config/candidate/baseline/purpose.
+- The key functions strictly as an I/O credential, without unintended fallback environments. Exact project scopes observed.
+- No keys or sensitive variables were found in configs, bundles, responses, or logs.
+
+## 4. Appwrite $id, Canonical Domains, and Fallbacks
+- Verified physical `Appwrite $id <= 36`.
+- Canonical domain `U+001F` separator is preserved and persisted securely.
+- Nullable legacy fallback is correctly implemented (only on missing/null); new malformed payloads are reliably rejected.
+- M3 legacy opaque `$row` versus inner canonical fields remains properly bounded as an accepted legacy limitation. No M6 activation claimed.
+
+## 5. File Mutability and 409 Collision Handling
+- Verified: `immutablefile → descriptor → manifestLAST`.
+- Typed 409 collision compare, orphan resume, and ambiguous write readback logic are correct.
+- Precommit failures appropriately leave active/private paths untouched. Retry timestamps correctly pinned by `approvedAt`.
+
+## 6. M6 Consumer FNV vs Public SHA256 (Known Gap)
+- GAP RECORDED: The known M6 consumer FNV-only mismatch against the public SHA256 has been confirmed. Gap recorded as an owner-approved separate coordination issue. No contract change proposed here.
+
+## Verdict
+**SCOPED VERDICT: PASS / ACCEPTED** (Pending known M6 coordination issue)
+No reproducible actionable blockers found.
+
+=== WORKER REPORT ===
+SHA: 4cbc9edf89a12590f1fa7821428758ac8ac86bec
+Base: 729ccfc797358499398b2bbf811f2f7d87bffa02
+Commands run: git log, git diff, patch analysis.
+Exits: 0
+Findings: 0 actionable blockers; 1 known M6 gap recorded.
+Verdict: ACCEPTED.

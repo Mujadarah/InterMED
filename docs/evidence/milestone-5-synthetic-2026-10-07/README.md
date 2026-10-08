@@ -1,9 +1,14 @@
 # Milestone 5 synthetic importer — offline evidence pack (2026-10-07)
 
-**Status:** offline **core and store client verified**; the Function **handler and
-final integration are PENDING**. This pack is not an M5 acceptance claim. No M5
-live action — raw operation intents, private staging/import, Function execution,
-deployment, publication, or cleanup — was authorized or executed while it was
+**Status (updated 2026-10-08):** offline **core, store client, artifact,
+handler, and combined integration verified** by root's immutable full runs —
+handler `01f7a45` (634 tests / 38 files / 135 browser, exit 0) and the combined
+`4cbc9ed` run with M6 main merged (734 / 46 / 150, exit 0) — while the **final
+whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible blockers**
+and **CI/PR are pending**.
+This pack is **not** an M5 acceptance claim. No M5 live action — raw operation
+intents, private staging/import, Function execution, deployment, schema
+migration, publication, or cleanup — was authorized or executed while it was
 assembled. Only read-only GET probes against the already-published Milestone 3
 synthetic objects were run (see
 [Read-only public wire-format probes](#read-only-public-wire-format-probes)).
@@ -99,6 +104,52 @@ the version output exists only where the log itself printed it (core), and the
 recheck log above covers the toolchain and heads explicitly without re-running
 any suite. The final handler run is still **pending**, so no handler log is
 copied.
+
+## Follow-up update — 2026-10-08 (handler proof, combined run, honest history)
+
+Twelve more bounded copies, same copy/redaction policy (machine path segments
+only to `<worktree>` / `<repo>` / `<user-home>`, UTF-8 without BOM, LF,
+trailing whitespace stripped; **no line added or removed** — a line-by-line
+comparison against the sources shows identical line counts and differences only
+in the redacted path segments):
+
+| File                                                        | What it shows                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `task-b-ROOT-handler-01f7a45-FULL.log`                      | **Authoritative handler proof:** root immutable full `npm run check` at `01f7a4556e17608edb0865bacb3d421d23550847` — 634 tests (38 files), 135 browser tests, exit 0; head prints `v24.21.0` / `11.19.0` and `v22.23.2`                                                                                                                                                                                            |
+| `task-b-handler-independent-review-01f7a45-report-only.txt` | Static **changed-repair** review: ACCEPTED, no blockers; scope is the two changed source files plus the changed tests, and the reviewer added **no new tests** — not a comprehensive whole-patch review                                                                                                                                                                                                            |
+| `task-b-handler-canonical-final-api.md`                     | Handler canonical repair API report: canonical `datasetVersionId` (≤ 512, `U+001F`) persisted on descriptor/manifest rows, real HTTPS `resolvePublicUrl`, gate status list                                                                                                                                                                                                                                         |
+| `task-b-handler-canonical-red.log`                          | Author red first: `handler-reader-identity.test.ts` 1 of 1 failed (publish returned 403) before the repair                                                                                                                                                                                                                                                                                                         |
+| `task-b-handler-canonical-green.log`                        | Author green: 1 of 1 passed after the repair                                                                                                                                                                                                                                                                                                                                                                       |
+| `task-b-ROOT-integration-4cbc9ed-FULL.log`                  | **Authoritative combined proof:** root immutable full run at `4cbc9edf89a12590f1fa7821428758ac8ac86bec` with M6 main merged — 734 tests (46 files), 150 browser tests, exit 0; head prints `v24.21.0` / `11.19.0` and the actual `v22.23.2` compiled flow                                                                                                                                                          |
+| `task-b-ROOT-docs-bc508cd-FULL.log`                         | Root full `npm run check` at this documentation head `bc508cd`: 310 tests (24 files), 135 browser tests, exit 0                                                                                                                                                                                                                                                                                                    |
+| `task-b-ROOT-handler-0c16177-FULL.log`                      | **Retained past failure:** root full gate at `0c16177` **failed 5 of 598** (npm offline-cache `ENOTCACHED` in the artifact lock step + a stale artifact dependency assertion)                                                                                                                                                                                                                                      |
+| `task-b-ROOT-handler-reader-0266d8-RED.log`                 | **Retained past RED:** real canonical mismatch plus the **invalid middle assertion** that the canonical id must equal the physical Appwrite `$id` — not three production bugs                                                                                                                                                                                                                                      |
+| `task-b-FINAL-independent-review-4cbc9ed-report-only.txt`   | **Final independent whole-patch static review at `4cbc9ed`: ACCEPTED, 0 reproducible blockers** — bounded static scope only (`git log`, `git diff`, patch analysis; exits 0), verdict "SCOPED VERDICT: PASS / ACCEPTED (Pending known M6 coordination issue)"; renamed `-report-only.txt` because it fails `prettier --check` as Markdown, content otherwise byte-identical. Static review, not execution evidence |
+| `task-b-ROOT-m6-coordination-RED.log`                       | Root's portable M6 coordination repro rerun (2026-10-08): **3 of 3 expected failures, exit 1**, pinned Node `v24.21.0` / npm `11.19.0` as reported by root (the log prints no version line and none was added); temporary test removed afterwards, M6 and the domain unchanged                                                                                                                                     |
+| `task-b-ROOT-m6-diagnostic.log`                             | Root's existing external diagnostic config with `COORD-m6-diagnostic.test.ts`: **2 of 2 passed, exit 0**, no M6 source edits and no activation — it neutralizes **Gap 1 only, in memory**, to expose the `invalid-unit` / `ambiguous-decimal` rejections; **not a fix**                                                                                                                                            |
+
+Notes:
+
+- The three superseded/non-passing runs are copied so the history is auditable
+  rather than summarized; nothing is softened, and the counts above come from
+  the root command logs, never from review text.
+- The known **M6 consumer hard reject** (FNV-only consumer versus the
+  established public SHA-256 contract) and the **`invalid-unit` /
+  `ambiguous-decimal` note codes** (the `U+001F` separator is unrelated — it
+  only delimits the canonical id) are **not fixed here** and are **not** a
+  bundle-hash activation claim. The owner-approved coordination issue **is
+  posted**: <https://github.com/Mujadarah/InterMED/issues/12>; root's rerun is
+  RED 3/3 and its diagnostic config passes 2/2 only because Gap 1 is
+  neutralized in memory — **no fix and no closure is claimed**.
+- The **final whole-patch static review at `4cbc9ed` is ACCEPTED (0
+  reproducible blockers)** and **CI/PR are pending**: the passing combined run
+  is not an M5 acceptance.
+- **Not copied:** the dirty working-tree WIP handler proof
+  (`task-b-ROOT-handler-canonical-WIP-FULL.log`, `…-WIP-node22.log`), which
+  stays in the orchestration store labelled **nonfinal / not authoritative**,
+  and any raw worker stdout or inventory log.
+- This documentation worker's own logs are `DOCS-FREE-FINAL-`-prefixed and are
+  written only to the orchestration store.
 
 ## Inventory
 
@@ -199,15 +250,20 @@ in this pack; the colliding focused run is preserved as
 
 ## Deliberately absent
 
-- Handler / Function-worker logs: the worker is still pending. The draft
-  operation-intent schema and invocation commands may change and are not
-  recorded as executable anywhere in this pack, and the publication-timestamp
-  defect above is unfixed, so no handler retry result is claimed.
-- Positive compiled artifact handler flow: not yet run (only the GET 405 refusal
-  and real codec round-trip are proven on `src/main.js`).
+- Dirty working-tree WIP handler proof (`task-b-ROOT-handler-canonical-WIP-FULL.log`,
+  `…-WIP-node22.log`): **nonfinal / not authoritative** and deliberately not
+  copied; the immutable `01f7a45` full run supersedes it.
+- Live Function execution: none. The operation-intent schema is documented from
+  `0c16177` in the runbook and must be re-read at `01f7a45` before any
+  execution; nothing in this pack is recorded as executed. The publication-time
+  finding file (`task-b-handler-publication-time-finding.txt`) is retained as
+  history — the handler now pins publication time to the intent's immutable
+  `approvedAt`.
+- Any live M5 operation evidence: none was authorized or executed. Source rights
+  remain `not-approved` (blocked), no domain or public contract changed, and the
+  M6 FNV-only validator gap stays open; its coordination issue is posted at
+  <https://github.com/Mujadarah/InterMED/issues/12> and is not yet fixed or
+  closed.
 - Duplicate older author red/green/gate logs and the large worker/steering debug
   logs: not copied (bounded pack). The reader author report above summarizes its
   own red/green cycle.
-- Any live M5 operation evidence: none was authorized or executed. Source rights
-  remain `not-approved` (blocked), no domain or public contract changed, and the
-  M6 FNV-only validator gap stays open.
