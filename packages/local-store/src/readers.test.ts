@@ -347,7 +347,7 @@ it('looks up names, DCI, links and ATC codes inside the pinned generation only',
   current.release();
 });
 
-it('builds search documents only from the reader’s pinned generation', async () => {
+it('builds search records only from the reader’s pinned generation', async () => {
   const store = testStore();
   const alpha = await bundle('alpha');
   const beta = await bundle('beta');
@@ -355,7 +355,7 @@ it('builds search documents only from the reader’s pinned generation', async (
   const pinned = (await store.openReader())!;
 
   await store.updates.stageAndActivate(beta.manifest, beta.text);
-  const documents = await pinned.searchDocuments();
+  const documents = await pinned.searchRecords();
 
   expect(documents).toHaveLength(2);
   const fictivol = documents.find(
@@ -375,7 +375,7 @@ it('builds search documents only from the reader’s pinned generation', async (
 
   const current = (await store.openReader())!;
   expect(
-    (await current.searchDocuments()).map(
+    (await current.searchRecords()).map(
       (document) => document.product.commercialName,
     ),
   ).toEqual(['Fictivol beta', 'Placebex beta']);

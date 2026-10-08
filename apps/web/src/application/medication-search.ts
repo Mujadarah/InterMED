@@ -115,7 +115,7 @@ export function createMedicationSearchService(
         throw new MedicationSearchGenerationChangedError();
 
       const records: readonly MedicationSearchRecord[] =
-        await reader.searchDocuments();
+        await reader.searchRecords();
       const index = createMedicationSearchIndex(records);
       const indexDurationMilliseconds = Math.max(0, now() - startedAt);
       if (dependencies.activeGenerationId() !== generationId)

@@ -147,7 +147,7 @@ export function createRetention(deps: RetentionDeps): Retention {
           .toArray();
         return rows.map((row) => row.entity.id).sort();
       },
-      searchDocuments: async () => {
+      searchRecords: async () => {
         const db = deps.requireDatabase();
         const [
           products,
@@ -172,8 +172,9 @@ export function createRetention(deps: RetentionDeps): Retention {
         );
         const linksByProduct = new Map<string, typeof links>();
         for (const link of links) {
-          const productLinks = linksByProduct.get(link.productId) ?? [];
-          linksByProduct.set(link.productId, [...productLinks, link]);
+          const productLinks = linksByProduct.get(link.productId);
+          if (productLinks) productLinks.push(link);
+          else linksByProduct.set(link.productId, [link]);
         }
         const atcById = new Map(
           atcCodes.map((row) => [row.id, row.entity.code]),

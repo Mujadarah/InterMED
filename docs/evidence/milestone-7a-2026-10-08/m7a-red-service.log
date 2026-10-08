@@ -1,0 +1,35 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/application/medication-search.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/application/medication-search.test.ts (0 test)
+node.exe :
+At line:1 char:1
++ & "<repo>" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/application/medication-search.test.ts [ apps/web/src/application/medication-search.test.ts ]
+Error: Cannot find module './medication-search' imported from
+<worktree>
+ ❯ apps/web/src/application/medication-search.test.ts:7:1
+      5| } from '@intermed/domain';
+      6| import { product } from '../../../../tests/domain/builders';
+      7| import { createMedicationSearchService } from './medication-search';
+       | ^
+      8|
+      9| afterEach(() => vi.restoreAllMocks());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:09:26
+   Duration  157ms (transform 46ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)

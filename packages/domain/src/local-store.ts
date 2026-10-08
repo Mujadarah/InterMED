@@ -180,7 +180,7 @@ export interface GenerationReader {
    * pinned generation only. Implementations may scan once to build an
    * in-memory index; callers must not combine rows from another generation.
    */
-  searchDocuments(): Promise<readonly MedicationSearchRecord[]>;
+  searchRecords(): Promise<readonly MedicationSearchRecord[]>;
   /**
    * Release the retention pin this reader holds on its generation. Optional:
    * an unreleased pin only retains data longer, never less.

@@ -22,20 +22,20 @@ function reader(
   generationId: string,
   documents: readonly MedicationSearchRecord[],
   release: () => void,
-  searchDocuments = vi.fn(async () => documents),
+  searchRecords = vi.fn(async () => documents),
 ): GenerationReader {
   return {
     generationId,
-    searchDocuments,
+    searchRecords,
     release,
   } as unknown as GenerationReader;
 }
 
 it('reads one pinned generation, releases it, and reuses its in-memory index', async () => {
   const release = vi.fn();
-  const searchDocuments = vi.fn(async () => [searchDocument()]);
+  const searchRecords = vi.fn(async () => [searchDocument()]);
   const openReader = vi.fn(async () =>
-    reader('generation-a', [], release, searchDocuments),
+    reader('generation-a', [], release, searchRecords),
   );
   const service = createMedicationSearchService({
     activeGenerationId: () => 'generation-a',
@@ -51,7 +51,7 @@ it('reads one pinned generation, releases it, and reuses its in-memory index', a
   expect(second.total).toBe(1);
   expect(first.indexedProductCount).toBe(1);
   expect(openReader).toHaveBeenCalledOnce();
-  expect(searchDocuments).toHaveBeenCalledOnce();
+  expect(searchRecords).toHaveBeenCalledOnce();
   expect(release).toHaveBeenCalledOnce();
 });
 
@@ -73,7 +73,7 @@ it('cancels a stale caller while allowing the shared index build to finish', asy
   const readCompletion: {
     finish?: (documents: readonly MedicationSearchRecord[]) => void;
   } = {};
-  const searchDocuments = vi.fn(
+  const searchRecords = vi.fn(
     () =>
       new Promise<readonly MedicationSearchRecord[]>((resolve) => {
         readCompletion.finish = resolve;
@@ -81,7 +81,7 @@ it('cancels a stale caller while allowing the shared index build to finish', asy
   );
   const release = vi.fn();
   const openReader = vi.fn(async () =>
-    reader('generation-a', [], release, searchDocuments),
+    reader('generation-a', [], release, searchRecords),
   );
   const service = createMedicationSearchService({
     activeGenerationId: () => 'generation-a',
@@ -89,7 +89,7 @@ it('cancels a stale caller while allowing the shared index build to finish', asy
   });
   const controller = new AbortController();
   const staleSearch = service.search('old query', controller.signal);
-  await vi.waitFor(() => expect(searchDocuments).toHaveBeenCalledOnce());
+  await vi.waitFor(() => expect(searchRecords).toHaveBeenCalledOnce());
   controller.abort();
   readCompletion.finish?.([searchDocument()]);
 

@@ -1,0 +1,35 @@
+
+> intermed@0.0.0 test
+> vitest run packages/local-store/src/readers.test.ts -t search documents
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ packages/local-store/src/readers.test.ts (12 tests | 1 failed | 11 skipped) 41ms
+   × builds search documents only from the reader’s pinned generation 40ms
+node.exe :
+At line:1 char:1
++ & "<repo>" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/local-store/src/readers.test.ts > builds search documents only from the reader’s pinned generation
+TypeError: pinned.searchDocuments is not a function
+ ❯ packages/local-store/src/readers.test.ts:358:34
+    356|
+    357|   await store.updates.stageAndActivate(beta.manifest, beta.text);
+    358|   const documents = await pinned.searchDocuments();
+       |                                  ^
+    359|
+    360|   expect(documents).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  17:08:32
+   Duration  687ms (transform 100ms, setup 0ms, import 556ms, tests 41ms, environment 0ms)
