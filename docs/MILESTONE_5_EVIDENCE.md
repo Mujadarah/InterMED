@@ -253,7 +253,7 @@ Greptile P1/P2 findings are fixed and verified as recorded in the
 dated final repair section above.
 
 **Historical exceptions (honest, unsoftened).** The original
-17-FAIL RED at the root's immutable `613c05517`
+17-FAIL RED at the root's immutable `613c055`
 (`test: preserve independently reproduced PR13 importer regression
 RED`) included **1 invalid SHA-port harness `TypeError`** — the
 retry probe passed the bare `sha256Hex` function to
