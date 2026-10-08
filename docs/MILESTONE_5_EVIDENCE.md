@@ -1,16 +1,15 @@
 # Milestone 5 evidence — synthetic-only importer
 
-**Status (updated 2026-10-08, handler proof + final whole-patch review + root
-docs gate):**
-**OFFLINE CORE, CLIENT, ARTIFACT, HANDLER, AND PRODUCER/READER COMPATIBILITY
-VERIFIED — FINAL COMBINED ROOT RUN PASSED AND THE FINAL WHOLE-PATCH STATIC
-REVIEW ACCEPTED; CI, THE PR, THE LIVE SCHEMA MIGRATION, AND THE ADDITIONAL
-ELEVEN-FILE FIRST-PASS REVIEW ARE PENDING.** This file does not claim Milestone
-5 acceptance, and it does **not** claim B is ready: readiness needs the final
-combined run (done), the whole-patch review (done), **and CI** (pending, plus
-the eleven-file first-pass review, now reported with two root-confirmed
-findings). Verified
-offline by tests and logs (matrix below):
+**Status (updated 2026-10-08, repair verified + focused review accepted):**
+**OFFLINE CODE REPAIRED AND ROOT-VERIFIED AT `9a40644` (744 tests / 47 files /
+150 browser, exit 0) AND THE FOCUSED REPAIR REVIEW IS ACCEPTED (REPAIR SCOPE
+ONLY); CI AND THE PR ARE PENDING. NO M5 LIVE ACTION AND NO M5 ACCEPTANCE.** This
+file does not claim Milestone 5 acceptance and does **not** claim B is ready:
+readiness still needs CI and the PR. The earlier combined run (`4cbc9ed`,
+734 / 46 / 150) and its accepted whole-patch static review, the confirmed
+F1/F11/F9 findings, and the rejected broad review are retained below as dated
+history. Verified offline by tests and
+logs (matrix below):
 
 - importer core `b0fdde8` at the synced `2bbbc38` — 452 tests / 31 files / 135
   browser;
@@ -26,7 +25,13 @@ offline by tests and logs (matrix below):
 - **final combined integration `4cbc9edf89a12590f1fa7821428758ac8ac86bec`
   (M6 main merged) — 734 / 46 / 150**, exit 0 from root's immutable
   `task-b-ROOT-integration-4cbc9ed-FULL.log`, printing `v24.21.0` / `11.19.0`
-  **and** the actual Node `v22.23.2` compiled flow.
+  **and** the actual Node `v22.23.2` compiled flow;
+- **repair verified — author `9a40644e3dd292c3069b0e5be0d248dff97a1da8`
+  (integrated `421da57`, tests `e61a983`) — 744 / 47 / 150**, exit 0 from
+  root's immutable `task-b-ROOT-review-repair-9a40644-FULL.log`, printing
+  `v24.21.0` / `11.19.0` **and** `v22.23.2`, with a clean tree before and
+  after; the current integration `4fcd44f` carries that same author head with
+  **M6, the domain, and the UI unchanged** (protected scope: no changes).
 
 The combined run covers the known **M6 consumer hard reject** (the FNV-only
 consumer versus the established public SHA-256 contract) as a documented,
@@ -36,9 +41,8 @@ reproducible blockers** (`task-b-FINAL-independent-review-4cbc9ed-report-only.tx
 bounded static scope only — `git log`, `git diff`, and patch analysis, exits 0,
 one known M6 gap recorded, verdict "SCOPED VERDICT: PASS / ACCEPTED (Pending
 known M6 coordination issue)"). It is a static review, not a live or execution
-proof. **CI and the PR are still pending**, and an additional free first-pass
-review of eleven explicitly owner-approved source files is **running and not
-yet reported**, so **no acceptance is claimed for B**.
+proof. **CI and the PR are still pending**, and the independent review track is
+covered by the dated status below — **no acceptance is claimed for B**.
 
 **Status 2026-10-08 (first-pass triage → root-confirmed findings).** The
 accepted `4cbc9ed` whole-patch static review above is retained as historical
@@ -79,6 +83,48 @@ PASS is claimed and no M5 live action exists.
   (F9)** — not nine remaining after F9. Author **GREEN with actual source edits
   is now underway**; **no pass yet**, and the final repair proof can be appended
   later.
+
+**Status 2026-10-08 (repairs verified offline; focused review pending).** This
+supersedes the repair-pending note above; the earlier proofs stay as history.
+
+- **F1, F11 and the F9 stale comment are repaired** in author head
+  `9a40644e3dd292c3069b0e5be0d248dff97a1da8` (integrated `421da57`, tests
+  `e61a983`): the baseline recheck now runs under the held lease across clean,
+  partial and recovery-partial resume paths, `sameCounts` is bidirectional so an
+  extra stored key raises `publication-collision`, and the `publicationRowId`
+  JSDoc now limits the 36-char derivation to the physical manifest row `$id`.
+- **Author proof:** recovery RED `task-b-review-repair-recovery-RED.log`
+  (**7 failed / 3 passed of 10**) → GREEN `task-b-review-repair-GREEN.log`
+  (**10 passed**); `task-b-review-repair-GATES.log` read actual: `format:check`,
+  `check:boundaries`, `typecheck` and `lint` all **EXIT 0**; the author's WORKER
+  REPORT is copied as
+  `task-b-review-repair-GREEN-ACT-worker-report-only.txt`.
+- **Root independent proof:** `task-b-ROOT-review-repair-9a40644-FULL.log` —
+  **744 tests / 47 files / 150 browser, exit 0**, pinned `v24.21.0` / `11.19.0`
+  **and** actual `v22.23.2`, clean tree before and after. The current
+  integration `4fcd44f` is that same author head with **M6, the domain and the
+  UI unchanged** (protected scope: no changes).
+- **Independent reviews — focused ACCEPTED, broad rejected:** the focused
+  independent F1/F11/F9 repair review completed **exit 0 with zero actionable
+  findings and is ACCEPTED for the repair scope only**
+  (`task-b-approved-gemini-focused-repair-review-4fcd44f-report-only.txt`); root
+  checked the actual predicate and test-counter lines and confirmed the 43
+  capsule hashes unchanged. The broad Gemini source review
+  `task-b-approved-gemini-final-review-4fcd44f.log` was **rejected by root** —
+  unsupported broad claims (encoding versus normalizer, query-limit versus
+  baseline reasoning, no regression test listed) — and is **not accepted**; no
+  blanket whole-patch claim is made, and the other modules keep their own
+  separately dated reviews. The original `ba3bff8` RED and the `4cbc9ed` proofs
+  are retained unchanged.
+- **Still pending — no acceptance claimed:** **CI** and the **PR** (root owns
+  the final integration full run and PR/CI), and
+  **NO M5 live action**. The optional storage mapping — nullable unique
+  `dataset-versions.datasetVersionId` at max 512, widened
+  `dataset-bundles.datasetVersionId` and `dataset-versions.previousVersionId`
+  at 512 — plus the data-access canonical `datasetVersionId` mapping stay
+  **explicitly PR-flagged** and need **separate owner approval** for any live
+  migration. Public and domain contract types are **unchanged**; M6
+  **issue #12 keeps both gaps open**.
 
 ROOT launched every run with the pinned toolchain on `PATH`; where a log does
 not print versions, none was added to it, and the bounded
@@ -192,7 +238,7 @@ logs are copied into
 | Function artifact builder                       | **Verified offline.** 23-file Node-compatible artifact derived from the real runtime closure, built outside the repository; entry `src/main.js` matches `entrypoint: "src/main.js"` in the configuration as code. Root full run at `e30e8d1`: **333 tests / 28 files / 135 browser, exit 0**; static lock-projection/supply-chain review **no blockers (report-only)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Function handler and operation-intent authority | **VERIFIED OFFLINE at `01f7a45` (`01f7a4556e17608edb0865bacb3d421d23550847`) — no live action.** Root's immutable full run exited 0: 634 tests / 38 files / 135 browser on Node `v24.21.0` / npm `11.19.0`, with official Node `v22.23.2` for the compiled artifact flow. The canonical mapping now persists the canonical `datasetVersionId` (≤ 512, `U+001F` allowed) on descriptor and manifest rows while the physical `$id` stays ≤ 36 (`publicationRowId()`); `resolvePublicUrl` returns the real flat HTTPS download URL with no fragment; baseline queries use the persisted canonical attribute. The real public-reader round trip covers first and second generation, advancing-clock idempotency, `active = self` restaging, and baseline tampering. Author red/green: `task-b-handler-canonical-red.log` (1 failed, publish 403 before the repair) then `-green.log` (1 passed). Independent static review **ACCEPTED, no blockers — changed-repair scope only** (`intent.js` + `storage-bridge.js` plus the changed tests; the reviewer added no new tests and did not perform a whole-patch review). The operation-intent schema is still documented from `0c16177` and must be re-read at `01f7a45` before any execution |
 | Positive compiled handler flow                  | **VERIFIED OFFLINE.** The real compiled generated Node 22 stage → publish → retry path is green on official Node `v22.23.2` (and `v24.21.0`), and the real M3 public reader reads back the canonical round trip; the non-POST 405 refusal and real domain codec round-trip remain covered                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Final integration (root)                        | **COMBINED ROOT FULL PASSED at `4cbc9ed`; FINAL WHOLE-PATCH STATIC REVIEW ACCEPTED; CI/PR pending.** Root's immutable full run at the clean integration `4cbc9edf89a12590f1fa7821428758ac8ac86bec` with M6 main merged: **734 tests / 46 files / 150 browser, exit 0**, on Node `v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2` compiled flow. This documentation head `bc508cd` also passed (310 / 24 / 135). The final independent whole-patch static review at `4cbc9ed` is **ACCEPTED, 0 reproducible blockers**, bounded to `git log` / `git diff` / patch analysis (`task-b-FINAL-independent-review-4cbc9ed-report-only.txt`). **CI and the PR are pending**, and the eleven-file first-pass review is now reported: **F1** and **F11** root-confirmed RED at a3bff8 plus **F9** stale comment, the other eight triage — the code is **NOT ready** pending confirmed fixes, a root regression/full check and a fresh independent review, so no M5 acceptance is claimed; the known M6 consumer hard reject stays documented and is **not** an activation claim                                                                                                                                                        |
+| Final integration (root)                        | **COMBINED ROOT FULL PASSED at `4cbc9ed`; FINAL WHOLE-PATCH STATIC REVIEW ACCEPTED; CI/PR pending.** Root's immutable full run at the clean integration `4cbc9edf89a12590f1fa7821428758ac8ac86bec` with M6 main merged: **734 tests / 46 files / 150 browser, exit 0**, on Node `v24.21.0` / npm `11.19.0` with the actual Node `v22.23.2` compiled flow. This documentation head `bc508cd` also passed (310 / 24 / 135). The final independent whole-patch static review at `4cbc9ed` is **ACCEPTED, 0 reproducible blockers**, bounded to `git log` / `git diff` / patch analysis (`task-b-FINAL-independent-review-4cbc9ed-report-only.txt`). **CI and the PR are pending**, and the eleven-file first-pass review is now reported: **F1** and **F11** root-confirmed RED at a3bff8 plus **F9** stale comment, the other eight triage — repairs for **F1**, **F11** and **F9** have landed and are root-verified at `9a40644` (744 / 47 / 150, exit 0) and the focused repair review is **ACCEPTED (repair scope only)**, so the remaining blockers are **CI and the PR**, and no M5 acceptance is claimed; the known M6 consumer hard reject stays documented and is **not** an activation claim                                    |
 
 ## Acceptance and evidence matrix
 
@@ -247,6 +293,7 @@ be read as "29 importer files".
 | Store client `ad9303b`                              | 385 passed (29 files)                          | 135 passed    | same sequence, exit 0                                                                                                                                                                                                                        | `task-b-ROOT-client-ad9303b-FULL.log` (root recapture after the log-name collision)                                                                                                                                                                        |
 | Function artifact `57eb71f`                         | 328 passed (28 files)                          | 135 passed    | same sequence, exit 0                                                                                                                                                                                                                        | `task-b-ROOT-artifact-57eb71f-FULL.log`; Node 22/24 smoke `task-b-ROOT-artifact-57eb71f-node22.log`                                                                                                                                                        |
 | Final combined integration `4cbc9ed`                | 734 passed (46 files)                          | 150 passed    | format/lint/typecheck/test/boundaries/audit/build/scan:dist/browser, exit 0; log head prints `v24.21.0` / `11.19.0` and `v22.23.2` (actual compiled flow)                                                                                    | `task-b-ROOT-integration-4cbc9ed-FULL.log` (immutable root run, M6 main merged); known M6 consumer hard reject documented, not an activation claim; whole-patch static review ACCEPTED at 0 blockers, CI/PR pending                                        |
+| Repair verified 9a40644 (root full)                 | 744 passed (47 files)                          | 150 passed    | format/lint/typecheck/test/boundaries/audit/build/scan:dist/browser, exit 0; log head prints 24.21.0 / .19.0 and 22.23.2; clean tree before and after                                                                                        | ask-b-ROOT-review-repair-9a40644-FULL.log (authoritative); author ask-b-review-repair-recovery-RED.log 7 failed / 3 passed of 10 → -GREEN.log 10 passed; -GATES.log EXIT 0 each                                                                            |
 | M6 coordination repro rerun (root, RED)             | 3 failed (3 expected)                          | —             | portable repro `tests/m6-coordination-repro.test.ts`, exit 1; pinned Node `v24.21.0` / npm `11.19.0` as reported by root — the log prints no version line and none was added; temporary test removed afterwards, M6 and the domain unchanged | `task-b-ROOT-m6-coordination-RED.log` — **3/3 expected failures**: Gap 1 (clean `sha256:`-checksummed generation hard-rejected), Gap 2 (preserved source-token notes still hard-rejected), control (reason is `checksum-mismatch`, not `integrity-failed`) |
 | Function handler `01f7a45` (authoritative)          | 634 passed (38 files)                          | 135 passed    | format/lint/typecheck/test/boundaries/audit/build/scan:dist/browser, exit 0; log head prints `v24.21.0` / `11.19.0` and `v22.23.2`                                                                                                           | `task-b-ROOT-handler-01f7a45-FULL.log` (immutable root run); author red/green `task-b-handler-canonical-red.log` / `-green.log`; static review `task-b-handler-independent-review-01f7a45-report-only.txt` (changed-repair scope, no blockers)             |
 | Documentation head `bc508cd`                        | 310 passed (24 files)                          | 135 passed    | same sequence, exit 0 (pinned `v24.21.0` / `11.19.0`)                                                                                                                                                                                        | `task-b-ROOT-docs-bc508cd-FULL.log`                                                                                                                                                                                                                        |
@@ -328,8 +375,9 @@ actions.
   and source rights are unchanged. The final combined root run and the final
   whole-patch static review are retained as historical green record, but **F1**
   and **F11** are root-confirmed RED at `ba3bff8`, so acceptance requires
-  **confirmed fixes, a root regression/full check, and a fresh independent
-  review**, then **CI and the PR (pending)**.
+  **confirmed fixes (landed and root-verified at `9a40644`), the focused
+  repair review (accepted, repair scope only), CI and the PR (the last two
+  pending)**.
 
 ## M6 status: PR10 merged, contract conflict open, coordination issue posted
 
@@ -391,18 +439,16 @@ claim. The passing combined run is therefore **not** an M6 acceptance and
 
 ## Open items before any acceptance claim
 
-1. **Repairs first, then CI and the PR (pending)** for the combined `4cbc9ed`
-   state. The combined root full run passed (734 / 46 / 150, exit 0) and the
-   final independent whole-patch static review is **ACCEPTED at 0 reproducible
-   blockers** (bounded `git log` / `git diff` / patch analysis) — both now
-   historical. Root's final triage of the eleven-file first-pass review
-   **confirms F1 and F11** (immutable RED `task-b-ROOT-review-repair-ba3bff8-RED.log`,
-   5 failed / 2 passed) plus **F9** (stale comment, author correcting); the
-   other eight (F2–F8, F10) stay **triage, static only**, and the source is
-   **not repaired yet** (author GREEN with actual source edits underway, no
-   pass yet). **B is not claimed ready**: it
-   needs **confirmed fixes, a root regression/full check, and a fresh
-   independent review**, then CI and the PR observed green.
+1. **Final independent review, then CI and the PR (pending).** The repairs for
+   F1, F11 and F9 are **landed and root-verified** at author `9a40644`
+   (root full **744 / 47 / 150, exit 0**, clean before and after; author RED
+   7 failed / 3 passed of 10 then GREEN 10 passed; gates EXIT 0 each), and the
+   current integration `4fcd44f` keeps M6, the domain and the UI unchanged.
+   The focused independent F1/F11/F9 repair review is **ACCEPTED (exit 0, zero
+   actionable findings, repair scope only)**, while the broad Gemini report
+   stays **rejected / not accepted** — no blanket whole-patch claim. **B is not
+   claimed ready** until **CI and the PR** are observed green; root owns the
+   final integration full run and PR/CI.
 2. Optional storage schema migration (`dataset-versions.datasetVersionId` max
    512 with a nullable unique index, plus 512-capacity
    `dataset-bundles.datasetVersionId` and `dataset-versions.previousVersionId`)
@@ -452,7 +498,13 @@ diagnostic config run `task-b-ROOT-m6-diagnostic.log`, then the approved
 first-pass report-only stdout `task-b-approved-free-first-pass-resume.log`, the
 Gemini triage capsule stdout `task-b-approved-gemini-triage-capsule.log`, the
 public-identifier-only `payload-verification.json` (no values), and the
-immutable root RED `task-b-ROOT-review-repair-ba3bff8-RED.log`, plus the
+immutable root RED `task-b-ROOT-review-repair-ba3bff8-RED.log`, then the repair
+proof set — root's authoritative full `task-b-ROOT-review-repair-9a40644-FULL.log`,
+the author's `task-b-review-repair-recovery-RED.log` / `-GREEN.log` /
+`-GATES.log`, and the author report-only
+`task-b-review-repair-GREEN-ACT-worker-report-only.txt`, and the accepted focused
+review
+`task-b-approved-gemini-focused-repair-review-4fcd44f-report-only.txt` — plus the
 two superseded handler
 failures `0c16177` and `0266d8`. Nothing else from the orchestration store was
 copied: no raw worker stdout, no inventory log, and no dirty WIP handler proof

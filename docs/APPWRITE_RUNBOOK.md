@@ -367,10 +367,16 @@ logs.
 > main merged also passed (734 / 46 / 150, exit 0); the **final independent
 > whole-patch static review at `4cbc9ed` is ACCEPTED at 0 reproducible blockers**
 > (bounded `git log` / `git diff` / patch analysis) while **CI/PR are pending** —
-> and that accepted review is now **superseded by two root-confirmed findings**
+> and that accepted review was **superseded by two root-confirmed findings**
 > (**F1** stale-baseline resume bypass, **F11** asymmetric stored-manifest
-> `recordCounts`); the source is **not repaired yet**, so nothing here is
-> ready and section 10.0.1 records the **F2** lock recovery prerequisite.
+> `recordCounts`) plus the **F9** stale comment — all three **now repaired and
+> root-verified at `9a40644`** (root full **744 / 47 / 150, exit 0**) with the
+> **focused repair review ACCEPTED for the repair scope only**; **CI/PR are
+> still pending**, so nothing here is ready, and section 10.0.1 records the
+> **F2** lock recovery prerequisite. The optional nullable-512 unique index and
+> 512 widenings, plus the canonical `datasetVersionId` data-access mapping,
+> stay **PR-flagged** and need **separate owner approval** for any live
+> migration.
 > The superseded `0c16177` root failure (5 of 598) and the `0266d8` RED run
 > (whose middle "canonical must equal the physical `$id`" assertion is an
 > invalid root assumption) are preserved as history. The owner-approved M6

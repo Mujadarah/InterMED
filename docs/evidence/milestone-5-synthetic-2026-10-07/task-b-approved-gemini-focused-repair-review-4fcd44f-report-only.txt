@@ -1,0 +1,28 @@
+```markdown
+# WORKER REPORT
+
+**Status: ACCEPTED**
+**Actionable Bugs Identified: 0 actionable** (All repairs correctly implemented within the F1/F11/F9 scope)
+
+## Coverage & Evidence Table
+
+| Item | File / Component Read | Line Ranges | Evidence & Observations |
+| :--- | :--- | :--- | :--- |
+| **F1: isBaselineCurrent** | `packages/importer/src/publisher.ts` | 413, 457-463 | Lease acquired at L413 (`await ports.acquirePublicationLock()`). `isBaselineCurrent` accurately checks both `baselineVersionId` and `baselineFingerprint` against `approval` (L457-463). |
+| **F1: clean publish** | `packages/importer/src/publisher.ts` | 523-535 | Under lease, `isBaselineCurrent()` guards the `writeComponent` calls to prevent publishing stale material (L526). |
+| **F1: partial publish** | `packages/importer/src/publisher.ts` | 511-522 | Under lease, `isBaselineCurrent()` guards the loop of `writeComponent(component)` for missing components (L512). |
+| **F1: recoverpartial** | `packages/importer/src/publisher.ts` | 466-493 | Inside `recover`, partial outcome checks `if (!(await isBaselineCurrent())) return reject('stale-baseline');` (L479-482) before attempting to write missing components. |
+| **F1: identical retry** | `packages/importer/src/publisher.ts` | 500-505 | Exact match (`kind === 'identical'`) returns `already-published` without invoking `isBaselineCurrent()`, correctly bypassing baseline advance restrictions. |
+| **F1: identical recover** | `packages/importer/src/publisher.ts` | 468-477 | In `recover`, an identical outcome post-error bypasses the baseline check, accurately reporting `published` (with warning for ambiguous writes) or `already-published`. |
+| **F1: NEW recovery test 1** | `tests/importer/publication-resume-review.test.ts` | 230-280 | *Ambiguous Write Test:* Overrides `writeDescriptorRow` to call `advanceBaseline` *after* the real write but *before* throwing `AmbiguousWriteError` (L257-262). Asserts `recoveryWriteManifestCalls === 0` (L274) and `store.manifests.get(candB.candidateVersionId)` B remains completely unchanged (L277). |
+| **F1: NEW recovery test 2** | `tests/importer/publication-resume-review.test.ts` | 282-344 | *Conflict Write Test:* Overrides `writeBundleFile` to call `advanceBaseline` *after* real write but *before* throwing `PublicationConflictError` (L308-318). Asserts 0 descriptor/manifest recovery writes (L338-339) and B remains completely unchanged (L342-343). |
+| **F1: Post-commit control** | `tests/importer/publication-resume-review.test.ts` | 346-370 | Wraps `writeManifestRow` to throw `AmbiguousWriteError` after a successful commit (L356-361). Correctly expects status `published` and warning `post-commit-read-verified` (L367-368). |
+| **F11: counts comparison** | `packages/importer/src/publisher.ts` | 89-101 | `sameCounts` ensures keys length match (`expectedEntries.length !== Object.keys(actual).length`), uses strict object property checking (`Object.prototype.hasOwnProperty.call(actual, key)`), and validates value equality preventing prototype poisoning or missing/extra keys (L93-100). |
+| **F11: counts test** | `tests/importer/publication-resume-review.test.ts` | 402-452 | Mutates stored manifest with an `extraSyntheticCount`. Asserts publication correctly rejects with `publication-collision` and `publication-manifest-conflict`, and zero writes occur (L428-434). Verified identical retry works as green control (L437-451). |
+| **F9: manifest$id comment** | `infra/appwrite/functions/import-anmdmr/src/intent.js` | 483-489 | Added comment explicitly clarifying: *"deterministic 36-char derivation is used for physical manifest row $id only; canonical descriptor.datasetVersionId and previousVersionId lineage links use 512 field capacity"*. Code remains identical so 0 source behavior changed. |
+
+## Conclusion
+- All items in the independent repair review brief are confirmed against the code logic.
+- Exactly 0 actionable bugs found in the F1/F11/F9 scope.
+- No writes or commands were executed during this inspection.
+- No unprovided domain imports observed.

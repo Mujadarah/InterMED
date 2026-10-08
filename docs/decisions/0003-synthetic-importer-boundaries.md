@@ -245,5 +245,18 @@ published-dataset contracts, or M3 public identifiers.
   some line references are inaccurate and **root’s actual references are
   authoritative**); the earlier auto-review rejection is kept only as dated
   history. No blanket first-pass PASS.
+- **Repairs verified (later the same day):** F1, F11 and the F9 stale comment
+  are **repaired at author `9a40644`** (integrated `421da57`, tests `e61a983`)
+  and **root-verified** by an independent full run — **744 tests / 47 files /
+  150 browser, exit 0**, pinned `v24.21.0` / `11.19.0` and actual `v22.23.2`,
+  clean before and after. The **focused independent repair review is ACCEPTED**
+  (exit 0, zero actionable, **repair scope only**; root checked the predicate
+  and test-counter lines and the 43 capsule hashes); the earlier **broad**
+  review stays **rejected / not accepted** — no blanket whole-patch claim. The
+  current integration `4fcd44f` keeps **M6, the domain and the UI unchanged**
+  (protected scope: no changes). **CI and the PR remain pending**, so **M5
+  acceptance and any live action are NOT claimed**; the optional 512 schema and
+  canonical data-access mapping stay PR-flagged with separate owner approval
+  required, and M6 **issue #12 keeps both gaps open**.
 - **Live state unchanged:** no M5 live action, production untouched, shell
   project untouched, source rights unchanged.

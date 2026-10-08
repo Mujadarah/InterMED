@@ -1,0 +1,28 @@
+=== WORKER REPORT ===
+
+- **Commit**: `9a40644e3dd292c3069b0e5be0d248dff97a1da8` (`fix(importer): enforce baseline recheck on resume and bidirectional manifest counts`)
+- **Files Modified**:
+  - [`packages/importer/src/publisher.ts`](file:///<worktree>/packages/importer/src/publisher.ts)
+  - [`tests/importer/publication-resume-review.test.ts`](file:///<worktree>/tests/importer/publication-resume-review.test.ts)
+  - [`infra/appwrite/functions/import-anmdmr/src/intent.js`](file:///<worktree>/infra/appwrite/functions/import-anmdmr/src/intent.js)
+- **Key Design Decisions**:
+  - In [`publisher.ts`](file:///<worktree>/packages/importer/src/publisher.ts), enforced `baselineVersionId` and `baselineFingerprint` equality under held lease before writing any missing public component across clean, partial, and recovery-partial paths, rejecting `stale-baseline` while keeping identical committed publications idempotent.
+  - Updated `sameCounts` to verify bidirectional count and key count equality (`Object.entries(expected).length === Object.keys(actual).length`), ensuring extra stored keys trigger `publication-collision`.
+  - Added genuine recovery RED regressions using ports wrappers around [`FakeStore`](file:///<worktree>/tests/importer/support/fake-ports.ts) that persist a prefix and advance baseline to candidate B with ambiguous/conflict faults, verifying zero recovery writes and unaltered candidate B; preserved identical ambiguous-write readback control.
+  - Corrected stale `publicationRowId` JSDoc comment in [`intent.js`](file:///<worktree>/infra/appwrite/functions/import-anmdmr/src/intent.js) clarifying 36-char derivation applies strictly to physical manifest row `$id`, while canonical `datasetVersionId` and `previousVersionId` support 512 characters.
+- **Test Counts**:
+  - Recovery RED: 10 tests (7 failed, 3 passed)
+  - Post-fix `publication-resume-review.test.ts`: 10 passed (0 failed)
+  - Importer suite (`tests/importer/`): 16 test files, 329 passed (0 failed)
+  - Node 22 handler flow (`handler-artifact-flow.test.ts`): 1 passed (0 failed)
+  - Publisher & Stage regression: 2 test files, 74 passed (0 failed)
+- **Quality Gates**:
+  - `format:check`: Exit 0
+  - `check:boundaries`: Exit 0
+  - `typecheck`: Exit 0
+  - `lint`: Exit 0
+- **Evidence Logs Saved**:
+  - `task-b-review-repair-recovery-RED.log`
+  - `task-b-review-repair-GREEN.log`
+  - `task-b-review-repair-GATES.log`
+- **Open Issues**: None. All requirements verified and committed.
