@@ -130,6 +130,7 @@ The page is `/medication/:productId` (`MedicationDetailPage.tsx`).
 - **Page:** [`detail-page-red.log`](evidence/milestone-7b-2026-10-08/detail-page-red.log) → [`detail-ui-green.log`](evidence/milestone-7b-2026-10-08/detail-ui-green.log). The focused UI suite has 72 tests in 6 files.
 - **Browser:** the focused browser flow passed on chromium-desktop, webkit-phone and webkit-tablet ([`browser-focused-green.log`](evidence/milestone-7b-2026-10-08/browser-focused-green.log)). Its two WebKit-only performance runs are intentionally skipped, following the part A policy.
 - All logs are in `docs/evidence/milestone-7b-2026-10-08/`, redacted, UTF-8 without BOM, LF.
+- A full check after the GPT-6 review fixes: [`gpt6-full-check-green.log`](evidence/milestone-7b-2026-10-08/gpt6-full-check-green.log) (921 unit/component tests in 56 files, 154 browser tests passed and 2 skipped, exit 0). Written outside the repository, redacted, then copied in as UTF-8 without BOM, LF.
 
 ### Full check
 
