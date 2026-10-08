@@ -36,7 +36,20 @@ logging behavior
 belongs behind injected ports; the Function adapter is not a domain dependency.
 Synthetic source validation and private staging remain outside the browser
 shell. The repaired Function handler/authority layer and offline integration
-checks are verified (2026-10-08, full repair run at `9a40644`). CI, PR review,
-live actions, and owner approval remain pending. See
+checks are verified (2026-10-08, full repair run at `9a40644`). The historical
+offline handler repair proof at `9a40644` — 744 unit tests in 47 files and 150
+browser tests — **remains valid**, while the **current** PR13 (the three new P1
+repairs, the retry-identity repairs and the Codacy fixes) **is in progress with
+no overall acceptance claim**. At the public head `923a060`, Ubuntu and Windows
+CI both PASS and DeepSource Secrets PASS (root real-API verified); Codacy is
+ACTION_REQUIRED with 4 findings still being addressed, and a newly confirmed P1
+regression records 17 FAIL against the original, unchanged source at the
+root's immutable `613c055`, with no GREEN claim yet. Milestone 5 performs no
+live schema change, deployment, staging, execution or publication; Milestone 6
+stays with its issue 12 owner in a separate PR, and the domain, type and
+contract boundaries listed above are unchanged. All other milestone setup and
+documentation is untouched, keeping this repair minimal so it does not collide
+with the parallel owner M6 PR. CI, PR review, live actions, and owner approval
+remain pending for acceptance. See
 [the Milestone 5 evidence record](../docs/MILESTONE_5_EVIDENCE.md) and its
 [evidence pack](../docs/evidence/milestone-5-synthetic-2026-10-07/README.md).
