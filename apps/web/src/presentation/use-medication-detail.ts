@@ -1,9 +1,10 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import type {
-  DatasetStateSource,
-  DatasetUpdateState,
-  LocalDatasetGeneration,
-  MedicationProductDetail,
+import {
+  MedicationDetailIntegrityError,
+  type DatasetStateSource,
+  type DatasetUpdateState,
+  type LocalDatasetGeneration,
+  type MedicationProductDetail,
 } from '@intermed/domain';
 import type { MedicationDetailService } from '../application/medication-detail';
 import { getSearchStatusMessage } from './search-status';
@@ -22,6 +23,12 @@ export type MedicationDetailPageState =
       readonly generationId: string;
       readonly productId: string;
       readonly retryRevision: number;
+      /**
+       * Why the read failed. `integrity` means local rows this product
+       * references are missing or damaged, which the page reports honestly
+       * instead of as a source gap.
+       */
+      readonly cause: 'integrity' | 'read';
     }
   | {
       readonly status: 'success';
@@ -39,6 +46,18 @@ type SettledDetailReadState = Exclude<
   DetailReadState,
   { readonly status: 'loading' }
 >;
+
+/**
+ * Whether a rejected read found local data damage rather than an ordinary read
+ * failure. The error's name is checked as well as its class, so presentation
+ * keeps recognising it even if the domain package is ever bundled twice.
+ */
+function isIntegrityFailure(error: unknown): boolean {
+  return (
+    error instanceof MedicationDetailIntegrityError ||
+    (error instanceof Error && error.name === 'MedicationDetailIntegrityError')
+  );
+}
 
 function readStateMatchesRequest(
   state: DetailReadState,
@@ -125,13 +144,14 @@ export function useMedicationDetail(
             : { status: 'not-found', generationId, productId, retryRevision },
         );
       },
-      () => {
+      (error: unknown) => {
         if (cancelled) return;
         setReadState({
           status: 'error',
           generationId,
           productId,
           retryRevision,
+          cause: isIntegrityFailure(error) ? 'integrity' : 'read',
         });
       },
     );

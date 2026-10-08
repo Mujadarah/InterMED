@@ -544,8 +544,9 @@ export function MedicationDetailPage({
             Medication detail is temporarily unavailable
           </h1>
           <p role="alert">
-            Medication detail could not be read. Try again or check dataset
-            status.
+            {pageState.cause === 'integrity'
+              ? 'Some locally stored records for this product are missing or damaged. The source may have provided them. Check dataset status.'
+              : 'Medication detail could not be read. Try again or check dataset status.'}
           </p>
           <button type="button" onClick={retry}>
             Retry medication detail

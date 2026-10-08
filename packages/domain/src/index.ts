@@ -86,6 +86,8 @@ export {
   normalizeMedicationSearchQuery,
   searchMedicationIndex,
 } from './medication-search';
+export type { MedicationDetailEntityKind } from './medication-detail';
+export { MedicationDetailIntegrityError } from './medication-detail';
 export type { DeserializeCatalogueResult } from './serialize';
 export { deserializeCatalogue, serializeCatalogue } from './serialize';
 

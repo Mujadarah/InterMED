@@ -6,7 +6,12 @@
 import type {
   GenerationReader,
   MedicationProductDetail,
+  MedicationProductDetailIngredient,
   MedicationSearchRecord,
+} from '@intermed/domain';
+import {
+  MedicationDetailIntegrityError,
+  type MedicationDetailEntityKind,
 } from '@intermed/domain';
 import Dexie, { type Transaction } from 'dexie';
 import { foldForIndex } from './fold';
@@ -22,9 +27,26 @@ import {
   toLocalGeneration,
   type AnyCatalogueTable,
   type CatalogueStoreName,
+  type EntityRow,
   type GenerationRecord,
   type LocalDatasetDatabase,
 } from './schema';
+
+/**
+ * One stored row of a pinned, published generation, or a fail-closed
+ * {@link MedicationDetailIntegrityError}: a reference that does not resolve
+ * inside a generation whose import checked it is local data damage. A field the
+ * source legitimately marked absent or unknown is not read this way at all, so
+ * it stays null and keeps its "Not provided by source" meaning.
+ */
+async function entityOf<T>(
+  kind: MedicationDetailEntityKind,
+  row: Promise<EntityRow<T> | undefined>,
+): Promise<T> {
+  const stored = await row;
+  if (!stored) throw new MedicationDetailIntegrityError(kind);
+  return stored.entity;
+}
 
 /** Everything retention needs from the rest of the store. */
 export interface RetentionDeps {
@@ -101,80 +123,117 @@ export function createRetention(deps: RetentionDeps): Retention {
         productId,
       ): Promise<MedicationProductDetail | null> => {
         const db = deps.requireDatabase();
-        const productRow = await db.products.get([generationId, productId]);
-        if (!productRow) return null;
-        const product = productRow.entity;
-        const [
-          ingredientRows,
-          atcRows,
-          dosageFormRow,
-          manufacturerRows,
-          holderRow,
-          documentRows,
-          sourceRow,
-          datasetVersionRow,
-        ] = await Promise.all([
-          db.productIngredients
-            .where('[generationId+productId]')
-            .equals([generationId, productId])
-            .toArray(),
-          Promise.all(
-            product.atcCodeIds.map((id) => db.atcCodes.get([generationId, id])),
-          ),
-          product.dosageFormId.status === 'present'
-            ? db.dosageForms.get([generationId, product.dosageFormId.value])
-            : Promise.resolve(undefined),
-          Promise.all(
-            product.manufacturerIds.map((id) =>
-              db.manufacturers.get([generationId, id]),
-            ),
-          ),
-          product.marketingAuthorizationHolderId.status === 'present'
-            ? db.holders.get([
-                generationId,
-                product.marketingAuthorizationHolderId.value,
-              ])
-            : Promise.resolve(undefined),
-          Promise.all(
-            product.regulatoryDocumentIds.map((id) =>
-              db.documents.get([generationId, id]),
-            ),
-          ),
-          db.sources.get([generationId, product.sourceId]),
-          db.datasetVersions.get([generationId, product.datasetVersionId]),
-        ]);
-        const ingredients = await Promise.all(
-          ingredientRows.map(async (row) => {
-            const medicationIngredient = row.entity;
-            const activeIngredient =
-              medicationIngredient.ingredientId.status === 'present'
-                ? ((
-                    await db.ingredients.get([
+        // One read-only transaction over every table the projection touches, so
+        // the projection is atomic: it can never mix rows from two moments
+        // (GPT-6 review fix 1). Inside a pinned, published generation every
+        // reference resolved at import, so an id that does not resolve here is
+        // local data damage. The read fails closed on it instead of dropping
+        // the row and presenting damage as a source gap.
+        return Dexie.ignoreTransaction(() =>
+          db.transaction('r', CATALOGUE_STORE_NAMES, async () => {
+            const productRow = await db.products.get([generationId, productId]);
+            if (!productRow) return null;
+            const product = productRow.entity;
+
+            const joinRows = await db.productIngredients
+              .where('[generationId+productId]')
+              .equals([generationId, productId])
+              .toArray();
+            const ingredients: MedicationProductDetailIngredient[] = [];
+            for (const row of joinRows) {
+              const medicationIngredient = row.entity;
+              const ingredientId = medicationIngredient.ingredientId;
+              if (ingredientId.status !== 'present') {
+                ingredients.push({
+                  medicationIngredient,
+                  activeIngredient: null,
+                });
+                continue;
+              }
+              ingredients.push({
+                medicationIngredient,
+                activeIngredient: await entityOf(
+                  'ActiveIngredient',
+                  db.ingredients.get([generationId, ingredientId.value]),
+                ),
+              });
+            }
+
+            const [
+              dosageForm,
+              atcCodes,
+              manufacturers,
+              marketingAuthorizationHolder,
+              regulatoryDocuments,
+              dataSource,
+              datasetVersion,
+            ] = await Promise.all([
+              product.dosageFormId.status === 'present'
+                ? entityOf(
+                    'DosageForm',
+                    db.dosageForms.get([
                       generationId,
-                      medicationIngredient.ingredientId.value,
-                    ])
-                  )?.entity ?? null)
-                : null;
-            return { medicationIngredient, activeIngredient };
+                      product.dosageFormId.value,
+                    ]),
+                  )
+                : Promise.resolve(null),
+              Promise.all(
+                product.atcCodeIds.map((id) =>
+                  entityOf('ATCCode', db.atcCodes.get([generationId, id])),
+                ),
+              ),
+              Promise.all(
+                product.manufacturerIds.map((id) =>
+                  entityOf(
+                    'Manufacturer',
+                    db.manufacturers.get([generationId, id]),
+                  ),
+                ),
+              ),
+              product.marketingAuthorizationHolderId.status === 'present'
+                ? entityOf(
+                    'MarketingAuthorizationHolder',
+                    db.holders.get([
+                      generationId,
+                      product.marketingAuthorizationHolderId.value,
+                    ]),
+                  )
+                : Promise.resolve(null),
+              Promise.all(
+                product.regulatoryDocumentIds.map((id) =>
+                  entityOf(
+                    'RegulatoryDocument',
+                    db.documents.get([generationId, id]),
+                  ),
+                ),
+              ),
+              entityOf(
+                'DataSource',
+                db.sources.get([generationId, product.sourceId]),
+              ),
+              entityOf(
+                'DatasetVersion',
+                db.datasetVersions.get([
+                  generationId,
+                  product.datasetVersionId,
+                ]),
+              ),
+            ]);
+
+            return {
+              generation,
+              product,
+              ingredients,
+              dosageForm,
+              atcCodes,
+              manufacturers,
+              marketingAuthorizationHolder,
+              regulatoryDocuments,
+              dataSource,
+              datasetVersion,
+            };
           }),
         );
-
-        return {
-          generation,
-          product,
-          ingredients,
-          dosageForm: dosageFormRow?.entity ?? null,
-          atcCodes: atcRows.flatMap((row) => (row ? [row.entity] : [])),
-          manufacturers: manufacturerRows.flatMap((row) =>
-            row ? [row.entity] : [],
-          ),
-          marketingAuthorizationHolder: holderRow?.entity ?? null,
-          regulatoryDocuments: documentRows.flatMap((row) =>
-            row ? [row.entity] : [],
-          ),
-          dataSource: sourceRow?.entity ?? null,
-          datasetVersion: datasetVersionRow?.entity ?? null,
-        };
       },
       productsByNamePrefix: async (prefix) => {
         const folded = foldForIndex(prefix);

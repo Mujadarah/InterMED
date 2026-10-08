@@ -3,14 +3,20 @@ import { expect, it, vi } from 'vitest';
 import {
   deriveStableId,
   deserializeCatalogue,
+  MedicationDetailIntegrityError,
   MISSING,
   presentField,
   sealCatalogue,
   serializeCatalogue,
   unknownField,
+  type FieldState,
+  type MedicationIngredient,
+  type MedicationProduct,
   type MedicationCatalogueSnapshot,
+  type MedicationDetailEntityKind,
 } from '@intermed/domain';
 import { RETAIN_READY_FOR_MS, STALE_STAGING_MS } from './store';
+import { catalogueTable, type CatalogueStoreName } from './schema';
 import {
   bundle,
   testClock,
@@ -21,6 +27,100 @@ import {
 } from './test-support';
 import { SYNTHETIC_SOURCE_KEY } from './synthetic-bundle';
 import { sha256TransportChecksum } from './validate';
+
+function presentValue(field: FieldState<string>): string {
+  if (field.status !== 'present')
+    throw new Error('The synthetic fixture does not provide the value');
+  return field.value;
+}
+
+/**
+ * References a pinned, published generation guarantees at import time. Each case
+ * deletes one referenced row from the store, which is local data damage and can
+ * never be a source gap.
+ */
+const referenceCases: ReadonlyArray<
+  readonly [
+    MedicationDetailEntityKind,
+    CatalogueStoreName,
+    (
+      product: MedicationProduct,
+      joins: readonly MedicationIngredient[],
+    ) => string,
+  ]
+> = [
+  ['ATCCode', 'atcCodes', (product) => product.atcCodeIds[0] ?? ''],
+  [
+    'Manufacturer',
+    'manufacturers',
+    (product) => product.manufacturerIds[0] ?? '',
+  ],
+  [
+    'RegulatoryDocument',
+    'documents',
+    (product) => product.regulatoryDocumentIds[0] ?? '',
+  ],
+  [
+    'DosageForm',
+    'dosageForms',
+    (product) => presentValue(product.dosageFormId),
+  ],
+  [
+    'MarketingAuthorizationHolder',
+    'holders',
+    (product) => presentValue(product.marketingAuthorizationHolderId),
+  ],
+  ['DataSource', 'sources', (product) => product.sourceId],
+  ['DatasetVersion', 'datasetVersions', (product) => product.datasetVersionId],
+  [
+    'ActiveIngredient',
+    'ingredients',
+    (_product, joins) => presentValue(joins[0]?.ingredientId ?? MISSING),
+  ],
+];
+
+it.each(referenceCases)(
+  'rejects a detail read whose %s reference no longer resolves',
+  async (kind, table, reference) => {
+    const name = uniqueName();
+    const store = testStore({ name });
+    const source = await bundle('damage');
+    await store.updates.stageAndActivate(source.manifest, source.text);
+    const reader = (await store.openReader())!;
+    const productId = source.productIds['SP-FICTIVOL']!;
+    const rows = await testDatabase(name);
+    const productRow = await rows.products.get([
+      source.generationId,
+      productId,
+    ]);
+    const joinRows = await rows.productIngredients
+      .where('[generationId+productId]')
+      .equals([source.generationId, productId])
+      .toArray();
+    if (!productRow) throw new Error('The synthetic product row is missing');
+    const referencedId = reference(
+      productRow.entity,
+      joinRows.map((row) => row.entity),
+    );
+
+    // Damage one pinned, published generation: a row that its references point
+    // at is gone. That is local storage damage, not a source gap.
+    await catalogueTable(rows, table).delete([
+      source.generationId,
+      referencedId,
+    ]);
+    rows.close();
+
+    const error = await reader
+      .productDetail(productId)
+      .catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(MedicationDetailIntegrityError);
+    expect((error as Error).name).toBe('MedicationDetailIntegrityError');
+    expect((error as Error).message).toContain(kind);
+    reader.release();
+  },
+);
 
 async function repackage(
   source: Awaited<ReturnType<typeof bundle>>,

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import {
+  MedicationDetailIntegrityError,
   MISSING,
   presentField,
   unknownField,
@@ -306,6 +307,26 @@ it('reports a local read error without surfacing details and retries', async () 
     await screen.findByRole('heading', { name: 'Fictivol detail' }),
   ).toBeVisible();
   expect(productDetail).toHaveBeenCalledTimes(2);
+});
+
+it('reports damaged local records instead of blaming the source', async () => {
+  renderPage(ready, {
+    productDetail: vi.fn(async () => {
+      throw new MedicationDetailIntegrityError('ATCCode');
+    }),
+  });
+
+  const alert = await screen.findByRole('alert');
+  expect(alert).toHaveTextContent(
+    'Some locally stored records for this product are missing or damaged. The source may have provided them. Check dataset status.',
+  );
+  expect(screen.queryByText('Not provided by source')).not.toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: 'Retry medication detail' }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole('link', { name: 'Check dataset status' }),
+  ).toHaveAttribute('href', '/status');
 });
 
 it('renders source fields, composition, regulatory references and provenance verbatim', async () => {
