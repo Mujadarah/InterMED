@@ -459,7 +459,7 @@ it.each([
   expect(env.fetch).not.toHaveBeenCalled();
 });
 
-it.each(['/', '/status'])(
+it.each(['/', '/status', '/search', '/medication/synthetic-product'])(
   'serves verified index HTML for offline navigation to %s',
   async (path) => {
     const env = worker();

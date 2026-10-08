@@ -114,7 +114,8 @@ it('reuses the search service and in-memory index across Bootstrap renders', asy
       <Bootstrap env={{}} localStore={localStore as never} />
     </MemoryRouter>,
   );
-  const input = screen.getByRole('searchbox');
+  // The route page is a lazily loaded chunk, so wait for it after render.
+  const input = await screen.findByRole('searchbox');
   await user.type(input, 'fictivol');
   expect(
     await screen.findByRole('link', { name: /Open Fictivol/ }),

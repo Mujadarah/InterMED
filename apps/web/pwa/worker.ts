@@ -7,7 +7,9 @@ export function renderWorker(shell: ShellRelease): string {
 const SHELL = ${JSON.stringify(shell)};
 const PREFIX = 'intermed-public-shell-v1-';
 const CACHE = PREFIX + SHELL.version;
-const routes = new Set(['/', '/status']);
+// Every route this shell renders from its own HTML is served from the
+// precache, so a cold deep link works offline exactly like a warm navigation.
+const shellRoute = path => path === '/' || path === '/status' || path === '/search' || path.startsWith('/medication/');
 const owned = name => name.startsWith(PREFIX) && /^[a-f0-9]{20}$/.test(name.slice(PREFIX.length));
 const publicAsset = url => ['/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png', '/icons/apple-touch-180.png'].includes(url) || /^\/assets\/[a-zA-Z0-9_-]+\.(js|css)$/.test(url);
 const assetType = url => url === '/index.html' ? 'text/html' : url === '/manifest.webmanifest' ? 'application/manifest+json' : url.endsWith('.png') ? 'image/png' : url.endsWith('.css') ? 'text/css' : 'javascript';
@@ -189,7 +191,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.search || request.headers.has('authorization')) return;
-  const navigation = request.mode === 'navigate' && routes.has(url.pathname);
+  const navigation = request.mode === 'navigate' && shellRoute(url.pathname);
   if (!navigation && !publicAsset(url.pathname)) return;
   event.respondWith((async () => {
     try {

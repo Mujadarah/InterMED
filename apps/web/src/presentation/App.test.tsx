@@ -122,7 +122,7 @@ it('registers the medication search route in navigation', async () => {
   );
   await user.click(screen.getByRole('link', { name: 'Medication search' }));
   expect(
-    screen.getByRole('heading', { name: 'Local medication search' }),
+    await screen.findByRole('heading', { name: 'Local medication search' }),
   ).toBeVisible();
   expect(screen.getByRole('searchbox')).toBeDisabled();
   expect(screen.getByRole('link', { name: 'Dataset status' })).toHaveAttribute(
