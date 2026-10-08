@@ -24,7 +24,7 @@ Run `npm run dev` for the local Vite server. Run `npm run build`, then `npm run 
 
 `tests/importer/handler-artifact-flow.test.ts` runs the real **compiled** Function artifact on a separately installed official Node 22 runtime, selected by the `INTERMED_NODE22_RUNTIME` environment variable. That suite **never skips**: a missing, non-executable or wrong-version runtime fails the run with an actionable error instead of being reported as skipped. Provisioning only the pinned Node 24.21.0/npm 11.19.0 primary runtime above is therefore not enough, and following the setup instructions alone without the steps below makes `npm run test` and `npm run check` fail.
 
-Provision an **independent official Node 22.23.2 binary** and keep it alongside the primary pinned Node 24.21.0/npm 11.19.0; both installations remain on disk at the same time. The distribution is the root-previously-verified official vendor link <https://nodejs.org/dist/v22.23.2/>. Node 24 stays the primary `PATH` runtime: do **not** switch the primary `PATH` permanently, and do **not** repoint a version-manager shim (for example an `nvm`/`nvm-windows` symlink) at Node 22, because the test needs the actual independent executable rather than whatever `node` currently resolves to.
+Provision an **independent official Node 22.23.2 binary** and keep it alongside the primary pinned Node 24.21.0/npm 11.19.0; both installations remain on disk at the same time. The distribution is the official Node release download for that exact version: <https://nodejs.org/dist/v22.23.2/>. Node 24 stays the primary `PATH` runtime: do **not** switch the primary `PATH` permanently, and do **not** repoint a version-manager shim (for example an `nvm`/`nvm-windows` symlink) at Node 22, because the test needs the actual independent executable rather than whatever `node` currently resolves to.
 
 Windows PowerShell, from the repository root, where `<node22-install>` is the directory holding the secondary Node 22.23.2 `node.exe`:
 
@@ -40,7 +40,7 @@ npm run check
 POSIX shell, from the repository root, where `<node22-install>` is the prefix holding the secondary Node 22.23.2 binary:
 
 ```sh
-export INTERMED_NODE22_RUNTIME=<node22-install>/bin/node
+export INTERMED_NODE22_RUNTIME="<node22-install>/bin/node"
 "$INTERMED_NODE22_RUNTIME" --version  # exactly v22.23.2
 node --version                        # v24.21.0 primary, unchanged
 npm --version                         # 11.19.0 primary, unchanged
@@ -113,10 +113,18 @@ retry-identity repairs and the Codacy fixes — **is still in progress, so no
 overall acceptance is claimed**. At the public head `923a060` **both Ubuntu and
 Windows CI PASS** and **DeepSource Secrets PASS** (verified with the root's real
 API); **Codacy reports ACTION_REQUIRED with 4 findings** that are still being
-addressed. A **newly confirmed P1 regression** is recorded as **17 FAIL**
-against the original source at the root's immutable `613c055`
-(`test: preserve independently reproduced PR13 importer regression RED`); that
-source is unchanged and **no GREEN claim is made for it yet**. Milestone 5 still
+addressed. The **newly confirmed P1 regression** was first recorded as **17
+FAIL** against the original source at the root's immutable `613c055`
+(`test: preserve independently reproduced PR13 importer regression RED`), but
+**one of those 17 failures was an invalid test-harness error, not a production
+defect**: the retry probe passed the bare `sha256Hex` function to
+`publicationRowId`, which expects the `{ hash }` sha256 port object like every
+other derivation call site. The genuine original failures are therefore **16**.
+The corrected tests-only corpus at `6fff95f` — production untouched at that
+commit — rerun against the original, unchanged `861fe81` production records
+**22 failures and 172 passing controls**, all 22 being genuine defect
+assertions. The root is independently repeating that corrected run, so **its
+result is not yet root-verified and no GREEN claim is made for it**. Milestone 5 still
 performs **no live schema change, deployment, staging, execution or
 publication**; Milestone 6 remains an **issue 12 owner, separate PR**, and the
 **domain, type and contract surfaces are unchanged**. All other milestone setup

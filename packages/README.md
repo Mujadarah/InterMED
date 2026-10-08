@@ -42,9 +42,16 @@ browser tests — **remains valid**, while the **current** PR13 (the three new P
 repairs, the retry-identity repairs and the Codacy fixes) **is in progress with
 no overall acceptance claim**. At the public head `923a060`, Ubuntu and Windows
 CI both PASS and DeepSource Secrets PASS (root real-API verified); Codacy is
-ACTION_REQUIRED with 4 findings still being addressed, and a newly confirmed P1
-regression records 17 FAIL against the original, unchanged source at the
-root's immutable `613c055`, with no GREEN claim yet. Milestone 5 performs no
+ACTION_REQUIRED with 4 findings still being addressed. The newly confirmed P1
+regression was first recorded as 17 FAIL against the original source at the
+root's immutable `613c055`, but one of those 17 was an invalid test-harness
+error (a SHA-port probe passed the bare `sha256Hex` function instead of the
+`{ hash }` port object), not a production defect, so the genuine original
+failures are 16. The corrected tests-only corpus `6fff95f` — production
+untouched — rerun against the original, unchanged `861fe81` production records
+22 failures and 172 passing controls, all 22 genuine defect assertions; the root
+is independently repeating that corrected run, so it is not yet root-verified
+and no GREEN claim is made. Milestone 5 performs no
 live schema change, deployment, staging, execution or publication; Milestone 6
 stays with its issue 12 owner in a separate PR, and the domain, type and
 contract boundaries listed above are unchanged. All other milestone setup and
