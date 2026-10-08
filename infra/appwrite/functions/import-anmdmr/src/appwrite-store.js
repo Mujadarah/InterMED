@@ -77,6 +77,10 @@ const DATABASE_ID = 'intermed-datasets';
 const LOCK_TABLE_ID = 'import-runs';
 const LOCK_ROW_ID = 'lock';
 
+const TRUSTED_ORIGIN = 'https://fra.cloud.appwrite.io';
+const TRUSTED_PROTOCOL = 'https:';
+const TRUSTED_PATH_PREFIX = '/v1';
+
 const ALLOWED_TABLES_READ = [
   'import-runs',
   'dataset-versions',
@@ -588,14 +592,43 @@ export function createAppwriteStore({
 
   /** Send an authenticated request and translate transport or HTTP failures. */
   async function request(path, options = {}) {
-    const url = `${endpoint}${path}`;
+    if (
+      typeof path !== 'string' ||
+      !path.startsWith('/') ||
+      path.startsWith('//')
+    ) {
+      throw new StoreError('BAD_REQUEST', 'Untrusted URL');
+    }
+
+    let targetUrl;
+    try {
+      targetUrl = new URL(`${endpoint}${path}`);
+    } catch {
+      throw new StoreError('BAD_REQUEST', 'Untrusted URL');
+    }
+
+    if (
+      targetUrl.origin !== TRUSTED_ORIGIN ||
+      targetUrl.protocol !== TRUSTED_PROTOCOL ||
+      targetUrl.username !== '' ||
+      targetUrl.password !== '' ||
+      (targetUrl.pathname !== TRUSTED_PATH_PREFIX &&
+        !targetUrl.pathname.startsWith(`${TRUSTED_PATH_PREFIX}/`))
+    ) {
+      throw new StoreError('BAD_REQUEST', 'Untrusted URL');
+    }
+
     const headers = new Headers(options.headers || {});
     headers.set('X-Appwrite-Project', projectId);
     headers.set('X-Appwrite-Key', serverKey);
 
     let response;
     try {
-      response = await fetch(url, { ...options, headers });
+      response = await fetch(targetUrl.toString(), {
+        ...options,
+        headers,
+        redirect: 'error',
+      });
     } catch {
       throw new StoreError('SERVER_ERROR', 'Network error');
     }

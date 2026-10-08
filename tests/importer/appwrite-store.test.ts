@@ -1,3 +1,5 @@
+import http from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createAppwriteStore } from '../../infra/appwrite/functions/import-anmdmr/src/appwrite-store.js';
 
@@ -20,6 +22,7 @@ interface FakeFetchOptions {
   method?: string;
   headers?: Headers | Record<string, string>;
   body?: string | FormData;
+  redirect?: RequestRedirect | undefined;
 }
 
 interface FakeState {
@@ -298,12 +301,14 @@ describe('Appwrite Store', () => {
     method: string;
     headers: Headers;
     body: string | FormData | undefined;
+    redirect?: RequestRedirect | undefined;
   }[] {
     return fakeFetch.mock.calls.map(([url, options]) => ({
       url: new URL(url.toString()),
       method: options?.method ?? 'GET',
       headers: toHeaders(options?.headers),
       body: options?.body,
+      redirect: options?.redirect,
     }));
   }
 
@@ -1472,6 +1477,83 @@ describe('Appwrite Store', () => {
         code: 'CONFLICT',
         safeMessage: 'Foreign lock refusal',
       });
+    });
+  });
+
+  describe('credential protection and redirect safety', () => {
+    it('refuses to follow redirects and never forwards credentials to second origin', async () => {
+      const fakeCredential = randomBytes(24).toString('hex');
+      let targetRequests = 0;
+      let fakeKeyForwarded = false;
+
+      const trapServer = http.createServer((req, res) => {
+        targetRequests += 1;
+        if (req.headers['x-appwrite-key'] === fakeCredential) {
+          fakeKeyForwarded = true;
+        }
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end('{}');
+      });
+
+      await new Promise<void>((resolve) => {
+        trapServer.listen(0, '127.0.0.1', () => resolve());
+      });
+      const trapPort = (trapServer.address() as { port: number }).port;
+      const targetUrl = `http://127.0.0.1:${trapPort}/trap`;
+
+      const redirectServer = http.createServer((_req, res) => {
+        res.writeHead(302, { location: targetUrl });
+        res.end();
+      });
+
+      await new Promise<void>((resolve) => {
+        redirectServer.listen(0, '127.0.0.1', () => resolve());
+      });
+      const redirectPort = (redirectServer.address() as { port: number }).port;
+
+      try {
+        const store = createAppwriteStore({
+          endpoint: ENDPOINT,
+          projectId: PROJECT_ID,
+          serverKey: fakeCredential,
+          fetch: ((url: string | URL | Request, options?: RequestInit) =>
+            fetch(
+              `http://127.0.0.1:${redirectPort}${new URL(url.toString()).pathname}${new URL(url.toString()).search}`,
+              options,
+            )) as unknown as typeof fetch,
+        });
+
+        await expect(
+          store.getRow('import-runs', 'probe-row'),
+        ).rejects.toMatchObject({
+          code: 'SERVER_ERROR',
+          safeMessage: 'Network error',
+        });
+
+        expect(targetRequests).toBe(0);
+        expect(fakeKeyForwarded).toBe(false);
+      } finally {
+        if (typeof redirectServer.closeAllConnections === 'function') {
+          redirectServer.closeAllConnections();
+        }
+        if (typeof trapServer.closeAllConnections === 'function') {
+          trapServer.closeAllConnections();
+        }
+        await Promise.all([
+          new Promise((resolve) => redirectServer.close(resolve)),
+          new Promise((resolve) => trapServer.close(resolve)),
+        ]);
+      }
+    });
+
+    it('forces redirect: error on all outgoing requests', async () => {
+      seedRow(
+        'import-runs',
+        flatRow('import-runs', 'row1', { sourceId: 's1' }),
+      );
+      await store.getRow('import-runs', 'row1');
+      const [call] = calls();
+      expect(call?.redirect).toBe('error');
     });
   });
 });
