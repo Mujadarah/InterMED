@@ -72,6 +72,14 @@ Tasks: local full/partial commercial/DCI/ATC/manufacturer search, diacritics and
 
 Acceptance: no query request per keystroke when local data exist; synthetic representative large-catalogue performance budget documented/measured; safe candidate selection; unavailable fields never look official; offline links honestly unavailable; touch/keyboard/screen-reader paths tested.
 
+### Part A — Local search and route shell
+
+Part A status: implemented and verified; the full `npm run check` passes on this branch.
+
+Part A adds offline search against one pinned active IndexedDB generation, ranked local matching for commercial/DCI/ATC/manufacturer fields, disambiguating candidate rows, accessible keyboard navigation, `/search`, and the Part B detail placeholder route. It keeps the schema and published dataset contract unchanged. Synthetic 20,000-product performance and browser-flow results are recorded in the Tempo Docs note “M7A Search Implementation Evidence.”
+
+Part B remains open for medication detail content, source links, and detail provenance requirements.
+
 ## Milestone 8 — Favorites and recent searches
 
 Tasks: local favorites/recent, stable identifiers, removal/rename status, retention/clear/delete/export, independent migration; no account/sync.
@@ -124,4 +132,3 @@ Native iOS/iPadOS implementation is cancelled, including native-only SDKs/builds
 ## Evidence record per milestone
 
 Record scope/requirement IDs, changed files, test-first evidence, exact commands/results, source/license/reviewer/version decisions, screenshots using synthetic data, open risks and next gate. Stop on conflicting controlling docs, unsafe migration, missing source permission or required external authority. Passing focused tests is not overall clinical-release approval.
-

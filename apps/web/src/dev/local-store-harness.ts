@@ -46,6 +46,13 @@ export interface LocalStoreHarness {
     readonly generationId: string;
     readonly productIds: Readonly<Record<string, string>>;
   }>;
+  stageLargeCatalogue(productCount: number): Promise<{
+    readonly generationId: string;
+    readonly productCount: number;
+    readonly bundleBuildMilliseconds: number;
+    readonly localStoreStagingMilliseconds: number;
+    readonly totalMilliseconds: number;
+  }>;
   readProducts(): Promise<readonly string[]>;
   beginEvaluation(): Promise<string>;
   readNext(): Promise<HarnessRow | null>;
@@ -80,6 +87,59 @@ function installLocalStoreHarness(): LocalStoreHarness {
       return {
         generationId: synthetic.generationId,
         productIds: synthetic.productIds,
+      };
+    },
+    stageLargeCatalogue: async (productCount) => {
+      if (!Number.isInteger(productCount) || productCount < 20_000)
+        throw new RangeError(
+          'Large search fixture must contain at least 20,000 products.',
+        );
+      const startedAt = performance.now();
+      const ingredientCount = 512;
+      const ingredients = Array.from(
+        { length: ingredientCount },
+        (_, index) => ({
+          key: `AI-LARGE-${index.toString().padStart(3, '0')}`,
+          name: `Imaginary Compound ${index.toString().padStart(3, '0')}`,
+        }),
+      );
+      const families = [
+        'Fictivol',
+        'Placebex',
+        'Synthetica',
+        'Imagivol',
+        'Nullara',
+        'Mockera',
+        'Speculon',
+        'Novelix',
+        'Inventra',
+        'Conceptis',
+        'Fabulen',
+        'Mythica',
+      ];
+      const products = Array.from({ length: productCount }, (_, index) => ({
+        key: `SP-LARGE-${index.toString().padStart(5, '0')}`,
+        name: `${families[index % families.length]} Product ${index
+          .toString()
+          .padStart(5, '0')}`,
+        ingredientKeys: [
+          `AI-LARGE-${(index % ingredientCount).toString().padStart(3, '0')}`,
+        ],
+      }));
+      const synthetic = await buildSyntheticCatalogueBundle({
+        label: `large-${productCount}`,
+        products,
+        ingredients,
+      });
+      const bundleBuiltAt = performance.now();
+      await store.updates.stageAndActivate(synthetic.manifest, synthetic.text);
+      const finishedAt = performance.now();
+      return {
+        generationId: synthetic.generationId,
+        productCount,
+        bundleBuildMilliseconds: bundleBuiltAt - startedAt,
+        localStoreStagingMilliseconds: finishedAt - bundleBuiltAt,
+        totalMilliseconds: finishedAt - startedAt,
       };
     },
     readProducts: async () => {

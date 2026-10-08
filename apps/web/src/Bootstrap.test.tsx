@@ -43,7 +43,9 @@ it.each(['/', '/status'])(
       </MemoryRouter>,
     );
     expect(screen.getByText('Shell version: injected-shell')).toBeVisible();
-    expect(screen.getByText(/Medication dataset: unavailable/)).toBeVisible();
+    expect(
+      screen.getByText(/No cloud medication service is enabled/),
+    ).toBeVisible();
     expect(shell.activate).not.toHaveBeenCalled();
     await userEvent
       .setup()

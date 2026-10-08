@@ -199,3 +199,131 @@ button {
   cursor: pointer;
   margin: 0.25rem 0.5rem 0.25rem 0;
 }
+
+.medication-search-page {
+  max-width: 56rem;
+}
+.search-dataset-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.5rem 1.5rem;
+  margin: 1.5rem 0 0.75rem;
+}
+.search-dataset-meta div {
+  min-width: 0;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.search-dataset-meta dd {
+  overflow-wrap: anywhere;
+}
+.synthetic-label {
+  color: #633a09;
+  font-weight: 600;
+}
+.search-control {
+  margin-top: 1.5rem;
+}
+.search-control label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 650;
+}
+.search-control input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.8rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #627c85;
+  border-radius: 0.3rem;
+  font: inherit;
+}
+.search-control input:focus-visible {
+  outline: 3px solid #8b4d09;
+  outline-offset: 3px;
+}
+.search-control input:disabled {
+  color: #536970;
+  background: #e9eff1;
+}
+.search-status {
+  max-width: none;
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 0.4rem 0.4rem 0;
+  background: #fff;
+}
+.search-error {
+  max-width: none;
+  padding: 0.85rem 1rem;
+  color: #5c1b13;
+  border-left: 4px solid #8d2e20;
+  background: #fff0ed;
+}
+.search-result-list {
+  display: grid;
+  gap: 0.8rem;
+  padding-left: 1.6rem;
+  margin: 1.5rem 0;
+}
+.search-result {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+.search-result a {
+  display: block;
+  min-height: 44px;
+  padding: 1rem;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: inherit;
+}
+.search-result a:hover {
+  background: #edf5f7;
+}
+.search-result a:focus-visible {
+  outline: 3px solid #8b4d09;
+  outline-offset: 2px;
+}
+.search-result-name {
+  display: block;
+  color: var(--accent);
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+.search-result-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.6rem 1rem;
+  margin: 0.85rem 0 0;
+}
+.search-result-details div {
+  min-width: 0;
+}
+.search-result-details dt {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.search-result-details dd {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 42rem) {
+  .search-dataset-meta {
+    grid-template-columns: 1fr;
+  }
+  .search-result-list {
+    padding-left: 1.25rem;
+  }
+  .search-result a {
+    padding: 0.85rem;
+  }
+  .search-result-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

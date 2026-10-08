@@ -29,9 +29,9 @@ test('navigates and reloads a deep link', async ({ page }) => {
   await expect(page.getByRole('main')).toBeFocused();
   await page.reload();
   await expect(
-    page.getByText(
-      /Medication lookup and interaction checking are unavailable/,
-    ),
+    page
+      .getByRole('complementary', { name: 'Application shell' })
+      .getByText(/No cloud medication service is enabled/),
   ).toBeVisible();
 });
 

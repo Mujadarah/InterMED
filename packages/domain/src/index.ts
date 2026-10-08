@@ -72,6 +72,20 @@ export {
 export { validateReferentialIntegrity } from './integrity';
 export type { AmbiguousIdentity, AmbiguousIdentityReason } from './identity';
 export { findAmbiguousIdentities, foldLegacyCedilla } from './identity';
+export type {
+  MedicationSearchRecord,
+  MedicationSearchIndex,
+  MedicationSearchMatch,
+  MedicationSearchMatchRank,
+  MedicationSearchPage,
+} from './medication-search';
+export {
+  createMedicationSearchIndex,
+  foldForMedicationSearch,
+  MAX_MEDICATION_SEARCH_RESULTS,
+  normalizeMedicationSearchQuery,
+  searchMedicationIndex,
+} from './medication-search';
 export type { DeserializeCatalogueResult } from './serialize';
 export { deserializeCatalogue, serializeCatalogue } from './serialize';
 

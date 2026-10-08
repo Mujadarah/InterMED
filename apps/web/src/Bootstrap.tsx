@@ -1,6 +1,14 @@
 import { mockBootstrapProvider } from '@intermed/data-access';
 import type { DatasetStateSource } from '@intermed/domain';
-import { createLocalDatasetStore } from '@intermed/local-store';
+import {
+  createLocalDatasetStore,
+  type LocalDatasetStore,
+} from '@intermed/local-store';
+import {
+  createMedicationSearchService,
+  type MedicationSearchService,
+  unavailableMedicationSearch,
+} from './application/medication-search';
 import { createServices } from './application/services';
 import { App } from './presentation/App';
 import { parseConfig } from './config';
@@ -13,9 +21,9 @@ import { developmentShell } from './application/shell';
  * dataset store (enforced by scripts/check-boundaries.mjs). The store is opened
  * once per page and never downloads anything by itself.
  */
-let browserDataset: DatasetStateSource | undefined;
+let browserDataset: LocalDatasetStore | undefined;
 
-function browserDatasetSource(): DatasetStateSource {
+function browserDatasetStore(): LocalDatasetStore {
   browserDataset ??= createLocalDatasetStore();
   return browserDataset;
 }
@@ -29,10 +37,12 @@ export function Bootstrap({
   env,
   shell = developmentShell,
   dataset,
+  medicationSearch,
 }: {
   env: Record<string, unknown>;
   shell?: ShellController;
   dataset?: DatasetStateSource;
+  medicationSearch?: MedicationSearchService;
 }) {
   let config: AppConfig;
   try {
@@ -53,12 +63,28 @@ export function Bootstrap({
       </div>
     );
   }
+  const localStore = dataset ? undefined : browserDatasetStore();
+  const datasetSource = dataset ?? localStore!;
+  const searchService =
+    medicationSearch ??
+    (localStore
+      ? createMedicationSearchService({
+          activeGenerationId: () => {
+            const state = datasetSource.getState();
+            return 'generation' in state
+              ? (state.generation?.generationId ?? null)
+              : null;
+          },
+          openReader: () => localStore.openReader(),
+        })
+      : unavailableMedicationSearch);
   return (
     <App
       services={createServices(
         config,
         mockBootstrapProvider,
-        dataset ?? browserDatasetSource(),
+        datasetSource,
+        searchService,
       )}
       shell={shell}
     />

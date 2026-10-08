@@ -27,8 +27,8 @@ export function ShellStatus({ shell }: { shell: ShellController }) {
         </p>
       )}
       <p>
-        Medication dataset: unavailable. Medication features remain unavailable
-        online and offline.
+        No cloud medication service is enabled. Search uses only a dataset
+        already stored in this browser; clinical features are unavailable.
       </p>
       {state.availability === 'unavailable' && (
         <p>
