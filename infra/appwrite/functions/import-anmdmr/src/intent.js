@@ -25,6 +25,12 @@ const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const FINGERPRINT_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 const PARSER_ENCODINGS = ['utf-8', 'utf8', 'windows-1250'];
+/**
+ * Optional bounded quarantine reason token, exactly as `stage` emits it for a
+ * real large-removal generation ('large-removal'): one lowercase code token,
+ * never free text. Any other value keeps the document rejected.
+ */
+const QUARANTINE_REASON_PATTERN = /^[a-z][a-z0-9-]{0,49}$/;
 
 /** Accept non-null objects except arrays for document validation. */
 function isPlainObject(value) {
@@ -199,6 +205,39 @@ function parseJson(text) {
   }
 }
 
+/** Exact review keys; the bounded quarantine reason is the only optionality. */
+const REVIEW_KEYS = [
+  'baselineFingerprint',
+  'baselineVersionId',
+  'candidateSha256',
+  'candidateVersionId',
+  'completeness',
+  'configSha256',
+  'dataset',
+  'diffSummary',
+  'issues',
+  'largeRemovalRequired',
+  'purpose',
+  'rawSnapshotSha256',
+  'recordCounts',
+  'stageOperationId',
+];
+
+function hasReviewKeys(review) {
+  const keys = Object.keys(review);
+  if (keys.length === REVIEW_KEYS.length) {
+    return REVIEW_KEYS.every((key) => key in review);
+  }
+  if (keys.length === REVIEW_KEYS.length + 1 && 'quarantineReason' in review) {
+    return (
+      REVIEW_KEYS.every((key) => key in review) &&
+      typeof review.quarantineReason === 'string' &&
+      QUARANTINE_REASON_PATTERN.test(review.quarantineReason)
+    );
+  }
+  return false;
+}
+
 /** Validate a synthetic stage intent and its raw-file and configuration bindings. */
 function validateStageIntent(intent) {
   if (
@@ -310,26 +349,7 @@ export function parseIntentDocument(text) {
 export function parseReviewDocument(text) {
   const review = parseJson(text);
   if (!review) return { ok: false };
-  if (
-    !hasExactKeys(review, [
-      'baselineFingerprint',
-      'baselineVersionId',
-      'candidateSha256',
-      'candidateVersionId',
-      'completeness',
-      'configSha256',
-      'dataset',
-      'diffSummary',
-      'issues',
-      'largeRemovalRequired',
-      'purpose',
-      'rawSnapshotSha256',
-      'recordCounts',
-      'stageOperationId',
-    ])
-  ) {
-    return { ok: false };
-  }
+  if (!hasReviewKeys(review)) return { ok: false };
   if (review.purpose !== REVIEW_PURPOSE) return { ok: false };
   if (!OPERATION_PATTERN.test(review.stageOperationId)) return { ok: false };
   if (!isRecordKey(review.dataset, 100)) return { ok: false };
