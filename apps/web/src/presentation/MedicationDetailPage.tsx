@@ -1,68 +1,17 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
-  DatasetUpdateState,
   FieldState,
-  LocalDatasetGeneration,
   MedicationIngredient,
   MedicationProductDetail,
   RegulatoryDocument,
 } from '@intermed/domain';
 import type { MedicationDetailService } from '../application/medication-detail';
 import { datasetAgeText } from './dataset-age';
-import { getSearchStatusMessage } from './search-status';
+import { useMedicationDetail } from './use-medication-detail';
 
 const NOT_PROVIDED = 'Not provided by source';
-
-type DetailPageState =
-  | { readonly status: 'loading' }
-  | { readonly status: 'no-data'; readonly message: string }
-  | {
-      readonly status: 'not-found';
-      readonly generationId: string;
-      readonly productId: string;
-      readonly retryRevision: number;
-    }
-  | {
-      readonly status: 'error';
-      readonly generationId: string;
-      readonly productId: string;
-      readonly retryRevision: number;
-    }
-  | {
-      readonly status: 'success';
-      readonly generationId: string;
-      readonly productId: string;
-      readonly retryRevision: number;
-      readonly detail: MedicationProductDetail;
-    };
-
-type DetailReadState = Exclude<DetailPageState, { readonly status: 'no-data' }>;
-type SettledDetailReadState = Exclude<
-  DetailReadState,
-  { readonly status: 'loading' }
->;
-
-function readStateMatchesRequest(
-  state: DetailReadState,
-  generationId: string,
-  productId: string,
-  retryRevision: number,
-): state is SettledDetailReadState {
-  return (
-    state.status !== 'loading' &&
-    state.generationId === generationId &&
-    state.productId === productId &&
-    state.retryRevision === retryRevision
-  );
-}
-
-function generationOf(
-  state: DatasetUpdateState,
-): LocalDatasetGeneration | null {
-  return 'generation' in state ? state.generation : null;
-}
 
 function sourceText(value: string): string {
   return value.trim() ? value : NOT_PROVIDED;
@@ -109,21 +58,26 @@ function isHttpUrl(url: string): boolean {
   }
 }
 
+function subscribeToOnlineStatus(onChange: () => void): () => void {
+  window.addEventListener('online', onChange);
+  window.addEventListener('offline', onChange);
+  return () => {
+    window.removeEventListener('online', onChange);
+    window.removeEventListener('offline', onChange);
+  };
+}
+
+function readOnlineStatus(): boolean {
+  return navigator.onLine;
+}
+
 function useOnlineStatus(): boolean {
-  const [online, setOnline] = useState(() =>
-    typeof navigator === 'undefined' ? true : navigator.onLine,
+  // Server rendering assumes online; the browser snapshot reads the navigator.
+  return useSyncExternalStore(
+    subscribeToOnlineStatus,
+    readOnlineStatus,
+    () => true,
   );
-  useEffect(() => {
-    const refresh = () => setOnline(navigator.onLine);
-    window.addEventListener('online', refresh);
-    window.addEventListener('offline', refresh);
-    refresh();
-    return () => {
-      window.removeEventListener('online', refresh);
-      window.removeEventListener('offline', refresh);
-    };
-  }, []);
-  return online;
 }
 
 function DetailBackLink({ query }: { query: string | null }) {
@@ -264,6 +218,222 @@ function DocumentRow({
   );
 }
 
+function IdentificationSection({
+  product,
+  dosageForm,
+}: {
+  product: MedicationProductDetail['product'];
+  dosageForm: MedicationProductDetail['dosageForm'];
+}) {
+  return (
+    <section aria-labelledby="medication-identification-title">
+      <h2 id="medication-identification-title">Identification</h2>
+      <dl className="detail-list">
+        <Definition label="Commercial name">
+          {sourceText(product.commercialName)}
+        </Definition>
+        <Definition label="Strength">
+          {fieldText(product.strengthText)}
+        </Definition>
+        <Definition label="Dosage form">
+          {dosageForm
+            ? sourceText(dosageForm.originalSourceText)
+            : NOT_PROVIDED}
+        </Definition>
+        <Definition label="Route">{fieldText(product.route)}</Definition>
+        <Definition label="Pack/presentation">
+          {fieldText(product.presentationOrPackDescription)}
+        </Definition>
+        <Definition label="CIM">{fieldText(product.cim)}</Definition>
+        <Definition label="Authorization number">
+          {fieldText(product.authorizationNumber)}
+        </Definition>
+        <Definition label="Authorization date">
+          {fieldText(product.authorizationDate)}
+        </Definition>
+        <Definition label="Authorization status">
+          {fieldText(product.authorizationStatus)}
+        </Definition>
+        <Definition label="Catalogue status">
+          {catalogueStatus(product.status)}
+        </Definition>
+      </dl>
+    </section>
+  );
+}
+
+function CompositionSection({
+  ingredients,
+}: {
+  ingredients: MedicationProductDetail['ingredients'];
+}) {
+  return (
+    <section aria-labelledby="medication-composition-title">
+      <h2 id="medication-composition-title">Composition</h2>
+      {ingredients.length === 0 ? (
+        <p>{NOT_PROVIDED}</p>
+      ) : (
+        <ol className="detail-card-list" aria-label="Product ingredients">
+          {ingredients.map(({ medicationIngredient, activeIngredient }) => (
+            <IngredientRow
+              key={medicationIngredient.id}
+              medicationIngredient={medicationIngredient}
+              activeIngredient={activeIngredient}
+            />
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+function AtcSection({
+  atcCodes,
+}: {
+  atcCodes: MedicationProductDetail['atcCodes'];
+}) {
+  return (
+    <section aria-labelledby="medication-atc-title">
+      <h2 id="medication-atc-title">ATC codes</h2>
+      {atcCodes.length === 0 ? (
+        <p>{NOT_PROVIDED}</p>
+      ) : (
+        <ul className="detail-card-list" aria-label="ATC code records">
+          {atcCodes.map((code) => (
+            <li className="detail-card" key={code.id}>
+              <dl className="detail-list detail-list-compact">
+                <Definition label="Code">{sourceText(code.code)}</Definition>
+                <Definition label="Display name">
+                  {fieldText(code.displayName)}
+                </Definition>
+              </dl>
+              {code.illustrative && (
+                <p className="detail-note">
+                  illustrative, not an official classification
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function PartiesSection({
+  manufacturers,
+  marketingAuthorizationHolder,
+}: {
+  manufacturers: MedicationProductDetail['manufacturers'];
+  marketingAuthorizationHolder: MedicationProductDetail['marketingAuthorizationHolder'];
+}) {
+  return (
+    <section aria-labelledby="medication-parties-title">
+      <h2 id="medication-parties-title">
+        Manufacturers and marketing authorization holder
+      </h2>
+      <dl className="detail-list">
+        <div>
+          <dt>Manufacturer(s)</dt>
+          <dd>
+            {manufacturers.length === 0
+              ? NOT_PROVIDED
+              : manufacturers.map((item) => sourceText(item.name)).join(', ')}
+          </dd>
+        </div>
+        <Definition label="Marketing authorization holder">
+          {marketingAuthorizationHolder
+            ? sourceText(marketingAuthorizationHolder.name)
+            : NOT_PROVIDED}
+        </Definition>
+      </dl>
+    </section>
+  );
+}
+
+function DocumentsSection({
+  documents,
+  online,
+}: {
+  documents: MedicationProductDetail['regulatoryDocuments'];
+  online: boolean;
+}) {
+  return (
+    <section aria-labelledby="medication-documents-title">
+      <h2 id="medication-documents-title">Regulatory documents</h2>
+      {documents.length === 0 ? (
+        <p>{NOT_PROVIDED}</p>
+      ) : (
+        <ol
+          className="detail-card-list"
+          aria-label="Regulatory document records"
+        >
+          {documents.map((document) => (
+            <DocumentRow
+              key={document.id}
+              document={document}
+              online={online}
+            />
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+function ProvenanceSection({ detail }: { detail: MedicationProductDetail }) {
+  const { product } = detail;
+  return (
+    <section aria-labelledby="medication-provenance-title">
+      <h2 id="medication-provenance-title">Source and dataset provenance</h2>
+      <dl className="detail-list">
+        <Definition label="Data source">
+          {detail.dataSource
+            ? sourceText(detail.dataSource.name)
+            : NOT_PROVIDED}
+        </Definition>
+        <Definition label="Source authority">
+          {detail.dataSource
+            ? sourceText(detail.dataSource.authority)
+            : NOT_PROVIDED}
+        </Definition>
+        <Definition label="Source rights status">
+          {detail.dataSource?.rightsStatus ?? NOT_PROVIDED}
+        </Definition>
+        <Definition label="Dataset version">
+          {sourceText(detail.generation.version)}
+        </Definition>
+        <Definition label="Dataset published date">
+          {detail.generation.publishedAt ?? NOT_PROVIDED}
+        </Definition>
+        <Definition label="Upstream published date">
+          {detail.datasetVersion
+            ? fieldText(detail.datasetVersion.upstreamPublishedAt)
+            : NOT_PROVIDED}
+        </Definition>
+        <Definition label="Imported date">
+          {sourceText(detail.generation.importedAt)}
+        </Definition>
+        <Definition label="Downloaded date">
+          {sourceText(detail.generation.downloadedAt)}
+        </Definition>
+        <Definition label="Local download age">
+          {datasetAgeText(detail.generation.downloadedAt)}
+        </Definition>
+        <Definition label="Product source version">
+          {sourceText(product.sourceVersion)}
+        </Definition>
+        <Definition label="First seen at">
+          {sourceText(product.firstSeenAt)}
+        </Definition>
+        <Definition label="Last seen at">
+          {sourceText(product.lastSeenAt)}
+        </Definition>
+      </dl>
+    </section>
+  );
+}
+
 function ProductDetail({
   detail,
   online,
@@ -293,175 +463,18 @@ function ProductDetail({
           This product record is unresolved in the active local dataset.
         </p>
       )}
-
-      <section aria-labelledby="medication-identification-title">
-        <h2 id="medication-identification-title">Identification</h2>
-        <dl className="detail-list">
-          <Definition label="Commercial name">
-            {sourceText(product.commercialName)}
-          </Definition>
-          <Definition label="Strength">
-            {fieldText(product.strengthText)}
-          </Definition>
-          <Definition label="Dosage form">
-            {detail.dosageForm
-              ? sourceText(detail.dosageForm.originalSourceText)
-              : NOT_PROVIDED}
-          </Definition>
-          <Definition label="Route">{fieldText(product.route)}</Definition>
-          <Definition label="Pack/presentation">
-            {fieldText(product.presentationOrPackDescription)}
-          </Definition>
-          <Definition label="CIM">{fieldText(product.cim)}</Definition>
-          <Definition label="Authorization number">
-            {fieldText(product.authorizationNumber)}
-          </Definition>
-          <Definition label="Authorization date">
-            {fieldText(product.authorizationDate)}
-          </Definition>
-          <Definition label="Authorization status">
-            {fieldText(product.authorizationStatus)}
-          </Definition>
-          <Definition label="Catalogue status">
-            {catalogueStatus(product.status)}
-          </Definition>
-        </dl>
-      </section>
-
-      <section aria-labelledby="medication-composition-title">
-        <h2 id="medication-composition-title">Composition</h2>
-        {detail.ingredients.length === 0 ? (
-          <p>{NOT_PROVIDED}</p>
-        ) : (
-          <ol className="detail-card-list" aria-label="Product ingredients">
-            {detail.ingredients.map(
-              ({ medicationIngredient, activeIngredient }) => (
-                <IngredientRow
-                  key={medicationIngredient.id}
-                  medicationIngredient={medicationIngredient}
-                  activeIngredient={activeIngredient}
-                />
-              ),
-            )}
-          </ol>
-        )}
-      </section>
-
-      <section aria-labelledby="medication-atc-title">
-        <h2 id="medication-atc-title">ATC codes</h2>
-        {detail.atcCodes.length === 0 ? (
-          <p>{NOT_PROVIDED}</p>
-        ) : (
-          <ul className="detail-card-list" aria-label="ATC code records">
-            {detail.atcCodes.map((code) => (
-              <li className="detail-card" key={code.id}>
-                <dl className="detail-list detail-list-compact">
-                  <Definition label="Code">{sourceText(code.code)}</Definition>
-                  <Definition label="Display name">
-                    {fieldText(code.displayName)}
-                  </Definition>
-                </dl>
-                {code.illustrative && (
-                  <p className="detail-note">
-                    illustrative, not an official classification
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section aria-labelledby="medication-parties-title">
-        <h2 id="medication-parties-title">
-          Manufacturers and marketing authorization holder
-        </h2>
-        <dl className="detail-list">
-          <div>
-            <dt>Manufacturer(s)</dt>
-            <dd>
-              {detail.manufacturers.length === 0
-                ? NOT_PROVIDED
-                : detail.manufacturers
-                    .map((item) => sourceText(item.name))
-                    .join(', ')}
-            </dd>
-          </div>
-          <Definition label="Marketing authorization holder">
-            {detail.marketingAuthorizationHolder
-              ? sourceText(detail.marketingAuthorizationHolder.name)
-              : NOT_PROVIDED}
-          </Definition>
-        </dl>
-      </section>
-
-      <section aria-labelledby="medication-documents-title">
-        <h2 id="medication-documents-title">Regulatory documents</h2>
-        {detail.regulatoryDocuments.length === 0 ? (
-          <p>{NOT_PROVIDED}</p>
-        ) : (
-          <ol
-            className="detail-card-list"
-            aria-label="Regulatory document records"
-          >
-            {detail.regulatoryDocuments.map((document) => (
-              <DocumentRow
-                key={document.id}
-                document={document}
-                online={online}
-              />
-            ))}
-          </ol>
-        )}
-      </section>
-
-      <section aria-labelledby="medication-provenance-title">
-        <h2 id="medication-provenance-title">Source and dataset provenance</h2>
-        <dl className="detail-list">
-          <Definition label="Data source">
-            {detail.dataSource
-              ? sourceText(detail.dataSource.name)
-              : NOT_PROVIDED}
-          </Definition>
-          <Definition label="Source authority">
-            {detail.dataSource
-              ? sourceText(detail.dataSource.authority)
-              : NOT_PROVIDED}
-          </Definition>
-          <Definition label="Source rights status">
-            {detail.dataSource?.rightsStatus ?? NOT_PROVIDED}
-          </Definition>
-          <Definition label="Dataset version">
-            {sourceText(detail.generation.version)}
-          </Definition>
-          <Definition label="Dataset published date">
-            {detail.generation.publishedAt ?? NOT_PROVIDED}
-          </Definition>
-          <Definition label="Upstream published date">
-            {detail.datasetVersion
-              ? fieldText(detail.datasetVersion.upstreamPublishedAt)
-              : NOT_PROVIDED}
-          </Definition>
-          <Definition label="Imported date">
-            {sourceText(detail.generation.importedAt)}
-          </Definition>
-          <Definition label="Downloaded date">
-            {sourceText(detail.generation.downloadedAt)}
-          </Definition>
-          <Definition label="Local download age">
-            {datasetAgeText(detail.generation.downloadedAt)}
-          </Definition>
-          <Definition label="Product source version">
-            {sourceText(product.sourceVersion)}
-          </Definition>
-          <Definition label="First seen at">
-            {sourceText(product.firstSeenAt)}
-          </Definition>
-          <Definition label="Last seen at">
-            {sourceText(product.lastSeenAt)}
-          </Definition>
-        </dl>
-      </section>
+      <IdentificationSection product={product} dosageForm={detail.dosageForm} />
+      <CompositionSection ingredients={detail.ingredients} />
+      <AtcSection atcCodes={detail.atcCodes} />
+      <PartiesSection
+        manufacturers={detail.manufacturers}
+        marketingAuthorizationHolder={detail.marketingAuthorizationHolder}
+      />
+      <DocumentsSection
+        documents={detail.regulatoryDocuments}
+        online={online}
+      />
+      <ProvenanceSection detail={detail} />
     </>
   );
 }
@@ -476,81 +489,15 @@ export function MedicationDetailPage({
   dataset: DatasetStateSource;
   detail: MedicationDetailService;
 }) {
-  const datasetState = useSyncExternalStore(
-    dataset.subscribe,
-    dataset.getState,
-  );
-  const generation = generationOf(datasetState);
-  const generationId = generation?.generationId ?? null;
-  const opening = datasetState.status === 'opening';
-  const noDataMessage = generation
-    ? null
-    : getSearchStatusMessage({
-        datasetState,
-        query: '',
-        search: null,
-      });
   const [searchParams] = useSearchParams();
   const returnQuery = searchParams.get('q');
-  const [readState, setReadState] = useState<DetailReadState>({
-    status: 'loading',
-  });
-  const [retryRevision, setRetryRevision] = useState(0);
+  const { pageState, retry } = useMedicationDetail(productId, dataset, detail);
   const online = useOnlineStatus();
   const page = useRef<HTMLElement>(null);
-  const pageState: DetailPageState = opening
-    ? { status: 'loading' }
-    : generationId === null
-      ? {
-          status: 'no-data',
-          message: noDataMessage ?? 'No active local dataset is available.',
-        }
-      : readStateMatchesRequest(
-            readState,
-            generationId,
-            productId,
-            retryRevision,
-          )
-        ? readState
-        : { status: 'loading' };
 
   useEffect(() => {
     page.current?.querySelector<HTMLElement>('h1[tabindex="-1"]')?.focus();
   }, [pageState.status]);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (opening || !generationId) return;
-
-    void detail.productDetail(productId).then(
-      (result) => {
-        if (cancelled) return;
-        setReadState(
-          result
-            ? {
-                status: 'success',
-                generationId,
-                productId,
-                retryRevision,
-                detail: result,
-              }
-            : { status: 'not-found', generationId, productId, retryRevision },
-        );
-      },
-      () => {
-        if (cancelled) return;
-        setReadState({
-          status: 'error',
-          generationId,
-          productId,
-          retryRevision,
-        });
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [detail, generationId, opening, productId, retryRevision]);
 
   return (
     <section
@@ -600,10 +547,7 @@ export function MedicationDetailPage({
             Medication detail could not be read. Try again or check dataset
             status.
           </p>
-          <button
-            type="button"
-            onClick={() => setRetryRevision((current) => current + 1)}
-          >
+          <button type="button" onClick={retry}>
             Retry medication detail
           </button>
           <Link className="detail-status-link" to="/status">
