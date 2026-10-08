@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -563,4 +563,54 @@ it('shows the document link as unavailable without an online connection', async 
   expect(
     screen.getByText('Fictional RCP reference', { exact: true }),
   ).toBeVisible();
+});
+
+/** A detail read the test settles itself, so focus can move while it is open. */
+function pendingDetail(): {
+  readonly productDetail: MedicationDetailService['productDetail'];
+  settle: () => void;
+} {
+  let settle: () => void = () => {};
+  const productDetail = vi.fn(
+    () =>
+      new Promise<MedicationProductDetail>((resolve) => {
+        settle = () => resolve(detail());
+      }),
+  );
+  return {
+    productDetail: productDetail as MedicationDetailService['productDetail'],
+    settle: () => settle(),
+  };
+}
+
+it('keeps focus on an element the user reached while the read was loading', async () => {
+  const read = pendingDetail();
+  renderPage(ready, { productDetail: read.productDetail });
+
+  const backLink = screen.getByRole('link', {
+    name: 'Back to medication search',
+  });
+  act(() => backLink.focus());
+  expect(backLink).toHaveFocus();
+
+  // The read settles after the user moved focus: the heading must not steal
+  // it back (GPT-6 review fix 3).
+  await act(async () => read.settle());
+
+  expect(backLink).toHaveFocus();
+});
+
+it('focuses the heading when the read settles and focus was never moved', async () => {
+  const read = pendingDetail();
+  renderPage(ready, { productDetail: read.productDetail });
+
+  // The loading state's heading holds focus; nothing interactive was reached.
+  expect(
+    screen.getByRole('heading', { name: 'Loading medication detail' }),
+  ).toHaveFocus();
+  await act(async () => read.settle());
+
+  expect(
+    screen.getByRole('heading', { name: 'Fictivol detail' }),
+  ).toHaveFocus();
 });

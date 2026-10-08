@@ -497,6 +497,22 @@ function ProductDetail({
   );
 }
 
+/**
+ * Whether focus has moved somewhere the user is working with. Focus resting on
+ * the document body, on `<main>`, on the page section itself or on the heading
+ * of a previous page state was never moved by the user, so a state change may
+ * move it. Anything else - a link, a button, an input - was reached
+ * deliberately and keeps its focus (GPT-6 review fix 3).
+ */
+function focusWasMoved(active: Element | null, page: HTMLElement | null) {
+  if (active === null || active === document.body) return false;
+  if (active instanceof HTMLHeadingElement && active.tabIndex === -1)
+    return false;
+  if (page !== null && active === page) return false;
+  if (active instanceof HTMLElement && active.tagName === 'MAIN') return false;
+  return true;
+}
+
 /** Accessible, local-only view of one product in the active generation. */
 export function MedicationDetailPage({
   productId,
@@ -514,7 +530,9 @@ export function MedicationDetailPage({
   const page = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    page.current?.querySelector<HTMLElement>('h1[tabindex="-1"]')?.focus();
+    const section = page.current;
+    if (focusWasMoved(document.activeElement, section)) return;
+    section?.querySelector<HTMLElement>('h1[tabindex="-1"]')?.focus();
   }, [pageState.status]);
 
   return (
