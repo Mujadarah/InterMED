@@ -8,14 +8,15 @@ type HarnessWindow = Window & {
 
 // Core-search p95 is the product budget and is asserted on every machine.
 // Index build, IndexedDB staging and key-to-render are wall-clock figures that
-// swing with machine load (staging measured 4.8–10.5 s locally and 13–26 s on
-// GitHub runners for the same code), so they are asserted only as broad
-// regression guards. Their targets (index < 5 s, staging < 5 s, key-to-render
-// p95 < 300 ms including the 200 ms debounce) are reported in the logged
-// measurements and tracked in docs/MILESTONE_7_EVIDENCE.md.
+// swing with machine load (staging measured 4.8â€“10.5 s locally, 13â€“26 s on
+// Linux GitHub runners and 26â€“72 s on the same Windows runner image for the
+// same code), so they are asserted only as broad regression guards. Their
+// targets (index < 5 s, staging < 5 s, key-to-render p95 < 300 ms including
+// the 200 ms debounce) are reported in the logged measurements and tracked in
+// docs/MILESTONE_7_EVIDENCE.md.
 const SEARCH_PERFORMANCE_BUDGETS = {
   indexMilliseconds: 15_000,
-  stagingMilliseconds: 60_000,
+  stagingMilliseconds: 120_000,
   keyToRenderMilliseconds: 750,
   coreSearchMilliseconds: 100,
 };
@@ -423,7 +424,7 @@ test.describe.serial('medication search browser coverage', () => {
     page,
   }, testInfo: TestInfo) => {
     test.skip(testInfo.project.name !== 'chromium-desktop');
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
 
     const server = await productionServer();
     server.revision('harness');
