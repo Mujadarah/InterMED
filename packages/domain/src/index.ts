@@ -122,6 +122,8 @@ export type {
   LocalDatasetCandidate,
   LocalDatasetGeneration,
   LocalPreferencesStore,
+  MedicationProductDetail,
+  MedicationProductDetailIngredient,
   ProductTombstone,
   PublishedBundleLoader,
   PublishedBundleRead,

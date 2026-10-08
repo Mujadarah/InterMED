@@ -1,5 +1,15 @@
 import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
+import {
+  deriveStableId,
+  deserializeCatalogue,
+  MISSING,
+  presentField,
+  sealCatalogue,
+  serializeCatalogue,
+  unknownField,
+  type MedicationCatalogueSnapshot,
+} from '@intermed/domain';
 import { RETAIN_READY_FOR_MS, STALE_STAGING_MS } from './store';
 import {
   bundle,
@@ -9,6 +19,31 @@ import {
   testStore,
   uniqueName,
 } from './test-support';
+import { SYNTHETIC_SOURCE_KEY } from './synthetic-bundle';
+import { sha256TransportChecksum } from './validate';
+
+async function repackage(
+  source: Awaited<ReturnType<typeof bundle>>,
+  change: (
+    snapshot: MedicationCatalogueSnapshot,
+  ) => MedicationCatalogueSnapshot,
+): Promise<Awaited<ReturnType<typeof bundle>>> {
+  const decoded = deserializeCatalogue(source.text);
+  if (!decoded.ok) throw new Error('The source fixture is invalid');
+  const sealed = sealCatalogue(change(decoded.snapshot));
+  const text = serializeCatalogue(sealed);
+  const version = sealed.datasetVersions[0];
+  if (!version) throw new Error('The fixture has no dataset version');
+  return {
+    ...source,
+    text,
+    manifest: {
+      ...source.manifest,
+      checksum: await sha256TransportChecksum(new TextEncoder().encode(text)),
+      recordCounts: Object.fromEntries(Object.entries(version.recordCounts)),
+    },
+  };
+}
 
 it('pins one generation per reader and switches only at the next reader', async () => {
   const store = testStore();
@@ -381,4 +416,287 @@ it('builds search records only from the reader’s pinned generation', async () 
   ).toEqual(['Fictivol beta', 'Placebex beta']);
   pinned.release();
   current.release();
+});
+
+it('assembles a product detail from its pinned generation', async () => {
+  const store = testStore();
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  const pinned = (await store.openReader())!;
+
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  const detail = await pinned.productDetail(alpha.productIds['SP-PLACEBEX']!);
+
+  expect(detail).not.toBeNull();
+  if (!detail) throw new Error('The pinned product was not found');
+  expect(detail).toMatchObject({
+    generation: {
+      generationId: alpha.generationId,
+      version: 'synthetic-alpha',
+    },
+    product: {
+      commercialName: 'Placebex alpha',
+      status: 'active',
+    },
+    dosageForm: {
+      displayName: 'fictional tablet alpha',
+    },
+    atcCodes: [
+      {
+        code: 'SYN-SP-PLACEBEX',
+        illustrative: true,
+        displayName: {
+          status: 'present',
+          value: 'Synthetic illustrative class alpha',
+        },
+      },
+    ],
+    manufacturers: [{ name: 'Synthetica Laboratories' }],
+    marketingAuthorizationHolder: { name: 'Placebo Holding' },
+    regulatoryDocuments: [
+      {
+        title: { status: 'present', value: 'Fictional Placebex note' },
+        url: 'https://example.invalid/intermed/synthetic-document',
+      },
+    ],
+    dataSource: {
+      name: 'Synthetic development catalogue',
+      authority: 'Fictional Test Authority',
+      rightsStatus: 'unresolved',
+    },
+    datasetVersion: { version: 'synthetic-alpha' },
+  });
+  expect(
+    detail.ingredients.map(({ medicationIngredient, activeIngredient }) => ({
+      sourceText: medicationIngredient.sourceIngredientText,
+      preferredName: activeIngredient?.preferredName ?? null,
+      strength: medicationIngredient.strengthOriginalText,
+    })),
+  ).toEqual(
+    expect.arrayContaining([
+      {
+        sourceText: 'Placebexium alpha',
+        preferredName: 'Placebexium alpha',
+        strength: presentField('500 mg'),
+      },
+      {
+        sourceText: 'Synthetinum alpha',
+        preferredName: 'Synthetinum alpha',
+        strength: presentField('500 mg'),
+      },
+      {
+        sourceText: 'Fictovolol alpha',
+        preferredName: 'Fictovolol alpha',
+        strength: presentField('500 mg'),
+      },
+    ]),
+  );
+  expect(JSON.stringify(detail)).not.toContain(' beta');
+  pinned.release();
+});
+
+it('keeps missing source fields and absent relationships explicit in the projection', async () => {
+  const store = testStore();
+  const source = await bundle('missing');
+  const fixture = await repackage(source, (snapshot) => ({
+    ...snapshot,
+    products: snapshot.products.map((product) =>
+      product.id === source.productIds['SP-FICTIVOL']
+        ? {
+            ...product,
+            cim: MISSING,
+            originalDciText: MISSING,
+            strengthText: MISSING,
+            dosageFormId: MISSING,
+            route: MISSING,
+            atcCodeIds: [],
+            manufacturerIds: [],
+            marketingAuthorizationHolderId: MISSING,
+            authorizationNumber: MISSING,
+            authorizationDate: MISSING,
+            authorizationStatus: MISSING,
+            presentationOrPackDescription: MISSING,
+            regulatoryDocumentIds: [],
+          }
+        : product,
+    ),
+  }));
+  await store.updates.stageAndActivate(fixture.manifest, fixture.text);
+  const reader = (await store.openReader())!;
+
+  const detail = await reader.productDetail(fixture.productIds['SP-FICTIVOL']!);
+
+  expect(detail).not.toBeNull();
+  expect(detail?.product).toMatchObject({
+    cim: MISSING,
+    originalDciText: MISSING,
+    strengthText: MISSING,
+    dosageFormId: MISSING,
+    route: MISSING,
+    authorizationNumber: MISSING,
+    authorizationDate: MISSING,
+    authorizationStatus: MISSING,
+    presentationOrPackDescription: MISSING,
+  });
+  expect(detail).toMatchObject({
+    dosageForm: null,
+    atcCodes: [],
+    manufacturers: [],
+    marketingAuthorizationHolder: null,
+    regulatoryDocuments: [],
+  });
+  reader.release();
+});
+
+it('returns removed and unresolved products with multiple documents and a missing URL', async () => {
+  const name = uniqueName();
+  const store = testStore({ name });
+  const source = await bundle('states');
+  let secondDocumentId: string | null = null;
+  const fixture = await repackage(source, (snapshot) => {
+    const fictivolId = source.productIds['SP-FICTIVOL'];
+    const placebexId = source.productIds['SP-PLACEBEX'];
+    const fictivol = snapshot.products.find(
+      (product) => product.id === fictivolId,
+    );
+    const firstDocument = snapshot.regulatoryDocuments.find(
+      (document) => document.productId === fictivolId,
+    );
+    if (!fictivol || !firstDocument)
+      throw new Error('The synthetic product or document is missing');
+    const sourceRecordKey = 'RD-SP-FICTIVOL-PIL';
+    const derived = deriveStableId(
+      'RegulatoryDocument',
+      SYNTHETIC_SOURCE_KEY,
+      sourceRecordKey,
+    );
+    if (!derived.ok) throw new Error('The synthetic document id was rejected');
+    secondDocumentId = derived.id;
+    const secondDocument = {
+      ...firstDocument,
+      id: derived.id,
+      type: 'PIL' as const,
+      title: presentField('Fictional Fictivol leaflet'),
+      url: 'https://example.invalid/intermed/synthetic-leaflet',
+      documentVersion: presentField('fictional-edition'),
+      sourceRecordKey,
+    };
+    return {
+      ...snapshot,
+      products: snapshot.products.map((product) =>
+        product.id === fictivolId
+          ? {
+              ...product,
+              status: 'removed' as const,
+              regulatoryDocumentIds: [
+                ...product.regulatoryDocumentIds,
+                derived.id,
+              ],
+            }
+          : product.id === placebexId
+            ? { ...product, status: 'unresolved' as const }
+            : product,
+      ),
+      regulatoryDocuments: [...snapshot.regulatoryDocuments, secondDocument],
+    };
+  });
+  await store.updates.stageAndActivate(fixture.manifest, fixture.text);
+  const reader = (await store.openReader())!;
+  if (!secondDocumentId) throw new Error('The second document id was not made');
+  const database = await testDatabase(name);
+  const documentRow = await database.documents.get([
+    fixture.generationId,
+    secondDocumentId,
+  ]);
+  if (!documentRow) throw new Error('The second document row is missing');
+  await database.documents.put({
+    ...documentRow,
+    entity: { ...documentRow.entity, url: '' },
+  });
+  database.close();
+
+  const removed = await reader.productDetail(
+    fixture.productIds['SP-FICTIVOL']!,
+  );
+  const unresolved = await reader.productDetail(
+    fixture.productIds['SP-PLACEBEX']!,
+  );
+
+  expect(removed?.product.status).toBe('removed');
+  expect(removed?.regulatoryDocuments).toHaveLength(2);
+  expect(removed?.regulatoryDocuments.map((document) => document.type)).toEqual(
+    ['other', 'PIL'],
+  );
+  expect(removed?.regulatoryDocuments[1]?.url).toBe('');
+  expect(unresolved?.product.status).toBe('unresolved');
+  reader.release();
+});
+
+it('preserves unmapped composition and the nonfatal quality tokens', async () => {
+  const store = testStore();
+  const source = await bundle('quality');
+  const fixture = await repackage(source, (snapshot) => ({
+    ...snapshot,
+    medicationIngredients: snapshot.medicationIngredients.map((join) =>
+      join.productId === source.productIds['SP-FICTIVOL']
+        ? {
+            ...join,
+            ingredientId: MISSING,
+            sourceIngredientText: 'Fictional source ingredient quality',
+            strengthValue: presentField('500,125'),
+            strengthValueNormalized: unknownField('ambiguous-decimal'),
+            strengthUnit: {
+              status: 'invalid' as const,
+              sourceText: 'mg?',
+              reason: 'unrecognized-unit' as const,
+            },
+            strengthOriginalText: presentField('500,125 mg?'),
+            mappingStatus: 'unresolved' as const,
+          }
+        : join,
+    ),
+  }));
+  await store.updates.stageAndActivate(fixture.manifest, fixture.text);
+  const reader = (await store.openReader())!;
+
+  const detail = await reader.productDetail(fixture.productIds['SP-FICTIVOL']!);
+
+  expect(detail?.ingredients).toEqual([
+    expect.objectContaining({
+      medicationIngredient: expect.objectContaining({
+        sourceIngredientText: 'Fictional source ingredient quality',
+        strengthOriginalText: presentField('500,125 mg?'),
+        strengthUnit: {
+          status: 'invalid',
+          sourceText: 'mg?',
+          reason: 'unrecognized-unit',
+        },
+        strengthValueNormalized: unknownField('ambiguous-decimal'),
+        mappingStatus: 'unresolved',
+      }),
+      activeIngredient: null,
+    }),
+  ]);
+  reader.release();
+});
+
+it('returns null for a product id absent from the pinned generation', async () => {
+  const store = testStore();
+  const source = await bundle('alpha');
+  await store.updates.stageAndActivate(source.manifest, source.text);
+  const reader = (await store.openReader())!;
+  const presentProduct = await reader.product(
+    source.productIds['SP-FICTIVOL']!,
+  );
+  if (!presentProduct) throw new Error('The fixture product is missing');
+  const absentId = deriveStableId(
+    'MedicationProduct',
+    SYNTHETIC_SOURCE_KEY,
+    'SP-MISSING',
+  );
+  if (!absentId.ok) throw new Error('The synthetic product id was rejected');
+
+  await expect(reader.productDetail(absentId.id)).resolves.toBeNull();
+  reader.release();
 });

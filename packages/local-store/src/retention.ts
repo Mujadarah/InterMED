@@ -5,6 +5,7 @@
  */
 import type {
   GenerationReader,
+  MedicationProductDetail,
   MedicationSearchRecord,
 } from '@intermed/domain';
 import Dexie, { type Transaction } from 'dexie';
@@ -76,11 +77,12 @@ export function createRetention(deps: RetentionDeps): Retention {
 
   function createReader(record: GenerationRecord): GenerationReader {
     const generationId = record.generationId;
+    const generation = toLocalGeneration(record);
     addPin(generationId);
     let released = false;
     return {
       generationId,
-      generation: toLocalGeneration(record),
+      generation,
       product: async (id) =>
         (await deps.requireDatabase().products.get([generationId, id]))
           ?.entity ?? null,
@@ -94,6 +96,85 @@ export function createRetention(deps: RetentionDeps): Retention {
           .equals([generationId, productId])
           .toArray();
         return rows.map((row) => row.entity);
+      },
+      productDetail: async (
+        productId,
+      ): Promise<MedicationProductDetail | null> => {
+        const db = deps.requireDatabase();
+        const productRow = await db.products.get([generationId, productId]);
+        if (!productRow) return null;
+        const product = productRow.entity;
+        const [
+          ingredientRows,
+          atcRows,
+          dosageFormRow,
+          manufacturerRows,
+          holderRow,
+          documentRows,
+          sourceRow,
+          datasetVersionRow,
+        ] = await Promise.all([
+          db.productIngredients
+            .where('[generationId+productId]')
+            .equals([generationId, productId])
+            .toArray(),
+          Promise.all(
+            product.atcCodeIds.map((id) => db.atcCodes.get([generationId, id])),
+          ),
+          product.dosageFormId.status === 'present'
+            ? db.dosageForms.get([generationId, product.dosageFormId.value])
+            : Promise.resolve(undefined),
+          Promise.all(
+            product.manufacturerIds.map((id) =>
+              db.manufacturers.get([generationId, id]),
+            ),
+          ),
+          product.marketingAuthorizationHolderId.status === 'present'
+            ? db.holders.get([
+                generationId,
+                product.marketingAuthorizationHolderId.value,
+              ])
+            : Promise.resolve(undefined),
+          Promise.all(
+            product.regulatoryDocumentIds.map((id) =>
+              db.documents.get([generationId, id]),
+            ),
+          ),
+          db.sources.get([generationId, product.sourceId]),
+          db.datasetVersions.get([generationId, product.datasetVersionId]),
+        ]);
+        const ingredients = await Promise.all(
+          ingredientRows.map(async (row) => {
+            const medicationIngredient = row.entity;
+            const activeIngredient =
+              medicationIngredient.ingredientId.status === 'present'
+                ? ((
+                    await db.ingredients.get([
+                      generationId,
+                      medicationIngredient.ingredientId.value,
+                    ])
+                  )?.entity ?? null)
+                : null;
+            return { medicationIngredient, activeIngredient };
+          }),
+        );
+
+        return {
+          generation,
+          product,
+          ingredients,
+          dosageForm: dosageFormRow?.entity ?? null,
+          atcCodes: atcRows.flatMap((row) => (row ? [row.entity] : [])),
+          manufacturers: manufacturerRows.flatMap((row) =>
+            row ? [row.entity] : [],
+          ),
+          marketingAuthorizationHolder: holderRow?.entity ?? null,
+          regulatoryDocuments: documentRows.flatMap((row) =>
+            row ? [row.entity] : [],
+          ),
+          dataSource: sourceRow?.entity ?? null,
+          datasetVersion: datasetVersionRow?.entity ?? null,
+        };
       },
       productsByNamePrefix: async (prefix) => {
         const folded = foldForIndex(prefix);
