@@ -23,9 +23,11 @@ export function deriveGenerationVersionKey(
 
 /**
  * Import identity for one raw snapshot under one canonical config.
- * `datasetVersionId` is the real domain stable id of the sealed generation:
- * `deriveStableId('DatasetVersion', sourceKey, generationVersionKey)`, which is
- * exactly `snapshot.datasetVersions[0].id` inside the candidate bytes.
+ * `datasetVersionId` is derived from the normalized source key and generation
+ * version key. Candidate bytes are hashed without parsing or checking their
+ * embedded identity; `stage` verifies that the sealed catalogue has this ID.
+ * Throws ImporterConfigError if the stable ID cannot be derived, and propagates
+ * errors from the supplied hash port.
  */
 export function deriveIdentity(
   config: CanonicalImporterConfig,

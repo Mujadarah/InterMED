@@ -45,7 +45,8 @@ function isLocalStoreConsumer(path) {
 /**
  * Inspect source records with repository-relative paths for boundary violations.
  * Return diagnostics for private package imports, outward domain imports,
- * computed imports and browser/network identifiers in domain code.
+ * computed imports, restricted SDK/filesystem imports in importer code and
+ * browser/network identifiers in domain or importer code.
  */
 export function inspectBoundary(files) {
   const violations = [];

@@ -140,7 +140,10 @@ async function runStage(intent, deps, operationRef) {
   });
 }
 
-/** Load and validate the intent-bound private review, returning null when unavailable or invalid. */
+/**
+ * Load and validate the intent-bound private review. Returns null for an
+ * explicit NOT_FOUND response or invalid document; other read errors propagate.
+ */
 async function loadReview(store, sha256, intent) {
   const fileId = reviewFileId(sha256, {
     stageOperationId: intent.stageOperationId,
@@ -250,6 +253,9 @@ async function runPublish(intent, deps, operationRef) {
 /**
  * Run one referenced operation. Publication stays disabled unless the trusted
  * flag is exactly true and the private intent carries explicit approval.
+ * Returns an HTTP status and bounded outcome fields for missing or rejected
+ * intents, staging results and publication decisions. Storage and core errors
+ * propagate, except a busy publication lock becomes a 409 outcome.
  */
 export async function runOperation({ operationId, deps }) {
   const { sha256, publishEnabled } = deps;

@@ -560,7 +560,14 @@ async function readBoundedBody(response, limit) {
   return out;
 }
 
-/** Build a bounded REST store restricted to the trusted development endpoint and project. */
+/**
+ * Build a bounded REST store restricted to the trusted development endpoint and
+ * project. `maxBytes` caps serialized row requests, uploaded file contents and
+ * response bodies; it defaults to 5 MiB and must be an integer from 1 to 5 MiB.
+ * Throws StoreError with BAD_REQUEST for invalid options. Returned operations
+ * reject with StoreError for validation, transport and HTTP failures; only lock
+ * acquisition conflicts and missing locks on release become fallback results.
+ */
 export function createAppwriteStore({
   fetch,
   endpoint,

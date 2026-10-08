@@ -253,6 +253,10 @@ function envelopeProblems(root: Record<string, unknown>): string[] {
  * Count policy: `recordCounts` declares the UNIQUE rows per entity list, i.e.
  * the row counts AFTER identical duplicate rows have been collapsed. Bounds are
  * enforced against the ACTUAL rows as delivered, never against declared counts.
+ * Returns normalized rows and bounded issues on success, or a quarantine
+ * reason for decoding, JSON, envelope, duplicate or count failures. This does
+ * not validate domain entities or require a full, synthetic snapshot.
+ * Throws ImporterConfigError for invalid configuration before parsing.
  */
 export function parseRawSnapshot(
   bytes: Uint8Array,

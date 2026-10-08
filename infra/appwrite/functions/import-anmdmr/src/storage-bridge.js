@@ -535,7 +535,12 @@ function createSharedPorts(options) {
     return sorted[0] ?? null;
   }
 
-  /** Load the latest baseline and verify its bundle checksum, decoding and declared counts. */
+  /**
+   * Load the latest baseline and verify its bundle checksum, decoding and
+   * declared counts. Returns null version and fingerprint fields for an empty
+   * manifest listing. Missing or invalid baseline components and store errors
+   * propagate as errors; a successful read updates the journal's baseline.
+   */
   async function readBaseline() {
     const newest = pickNewest(await listBaselineRows());
     if (!newest) {
@@ -595,7 +600,12 @@ function createSharedPorts(options) {
   };
 }
 
-/** Build the StagePorts bridge for one authorized staging operation. */
+/**
+ * Build staging ports and a journal for one authorized operation. Private files
+ * are limited to 5 MiB and reused on create conflicts only if their bytes match.
+ * Port calls propagate store errors and throw BridgeError for invalid artifacts
+ * or differing private content.
+ */
 export function createStageBridge(options) {
   const shared = createSharedPorts(options);
   const { sha256, config, stageOperationId, dataset, issuedAt } = options;
@@ -605,6 +615,7 @@ export function createStageBridge(options) {
     sha256,
     log: shared.filteredLog,
     readBaseline: shared.readBaseline,
+    /** Store raw bytes under the run and reason; issue details are not stored here. */
     async writeQuarantine(runId, bytes, reason, issues) {
       void issues;
       await shared.createPrivateFileSemantics(
@@ -614,6 +625,7 @@ export function createStageBridge(options) {
         bytes,
       );
     },
+    /** Store candidate bytes privately under a file ID derived from the canonical ID. */
     async writeCandidate(candidateVersionId, bytes) {
       const fileId = candidateFileId(sha256, candidateVersionId);
       await shared.createPrivateFileSemantics(
@@ -623,6 +635,10 @@ export function createStageBridge(options) {
         bytes,
       );
     },
+    /**
+     * Save review data in the journal and create a private review file bound to
+     * the stage, candidate and baseline, with bounded issue strings.
+     */
     async writeReview(candidateVersionId, reviewData) {
       journal.reviewData = reviewData;
       const reviewId = reviewFileId(sha256, {
@@ -645,6 +661,7 @@ export function createStageBridge(options) {
         utf8Bytes(JSON.stringify(document)),
       );
     },
+    /** Persist a private run summary using the journal's current review and baseline. */
     async writeRunSummary(runId, summary) {
       const reviewData = journal.reviewData;
       await shared.createPrivateRowSemantics(
@@ -675,7 +692,12 @@ export function createStageBridge(options) {
   return { ports, journal };
 }
 
-/** Build the PublishPorts bridge for one authorized publication. */
+/**
+ * Build publication ports and a journal for one authorized operation. Writes
+ * require this bridge's active lease and create public objects without updates.
+ * Write conflicts and server failures become the supplied publication-conflict
+ * and ambiguous-write errors; other store errors propagate.
+ */
 export function createPublishBridge(options) {
   const shared = createSharedPorts(options);
   const {
@@ -725,9 +747,15 @@ export function createPublishBridge(options) {
     publicationTimestamp,
     resolvePublicUrl,
     publicBaseUrl,
+    /** Read private candidate bytes by canonical ID; return null only when missing. */
     async readCandidate(versionId) {
       return downloadOrNull(BUCKETS.logs, candidateFileId(sha256, versionId));
     },
+    /**
+     * Read the review bound to this bridge's stage, candidate and baseline.
+     * Returns null when missing; throws BridgeError for invalid JSON or purpose
+     * and propagates other read errors. Review fields are projected, not validated.
+     */
     async readReview() {
       const bytes = await downloadOrNull(
         BUCKETS.logs,
@@ -760,10 +788,16 @@ export function createPublishBridge(options) {
         issues: parsed.issues,
       };
     },
+    /** Read bundle bytes by canonical ID, ignoring fileName; return null when missing. */
     async readPublishedBundleFile(versionId, fileName) {
       void fileName;
       return downloadOrNull(BUCKETS.published, bundleFileId(sha256, versionId));
     },
+    /**
+     * Read the first descriptor listed for the canonical version ID and resolve
+     * its stored file ID to a download URL. Returns null for an empty listing;
+     * store and row-projection errors propagate.
+     */
     async readPublishedDescriptor(versionId) {
       const rows = rowsOf(
         await store.listRows(TABLES.publishedBundles, [
@@ -779,6 +813,11 @@ export function createPublishBridge(options) {
         versionId,
       );
     },
+    /**
+     * Read the manifest at the physical row ID derived from the canonical ID.
+     * Returns null only when missing; uses versionId when the stored canonical
+     * attribute is not a nonempty string. Other read or projection errors propagate.
+     */
     async readPublishedManifest(versionId) {
       let row = null;
       try {
@@ -792,6 +831,12 @@ export function createPublishBridge(options) {
       if (row === null) return null;
       return projectManifestRow(row, versionId);
     },
+    /**
+     * Acquire the shared publication lock with a fresh owner token or throw
+     * BridgeError with publication-busy if held. Returns the lease and a release
+     * callback that invalidates it locally and attempts storage release once,
+     * propagating any store error.
+     */
     async acquirePublicationLock() {
       const ownerToken = randomToken();
       const acquired = await store.acquireLock(ownerToken);
@@ -810,6 +855,11 @@ export function createPublishBridge(options) {
         },
       };
     },
+    /**
+     * Create a public bundle under its derived file ID with a sanitized filename.
+     * Throws the supplied lease error for an inactive lease or BridgeError for
+     * contents exceeding 5 MiB.
+     */
     async writeBundleFile(lease, versionId, fileName, bytes) {
       assertLease(lease);
       if (bytes.length > MAX_ARTIFACT_BYTES) {
@@ -827,6 +877,11 @@ export function createPublishBridge(options) {
         ),
       );
     },
+    /**
+     * Create a public descriptor linked to the version's derived file ID.
+     * Throws the supplied lease error for an inactive lease or BridgeError for
+     * invalid storage fields.
+     */
     async writeDescriptorRow(lease, versionId, descriptor) {
       assertLease(lease);
       const row = buildDescriptorRow(
@@ -837,6 +892,11 @@ export function createPublishBridge(options) {
         store.publishRow(TABLES.publishedBundles, descriptor.id, row),
       );
     },
+    /**
+     * Create the public manifest at the version's derived row ID.
+     * Throws the supplied lease error for an inactive lease or BridgeError for
+     * invalid storage fields or a dataset outside the bridge's configured dataset.
+     */
     async writeManifestRow(lease, versionId, manifest) {
       assertLease(lease);
       if (manifest.dataset !== options.dataset) {

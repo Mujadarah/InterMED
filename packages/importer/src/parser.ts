@@ -24,6 +24,7 @@ export function canonicalEncodingName(value: string): SupportedEncoding | null {
  * Text policy matches the domain: a BOM is stripped, legacy cedilla letters are
  * folded to comma-below forms and the text is returned NFC. All other source
  * text, including șțăâî, padding and internal whitespace, is preserved.
+ * Throws for an unsupported encoding or bytes that cannot be decoded under it.
  */
 export function decodeBytes(bytes: Uint8Array, encoding: string): string {
   const enc = canonicalEncodingName(encoding);

@@ -201,6 +201,13 @@ export function createAppwritePublishedDatasetReader(
   options: AppwritePublishedDatasetReaderOptions,
 ): PublishedDatasetReader {
   return {
+    /**
+     * Read the latest published manifest by publication time. Uses the canonical
+     * datasetVersionId when present, falling back to the row ID only for an
+     * absent or null attribute. Returns `absent` for an empty listing and
+     * `unavailable` for transport, HTTP or response-validation failures.
+     * Rejects with Error for a blank dataset identifier.
+     */
     getManifest: async (dataset) => {
       if (!dataset.trim()) throw new Error('dataset identifier is required');
       const listed = await listRows(options, options.versionsTableId, [
@@ -239,6 +246,13 @@ export function createAppwritePublishedDatasetReader(
       };
       return { status: 'available', value: manifest };
     },
+    /**
+     * Read the first descriptor whose stored datasetVersionId exactly matches
+     * the supplied identifier. Returns `absent` for an empty listing and
+     * `unavailable` for transport, HTTP, malformed or mismatched responses.
+     * Rejects with Error for an empty or blank identifier or one longer than
+     * 512 UTF-16 code units, before making a request.
+     */
     getBundleDescriptor: async (datasetVersionId) => {
       if (!datasetVersionId || datasetVersionId.trim().length === 0)
         throw new Error('dataset version identifier is required');

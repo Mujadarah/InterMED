@@ -77,9 +77,8 @@ function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
 }
 
 /**
- * Datetime values are normalized to instants; nothing else is normalized.
- * REST metadata on read rows is ignored because only known contract fields
- * are compared.
+ * Compare timestamps by instant, or by exact text if either cannot be parsed.
+ * A null timestamp matches only null.
  */
 function sameInstant(left: string | null, right: string | null): boolean {
   if (left === null || right === null) return left === right;
@@ -240,9 +239,16 @@ function provenanceIssues(
  * the publication lease, before any baseline check, so an identical existing
  * publication is recognized even after the baseline advanced. Interrupted
  * publications are resumed by creating only the missing components, and
- * differing existing objects are never updated or deleted. Failures after the
- * manifest is committed are reported as warnings, never as failed imports, and
- * ambiguous backend writes are read-verified against the commit point.
+ * differing existing objects are never updated or deleted. Returns `rejected`
+ * for failed approval, candidate, baseline or collision checks; otherwise
+ * returns `published` or `already-published`. Lock-release and log failures are
+ * reported as warnings on returned results.
+ *
+ * Throws ImporterConfigError for invalid configuration and PublicationLeaseError
+ * for an empty lease. Other port errors propagate unless a publication conflict
+ * or ambiguous write can be resolved by reading stored components. Errors from
+ * that recovery, including further writes, propagate even if a write committed;
+ * completed writes are not rolled back.
  */
 export async function publish(req: PublishRequest): Promise<PublishResult> {
   const { config, candidateVersionId, approval, ports } = req;

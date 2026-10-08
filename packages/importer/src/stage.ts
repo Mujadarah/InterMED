@@ -54,10 +54,18 @@ function isNumericSemver(value: unknown): value is string {
 /**
  * Stage one raw snapshot into a sealed, reviewable candidate.
  *
- * Failures are quarantined privately with bounded, code-only records: run
- * summaries and logs never carry source text or backend detail. Empty and
- * partial snapshots never produce a candidate; a large drop produces a private
- * quarantine record plus a reviewable candidate that needs threshold approval.
+ * Snapshot validation failures produce private quarantine records and bounded
+ * issue summaries. Empty and partial snapshots never produce a candidate; a
+ * large drop produces a private quarantine record plus a reviewable candidate
+ * that needs threshold approval. Every staged candidate requires approval.
+ * Empty `snapshotBytes` uses `ports.readRawSnapshot` when supplied; `encoding`
+ * must resolve to the configured parser encoding.
+ *
+ * Throws ImporterConfigError for invalid configuration and Error if the sealed
+ * catalogue identity disagrees with the derived identity. Hash and storage
+ * errors propagate, except candidate/review create conflicts when this
+ * generation is already the active baseline. Completed private writes are not
+ * rolled back on failure; log sink failures are ignored.
  */
 export async function stage(req: StageRequest): Promise<StageResult> {
   const { config, encoding, ports } = req;
