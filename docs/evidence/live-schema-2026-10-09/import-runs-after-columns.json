@@ -1,0 +1,143 @@
+{
+  "total": 11,
+  "columns": [
+    {
+      "key": "sourceId",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.457+00:00",
+      "$updatedAt": "2026-10-07T08:57:22.644+00:00",
+      "size": 100,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "snapshotVersion",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.550+00:00",
+      "$updatedAt": "2026-10-07T08:57:22.894+00:00",
+      "size": 200,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "importerVersion",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.639+00:00",
+      "$updatedAt": "2026-10-07T08:57:23.078+00:00",
+      "size": 50,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "startedAt",
+      "type": "datetime",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.725+00:00",
+      "$updatedAt": "2026-10-07T08:57:23.299+00:00",
+      "format": "",
+      "default": null
+    },
+    {
+      "key": "completedAt",
+      "type": "datetime",
+      "status": "available",
+      "error": "",
+      "required": false,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.802+00:00",
+      "$updatedAt": "2026-10-07T08:57:23.524+00:00",
+      "format": "",
+      "default": null
+    },
+    {
+      "key": "counts",
+      "type": "text",
+      "status": "available",
+      "error": "",
+      "required": false,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.894+00:00",
+      "$updatedAt": "2026-10-07T08:57:23.779+00:00",
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "validationFailures",
+      "type": "text",
+      "status": "available",
+      "error": "",
+      "required": false,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:22.983+00:00",
+      "$updatedAt": "2026-10-07T08:57:24.021+00:00",
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "diffSummary",
+      "type": "text",
+      "status": "available",
+      "error": "",
+      "required": false,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:23.072+00:00",
+      "$updatedAt": "2026-10-07T08:57:24.266+00:00",
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "completenessStatus",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:23.165+00:00",
+      "$updatedAt": "2026-10-07T08:57:24.525+00:00",
+      "size": 50,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "approvalReference",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": false,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:23.277+00:00",
+      "$updatedAt": "2026-10-07T08:57:24.721+00:00",
+      "size": 500,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "publicationStatus",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:23.361+00:00",
+      "$updatedAt": "2026-10-07T08:57:24.973+00:00",
+      "size": 50,
+      "default": null,
+      "encrypt": null
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+Command: npx playwright test -c <temp>/playwright-followup.config.ts tests/browser/native-activation.spec.ts tests/browser/recovery-update.spec.ts --project=webkit-phone --project=webkit-tablet --workers=1
+Scratch config: explicit repo cwd and separate ports 5188/4188; assertions and source unchanged.
+[WebServer] (node:39212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:49224) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:31928) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [webkit-phone] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell (3.7s)
+  ok 2 [webkit-phone] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline (5.7s)
+  ok 3 [webkit-phone] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation (4.5s)
+(node:56340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 4 [webkit-tablet] › tests\browser\native-activation.spec.ts:6:1 › native activation after candidate eviction retains a usable prior offline shell (4.3s)
+  ok 5 [webkit-tablet] › tests\browser\recovery-update.spec.ts:43:1 › rollback A to B to A then evicted C retains the actual last activated shell offline (6.3s)
+  ok 6 [webkit-tablet] › tests\browser\recovery-update.spec.ts:71:1 › a usable waiting recovery update survives fallback probes and page reload until explicit activation (5.4s)
+
+  6 passed (46.6s)
+FOCUSED_EXIT=0

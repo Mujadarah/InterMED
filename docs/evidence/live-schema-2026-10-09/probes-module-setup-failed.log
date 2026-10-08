@@ -1,0 +1,26 @@
+Command: npx --yes tsx@4.20.6 <temp>/probes.ts <repo> <temp>
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+Error: Transform failed with 5 errors:
+<temp>\intermed-schema-20261009\probes.ts:51:17: ERROR: Top-level await is currently not supported with the "cjs" output format
+<temp>\intermed-schema-20261009\probes.ts:52:25: ERROR: Top-level await is currently not supported with the "cjs" output format
+<temp>\intermed-schema-20261009\probes.ts:52:58: ERROR: Top-level await is currently not supported with the "cjs" output format
+<temp>\intermed-schema-20261009\probes.ts:60:30: ERROR: Top-level await is currently not supported with the "cjs" output format
+<temp>\intermed-schema-20261009\probes.ts:62:13: ERROR: Top-level await is currently not supported with the "cjs" output format
+    at failureErrorWithLog (<user-home>\AppData\Local\npm-cache\_npx\9542a21d1f639aa9\node_modules\esbuild\lib\main.js:1467:15)
+    at <user-home>\AppData\Local\npm-cache\_npx\9542a21d1f639aa9\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (<user-home>\AppData\Local\npm-cache\_npx\9542a21d1f639aa9\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (<user-home>\AppData\Local\npm-cache\_npx\9542a21d1f639aa9\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (<user-home>\AppData\Local\npm-cache\_npx\9542a21d1f639aa9\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:514:28)
+    at addChunk (node:internal/streams/readable:568:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:519:3)
+    at Readable.push (node:internal/streams/readable:399:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23) {
+  name: 'TransformError'
+}
+
+Node.js v24.21.0
+PROBES_EXIT=1

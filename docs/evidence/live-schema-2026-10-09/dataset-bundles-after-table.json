@@ -1,0 +1,106 @@
+{
+  "$id": "dataset-bundles",
+  "$createdAt": "2026-10-07T08:57:08.317+00:00",
+  "$updatedAt": "2026-10-07T08:57:08.317+00:00",
+  "$permissions": ["read(\"any\")"],
+  "databaseId": "intermed-datasets",
+  "name": "Dataset bundle descriptors (public read)",
+  "enabled": true,
+  "rowSecurity": false,
+  "columns": [
+    {
+      "key": "datasetVersionId",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.483+00:00",
+      "$updatedAt": "2026-10-08T23:08:59.781+00:00",
+      "size": 512,
+      "default": null,
+      "encrypt": false
+    },
+    {
+      "key": "fileId",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.573+00:00",
+      "$updatedAt": "2026-10-07T08:57:17.974+00:00",
+      "size": 64,
+      "default": null,
+      "encrypt": false
+    },
+    {
+      "key": "fileName",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.678+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.207+00:00",
+      "size": 255,
+      "default": null,
+      "encrypt": false
+    },
+    {
+      "key": "contentType",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.765+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.450+00:00",
+      "size": 100,
+      "default": null,
+      "encrypt": false
+    },
+    {
+      "key": "byteSize",
+      "type": "bigint",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.847+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.697+00:00",
+      "min": 0,
+      "max": "9223372036854775807",
+      "default": null
+    },
+    {
+      "key": "checksum",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.935+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.885+00:00",
+      "size": 200,
+      "default": null,
+      "encrypt": false
+    }
+  ],
+  "indexes": [
+    {
+      "$id": "160423_2_datasetVersionId_unique",
+      "$createdAt": "2026-10-07T08:57:20.178+00:00",
+      "$updatedAt": "2026-10-07T08:57:20.321+00:00",
+      "key": "datasetVersionId_unique",
+      "type": "unique",
+      "status": "available",
+      "error": "",
+      "columns": ["datasetVersionId"],
+      "lengths": [0],
+      "orders": []
+    }
+  ],
+  "bytesMax": 65535,
+  "bytesUsed": 5605
+}

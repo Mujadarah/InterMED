@@ -1,0 +1,83 @@
+{
+  "total": 6,
+  "columns": [
+    {
+      "key": "datasetVersionId",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.483+00:00",
+      "$updatedAt": "2026-10-07T08:57:17.723+00:00",
+      "size": 64,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "fileId",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.573+00:00",
+      "$updatedAt": "2026-10-07T08:57:17.974+00:00",
+      "size": 64,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "fileName",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.678+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.207+00:00",
+      "size": 255,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "contentType",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.765+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.450+00:00",
+      "size": 100,
+      "default": null,
+      "encrypt": null
+    },
+    {
+      "key": "byteSize",
+      "type": "bigint",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.847+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.697+00:00",
+      "min": 0,
+      "max": "9223372036854775807",
+      "default": null
+    },
+    {
+      "key": "checksum",
+      "type": "varchar",
+      "status": "available",
+      "error": "",
+      "required": true,
+      "array": false,
+      "$createdAt": "2026-10-07T08:57:17.935+00:00",
+      "$updatedAt": "2026-10-07T08:57:18.885+00:00",
+      "size": 200,
+      "default": null,
+      "encrypt": null
+    }
+  ]
+}

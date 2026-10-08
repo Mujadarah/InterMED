@@ -1,0 +1,72 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash,randomBytes} from 'node:crypto';
+const [repo,dir]=process.argv.slice(2);
+const endpoint='https://fra.cloud.appwrite.io/v1',projectId='intermed-dev';
+const headers={'X-Appwrite-Project':projectId};
+const read=(name)=>JSON.parse(readFileSync(join(dir,name),'utf8'));
+const save=(name,value)=>writeFileSync(join(dir,name),JSON.stringify(value,null,2)+'\n');
+const checks=[];
+let aborted=false;
+const operations=[];
+const add=(name,path,expected,init={},verify)=>operations.push({name,path,expected,init,verify});
+const beforeVersions=read('dataset-versions-before-rows.json').rows;
+const beforeBundles=read('dataset-bundles-before-rows.json').rows;
+if(beforeVersions.length!==1||beforeBundles.length!==1)throw Error('Unexpected synthetic baseline');
+const version=beforeVersions[0],bundle=beforeBundles[0];
+if(version.dataset!=='synthetic-medication-catalogue')throw Error('Synthetic baseline not recognized');
+const token='mig-'+randomBytes(8).toString('hex');
+const rowPath=(table,id='')=>`/tablesdb/intermed-datasets/tables/${table}/rows${id?'/'+id:''}`;
+const filePath=(bucket,id='',suffix='')=>`/storage/buckets/${bucket}/files${id?'/'+id:''}${suffix}`;
+for(const table of ['dataset-versions','dataset-bundles','import-runs']){
+ add(`${table}-list`,rowPath(table),table==='import-runs'?[401,403]:[200]);
+ if(table!=='import-runs')add(`${table}-existing-synthetic-read`,rowPath(table,table==='dataset-versions'?version.$id:bundle.$id),[200]);
+ const data=table==='dataset-versions'?Object.fromEntries(Object.entries(version).filter(([k])=>!k.startsWith('$'))):table==='dataset-bundles'?Object.fromEntries(Object.entries(bundle).filter(([k])=>!k.startsWith('$'))):{sourceId:'migration-synthetic-probe',snapshotVersion:token,importerVersion:'probe',startedAt:new Date().toISOString(),completenessStatus:'probe',publicationStatus:'staging'};
+ if(table==='dataset-versions'){data.dataset='migration-denial-probe';data.version=token;data.status='staging';data.publishedAt=null;data.datasetVersionId=null;}
+ if(table==='dataset-bundles')data.datasetVersionId=token;
+ add(`${table}-anonymous-create-denied`,rowPath(table),[401,403],{method:'POST',body:JSON.stringify({rowId:token,data})});
+ // Never address an existing row with an update or delete.
+ add(`${table}-anonymous-update-nonexistent-denied`,rowPath(table,token),[401,403],{method:'PATCH',body:JSON.stringify({data})});
+ add(`${table}-anonymous-delete-nonexistent-denied`,rowPath(table,token),[401,403],{method:'DELETE'});
+}
+for(const bucket of ['published-datasets','raw-sources','quarantine','import-run-logs']){
+ add(`${bucket}-list`,filePath(bucket),bucket==='published-datasets'?[200]:[401,403]);
+ if(bucket==='published-datasets'){
+  add('published-synthetic-file-metadata',filePath(bucket,bundle.fileId),[200]);
+  add('published-synthetic-file-checksum',filePath(bucket,bundle.fileId,'/download'),[200],{},async response=>{
+   const bytes=Buffer.from(await response.arrayBuffer());
+   const observed='sha256:'+createHash('sha256').update(bytes).digest('hex');
+   return {pass:observed===bundle.checksum&&bytes.length===bundle.byteSize,byteSize:bytes.length,expectedChecksum:bundle.checksum,observedChecksum:observed};
+  });
+ }
+ const form=new FormData();form.append('fileId',token);form.append('file',new Blob(['synthetic migration denial probe'],{type:'text/plain'}),'migration-denial-probe.txt');
+ add(`${bucket}-anonymous-create-denied`,filePath(bucket),[401,403],{method:'POST',body:form});
+ add(`${bucket}-anonymous-update-nonexistent-denied`,filePath(bucket,token),[401,403],{method:'PUT',body:JSON.stringify({name:'synthetic-denial-probe.txt'})});
+ add(`${bucket}-anonymous-delete-nonexistent-denied`,filePath(bucket,token),[401,403],{method:'DELETE'});
+}
+add('anonymous-importer-execution-denied','/functions/import-anmdmr/executions',[401,403],{method:'POST',body:'{}'});
+for(const op of operations){
+ try{
+  const response=await fetch(endpoint+op.path,{...op.init,headers:{...headers,...(typeof op.init.body==='string'?{'Content-Type':'application/json'}:{})},credentials:'omit',signal:AbortSignal.timeout(20000)});
+  const detail=op.verify?await op.verify(response):{body:(await response.text()).slice(0,700)};
+  const pass=op.expected.includes(response.status)&&detail.pass!==false;
+  checks.push({name:op.name,method:op.init.method??'GET',path:op.path,expected:op.expected,status:response.status,pass,...detail});
+  if(op.expected.includes(401)&&response.status>=200&&response.status<300){aborted=true;break;}
+ }catch(error){checks.push({name:op.name,status:0,pass:false,error:String(error)});aborted=true;break;}
+}
+save('anonymous-m3-probes.json',{capturedAt:new Date().toISOString(),projectId,credentialPolicy:'Project header only; credentials omit; no API key or session. Writes are denial tests only; PATCH/PUT/DELETE address fresh nonexistent synthetic IDs exclusively.',scope:'Bounded M3 matrix, not a repeat of the historical nonempty 39-check disposable-guard matrix. Private single-object reads omitted because no approved guard objects exist.',checks,passed:checks.filter(c=>c.pass).length,failed:checks.filter(c=>!c.pass).length,aborted,remainingNotRun:operations.slice(checks.length).map(c=>c.name)});
+if(aborted||checks.some(c=>!c.pass)){console.log('Probe matrix not fully passing; inspect evidence.');process.exitCode=1;}else console.log(`Anonymous bounded M3 probes: ${checks.length}/${checks.length} passed.`);
+const {readPublishedMetadata}=await import(pathToFileURL(join(repo,'infra/appwrite/live-acceptance/adapter-read.mjs')).href);
+const requests=[];
+const reader=await readPublishedMetadata({dataset:version.dataset,outputDirectory:dir,fetchLike:async(target,options={})=>{
+ if((options.method??'GET')!=='GET')throw Error('Public reader attempted non-GET');
+ if(Object.keys(options.headers??{}).some(k=>/key|cookie|authorization/i.test(k)))throw Error('Reader credentials forbidden');
+ const response=await fetch(target,{...options,credentials:'omit',signal:AbortSignal.timeout(20000)});
+ requests.push({method:'GET',url:String(target),status:response.status,credentials:'omit',headerNames:Object.keys(options.headers??{})});
+ return response;
+}});
+const pass=reader.manifest.status==='available'&&reader.descriptor.status==='available'&&reader.manifest.value.datasetVersionId===version.$id&&reader.descriptor.value.datasetVersionId===version.$id;
+save('public-reader-verification.json',{capturedAt:new Date().toISOString(),pass,legacyNullFallback:read('dataset-versions-after-rows.json').rows[0].datasetVersionId===null,resolvedVersionId:reader.manifest.status==='available'?reader.manifest.value.datasetVersionId:null,requests});
+console.log('Public GET-only reader: '+(pass?'PASS':'FAIL')+'; requests='+requests.length);
+if(!pass)process.exitCode=1;

@@ -1,0 +1,185 @@
+INDEPENDENT REVIEWER PREFLIGHT — PUBLIC-ONLY REVIEW
+===================================================
+
+Reviewer .............. opencode/step-5-preview-free (independent, requested)
+Task .................. Public-only review of the approved in-place Appwrite
+                       storage-schema change on the Mujadarah/InterMED PUBLIC
+                       archive snapshot d770cedd27f19d294b6339d175f4743fa09d5412
+Date .................. 2026-10-09
+Outcome ............... PREFLIGHT COMPLETE — no review action taken by this
+                       reviewer beyond reading the snapshot and writing this
+                       file. No mutations, network calls, probes, CLI calls,
+                       npm/test/check executions, or repository edits were made.
+
+1. ARTIFACT UNDER REVIEW
+------------------------
+- Snapshot path ........ <temp>\intermed-schema-20261009\public-main
+- Commit asserted ....... d770cedd27f19d294b6339d175f4743fa09d5412 (Mujadarah/InterMED,
+                         PUBLIC and clean per the task instruction)
+- Working copy state .... This directory is the presented archive of that
+                         snapshot. There is NO .git directory in it, so this
+                         reviewer could not independently verify the commit
+                         SHA, could not run git log/diff/status, and did not
+                         attempt to. All statements below are grounded in the
+                         snapshot CONTENT only. The SHA assertion is taken from
+                         the review instruction and is recorded here as an
+                         unverified-by-me input, not as a reviewer finding.
+
+2. READ BOUNDARY (respected)
+----------------------------
+Reads confined to the snapshot above only. This reviewer did NOT read:
+  - anything under <temp>\intermed-schema-20261009
+    other than the public-main snapshot (the local scratch captures, helper
+    scripts and worker logs in that folder were deliberately NOT opened, per
+    the instruction not to read outside the snapshot);
+  - any other <temp>\intermed-* directory
+    (prior live-acceptance/orchestration scratch folders);
+  - auth files, environment files, user logs, or credentials.
+Write boundary: exactly one file written — this file, into the parent scratch
+folder <temp>\intermed-schema-20261009\reviewer-preflight.txt
+No repository files were created, edited, moved, or deleted.
+
+3. INVENTORY ACTUALLY READ (full, not sampled)
+----------------------------------------------
+3.1 Markdown — 60 of 60 files read in full (counted before reading, and the
+    enumerated list below matches that count):
+
+     1  .github/pull_request_template.md
+     2  CONTRIBUTING.md
+     3  docs/APPWRITE_RUNBOOK.md
+     4  docs/AUTONOMOUS_BUILD_REPORT_2026-10-06.md
+     5  docs/decisions/0001-appwrite-database-product.md
+     6  docs/decisions/0002-environment-strategy.md
+     7  docs/decisions/0003-synthetic-importer-boundaries.md
+     8  docs/DEVELOPMENT.md
+     9  docs/evidence/autonomous-2026-10-06/README.md
+    10  docs/evidence/coderabbit-port-2026-10-07/README.md
+    11  docs/evidence/milestone-2-csp-2026-10-06/README.md
+    12  docs/evidence/milestone-2-hosted-updates-2026-10-06/README.md
+    13  docs/evidence/milestone-3-2026-10-06/README.md
+    14  docs/evidence/milestone-3-live-2026-10-07/cli-preflight.md
+    15  docs/evidence/milestone-3-live-2026-10-07/markdown-inventory.md
+    16  docs/evidence/milestone-3-live-2026-10-07/owner-handoff.md
+    17  docs/evidence/milestone-3-live-2026-10-07/publication-live/cleanup-plan.md
+    18  docs/evidence/milestone-3-live-2026-10-07/publication-live/first-to-corrected-probes.md
+    19  docs/evidence/milestone-3-live-2026-10-07/README.md
+    20  docs/evidence/milestone-3-live-2026-10-07/reviewers/evidence-review.md
+    21  docs/evidence/milestone-3-live-2026-10-07/reviewers/publication-review.md
+    22  docs/evidence/milestone-3-live-2026-10-07/reviewers/sites-review.md
+    23  docs/evidence/milestone-3-live-2026-10-07/sites-preparation/README.md
+    24  docs/evidence/milestone-4-2026-10-06/README.md
+    25  docs/evidence/milestone-5-synthetic-2026-10-07/README.md
+    26  docs/evidence/milestone-5-synthetic-2026-10-07/task-b-core-public-identity-repair-api.md
+    27  docs/evidence/milestone-5-synthetic-2026-10-07/task-b-handler-canonical-final-api.md
+    28  docs/evidence/milestone-5-synthetic-2026-10-07/task-b-PR13-core-red-correction.md
+    29  docs/evidence/milestone-6-2026-10-07/README.md
+    30  docs/evidence/milestone-6-issue-12-2026-10-08/README.md
+    31  docs/MILESTONE_1_EVIDENCE.md
+    32  docs/MILESTONE_2_EVIDENCE.md
+    33  docs/MILESTONE_3_EVIDENCE.md
+    34  docs/MILESTONE_4_EVIDENCE.md
+    35  docs/MILESTONE_5_EVIDENCE.md
+    36  docs/MILESTONE_6_EVIDENCE.md
+    37  docs/MILESTONE_7_EVIDENCE.md
+    38  infra/appwrite/README.md
+    39  infra/appwrite/SITES.md
+    40  packages/README.md
+    41  plan/APPWRITE.md
+    42  plan/ARCHITECTURE.md
+    43  plan/CLINICAL_SAFETY.md
+    44  plan/CODEX_BUILD_PLAN.md
+    45  plan/DATA_MODEL.md
+    46  plan/DATA_SOURCES.md
+    47  plan/FUTURE_CLOUD_AUTH.md
+    48  plan/INTERACTIONS.md
+    49  plan/InterMED_SOURCES_AND_SDKS.md
+    50  plan/MEDICATION_DATA.md
+    51  plan/PRODUCT_SPEC.md
+    52  plan/PWA_OFFLINE.md
+    53  plan/README.md
+    54  plan/REQUIREMENTS.md
+    55  plan/REQUIREMENTS_TRACEABILITY.md
+    56  plan/REVISION_AUDIT.md
+    57  plan/ROADMAP.md
+    58  plan/TESTING.md
+    59  README.md
+    60  SECURITY.md
+
+3.2 Hidden .github / committed development config / live-acceptance helpers read
+    (relevant to the approved change):
+    - infra/appwrite/appwrite.config.development.json   (full)
+    - infra/appwrite/appwrite.config.production.json    (parsed and compared field-by-field)
+    - infra/appwrite/live-acceptance/adapter-read.mjs
+    - infra/appwrite/live-acceptance/anonymous-probe.mjs
+    - infra/appwrite/live-acceptance/publication-preparation.mjs
+    - infra/appwrite/live-acceptance/prepare-publication.ts
+    - infra/appwrite/live-acceptance/local-validation/*.log
+    - packages/data-access/src/appwrite-published-dataset-reader.ts (reader contract)
+    - tests/importer/fake-appwrite-rest.mjs (declared column capacity model)
+    - .coderabbit.yaml, greptile.json, .pr_agent.toml, .deepsource.toml,
+      .codacy.yml, .gitignore, .prettierignore, .node-version, .nvmrc, .npmrc,
+      .gitattributes
+    - .github/workflows/web-checks.yml, .github/ISSUE_TEMPLATE/*
+    - apps/web/.env.example, package.json
+
+4. WHAT THE PREFLIGHT ESTABLISHED
+---------------------------------
+4.1 The committed configuration-as-code in THIS snapshot already declares the
+    exact target shape of the approved plan, identically in both environment
+    files (verified by parsing and comparing both files):
+      dataset-versions.datasetVersionId .... varchar 512, required=false
+      dataset-versions index datasetVersionId_unique (type unique)
+      dataset-versions.previousVersionId ... varchar 512, required=false
+      dataset-bundles.datasetVersionId ..... varchar 512, required=true
+      dataset-bundles index datasetVersionId_unique (type unique)  [pre-existing]
+    No grant, no execute permission, no bucket setting differs between the
+    development and production declarations for these tables.
+
+4.2 The approved plan's "in place, no backfill, no rows/deletes" wording matches
+    docs/APPWRITE_RUNBOOK.md section 10 "Storage-schema prerequisite", which
+    already states that physical row $id values are unchanged and that no
+    existing row, bucket, permission or manifest field is rewritten.
+
+4.3 The public reader contract in
+    packages/data-access/src/appwrite-published-dataset-reader.ts implements the
+    documented behaviour: canonical attribute preferred, $id fallback only when
+    the attribute is missing or null, and a present-but-malformed value fails
+    the Zod boundary (fail closed). This is consistent with the 512 capacity
+    being added and with no reader contract change.
+
+5. WHAT THIS PREFLIGHT DOES NOT ESTABLISH
+----------------------------------------
+- Not verified by this reviewer: the commit SHA d770cedd (no .git present).
+- Not executed by this reviewer: any live probe, any push, any pull, any test,
+  any check, any network request.
+- No claim is made that the schema migration has been applied, that it
+  succeeded, or that it failed. No acceptance is asserted or invented.
+- The live ("before") column capacities named in the review instruction were
+  taken from the instruction, not re-measured here, because the local
+  before-capture JSON files sit outside the snapshot read boundary.
+
+6. HANDOFF
+----------
+Review findings, the controlling-contradiction reconciliation, the bounded
+read-only Milestone 3 probe set, and the 39-check guard-matrix distinction are
+reported in the reviewer's response to the review request. Public-safe content
+only: no credentials, tokens, patient data, or real clinical records appear in
+this file or in that report.
+
+7. OBSERVATION — SCRATCH FOLDER IS ACTIVELY BEING WRITTEN BY ANOTHER PROCESS
+---------------------------------------------------------------------------
+Two read-only directory listings of the parent scratch folder, taken at the
+start and end of this preflight, returned different contents (roughly 46 entries
+versus 130+, with new files such as after-captures, operation logs, poll
+records, comparison files, a migration helper script and an executor worker log
+appearing). A separate worker process is therefore executing against that
+folder while this reviewer worked.
+
+Effect on this review, stated plainly:
+- This reviewer did not open, copy, or rely on any of those new artifacts.
+- This report is therefore a static review of the approved plan against the
+  committed PUBLIC snapshot only, with no post-execution evidence relied upon.
+- No acceptance, success, or failure of the live migration is asserted by this
+  reviewer, and none may be inferred from the presence of execution artifacts.
+
+END OF PREFLIGHT

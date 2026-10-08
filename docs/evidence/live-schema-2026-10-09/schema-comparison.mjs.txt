@@ -1,0 +1,56 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
+const [repo,dir,stage]=process.argv.slice(2);
+const read=(name)=>JSON.parse(readFileSync(join(dir,name),'utf8'));
+const config=JSON.parse(readFileSync(join(repo,'infra/appwrite/appwrite.config.development.json'),'utf8'));
+const differences=[];
+const compare=(path,expected,actual)=>{if(JSON.stringify(expected)!==JSON.stringify(actual))differences.push({path,expected,actual:actual??null});};
+const state=[];
+for(const expected of config.tables){
+ const id=expected.$id;
+ const actual=read(`${id}-${stage}-table.json`);
+ const columns=read(`${id}-${stage}-columns.json`);
+ const indexes=read(`${id}-${stage}-indexes.json`);
+ compare(`${id}.columnCount`,expected.columns.length,columns.total);
+ compare(`${id}.indexCount`,expected.indexes.length,indexes.total);
+ for(const [key,value] of Object.entries(expected)){
+  if(key==='columns'||key==='indexes')continue;
+  compare(`${id}.${key}`,value,actual[key]);
+ }
+ for(const c of expected.columns){
+  const live=columns.columns.find(x=>x.key===c.key);
+  if(!live){differences.push({path:`${id}.${c.key}`,expected:c,actual:null});continue;}
+  compare(`${id}.${c.key}.status`,'available',live.status);
+  for(const [key,value] of Object.entries(c)){
+   const normalized=key==='type'&&value==='enum'&&live.type==='string'&&live.format==='enum'?'enum':live[key];
+   compare(`${id}.${c.key}.${key}`,value,normalized);
+  }
+ }
+ for(const i of expected.indexes){
+  const live=indexes.indexes.find(x=>x.key===i.key);
+  if(!live){differences.push({path:`${id}.index.${i.key}`,expected:i,actual:null});continue;}
+  compare(`${id}.index.${i.key}.status`,'available',live.status);
+  for(const [key,value] of Object.entries(i))compare(`${id}.index.${i.key}.${key}`,value,live[key]);
+  if(!('orders' in i))compare(`${id}.index.${i.key}.orders`,[],live.orders??[]);
+  compare(`${id}.index.${i.key}.lengths`,i.columns.map(()=>0),live.lengths);
+ }
+ state.push({table:id,permissions:actual.$permissions,rowSecurity:actual.rowSecurity,columnCount:columns.total,indexCount:indexes.total,rowCount:read(`${id}-${stage}-count.json`).total});
+}
+const result={projectId:config.projectId,databaseId:'intermed-datasets',baseCommit:'d770cedd27f19d294b6339d175f4743fa09d5412',stage,capturedAt:new Date().toISOString(),projection:'Compare every declared table/column/index property, counts, availability and full index lengths; enum represented by live string+format enum. Server-generated fields and unspecified defaults excluded.',differences,state};
+writeFileSync(join(dir,`schema-${stage}-comparison.json`),JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify(result,null,2));
+if(stage==='after'){
+ const evidence=[];
+ const stable=(value)=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,stable(v)])):value;
+ const digest=(row)=>{const copy={...row};if(copy.datasetVersionId===null)delete copy.datasetVersionId;return createHash('sha256').update(JSON.stringify(stable(copy))).digest('hex');};
+ for(const table of config.tables){
+  const id=table.$id;
+  const before=read(`${id}-before-rows.json`),after=read(`${id}-after-rows.json`);
+  const hashes=(r)=>r.rows.map(row=>({id:row.$id,sha256:digest(row)})).sort((a,b)=>a.id.localeCompare(b.id));
+  const unchanged=before.total===after.total&&before.total===before.rows.length&&after.total===after.rows.length&&JSON.stringify(hashes(before))===JSON.stringify(hashes(after));
+  evidence.push({table:id,before:before.total,after:after.total,unchanged,rows:hashes(after),newOptionalIdValues:id==='dataset-versions'?after.rows.map(r=>({id:r.$id,datasetVersionId:r.datasetVersionId??null})):undefined});
+ }
+ writeFileSync(join(dir,'row-preservation.json'),JSON.stringify({capturedAt:new Date().toISOString(),normalization:'Only omit datasetVersionId when null (new nullable attribute); all existing row data, permissions, IDs and timestamps must hash identically.',tables:evidence},null,2)+'\n');
+ if(differences.length||evidence.some(x=>!x.unchanged))process.exitCode=1;
+}

@@ -1,0 +1,13 @@
+{
+  "key": "datasetVersionId",
+  "type": "varchar",
+  "status": "processing",
+  "error": "",
+  "required": false,
+  "array": false,
+  "$createdAt": "2026-10-08T23:09:04.379+00:00",
+  "$updatedAt": "2026-10-08T23:09:04.379+00:00",
+  "size": 512,
+  "default": null,
+  "encrypt": false
+}

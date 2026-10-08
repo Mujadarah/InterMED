@@ -1,0 +1,11 @@
+{
+  "secondaryNode": "v22.23.2",
+  "officialChecksumList": "https://nodejs.org/dist/v22.23.2/SHASUMS256.txt",
+  "expectedSha256": "1177b4137ba5adaa56354ae40f1080c7450e8ae09cecb47da459d1c52ac99f97",
+  "node": "v24.21.0",
+  "actualSha256": "1177b4137ba5adaa56354ae40f1080c7450e8ae09cecb47da459d1c52ac99f97",
+  "checksumMatches": true,
+  "npm": "11.19.0",
+  "configBlob": "b2429174e98d665b67098453def8b540e803dd6a",
+  "secondaryArchive": "node-v22.23.2-win-x64.zip"
+}

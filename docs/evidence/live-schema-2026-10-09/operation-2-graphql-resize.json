@@ -1,0 +1,11 @@
+{
+  "data": {
+    "tablesDBUpdateVarcharColumn": {
+      "key": "datasetVersionId",
+      "size": 512,
+      "required": true,
+      "default": null,
+      "status": "available"
+    }
+  }
+}

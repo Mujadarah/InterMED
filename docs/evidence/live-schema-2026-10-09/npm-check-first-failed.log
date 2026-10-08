@@ -1,0 +1,25 @@
+Command: npm run check
+Base: d770cedd27f19d294b6339d175f4743fa09d5412
+v24.21.0
+11.19.0
+v22.23.2
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+tests/importer/handler-bridge.test.ts(17,8): error TS2307: Cannot find module '@intermed/importer' or its corresponding type declarations.
+CHECK_EXIT=2

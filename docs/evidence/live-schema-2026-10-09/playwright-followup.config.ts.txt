@@ -1,0 +1,2 @@
+import base from '<repo>/playwright.config.ts';
+export default {...base,testDir:'<repo>/tests/browser',globalSetup:'<repo>/scripts/build-pwa-fixtures.mjs',workers:1,use:{...base.use,baseURL:'http://127.0.0.1:4188'},webServer:base.webServer.map(server=>({...server,cwd:'<repo>',command:server.command.replace('--port 5174','--port 5188').replace('--port 4173','--port 4188'),url:server.url.replace(':5174',':5188').replace(':4173',':4188')}))};
