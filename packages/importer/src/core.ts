@@ -57,8 +57,9 @@ export function canonicalizeConfig(config: CanonicalImporterConfig): string {
 }
 
 /**
- * Finite config validation. Every bound must be a finite integer in range and
- * every key field must be usable as stable-id material. Returns issue codes.
+ * Return issue codes for invalid configuration, or an empty list when valid.
+ * Count and byte bounds must be finite integers; the removal percentage may be
+ * fractional within 0–100. Key fields must be trimmed and free of controls.
  */
 export function configIssues(config: CanonicalImporterConfig): string[] {
   const issues: string[] = [];

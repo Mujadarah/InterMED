@@ -73,6 +73,10 @@ function productSignature(
  * as renamed when only its commercial name differs, as changed when its
  * semantic fields or its related ingredient links differ, and the remainder is
  * added or removed. A large removal requires explicit threshold approval.
+ * Without a baseline every candidate product is added. `netProducts` is the
+ * candidate product count. A removal is large when at least one product is
+ * removed and either inclusive threshold is reached; the percentage is 0–100
+ * relative to the baseline product count.
  */
 export function diffProducts(
   baseline: MedicationCatalogueSnapshot | undefined,

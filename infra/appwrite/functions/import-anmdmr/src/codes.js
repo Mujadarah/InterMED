@@ -45,8 +45,8 @@ export const SAFE_EVENT_NAMES = Object.freeze([
 const REF_LENGTH = 12;
 
 /**
- * Short derived public identifier. The input value never leaves the hash, so a
- * ref cannot leak the referenced content while staying stable across retries.
+ * Return the first 12 digest characters of a kind-scoped reference, stable for
+ * the same kind and stringified value across retries.
  */
 export function deriveRef(sha256, kind, value) {
   return sha256
