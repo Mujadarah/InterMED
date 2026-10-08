@@ -22,18 +22,41 @@ import { buildImporterFunctionArtifact } from '../../scripts/build-importer-func
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-const NODE22 = process.env.INTERMED_NODE22_RUNTIME;
-const hasNode22 = (() => {
-  if (!NODE22 || !existsSync(NODE22)) return false;
-  try {
-    return /^v22\.\d+\.\d+$/.test(
-      execFileSync(NODE22, ['--version'], {
-        encoding: 'utf8',
-        timeout: 5_000,
-      }).trim(),
+/**
+ * The official Node 22 runtime is a hard requirement: CI captures
+ * `process.execPath` from the pinned `actions/setup-node` installation into
+ * `INTERMED_NODE22_RUNTIME`. This suite must never skip silently, so a missing
+ * or unusable runtime fails loudly with an actionable message instead.
+ */
+const NODE22 = (() => {
+  const configured = process.env.INTERMED_NODE22_RUNTIME;
+  if (!configured) {
+    throw new Error(
+      'INTERMED_NODE22_RUNTIME is required: point it at the official Node 22 runtime executable ' +
+        '(CI exports process.execPath of the pinned Node 22 installation to GITHUB_ENV). ' +
+        'This compiled-artifact suite does not skip.',
     );
-  } catch {
-    return false;
+  }
+  if (!existsSync(configured)) {
+    throw new Error(
+      `INTERMED_NODE22_RUNTIME does not point at an existing runtime executable: ${configured}`,
+    );
+  }
+  return configured;
+})();
+
+const NODE22_VERSION = (() => {
+  try {
+    return execFileSync(NODE22, ['--version'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+    }).trim();
+  } catch (error) {
+    throw new Error(
+      `INTERMED_NODE22_RUNTIME (${NODE22}) is not runnable: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 })();
 
@@ -59,7 +82,7 @@ function resolveNpmInvocation(): { command: string; args: string[] } {
  */
 function runnerSource(rawLiteral: string): string {
   return [
-    "import { createHash } from 'node:crypto';",
+    "import { createHash, randomBytes } from 'node:crypto';",
     "import { readFileSync } from 'node:fs';",
     '',
     "const manifestJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));",
@@ -67,7 +90,8 @@ function runnerSource(rawLiteral: string): string {
     'const handler = handlerModule.default;',
     "const { createFakeAppwriteRest, utf8Bytes, bytesToText } = await import('./fake-appwrite-rest.mjs');",
     '',
-    "const SECRET = 'artifact-dummy-secret-0f9e8d7c6b5a';",
+    '// Runtime-generated fake key; never a real credential and never printed.',
+    "const SECRET = 'artifact-fake-secret-' + randomBytes(16).toString('hex');",
     "const DATASET = 'synthetic-medication-catalogue';",
     "const SOURCE_VERSION = 'synthetic-2026-10-06';",
     "const APPROVED_AT = '2026-10-07T10:00:00Z';",
@@ -209,6 +233,7 @@ function runnerSource(rawLiteral: string): string {
     '}',
     '',
     'console.log(JSON.stringify({',
+    '  runtimeVersion: process.version,',
     '  entry: manifestJson.main,',
     '  staged: staged.body.code,',
     '  published: published.body.code,',
@@ -220,8 +245,9 @@ function runnerSource(rawLiteral: string): string {
   ].join('\n');
 }
 
-describe.skipIf(!hasNode22)('compiled artifact positive flow (Node 22)', () => {
+describe('compiled artifact positive flow (Node 22)', () => {
   it('stages and publishes through the isolated artifact with fake HTTP only', () => {
+    expect(NODE22_VERSION).toMatch(/^v22\.\d+\.\d+$/);
     const parent = mkdtempSync(join(tmpdir(), 'intermed-handler-artifact-'));
     try {
       const artifact = buildImporterFunctionArtifact({ outputParent: parent });
@@ -248,12 +274,13 @@ describe.skipIf(!hasNode22)('compiled artifact positive flow (Node 22)', () => {
       const runner = join(artifact, '.handler-artifact-flow.mjs');
       writeFileSync(runner, runnerSource(rawLiteral), 'utf8');
       try {
-        const output = execFileSync(NODE22!, [runner], {
+        const output = execFileSync(NODE22, [runner], {
           cwd: artifact,
           encoding: 'utf8',
           env: { ...process.env },
         });
         const result = JSON.parse(output.trim()) as {
+          runtimeVersion: string;
           entry: string;
           staged: string;
           published: string;
@@ -261,6 +288,9 @@ describe.skipIf(!hasNode22)('compiled artifact positive flow (Node 22)', () => {
           manifestPublishedAt: string;
           writeTail: string;
         };
+        // The artifact really executed on the official Node 22 runtime.
+        expect(result.runtimeVersion).toBe(NODE22_VERSION);
+        expect(result.runtimeVersion).toMatch(/^v22\.\d+\.\d+$/);
         expect(result.entry).toBe(packageJson.main);
         expect(result.staged).toBe('staged');
         expect(result.published).toBe('published');
