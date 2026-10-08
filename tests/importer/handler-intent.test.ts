@@ -435,6 +435,42 @@ describe('private intent schemas', () => {
       ),
     ).toBe(false);
   });
+
+  it('accepts the optional bounded quarantine reason a real large-removal stage emits', () => {
+    const parsed = parseReviewDocument(
+      JSON.stringify({
+        ...reviewDocument(),
+        quarantineReason: 'large-removal',
+      }),
+    );
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.review.quarantineReason).toBe('large-removal');
+    }
+  });
+
+  it.each([
+    ['an empty reason', ''],
+    ['a blank reason', ' '],
+    ['an oversized reason', 'r'.repeat(51)],
+    ['a reason with spaces', 'large removal'],
+    ['an uppercase reason', 'Large-Removal'],
+    ['a non-string reason', 7],
+  ])('rejects a review carrying %s', (_name, value) => {
+    expect(
+      parseReviewDocument(
+        JSON.stringify({ ...reviewDocument(), quarantineReason: value }),
+      ).ok,
+    ).toBe(false);
+  });
+
+  it('still rejects a review carrying an unknown extra field', () => {
+    expect(
+      parseReviewDocument(
+        JSON.stringify({ ...reviewDocument(), surprise: 'large-removal' }),
+      ).ok,
+    ).toBe(false);
+  });
 });
 
 describe('handler intent loading', () => {

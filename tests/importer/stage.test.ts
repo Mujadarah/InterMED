@@ -7,14 +7,19 @@ import {
 } from '@intermed/domain';
 import { stage } from '../../packages/importer/src/stage';
 import type { StageRequest } from '../../packages/importer/src/core';
+import { ENTITY_LIST_NAMES } from '../../packages/importer/src/parser-facade';
 import { FakeStore, transportFault } from './support/fake-ports';
 import {
   buildRawDocument,
   fictivolProduct,
+  missing,
   placebexProduct,
   present,
+  RAW_VERSION_KEY,
   rawBytes,
   rawBytesPretty,
+  SEEN_INSTANT,
+  SYNTHETIC_SOURCE_KEY,
   testConfig,
   vacantolProduct,
 } from './support/synthetic-raws';
@@ -212,6 +217,118 @@ describe('stage quarantine guards', () => {
   });
 });
 
+describe('stage dataset version key controls', () => {
+  const FOREIGN_KEY = 'mismatched-generation-key';
+
+  /**
+   * Rows for the collections the base fixture leaves empty. Each row is valid
+   * against the real domain validator, so under the old nonempty-only check
+   * the mixed snapshot staged successfully; only the version key disagrees.
+   */
+  function rowForEmptyCollection(name: string): Record<string, unknown> {
+    switch (name) {
+      case 'atcCodes':
+        return {
+          sourceKey: SYNTHETIC_SOURCE_KEY,
+          datasetVersionKey: FOREIGN_KEY,
+          sourceRecordKey: 'ATC-FICT',
+          code: 'A00FICT',
+          codeSystem: 'synthetic-illustrative',
+          illustrative: true,
+          displayName: missing,
+          classificationVersion: missing,
+        };
+      case 'manufacturers':
+      case 'marketingAuthorizationHolders':
+        return {
+          sourceKey: SYNTHETIC_SOURCE_KEY,
+          datasetVersionKey: FOREIGN_KEY,
+          sourceRecordKey: name === 'manufacturers' ? 'MF-FICT' : 'MAH-FICT',
+          name: 'Fictitious Synthetica Party',
+          country: present('fictional'),
+          sourceEntityId: missing,
+        };
+      default:
+        return {
+          sourceKey: SYNTHETIC_SOURCE_KEY,
+          datasetVersionKey: FOREIGN_KEY,
+          sourceRecordKey: 'RD-FICT',
+          productSourceKey: 'SP-FICTIVOL',
+          productSourceKeySource: SYNTHETIC_SOURCE_KEY,
+          type: 'other',
+          title: present('Fictional prescribing information'),
+          url: 'https://example.invalid/fictivol-document',
+          language: present('fictional'),
+          documentVersion: present('synthetic-1'),
+          publishedAt: missing,
+          retrievedAt: missing,
+          lastCheckedAt: SEEN_INSTANT,
+          sourceVersion: 'synthetic-1',
+          cachedContentReference: missing,
+          cacheRightsStatus: 'not-assessed',
+          checksum: missing,
+        };
+    }
+  }
+
+  it.each([...ENTITY_LIST_NAMES])(
+    'quarantines a mixed snapshot whose %s rows disagree with the declared version key',
+    async (name) => {
+      const store = new FakeStore();
+      const document = buildRawDocument({ products: [fictivolProduct()] });
+      const rows = document[name] as unknown as Record<string, unknown>[];
+      if (rows.length > 0) {
+        rows[0]!.datasetVersionKey = FOREIGN_KEY;
+      } else {
+        rows.push(rowForEmptyCollection(name));
+        document.recordCounts[name] = rows.length;
+      }
+      const result = await runStage(store, rawBytes(document));
+      expect(result.status).toBe('quarantined');
+      expect(result.completenessStatus).toBe('provenance-mismatch');
+      expect(result.issues).toContain(`row-version-key-mismatch:${name}`);
+      expect(store.candidates.size).toBe(0);
+      expect(store.quarantines).toHaveLength(1);
+    },
+  );
+
+  it('quarantines an envelope dataset version key that disagrees with the declared version', async () => {
+    const store = new FakeStore();
+    const document = buildRawDocument({
+      products: [fictivolProduct()],
+      datasetVersionKey: 'different-envelope-key',
+    });
+    const result = await runStage(store, rawBytes(document));
+    expect(result.status).toBe('quarantined');
+    expect(result.completenessStatus).toBe('provenance-mismatch');
+    expect(result.issues).toContain('envelope-version-key-mismatch');
+    expect(store.candidates.size).toBe(0);
+    expect(store.quarantines).toHaveLength(1);
+  });
+
+  it('stages a snapshot whose optional envelope key matches the declared version', async () => {
+    const store = new FakeStore();
+    const document = buildRawDocument({
+      products: [fictivolProduct()],
+      datasetVersionKey: RAW_VERSION_KEY,
+    });
+    const result = await runStage(store, rawBytes(document));
+    expect(result.status).toBe('staged');
+    expect(store.candidates.size).toBe(1);
+  });
+
+  it('still quarantines rows with a blank dataset version key', async () => {
+    const store = new FakeStore();
+    const document = buildRawDocument({ products: [fictivolProduct()] });
+    document.products[0]!.datasetVersionKey = '';
+    const result = await runStage(store, rawBytes(document));
+    expect(result.status).toBe('quarantined');
+    expect(result.completenessStatus).toBe('provenance-mismatch');
+    expect(result.issues).toContain('row-version-key:products');
+    expect(store.candidates.size).toBe(0);
+  });
+});
+
 describe('stage generation identity', () => {
   it('stages a candidate whose generation identity equals the real dataset version id', async () => {
     const store = new FakeStore();
@@ -299,19 +416,22 @@ describe('stage generation identity', () => {
       firstSnapshot,
       first.identity.datasetVersionId,
     );
-    const second = await runStage(
-      nextStore,
-      rawBytesPretty({
-        ...document,
-        datasetVersion: {
-          ...document.datasetVersion,
-          version: 'synthetic-fictivol-v2',
-          previousVersionKey: present(
-            firstSnapshot.datasetVersions[0]!.version,
-          ),
-        },
-      }),
-    );
+    const nextDocument = {
+      ...document,
+      datasetVersion: {
+        ...document.datasetVersion,
+        version: 'synthetic-fictivol-v2',
+        previousVersionKey: present(firstSnapshot.datasetVersions[0]!.version),
+      },
+    };
+    // A valid delivery is complete: every collection row carries the
+    // declared version key.
+    for (const name of ENTITY_LIST_NAMES) {
+      for (const row of nextDocument[name]) {
+        row.datasetVersionKey = 'synthetic-fictivol-v2';
+      }
+    }
+    const second = await runStage(nextStore, rawBytesPretty(nextDocument));
     expect(second.status).toBe('staged');
     expect(second.identity.datasetVersionId).not.toBe(
       first.identity.datasetVersionId,
@@ -468,6 +588,23 @@ describe('stage product diff against real baselines', () => {
       });
     },
   );
+
+  it('detects product strength changes as product changes even when renamed', async () => {
+    const baseline = await stageBaseline([fictivolProduct()]);
+    const changed = {
+      ...fictivolProduct(),
+      commercialName: 'Fictivol Renamed',
+      strengthText: '1000 mg',
+    };
+    const { review } = await diffAgainst(baseline, [changed]);
+    expect(review?.diffSummary).toEqual({
+      added: 0,
+      changed: 1,
+      renamed: 0,
+      removed: 0,
+      netProducts: 1,
+    });
+  });
 
   it('writes a private large-drop quarantine and keeps the candidate reviewable', async () => {
     const products = [

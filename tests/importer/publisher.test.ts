@@ -760,4 +760,52 @@ describe('publish fault injection and commit point', () => {
     expect(result.warnings).toContain('resumed-interrupted-publication');
     expect(store.callsTo('writeManifestRow')).toBe(2);
   });
+
+  it('read verifies the committed generation when the recovery loop loses another write response', async () => {
+    const store = new FakeStore();
+    const generation = await stageGeneration(store, {
+      products: [fictivolProduct()],
+    });
+    // The first bundle write commits but its response is lost, so recovery
+    // resumes the interrupted prefix; the recovery manifest write commits
+    // and loses its response too. The committed generation must be read
+    // back and reported, never surfaced as an escaped ambiguous write.
+    store.setFault('writeBundleFile', ambiguousFault(true));
+    store.setFault('writeManifestRow', ambiguousFault(true));
+    const result = await publishRequest(store, generation);
+    expect(result.status).toBe('published');
+    expect(result.warnings).toContain('post-commit-read-verified');
+    expect(store.files.size).toBe(1);
+    expect(store.descriptors.size).toBe(1);
+    expect(store.manifests.size).toBe(1);
+
+    // A retry presents the identical publication and writes no duplicates.
+    const retry = await publishRequest(store, generation);
+    expect(retry.status).toBe('already-published');
+    expect(store.callsTo('writeBundleFile')).toBe(1);
+    expect(store.callsTo('writeDescriptorRow')).toBe(1);
+    expect(store.callsTo('writeManifestRow')).toBe(1);
+    expect(store.files.size).toBe(1);
+    expect(store.descriptors.size).toBe(1);
+    expect(store.manifests.size).toBe(1);
+  });
+
+  it('fails with a constant rejection when the recovery write did not land', async () => {
+    const store = new FakeStore();
+    const generation = await stageGeneration(store, {
+      products: [fictivolProduct()],
+    });
+    store.setFault('writeBundleFile', ambiguousFault(true));
+    store.setFault('writeManifestRow', ambiguousFault(false));
+    const result = await publishRequest(store, generation);
+    expect(result.status).toBe('rejected');
+    expect(result.reason).toBe('publication-recovery-failed');
+    expect(store.manifests.size).toBe(0);
+
+    // The persisted prefix stays resumable: a later retry completes it.
+    const resumed = await publishRequest(store, generation);
+    expect(resumed.status).toBe('published');
+    expect(resumed.warnings).toContain('resumed-interrupted-publication');
+    expect(store.manifests.size).toBe(1);
+  });
 });

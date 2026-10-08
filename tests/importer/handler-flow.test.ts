@@ -23,10 +23,13 @@ import {
   stageIntentDocument,
   vi,
 } from './handler-fixtures';
-import { bytesToText } from './fake-appwrite-rest.mjs';
+import { bytesToText, utf8Bytes } from './fake-appwrite-rest.mjs';
 import { parseStableId } from '@intermed/domain';
+import { publicationRowId } from '../../infra/appwrite/functions/import-anmdmr/src/intent.js';
+import { ENTITY_LIST_NAMES } from '../../packages/importer/src/parser-facade';
 
 const { intentFileId, intentFileName, reviewFileId } = derivations;
+const sha256Port = { hash: sha256Hex };
 
 type Harness = ReturnType<typeof createHarness>;
 
@@ -42,6 +45,7 @@ interface ReviewDoc {
   candidateSha256: string;
   completeness: string;
   largeRemovalRequired: boolean;
+  quarantineReason?: string;
 }
 
 function seedRaw(harness: Harness, bytes = snapshotBytes()): string {
@@ -129,6 +133,27 @@ async function stageOnce(harness: Harness, bytes = snapshotBytes()) {
   return harness.call({ bodyJson: envelope(STAGE_OPERATION) });
 }
 
+/**
+ * Complete next-generation delivery alignment: a valid snapshot restamps
+ * the declared dataset version, every collection row key and the optional
+ * envelope key to the same declared version.
+ */
+function alignToDeclaredVersion(
+  document: Record<string, unknown>,
+  version: string,
+): Record<string, unknown> {
+  (document.datasetVersion as Record<string, unknown>).version = version;
+  for (const name of ENTITY_LIST_NAMES) {
+    for (const row of document[name] as Record<string, unknown>[]) {
+      row.datasetVersionKey = version;
+    }
+  }
+  if (document.datasetVersionKey !== undefined) {
+    document.datasetVersionKey = version;
+  }
+  return document;
+}
+
 describe('stage flows', () => {
   it('re-stages a quarantined snapshot after its baseline is published', async () => {
     const harness = createHarness({ publishEnabled: true });
@@ -145,7 +170,7 @@ describe('stage flows', () => {
         status: 'present',
         value: baselineId.sourceRecordKey,
       };
-      raw.datasetVersion.version = 'synthetic-2';
+      alignToDeclaredVersion(raw, 'synthetic-2');
       const bytes = new TextEncoder().encode(JSON.stringify(raw));
       harness.seedFile('raw-sources', 'raw-src-0002', 'next.json', bytes);
       const operationId = 'op-stage-0002';
@@ -328,7 +353,7 @@ describe('stage flows', () => {
       status: 'present',
       value: priorManifest.version,
     };
-    (mutated.datasetVersion as Record<string, unknown>).version = 'synthetic-2';
+    alignToDeclaredVersion(mutated, 'synthetic-2');
     const secondBytes = new TextEncoder().encode(JSON.stringify(mutated));
     harness.seedFile(
       'raw-sources',
@@ -634,5 +659,185 @@ describe('publish flows', () => {
       ),
     ).toBe(intentBefore);
     harness.dispose();
+  });
+
+  it('does not report already-published for a manifest row missing its canonical dataset version id', async () => {
+    const harness = createHarness({ publishEnabled: true });
+    await stageOnce(harness);
+    const review = writtenReview(harness);
+    seedPublishIntent(harness, review);
+    expect(
+      (await harness.call({ bodyJson: envelope(PUBLISH_OPERATION) })).body.code,
+    ).toBe('published');
+
+    // A stored manifest row that never carried (or lost) the canonical
+    // attribute is a legacy/foreign row: it must never be recognized as this
+    // candidate's committed publication through candidate-id substitution.
+    const manifestRow = harness.rest.rows
+      .get('dataset-versions')
+      ?.get(publicationRowId(sha256Port, review.candidateVersionId));
+    expect(manifestRow).toBeDefined();
+    delete (manifestRow as Record<string, unknown>).datasetVersionId;
+
+    const before = stateOf(harness);
+    const retry = await harness.call({ bodyJson: envelope(PUBLISH_OPERATION) });
+    expect(retry.status).toBe(409);
+    expect(retry.body.code).toBe('publication-collision');
+    expect(stateOf(harness)).toBe(before);
+
+    // A present but non-canonical attribute fails closed with a constant
+    // bounded refusal: never already-published and never the stored value.
+    (manifestRow as Record<string, unknown>).datasetVersionId =
+      'not-a-canonical-dataset-version-id';
+    const beforeInvalid = stateOf(harness);
+    const invalidRetry = await harness.call({
+      bodyJson: envelope(PUBLISH_OPERATION),
+    });
+    expect(invalidRetry.status).toBe(500);
+    expect(invalidRetry.body.code).toBe('operation-failed');
+    expect(stateOf(harness)).toBe(beforeInvalid);
+    expect(JSON.stringify(invalidRetry.body)).not.toContain('not-a-canonical');
+    expect(JSON.stringify(invalidRetry.logs)).not.toContain('not-a-canonical');
+    harness.dispose();
+  });
+});
+
+describe('large-removal approval flow', () => {
+  /** Baseline snapshot with several fictional products, one per index. */
+  function snapshotWithProducts(count: number): Uint8Array {
+    const document = JSON.parse(bytesToText(snapshotBytes())) as Record<
+      string,
+      unknown
+    >;
+    const template = (document.products as Record<string, unknown>[])[0]!;
+    document.products = Array.from({ length: count }, (_, index) => ({
+      ...template,
+      sourceProductId: `P-FICTIVOL-${index + 1}`,
+      commercialName: `Fictivol ${index + 1}`,
+    }));
+    (document.recordCounts as Record<string, number>).products = count;
+    return utf8Bytes(JSON.stringify(document));
+  }
+
+  function reviewForStage(
+    harness: Harness,
+    stageOperationId: string,
+  ): ReviewDoc {
+    for (const stored of harness.rest.files.get('import-run-logs')?.values() ??
+      []) {
+      if (!stored.name.startsWith('stage-review-v1.')) continue;
+      const parsed = JSON.parse(
+        bytesToText(stored.bytes),
+      ) as unknown as ReviewDoc;
+      if (parsed.stageOperationId === stageOperationId) return parsed;
+    }
+    throw new Error(`no staged review for ${stageOperationId}`);
+  }
+
+  function seedPublishOperation(
+    harness: Harness,
+    operationId: string,
+    review: ReviewDoc,
+    overrides: Record<string, unknown> = {},
+  ): void {
+    const intent = publishIntentDocument(
+      operationId,
+      {
+        candidateVersionId: review.candidateVersionId,
+        candidateSha256: review.candidateSha256,
+        rawSnapshotSha256: review.rawSnapshotSha256,
+        baselineVersionId: review.baselineVersionId,
+        baselineFingerprint: review.baselineFingerprint,
+      },
+      { stageOperationId: review.stageOperationId, ...overrides },
+    );
+    harness.seedFile(
+      'import-run-logs',
+      intentFileId(operationId),
+      intentFileName(operationId),
+      JSON.stringify(intent),
+    );
+  }
+
+  it('stages a substantial drop and publishes it only with explicit large-removal approval', async () => {
+    const harness = createHarness({ publishEnabled: true });
+    try {
+      // Baseline generation: five fictional products.
+      seedRaw(harness, snapshotWithProducts(5));
+      expect(
+        (await harness.call({ bodyJson: envelope(STAGE_OPERATION) })).body.code,
+      ).toBe('staged');
+      const baselineReview = writtenReview(harness);
+      seedPublishIntent(harness, baselineReview);
+      expect(
+        (await harness.call({ bodyJson: envelope(PUBLISH_OPERATION) })).body
+          .code,
+      ).toBe('published');
+
+      // Substantial drop: one product remains, four are removed (80% of the
+      // baseline, far above the 25% threshold).
+      const drop = JSON.parse(bytesToText(snapshotWithProducts(1))) as Record<
+        string,
+        unknown
+      >;
+      const priorManifest = [
+        ...harness.rest.rows.get('dataset-versions')!.values(),
+      ][0]! as { version: string };
+      (drop.datasetVersion as Record<string, unknown>).previousVersionKey = {
+        status: 'present',
+        value: priorManifest.version,
+      };
+      alignToDeclaredVersion(drop, 'synthetic-2');
+      const dropBytes = utf8Bytes(JSON.stringify(drop));
+      harness.seedFile('raw-sources', 'raw-src-0002', 'drop.json', dropBytes);
+      const dropStage = 'op-stage-0002';
+      harness.seedFile(
+        'import-run-logs',
+        intentFileId(dropStage),
+        intentFileName(dropStage),
+        JSON.stringify(
+          stageIntentDocument(dropStage, {
+            rawSnapshotFileId: 'raw-src-0002',
+            rawSnapshotSha256: sha256Hex(dropBytes),
+          }),
+        ),
+      );
+      const staged = await harness.call({ bodyJson: envelope(dropStage) });
+      expect(staged.status).toBe(200);
+      expect(staged.body.code).toBe('staged');
+      expect(
+        (staged.body.summary as Record<string, unknown>).largeRemovalRequired,
+      ).toBe(true);
+      expect(
+        harness.rest.fileNamed('quarantine', 'quarantine-v1.large-removal.raw'),
+      ).toBeDefined();
+      const dropReview = reviewForStage(harness, dropStage);
+      expect(dropReview.largeRemovalRequired).toBe(true);
+      expect(dropReview.quarantineReason).toBe('large-removal');
+
+      // Absent explicit approval: rejected with no public write for the drop.
+      seedPublishOperation(harness, 'op-publish-0002', dropReview, {
+        largeRemovalApproval: false,
+      });
+      const refused = await harness.call({
+        bodyJson: envelope('op-publish-0002'),
+      });
+      expect(refused.status).toBe(403);
+      expect(refused.body.code).toBe('operation-rejected');
+      expect(harness.rest.fileIds('published-datasets')).toHaveLength(1);
+
+      // Valid explicit approval: the review must parse and publish.
+      seedPublishOperation(harness, 'op-publish-0003', dropReview, {
+        largeRemovalApproval: true,
+      });
+      const accepted = await harness.call({
+        bodyJson: envelope('op-publish-0003'),
+      });
+      expect(accepted.status).toBe(200);
+      expect(accepted.body.code).toBe('published');
+      expect(harness.rest.fileIds('published-datasets')).toHaveLength(2);
+    } finally {
+      harness.dispose();
+    }
   });
 });

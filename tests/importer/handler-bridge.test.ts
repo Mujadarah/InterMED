@@ -50,7 +50,7 @@ import {
 } from './handler-fixtures';
 import { bytesToText, FAKE_TABLES, utf8Bytes } from './fake-appwrite-rest.mjs';
 
-const CANDIDATE_ID = 'abc123def456';
+const CANDIDATE_ID = 'dv\u001fsource.synthetic\u001fsynthetic-2026-10-06';
 const sha256 = { hash: sha256Hex };
 
 interface ReviewDataShape {
@@ -688,6 +688,124 @@ describe('publication retry reads', () => {
     expect(manifest?.publishedAt).toBe(APPROVED_AT);
     harness.dispose();
   });
+
+  /** Stored manifest row (flat Appwrite columns), like the fake REST keeps. */
+  function manifestRowFixture(
+    overrides: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    const row: Record<string, unknown> = {
+      dataset: DATASET,
+      version: SOURCE_VERSION,
+      sourceIds: ['dsrclnksource.syntheticsynthetic'],
+      importedAt: '2026-10-06T00:00:00Z',
+      checksum: `sha256:${'a'.repeat(64)}`,
+      schemaVersion: 'medication-catalogue-1',
+      minimumClientVersion: '0.0.0',
+      recordCounts: JSON.stringify({ products: 3, activeIngredients: 2 }),
+      coverage: 'Fictional coverage only. Not for clinical use.',
+      rightsApprovalReference: 'FICT-APPROVAL-0001',
+      clinicalReviewReference: 'FICT-REVIEW-0001',
+      status: 'published',
+      publishedAt: APPROVED_AT,
+      datasetVersionId: CANDIDATE_ID,
+      ...overrides,
+    };
+    for (const key of Object.keys(row)) {
+      if (row[key] === undefined) delete row[key];
+    }
+    return row;
+  }
+
+  it('keeps the stored canonical dataset version id when it is present and valid', async () => {
+    const harness = createHarness();
+    const bridge = publishBridge(harness);
+    const rowId = publicationRowId(sha256, CANDIDATE_ID);
+    harness.seedRow('dataset-versions', rowId, manifestRowFixture());
+    const manifest = await bridge.ports.readPublishedManifest(CANDIDATE_ID);
+    expect(manifest?.datasetVersionId).toBe(CANDIDATE_ID);
+    harness.dispose();
+  });
+
+  it.each([undefined, null])(
+    'falls back to the bounded physical row id for legacy rows (absent: %s)',
+    async (absentValue) => {
+      const harness = createHarness();
+      const bridge = publishBridge(harness);
+      const rowId = publicationRowId(sha256, CANDIDATE_ID);
+      harness.seedRow(
+        'dataset-versions',
+        rowId,
+        manifestRowFixture({ datasetVersionId: absentValue }),
+      );
+      const manifest = await bridge.ports.readPublishedManifest(CANDIDATE_ID);
+      // The legacy fallback is the physical row id only: the caller's
+      // candidate id is never substituted for a missing stored attribute.
+      expect(manifest?.datasetVersionId).toBe(rowId);
+      expect(manifest?.datasetVersionId).not.toBe(CANDIDATE_ID);
+      harness.dispose();
+    },
+  );
+
+  it('rejects manifest rows with an empty or malformed canonical attribute without exposing the value', async () => {
+    for (const invalid of ['', 'x'.repeat(513), 7]) {
+      const harness = createHarness();
+      const bridge = publishBridge(harness);
+      harness.seedRow(
+        'dataset-versions',
+        publicationRowId(sha256, CANDIDATE_ID),
+        manifestRowFixture({ datasetVersionId: invalid }),
+      );
+      let message = '';
+      try {
+        await bridge.ports.readPublishedManifest(CANDIDATE_ID);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).toBe('manifest datasetVersionId invalid');
+      expect(message).not.toContain('xxx');
+      harness.dispose();
+    }
+  });
+
+  it.each([
+    ['a plain non-canonical token', 'abc123def456'],
+    [
+      'a canonical id of the wrong entity kind',
+      'mp\u001fsource.synthetic\u001fsp-1',
+    ],
+    [
+      'a canonical id with a blank source segment',
+      'dv\u001f\u001fsynthetic-2026-10-06',
+    ],
+    [
+      'a canonical id with padded key segments',
+      'dv\u001f source.synthetic \u001fsynthetic-2026-10-06',
+    ],
+    [
+      'a canonical id with a truncated key segment',
+      'dv\u001fsource.synthetic\u001f',
+    ],
+  ])(
+    'rejects manifest rows whose present attribute is %s',
+    async (_name, invalid) => {
+      const harness = createHarness();
+      const bridge = publishBridge(harness);
+      harness.seedRow(
+        'dataset-versions',
+        publicationRowId(sha256, CANDIDATE_ID),
+        manifestRowFixture({ datasetVersionId: invalid }),
+      );
+      let message = '';
+      try {
+        await bridge.ports.readPublishedManifest(CANDIDATE_ID);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).toBe('manifest datasetVersionId invalid');
+      expect(message).not.toContain('synthetic');
+      harness.dispose();
+    },
+  );
 });
 
 describe('publication lock', () => {

@@ -41,6 +41,7 @@ import {
   type IntentDocument,
 } from './handler-fixtures';
 import { bytesToText, utf8Bytes } from './fake-appwrite-rest.mjs';
+import { ENTITY_LIST_NAMES } from '../../packages/importer/src/parser-facade';
 import {
   BUCKETS,
   DATABASE_ID,
@@ -288,6 +289,13 @@ describe('writer-to-reader public identity (handler -> REST -> M3 reader)', () =
         status: 'present',
         value: gen1.manifest.version,
       };
+      // A valid delivery is complete: every collection row carries the
+      // declared version key.
+      for (const name of ENTITY_LIST_NAMES) {
+        for (const row of doc2[name] as Record<string, unknown>[]) {
+          row.datasetVersionKey = 'synthetic-2';
+        }
+      }
       const rawBytes2 = utf8Bytes(JSON.stringify(doc2));
 
       seedStageIntent(harness, rawBytes2, STAGE_OP_2, RAW_FILE_ID_2);
