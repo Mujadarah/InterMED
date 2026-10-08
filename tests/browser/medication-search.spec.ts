@@ -357,12 +357,55 @@ test.describe.serial('medication search browser coverage', () => {
       }
       await expect(candidate).toBeFocused();
       await page.keyboard.press('Enter');
+      const detailTitle = page.getByRole('heading', {
+        name: 'Fictivol alpha',
+        level: 1,
+      });
+      await expect(detailTitle).toBeVisible();
+      await expect(detailTitle).toBeFocused();
+      for (const sectionName of [
+        'Identification',
+        'Composition',
+        'ATC codes',
+        'Manufacturers and marketing authorization holder',
+        'Regulatory documents',
+        'Source and dataset provenance',
+      ])
+        await expect(
+          page.getByRole('heading', { name: sectionName, level: 2 }),
+        ).toBeVisible();
       await expect(
-        page.getByRole('heading', {
-          name: 'Medication detail is not available yet',
+        page.getByText('illustrative, not an official classification', {
+          exact: true,
         }),
       ).toBeVisible();
-      await expect(page.locator('code')).toContainText('SP-FICTIVOL');
+      const backLink = page.getByRole('link', {
+        name: 'Back to results for fictivol',
+      });
+      await expect(backLink).toHaveAttribute('href', '/search?q=fictivol');
+      expect(
+        (await backLink.boundingBox())?.height ?? 0,
+      ).toBeGreaterThanOrEqual(44);
+      const documentLink = page.getByRole('link', {
+        name: /Open source document in a new tab/,
+      });
+      await expect(documentLink).toBeVisible();
+      expect(
+        (await documentLink.boundingBox())?.height ?? 0,
+      ).toBeGreaterThanOrEqual(44);
+
+      await page.context().setOffline(true);
+      await expect(
+        page.getByText(
+          'This document link needs an internet connection. It is unavailable while offline.',
+          { exact: true },
+        ),
+      ).toBeVisible();
+      await expect(documentLink).not.toBeVisible();
+      await expect(detailTitle).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Composition', level: 2 }),
+      ).toBeVisible();
     } finally {
       await server.close();
     }

@@ -22,7 +22,8 @@ a {
 }
 a:focus-visible,
 button:focus-visible,
-main:focus-visible {
+main:focus-visible,
+h1[tabindex='-1']:focus {
   outline: 3px solid #8b4d09;
   outline-offset: 5px;
 }
@@ -313,6 +314,111 @@ button {
   overflow-wrap: anywhere;
 }
 
+.medication-detail-page {
+  max-width: 60rem;
+}
+.detail-back-link,
+.detail-status-link,
+.document-link-status a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+.detail-back-link {
+  margin: 0 0 1rem;
+  padding: 0.25rem 0.35rem;
+  font-weight: 600;
+}
+.medication-detail-page > section {
+  max-width: none;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.medication-detail-page > section > h2 {
+  margin-bottom: 0.8rem;
+}
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.4rem 1.5rem;
+  margin: 0.8rem 0;
+}
+.detail-list div {
+  min-width: 0;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.detail-list dd {
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+.detail-list-compact {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.25rem 1rem;
+}
+.detail-card-list {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+.detail-card {
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+.detail-card h3 {
+  margin: 0.1rem 0 0.6rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.detail-banner,
+.detail-note,
+.data-quality-note {
+  max-width: none;
+  padding: 0.8rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: #fff;
+}
+.detail-banner {
+  color: #633a09;
+  border-color: #8b4d09;
+  background: #fff1d2;
+}
+.detail-note {
+  color: var(--muted);
+}
+.data-quality-note {
+  margin-top: 0.8rem;
+  color: #633a09;
+  border-color: #8b4d09;
+  background: #fff8e8;
+}
+.data-quality-note h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.data-quality-note ul {
+  margin: 0.35rem 0 0;
+}
+.document-link-status {
+  max-width: none;
+  margin: 0.5rem 0 0;
+  overflow-wrap: anywhere;
+}
+.document-link-status a {
+  max-width: 100%;
+  padding: 0.25rem 0;
+  overflow-wrap: anywhere;
+}
+.detail-status-link {
+  margin: 0.4rem 0;
+}
+
 @media (max-width: 42rem) {
   .search-dataset-meta {
     grid-template-columns: 1fr;
@@ -325,5 +431,12 @@ button {
   }
   .search-result-details {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .detail-list,
+  .detail-list-compact {
+    grid-template-columns: 1fr;
+  }
+  .detail-card {
+    padding: 0.85rem;
   }
 }

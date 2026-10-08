@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
   DatasetUpdateState,
@@ -41,9 +41,21 @@ function generationOf(
   return 'generation' in state ? state.generation : null;
 }
 
-function SearchResult({ row }: { row: DisambiguatedSearchResult }) {
+function SearchResult({
+  row,
+  query,
+}: {
+  row: DisambiguatedSearchResult;
+  query: string;
+}) {
   const product = row.match.record.product;
-  const href = `/medication/${encodeURIComponent(product.id)}`;
+  const path = `/medication/${encodeURIComponent(product.id)}`;
+  const href = query.trim()
+    ? {
+        pathname: path,
+        search: `?${new URLSearchParams({ q: query }).toString()}`,
+      }
+    : path;
   const sourceProductId = row.sourceProductIdSuffix
     ? `. Source product ID: ${row.sourceProductIdSuffix}`
     : '';
@@ -125,7 +137,8 @@ export function MedicationSearchPage({
   const state = useSyncExternalStore(dataset.subscribe, dataset.getState);
   const generation = generationOf(state);
   const generationId = generation?.generationId ?? null;
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const requestRevision = useRef(0);
@@ -301,7 +314,11 @@ export function MedicationSearchPage({
           aria-label="Medication search results"
         >
           {createDisambiguatedSearchResults(result.results).map((row) => (
-            <SearchResult key={row.match.record.product.id} row={row} />
+            <SearchResult
+              key={row.match.record.product.id}
+              row={row}
+              query={query}
+            />
           ))}
         </ol>
       )}

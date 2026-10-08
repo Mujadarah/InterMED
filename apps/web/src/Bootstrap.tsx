@@ -9,6 +9,11 @@ import {
   type MedicationSearchService,
   unavailableMedicationSearch,
 } from './application/medication-search';
+import {
+  createMedicationDetailService,
+  type MedicationDetailService,
+  unavailableMedicationDetail,
+} from './application/medication-detail';
 import { createServices } from './application/services';
 import { App } from './presentation/App';
 import { parseConfig } from './config';
@@ -25,6 +30,10 @@ let browserDataset: LocalDatasetStore | undefined;
 const medicationSearchServices = new WeakMap<
   LocalDatasetStore,
   MedicationSearchService
+>();
+const medicationDetailServices = new WeakMap<
+  LocalDatasetStore,
+  MedicationDetailService
 >();
 
 function browserDatasetStore(): LocalDatasetStore {
@@ -51,6 +60,25 @@ function medicationSearchFor(
   return service;
 }
 
+function medicationDetailFor(
+  store: LocalDatasetStore,
+): MedicationDetailService {
+  let service = medicationDetailServices.get(store);
+  if (!service) {
+    service = createMedicationDetailService({
+      activeGenerationId: () => {
+        const state = store.getState();
+        return 'generation' in state
+          ? (state.generation?.generationId ?? null)
+          : null;
+      },
+      openReader: () => store.openReader(),
+    });
+    medicationDetailServices.set(store, service);
+  }
+  return service;
+}
+
 /**
  * Validate the public environment and render the shell with mock services.
  * Render a configuration alert when validation fails.
@@ -62,12 +90,14 @@ export function Bootstrap({
   dataset,
   localStore: injectedLocalStore,
   medicationSearch,
+  medicationDetail,
 }: {
   env: Record<string, unknown>;
   shell?: ShellController;
   dataset?: DatasetStateSource;
   localStore?: LocalDatasetStore;
   medicationSearch?: MedicationSearchService;
+  medicationDetail?: MedicationDetailService;
 }) {
   let config: AppConfig;
   try {
@@ -96,6 +126,11 @@ export function Bootstrap({
     (localStore
       ? medicationSearchFor(localStore)
       : unavailableMedicationSearch);
+  const detailService =
+    medicationDetail ??
+    (localStore
+      ? medicationDetailFor(localStore)
+      : unavailableMedicationDetail);
   return (
     <App
       services={createServices(
@@ -103,6 +138,7 @@ export function Bootstrap({
         mockBootstrapProvider,
         datasetSource,
         searchService,
+        detailService,
       )}
       shell={shell}
     />
