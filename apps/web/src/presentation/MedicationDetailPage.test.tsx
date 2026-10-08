@@ -32,20 +32,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
+function fixtureProduct(
+  status: 'active' | 'removed' | 'unresolved' = 'active',
+) {
   const form = dosageForm('DF-DETAIL', 'fictional capsule form');
   const atcCode = atc('ATC-DETAIL', 'SYN-DETAIL');
   const maker = manufacturer('MF-DETAIL', 'Fictional Works');
   const secondMaker = manufacturer('MF-DETAIL-SECOND', 'Imaginary Labs');
   const authorizationHolder = holder('MAH-DETAIL', 'Fictional Holder');
-  const mappedIngredient = ingredient(
-    'AI-DETAIL',
-    'Preferred fictitious name',
-    {
-      dci: presentField('Source DCI text'),
-    },
-  );
-  const currentProduct = makeProduct('SP-DETAIL', 'Fictivol detail', {
+  const product = makeProduct('SP-DETAIL', 'Fictivol detail', {
     cim: presentField('CIM-FICTIONAL-17'),
     originalDciText: presentField('Original source DCI'),
     strengthText: presentField('500,125 mg?'),
@@ -64,9 +59,28 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
     lastSeenAt: '2026-10-01T00:00:00Z',
     status,
   });
+  return {
+    product,
+    dosageForm: form,
+    atcCode,
+    manufacturers: [maker, secondMaker],
+    authorizationHolder,
+  };
+}
+
+function fixtureIngredients(
+  product: MedicationProductDetail['product'],
+): MedicationProductDetail['ingredients'] {
+  const mappedIngredient = ingredient(
+    'AI-DETAIL',
+    'Preferred fictitious name',
+    {
+      dci: presentField('Source DCI text'),
+    },
+  );
   const mappedJoin = join(
     'MI-DETAIL-MAPPED',
-    currentProduct.id,
+    product.id,
     'Fictional ingredient text from source',
     {
       ingredientId: presentField(mappedIngredient.id),
@@ -83,7 +97,7 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
   );
   const unresolvedJoin = join(
     'MI-DETAIL-UNRESOLVED',
-    currentProduct.id,
+    product.id,
     'Fictional unresolved ingredient text',
     {
       ingredientId: MISSING,
@@ -91,8 +105,17 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
       mappingStatus: 'unresolved',
     },
   );
+  return [
+    { medicationIngredient: mappedJoin, activeIngredient: mappedIngredient },
+    { medicationIngredient: unresolvedJoin, activeIngredient: null },
+  ];
+}
+
+function fixtureDocuments(
+  product: MedicationProductDetail['product'],
+): MedicationProductDetail['regulatoryDocuments'] {
   const rcp = {
-    ...document('RD-DETAIL-RCP', currentProduct.id),
+    ...document('RD-DETAIL-RCP', product.id),
     type: 'RCP' as const,
     title: presentField('Fictional RCP reference'),
     url: 'https://example.invalid/fictional/rcp',
@@ -102,7 +125,7 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
     retrievedAt: presentField('2026-08-02T00:00:00Z'),
   };
   const pil = {
-    ...document('RD-DETAIL-PIL', currentProduct.id),
+    ...document('RD-DETAIL-PIL', product.id),
     type: 'PIL' as const,
     title: presentField('Fictional PIL reference'),
     url: '',
@@ -113,6 +136,13 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
     cachedContentReference: presentField('synthetic-cached-content-reference'),
     cacheRightsStatus: 'prohibited' as const,
   };
+  return [rcp, pil];
+}
+
+function fixtureProvenance(): Pick<
+  MedicationProductDetail,
+  'generation' | 'dataSource' | 'datasetVersion'
+> {
   const catalogue = emptyCatalogue();
   const source = catalogue.dataSources[0];
   const version = catalogue.datasetVersions[0];
@@ -125,7 +155,7 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
     upstreamPublishedAt: presentField('2026-10-05T00:00:00Z'),
     importedAt: '2026-10-03T00:00:00Z',
   };
-  const currentGeneration: LocalDatasetGeneration = {
+  const generation: LocalDatasetGeneration = {
     generationId: 'generation-synthetic-detail',
     dataset: 'synthetic-medication-catalogue',
     version: datasetVersion.version,
@@ -139,23 +169,27 @@ function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
     recordCounts: { products: 1 },
     synthetic: true,
   };
-  const product = {
-    ...currentProduct,
-    regulatoryDocumentIds: [rcp.id, pil.id],
-  };
+  return { generation, dataSource: source, datasetVersion };
+}
+
+function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
+  const { product, dosageForm, atcCode, manufacturers, authorizationHolder } =
+    fixtureProduct(status);
+  const documents = fixtureDocuments(product);
+  const { generation, dataSource, datasetVersion } = fixtureProvenance();
   return {
-    generation: currentGeneration,
-    product,
-    ingredients: [
-      { medicationIngredient: mappedJoin, activeIngredient: mappedIngredient },
-      { medicationIngredient: unresolvedJoin, activeIngredient: null },
-    ],
-    dosageForm: form,
+    generation,
+    product: {
+      ...product,
+      regulatoryDocumentIds: documents.map((document) => document.id),
+    },
+    ingredients: fixtureIngredients(product),
+    dosageForm,
     atcCodes: [atcCode],
-    manufacturers: [maker, secondMaker],
+    manufacturers,
     marketingAuthorizationHolder: authorizationHolder,
-    regulatoryDocuments: [rcp, pil],
-    dataSource: source,
+    regulatoryDocuments: documents,
+    dataSource,
     datasetVersion,
   } satisfies MedicationProductDetail;
 }
