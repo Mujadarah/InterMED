@@ -401,18 +401,17 @@ provisions through the Console function-variables screen in their own
 authenticated session (never via a CLI `--value` flag). Public `execute: []`
 stays unchanged.
 
-### Storage-schema prerequisite (future owner approval — NOT EXECUTED)
+### Storage-schema prerequisite (development verified 2026-10-09)
 
 > **PREREQUISITE BEFORE 10.3 (deploy) AND BEFORE ANY NEW PUBLICATION.**
-> **Nothing here has been executed, and no live field is confirmed.** The
-> canonical dataset-identity mapping exists only as code in
-> `infra/appwrite/appwrite.config.development.json` and
-> `infra/appwrite/appwrite.config.production.json`; no M5 worker, review, or
-> probe altered a live table. Production does not exist in this workstream and
-> is never touched.
+> **The separately approved schema migration is executed and verified in
+> `intermed-dev` against `d770ced`.** See the
+> [dated migration report](LIVE_SCHEMA_MIGRATION_2026-10-09.md) and its command
+> records. Historical "nothing executed" statements in section 10 remain
+> applicable to deployment, imports and publication. Production was not touched.
 
-What the migration would apply, in `intermed-dev` only, under its own written
-owner approval (recorded as its own approval, separate from 10.1–10.8):
+The migration applied, in `intermed-dev` only, under its own written owner
+approval, separate from 10.1–10.8:
 
 - `dataset-versions.datasetVersionId` — **optional** string column, max **512**,
   with the **nullable** unique index `datasetVersionId_unique` on
@@ -426,10 +425,12 @@ owner approval (recorded as its own approval, separate from 10.1–10.8):
 
 Ordering and safety rules:
 
-1. Apply with the same reviewed pattern as
-   [section 4](#4-apply-the-resource-configuration)
-   (`push tables --all --config-file … --force`, development config only) and
-   capture the output; never run it against production or the shell project.
+1. Show the targeted plan, then capture the complete live table/column/index
+   definitions and row counts into scratch evidence before changes. Compare
+   against the reviewed development config; stop on unrelated drift. Use the
+   targeted commands below rather than a broad `push tables --all`. Stop on an
+   in-place resize rejection; never drop/recreate a populated column or
+   backfill existing rows without separate approval.
 2. Verify read-only afterwards: the new column and index exist, existing rows
    read back with `datasetVersionId: null`, and the public list envelope is
    unchanged. Legacy M3 published rows without the canonical attribute stay a
@@ -440,6 +441,51 @@ Ordering and safety rules:
    `datasetVersionId` on its descriptor and manifest rows.
 4. Rollback is metadata-only and needs its own approval: the canonical column
    is additive, and no published object is created or deleted by the migration.
+
+CLI `28.1.0` requires `--xdefault` for REST `update-varchar-column`, but represents
+that argument as a string. The initial invocation without it failed locally
+before any API call. To preserve the existing **null** defaults, the executed
+resize procedure used the same authenticated CLI's GraphQL service with an
+explicit GraphQL `null`. Both resizes returned `status: available`; neither
+column nor the existing bundle index was dropped/recreated.
+
+```powershell
+$config = 'infra/appwrite/appwrite.config.development.json'
+$previous = 'mutation { tablesDBUpdateVarcharColumn(databaseId: "intermed-datasets", tableId: "dataset-versions", key: "previousVersionId", required: false, default: null, size: 512) { key size required default status } }'
+$bundle = 'mutation { tablesDBUpdateVarcharColumn(databaseId: "intermed-datasets", tableId: "dataset-bundles", key: "datasetVersionId", required: true, default: null, size: 512) { key size required default status } }'
+# Windows npx.cmd requires escaping embedded quotes in the native argument.
+$previousArgument = $previous.Replace('"', '\"')
+$bundleArgument = $bundle.Replace('"', '\"')
+npx.cmd --yes appwrite-cli@28.1.0 graphql query --query $previousArgument --config-file $config --raw
+npx.cmd --yes appwrite-cli@28.1.0 graphql query --query $bundleArgument --config-file $config --raw
+npx.cmd --yes appwrite-cli@28.1.0 tablesdb create-varchar-column --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId --size 512 --required=false --array=false --encrypt=false --config-file $config --raw
+# Poll get-column until available before creating the index.
+npx.cmd --yes appwrite-cli@28.1.0 tablesdb create-index --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId_unique --type unique --columns datasetVersionId --config-file $config --raw
+# Poll get-index until available, then perform complete readback/comparison.
+```
+
+Inspect both the CLI exit code **and** GraphQL `errors`: a GraphQL validation
+failure can return CLI exit 0. Never pass the literal string `"null"` or an empty
+string as a substitute for a null default. Do not rerun the additive commands
+when the column/index already exists; read current state and skip satisfied
+operations. These are the dated executed commands, not blanket future approval.
+
+Post-migration verification compares every declared table, column and index
+property, counts, full index lengths and availability; server-generated
+metadata and unspecified defaults are excluded. All declared types, sizes,
+required/array flags, enum elements, index columns/orders, permissions and row
+security matched. Both public rows retained their IDs, data, permissions and
+timestamps; the new manifest field remained null, and the reader fallback
+passed. No backfill was performed.
+
+The bounded anonymous rerun returned 27 strict passes and six
+`404 row_not_found` results for updates/deletes against fresh nonexistent row
+IDs. Those six remain inconclusive authorization checks, not passes or masked
+refusals. No existing row was addressed by a write/delete request, no unexpected
+write succeeded, and no disposable guard was provisioned. The historical
+nonempty 39-check matrix was not repeated. Function execution denial returned
+401 and the live `execute: []` and deployment ID remained unchanged. Deployment,
+live import and production creation each require separate approval.
 
 ### 10.0 Verified handler contract (source of truth for the steps below)
 

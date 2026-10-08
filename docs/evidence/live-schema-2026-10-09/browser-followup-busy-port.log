@@ -1,0 +1,4 @@
+Command: npx playwright test tests/browser/native-activation.spec.ts tests/browser/recovery-update.spec.ts --project=webkit-phone --project=webkit-tablet --workers=1
+Error: http://127.0.0.1:5174 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
+
+FOCUSED_EXIT=1

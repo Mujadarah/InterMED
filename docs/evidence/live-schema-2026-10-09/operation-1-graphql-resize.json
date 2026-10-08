@@ -1,0 +1,11 @@
+{
+  "data": {
+    "tablesDBUpdateVarcharColumn": {
+      "key": "previousVersionId",
+      "size": 512,
+      "required": false,
+      "default": null,
+      "status": "available"
+    }
+  }
+}

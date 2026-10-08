@@ -1,0 +1,158 @@
+HEAVY WORKER REPORT — InterMED approved development schema migration (public snapshot review)
+Snapshot: github.com/Mujadarah/InterMED @ d770cedd27f19d294b6339d175f4743fa09d5412 (git archive, public files only)
+Date: 2026-10-09. Worker performed READ-ONLY analysis of the snapshot. No Appwrite operation, Git write,
+network probe, npm/test/check run, or file change was performed. Only this report file was written (parent folder).
+Adjacent capture files in the parent folder were NOT read (outside-snapshot material, per task constraints).
+
+1. INVENTORY
+-------------
+All 60 tracked Markdown files were read in full, including the hidden .github template:
+- Root: README.md, CONTRIBUTING.md, SECURITY.md, packages/README.md
+- .github: pull_request_template.md
+- plan/ (18): README, REQUIREMENTS, REQUIREMENTS_TRACEABILITY, ARCHITECTURE, DATA_MODEL, DATA_SOURCES,
+  MEDICATION_DATA, INTERACTIONS, PWA_OFFLINE, APPWRITE, FUTURE_CLOUD_AUTH, PRODUCT_SPEC, ROADMAP,
+  CODEX_BUILD_PLAN, CLINICAL_SAFETY, TESTING, REVISION_AUDIT, InterMED_SOURCES_AND_SDKS
+- docs/ (7): APPWRITE_RUNBOOK, DEVELOPMENT, AUTONOMOUS_BUILD_REPORT_2026-10-06, MILESTONE_1..7_EVIDENCE
+- docs/decisions/ (3): 0001-appwrite-database-product, 0002-environment-strategy, 0003-synthetic-importer-boundaries
+- docs/evidence/ (27): autonomous, coderabbit-port, milestone-2-csp, milestone-2-hosted-updates, milestone-3,
+  milestone-3-live (README, cli-preflight, markdown-inventory, owner-handoff, publication-live/cleanup-plan,
+  publication-live/first-to-corrected-probes, reviewers x3, sites-preparation), milestone-4, milestone-5-synthetic
+  (README + 3 task-b files), milestone-6, milestone-6-issue-12
+- infra/appwrite/ (2): README.md, SITES.md
+Non-Markdown public config/helpers also reviewed: appwrite.config.development.json, appwrite.config.production.json,
+.github/workflows/web-checks.yml, .github/ISSUE_TEMPLATE/*.yml (3), infra/appwrite/live-acceptance/*
+(anonymous-probe.mjs, adapter-read.mjs, publication-preparation.mjs, prepare-publication.ts).
+
+2. APPROVED SCOPE (cross-verified against the snapshot)
+-------------------------------------------------------
+Approved: on the Frankfurt development project intermed-dev ONLY (never intermed-prod, which does not exist;
+never the Milestone 2 shell project 6ac4b25b0012379cf3d0 / site 6ac4b3550003a26eea02):
+ (a) add optional (nullable) varchar(512) column dataset-versions.datasetVersionId, if absent;
+ (b) add unique index datasetVersionId_unique over (datasetVersionId) on dataset-versions, if absent;
+ (c) widen dataset-versions.previousVersionId to 512 in place;
+ (d) widen REQUIRED dataset-bundles.datasetVersionId to 512 in place;
+ no row writes, no backfill, no deletes; physical row $id values unchanged (<=36); STOP on any resize rejection;
+ no Function deploy/execution/import, no publication, no production, no shell project, no billing change.
+The declared configs at this commit already encode the exact target state (both files): dataset-versions.datasetVersionId
+varchar 512 required:false + datasetVersionId_unique (unique); dataset-versions.previousVersionId varchar 512
+required:false; dataset-bundles.datasetVersionId varchar 512 required:true + its pre-existing datasetVersionId_unique.
+The migration is therefore a converge-live-to-declared operation, matching runbook APPWRITE_RUNBOOK.md section 10
+"Storage-schema prerequisite" (optional column, nullable unique index, 512 widenings, $id unchanged, no row rewrite)
+and decision 0003's 2026-10-08 architecture correction.
+
+3. CONTROLLING CONTRADICTIONS
+-----------------------------
+Verdict: NO controlling-document contradiction prevents this approved scope. The dated "NOTHING IN THIS SECTION
+HAS BEEN EXECUTED / schema migration needs separate owner approval" wording (runbook section 10; MILESTONE_5_EVIDENCE;
+MILESTONE_6_EVIDENCE; packages/README; docs/DEVELOPMENT; decision 0003) is exactly the approval-pending history that
+the task supersedes FOR THIS SCOPE ONLY. Per the runbook, this work must be recorded as its own separate written owner
+approval, distinct from runbook 10.1-10.8; nothing else is superseded (deploy 10.3, staging 10.4, publication 10.6,
+production, shell project and billing all remain forbidden).
+Conditions and true stop-gates (not blockers, must be honored):
+ 1) Live state is NOT pinned by the public snapshot. The 2026-10-07 "declared-definition comparison zero differences"
+    was against the config as of baseline f167d43 (pre-512), and the runbook says "no live field is confirmed".
+    A read-only preflight scratch pull diff is therefore mandatory before applying (Phase A below). It also
+    protects the "if absent" rule and bounds `push tables --all` to the expected four differences.
+ 2) Runbook 10 ordering rule 3: no deploy (10.3) and no publication (10.6) may run before this migration is applied
+    and verified. The migration is the prerequisite; do not bundle anything else into it.
+ 3) Decision 0001: column TYPE changes require recreation and can lose data. varchar size WIDENING is not a type
+    change and must apply in place. If any command output indicates drop/recreate, or the platform/CLI rejects an
+    in-place resize, STOP immediately (approved rule). No retry, no recreation, no Console workaround.
+ 4) The nullable unique index must tolerate multiple NULLs on the legacy M3 published row (expected
+    datasetVersionId: null). If the platform rejects a unique index over a nullable column, STOP; never backfill
+    rows to satisfy the index.
+ 5) `push tables --all` must show differences ONLY on the four approved items. Any other live-vs-declared drift
+    (e.g., on import-runs) means the operator must either stop and report, or switch to the narrowly targeted
+    commands (Option B) limited to the approved changes; unapproved drift must not be swept in.
+Explicitly NOT blockers for this scope (do not invent them from dated history): M5 PR/CI still pending (no M5 code is
+deployed or needed for a metadata-only schema change; the live function stays the deliberate 501 stub); M6 issue #12
+gaps (FNV-vs-SHA-256, invalid-unit/ambiguous-decimal notes) — a separate owner PR, "not the schema item"; source
+rights not-approved (blocks real-data publication, not synthetic-only dev schema); F2 persistent lock row
+(publication-time recovery, unrelated to schema); Student Pack capacity (both project slots used; no new project
+needed); missing backup/restore drill (pre-production gate; runbook 10 keeps this migration's rollback
+"metadata-only"); first-39-check probe history and CI fixture flakes (retained as history, superseded by the
+corrected 39/39 bounded matrix).
+
+4. PROPOSED EXACT TARGETED APPWRITE CLI COMMANDS (owner terminal only)
+----------------------------------------------------------------------
+Toolchain: npx --yes appwrite-cli@28.1.0 (verified form; never the unsigned global 13.3.2); interactive `login` by
+the owner; never a key on a command line; never --show-secrets; every command pins
+--config-file infra/appwrite/appwrite.config.development.json; record every exact invocation and exit code.
+Runbook rule: confirm flag names with `npx --yes appwrite-cli@28.1.0 <command> --help` at execution time.
+
+Phase A — preflight (read-only, before any change):
+  npx --yes appwrite-cli@28.1.0 -v
+  npx --yes appwrite-cli@28.1.0 client --endpoint https://fra.cloud.appwrite.io/v1
+  npx --yes appwrite-cli@28.1.0 login
+  npx --yes appwrite-cli@28.1.0 pull tables --all --force --config-file <scratch-development.json>
+  git diff --no-index infra/appwrite/appwrite.config.development.json <scratch-development.json>
+Expect differences limited to: dataset-versions datasetVersionId column+index absent; previousVersionId size < 512;
+dataset-bundles datasetVersionId size < 512. Anything else (or import-runs drift): STOP and report.
+
+Phase B — apply, Option A (primary; the runbook section 10 reviewed pattern, identical to executed section 4):
+  npx --yes appwrite-cli@28.1.0 push tables --all --config-file infra/appwrite/appwrite.config.development.json --force
+Capture full output. Any error/rejection (resize or index): STOP. Do not run `push buckets`, `push functions`,
+`push sites`, or any production-config command.
+
+Option B (alternative, narrowly targeted; confirm exact subcommand/flag spelling with `--help` first — CLI 28.1.0
+may use type-specific column subcommands; aliases `tables-db`/`tablesdb` both work, canonical Usage is `tablesdb`):
+  npx --yes appwrite-cli@28.1.0 tablesdb create-column --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId --type varchar --size 512 --required false --array false --config-file infra/appwrite/appwrite.config.development.json --json
+  npx --yes appwrite-cli@28.1.0 tablesdb create-index --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId_unique --type unique --columns datasetVersionId --config-file infra/appwrite/appwrite.config.development.json --json
+  npx --yes appwrite-cli@28.1.0 tablesdb update-column --database-id intermed-datasets --table-id dataset-versions --key previousVersionId --type varchar --size 512 --required false --array false --config-file infra/appwrite/appwrite.config.development.json --json
+  npx --yes appwrite-cli@28.1.0 tablesdb update-column --database-id intermed-datasets --table-id dataset-bundles --key datasetVersionId --type varchar --size 512 --required true --array false --config-file infra/appwrite/appwrite.config.development.json --json
+(create-column/create-index only if the Phase A diff shows them absent; update-column = in-place widen; STOP on any
+rejection. If the CLI cannot widen in place, STOP — never delete/recreate a column with live rows.)
+
+Rollback: metadata-only and needs its own approval (runbook 10 rule 4). The column/index is additive; no published
+object is created or deleted by this migration; rows are untouched, so there is no data rollback. If the apply stops
+part-way, record exactly which sub-changes applied and request a new approval for any further step.
+
+5. SAFE READ-ONLY POST-MIGRATION VERIFICATION (GET only; execute []; no update/delete anywhere)
+------------------------------------------------------------------------------------------------
+ 5.1 Full declared schema comparison (recommended primary proof):
+  npx --yes appwrite-cli@28.1.0 pull tables --all --force --config-file <scratch-development-after.json>
+  git diff --no-index infra/appwrite/appwrite.config.development.json <scratch-development-after.json>
+  Expect zero differences on declared table/column/index properties (generated ids/status metadata excluded, as in
+  the 2026-10-07 comparison). Confirm explicitly: datasetVersionId varchar 512 required:false;
+  datasetVersionId_unique unique on dataset-versions; previousVersionId varchar 512; dataset-bundles.datasetVersionId
+  varchar 512 required:true with its unique index intact; rowSecurity false; $permissions unchanged
+  (read("any") on dataset-versions, dataset-bundles only; import-runs private).
+ 5.2 Existing published objects unchanged (read-only get; ids from the preserved M3 readbacks — confirm against
+  docs/evidence/milestone-3-live-2026-10-07/cleanup-live/preserved-*.json before running):
+  npx --yes appwrite-cli@28.1.0 tablesdb get-row --database-id intermed-datasets --table-id dataset-versions --row-id version-aba05ea1b8fc3e49f18d517b --config-file infra/appwrite/appwrite.config.development.json --json
+    -> expect datasetVersionId: null (bounded legacy fallback) and every other field byte-identical to the preserved
+       readback (status, checksum, timestamps, permissions).
+  npx --yes appwrite-cli@28.1.0 tablesdb get-row --database-id intermed-datasets --table-id dataset-bundles --row-id bundle-aba05ea1b8fc3e49f18d517b --config-file infra/appwrite/appwrite.config.development.json --json
+  npx --yes appwrite-cli@28.1.0 storage get-file-view --bucket-id published-datasets --file-id file-aba05ea1b8fc3e49f18d517b --destination <temp>/published-bundle.json --config-file infra/appwrite/appwrite.config.development.json
+    -> re-hash and compare with the recorded sha256:<64 hex> (bundle bytes must be untouched).
+ 5.3 Bounded anonymous M3-style probes, GET-ONLY (no POST/PATCH/DELETE against any object, and none at all against
+  the existing published objects; no new guard objects — creating them would be writes needing separate approval):
+  Public reads (expect HTTP 200, { total, rows } envelope unchanged, no documents key):
+   curl.exe -s -D - "https://fra.cloud.appwrite.io/v1/tablesdb/intermed-datasets/tables/dataset-versions/rows?queries[0]={%22method%22:%22limit%22,%22values%22:[1]}" -H "X-Appwrite-Project: intermed-dev"
+   curl.exe -s -D - "https://fra.cloud.appwrite.io/v1/tablesdb/intermed-datasets/tables/dataset-bundles/rows?queries[0]={%22method%22:%22limit%22,%22values%22:[1]}" -H "X-Appwrite-Project: intermed-dev"
+   curl.exe -s -D - "https://fra.cloud.appwrite.io/v1/storage/buckets/published-datasets/files" -H "X-Appwrite-Project: intermed-dev"
+  Private reads (expect HTTP 401 authorization error, never rows/files):
+   .../tablesdb/intermed-datasets/tables/import-runs/rows?... and .../storage/buckets/{raw-sources|quarantine|import-run-logs}/files
+  (Keep the runbook section 5 caveat: a private single-row GET may 404 row_not_found — a masked refusal, not a
+  failure. The anonymous-probe.mjs helper may be reused ONLY with its write-verb operations removed/skipped.)
+ 5.4 Public reader round-trip (saved-script, credentials omit, GET only): re-run the final adapter read
+  (infra/appwrite/live-acceptance/adapter-read.mjs -> readPublishedMetadata) for the synthetic dataset; expect the
+  same manifest and descriptor as the recorded post-cleanup read: reader prefers the canonical attribute, falls
+  back to $id only when it is missing/null (the legacy row must still resolve), and would reject a present-but-
+  malformed value. Two REST recordings expected, as before.
+ 5.5 Function untouched, execute [] preserved:
+  npx --yes appwrite-cli@28.1.0 functions get --function-id import-anmdmr --config-file infra/appwrite/appwrite.config.development.json --json
+    -> expect execute: [], scopes: [], vars: [] unchanged; no deployment created, no execution created. Do NOT run
+  functions create-deployment/create-execution. The unauthenticated execution-denial probe (POST -> 401) from
+  runbook section 5 may be repeated only if the operator wants that denial re-proof; it executes nothing.
+ 5.6 Record everything: exact commands, HTTP statuses, response bodies (sanitized), before/after field comparisons,
+  and the separate owner approval that authorizes this migration scope.
+
+6. SCOPE FENCES (unchanged by this approval)
+--------------------------------------------
+No production project/billing/capacity change; no shell project/site change; no Sites change; no Function deploy or
+execution; no storage import; no publication; no row create/update/delete; no backfill; no CSP/UI change; no
+patient data; no real source material. Public reader stays GET-only across dataset-versions, dataset-bundles and
+published-datasets with read("any"); import-runs, raw-sources, quarantine, import-run-logs stay fully private;
+import-anmdmr keeps public execute []. M6 issue #12, PR/CI completion and source rights are separate gates and are
+not affected or closed by this migration.

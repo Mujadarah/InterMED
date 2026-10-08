@@ -1,0 +1,5 @@
+{
+  "command": "npx --yes appwrite-cli@28.1.0 tablesdb create-index --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId_unique --type unique --columns datasetVersionId --config-file infra/appwrite/appwrite.config.development.json --raw",
+  "capturedAt": "2026-10-08T23:09:14.3798312Z",
+  "exitCode": 0
+}

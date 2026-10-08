@@ -1,0 +1,76 @@
+{
+  "projectId": "intermed-dev",
+  "databaseId": "intermed-datasets",
+  "baseCommit": "d770cedd27f19d294b6339d175f4743fa09d5412",
+  "stage": "before",
+  "capturedAt": "2026-10-08T23:03:21.034Z",
+  "projection": "Compare every declared table/column/index property, counts, availability and full index lengths; enum represented by live string+format enum. Server-generated fields and unspecified defaults excluded.",
+  "differences": [
+    {
+      "path": "dataset-versions.columnCount",
+      "expected": 17,
+      "actual": 16
+    },
+    {
+      "path": "dataset-versions.indexCount",
+      "expected": 3,
+      "actual": 2
+    },
+    {
+      "path": "dataset-versions.datasetVersionId",
+      "expected": {
+        "key": "datasetVersionId",
+        "type": "varchar",
+        "size": 512,
+        "required": false,
+        "array": false
+      },
+      "actual": null
+    },
+    {
+      "path": "dataset-versions.previousVersionId.size",
+      "expected": 512,
+      "actual": 64
+    },
+    {
+      "path": "dataset-versions.index.datasetVersionId_unique",
+      "expected": {
+        "key": "datasetVersionId_unique",
+        "type": "unique",
+        "columns": ["datasetVersionId"]
+      },
+      "actual": null
+    },
+    {
+      "path": "dataset-bundles.datasetVersionId.size",
+      "expected": 512,
+      "actual": 64
+    }
+  ],
+  "state": [
+    {
+      "table": "dataset-versions",
+      "permissions": ["read(\"any\")"],
+      "rowSecurity": false,
+      "columnCount": 16,
+      "indexCount": 2,
+      "rowCount": 1
+    },
+    {
+      "table": "dataset-bundles",
+      "permissions": ["read(\"any\")"],
+      "rowSecurity": false,
+      "columnCount": 6,
+      "indexCount": 1,
+      "rowCount": 1
+    },
+    {
+      "table": "import-runs",
+      "permissions": [],
+      "rowSecurity": false,
+      "columnCount": 11,
+      "indexCount": 1,
+      "rowCount": 0
+    }
+  ]
+}

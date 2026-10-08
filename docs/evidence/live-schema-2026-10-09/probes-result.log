@@ -1,0 +1,4 @@
+Command: npx --yes tsx@4.20.6 <temp>/probes.ts <repo> <temp>
+Probe matrix not fully passing; inspect evidence.
+Public GET-only reader: PASS; requests=2
+PROBES_EXIT=1

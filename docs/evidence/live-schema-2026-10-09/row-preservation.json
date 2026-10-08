@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-08T23:10:12.113Z",
+  "normalization": "Only omit datasetVersionId when null (new nullable attribute); all existing row data, permissions, IDs and timestamps must hash identically.",
+  "tables": [
+    {
+      "table": "dataset-versions",
+      "before": 1,
+      "after": 1,
+      "unchanged": true,
+      "rows": [
+        {
+          "id": "version-aba05ea1b8fc3e49f18d517b",
+          "sha256": "014835a33e3b99ccf5647b5c5c199b4ae435a0e888908ae13f5448d83a6f7662"
+        }
+      ],
+      "newOptionalIdValues": [
+        {
+          "id": "version-aba05ea1b8fc3e49f18d517b",
+          "datasetVersionId": null
+        }
+      ]
+    },
+    {
+      "table": "dataset-bundles",
+      "before": 1,
+      "after": 1,
+      "unchanged": true,
+      "rows": [
+        {
+          "id": "bundle-aba05ea1b8fc3e49f18d517b",
+          "sha256": "6d4361a2613fb61e787d781b3d60efbe92af74f0f486e2c8fdb36cf3ab88a5af"
+        }
+      ]
+    },
+    {
+      "table": "import-runs",
+      "before": 0,
+      "after": 0,
+      "unchanged": true,
+      "rows": []
+    }
+  ]
+}

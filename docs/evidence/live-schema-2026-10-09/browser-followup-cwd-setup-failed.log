@@ -1,0 +1,13 @@
+Command: npx playwright test -c <temp>/playwright-followup.config.ts tests/browser/native-activation.spec.ts tests/browser/recovery-update.spec.ts --project=webkit-phone --project=webkit-tablet --workers=1
+Scratch config changes only test-server ports to 5188/4188; assertions and source unchanged.
+[WebServer] npm error code ENOENT
+[WebServer] npm error syscall open
+[WebServer] npm error path <temp>\intermed-schema-20261009\package.json
+[WebServer] npm error errno -4058
+[WebServer] npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '<temp>\intermed-schema-20261009\package.json'
+[WebServer] npm error enoent This is related to npm not being able to find a file.
+[WebServer] npm error enoent
+[WebServer] npm error A complete log of this run can be found in: <user-home>\AppData\Local\npm-cache\_logs\2026-10-08T23_12_12_175Z-debug-0.log
+Error: Process from config.webServer was not able to start. Exit code: 4294963238
+
+FOCUSED_EXIT=1

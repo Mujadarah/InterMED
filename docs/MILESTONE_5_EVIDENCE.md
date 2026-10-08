@@ -1,5 +1,14 @@
 # Milestone 5 evidence — synthetic-only importer
 
+**Live schema update — 2026-10-09:** the separately approved development-only
+migration is executed and verified against `d770ced`. See the
+[live migration report](LIVE_SCHEMA_MIGRATION_2026-10-09.md) for before/after
+schema, unchanged row counts, exact CLI commands, public-reader verification,
+and the incomplete permission-probe and local-check results. This supersedes
+the historical "schema migration not executed" statements below for
+`intermed-dev` only. Function deployment, live import and production creation
+remain separately approval-gated; no overall M5 acceptance is claimed.
+
 **Status (updated 2026-10-08, repair verified + focused review accepted):**
 **OFFLINE CODE REPAIRED AND ROOT-VERIFIED AT `9a40644` (744 tests / 47 files /
 150 browser, exit 0) AND THE FOCUSED REPAIR REVIEW IS ACCEPTED (REPAIR SCOPE

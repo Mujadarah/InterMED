@@ -1,0 +1,160 @@
+{
+  "records": [
+    {
+      "capturedAt": "2026-10-08T23:09:57.4814946Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:59.5395739Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:10:01.848628Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id dataset-bundles --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:54.4416997Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:14.5532782Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:24.2162516Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:27.8546204Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id dataset-bundles --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:11.3570754Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id dataset-bundles --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:46.3548633Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:48.7478209Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:50.9967163Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id dataset-versions --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:09:43.8123543Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:00:59.6956294Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:04.1992348Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:08.0238564Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id dataset-versions --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:00:54.8709426Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id dataset-versions --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "capturedAt": "2026-10-08T23:10:06.7717192Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:10:09.7726034Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:10:12.0099719Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id import-runs --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "capturedAt": "2026-10-08T23:10:04.0877012Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:34.5848242Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-columns --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:37.0480574Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-indexes --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:39.4211032Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb list-rows --database-id intermed-datasets --table-id import-runs --limit 100 --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:01:30.7688944Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-table --database-id intermed-datasets --table-id import-runs --config-file infra/appwrite/appwrite.config.development.json --raw"
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-column --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "capturedAt": "2026-10-08T23:09:09.974968Z",
+      "exitCode": 0
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb get-index --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId_unique --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "capturedAt": "2026-10-08T23:09:18.4551981Z",
+      "exitCode": 0
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 graphql query --query mutation { tablesDBUpdateVarcharColumn(databaseId: \"intermed-datasets\", tableId: \"dataset-versions\", key: \"previousVersionId\", required: false, default: null, size: 512) { key size required default status } } --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 0,
+      "capturedAt": "2026-10-08T23:08:29.3416517Z"
+    },
+    {
+      "capturedAt": "2026-10-08T23:03:23.3713649Z",
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb update-varchar-column --database-id intermed-datasets --table-id dataset-versions --key previousVersionId --size 512 --required=false --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "exitCode": 1
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 graphql query --query mutation { tablesDBUpdateVarcharColumn(databaseId: \"intermed-datasets\", tableId: \"dataset-bundles\", key: \"datasetVersionId\", required: true, default: null, size: 512) { key size required default status } } --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "capturedAt": "2026-10-08T23:09:00.5710638Z",
+      "exitCode": 0
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb create-varchar-column --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId --size 512 --required=false --array=false --encrypt=false --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "capturedAt": "2026-10-08T23:09:05.1119299Z",
+      "exitCode": 0
+    },
+    {
+      "command": "npx --yes appwrite-cli@28.1.0 tablesdb create-index --database-id intermed-datasets --table-id dataset-versions --key datasetVersionId_unique --type unique --columns datasetVersionId --config-file infra/appwrite/appwrite.config.development.json --raw",
+      "capturedAt": "2026-10-08T23:09:14.3798312Z",
+      "exitCode": 0
+    }
+  ],
+  "scope": "intermed-dev only; no key/session values"
+}

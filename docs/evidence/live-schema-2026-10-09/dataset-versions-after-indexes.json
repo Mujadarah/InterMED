@@ -1,0 +1,41 @@
+{
+  "total": 3,
+  "indexes": [
+    {
+      "$id": "160423_1_dataset_status_publishedAt",
+      "$createdAt": "2026-10-07T08:57:15.113+00:00",
+      "$updatedAt": "2026-10-07T08:57:15.251+00:00",
+      "key": "dataset_status_publishedAt",
+      "type": "key",
+      "status": "available",
+      "error": "",
+      "columns": ["dataset", "status", "publishedAt"],
+      "lengths": [0, 0, 0],
+      "orders": ["ASC", "ASC", "DESC"]
+    },
+    {
+      "$id": "160423_1_dataset_version_unique",
+      "$createdAt": "2026-10-07T08:57:15.229+00:00",
+      "$updatedAt": "2026-10-07T08:57:15.426+00:00",
+      "key": "dataset_version_unique",
+      "type": "unique",
+      "status": "available",
+      "error": "",
+      "columns": ["dataset", "version"],
+      "lengths": [0, 0],
+      "orders": []
+    },
+    {
+      "$id": "160423_1_datasetVersionId_unique",
+      "$createdAt": "2026-10-08T23:09:13.631+00:00",
+      "$updatedAt": "2026-10-08T23:09:13.762+00:00",
+      "key": "datasetVersionId_unique",
+      "type": "unique",
+      "status": "available",
+      "error": "",
+      "columns": ["datasetVersionId"],
+      "lengths": [0],
+      "orders": []
+    }
+  ]
+}

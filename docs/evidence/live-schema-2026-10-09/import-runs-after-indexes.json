@@ -1,0 +1,17 @@
+{
+  "total": 1,
+  "indexes": [
+    {
+      "$id": "160423_3_sourceId_startedAt",
+      "$createdAt": "2026-10-07T08:57:25.598+00:00",
+      "$updatedAt": "2026-10-07T08:57:25.683+00:00",
+      "key": "sourceId_startedAt",
+      "type": "key",
+      "status": "available",
+      "error": "",
+      "columns": ["sourceId", "startedAt"],
+      "lengths": [0, 0],
+      "orders": ["ASC", "DESC"]
+    }
+  ]
+}
