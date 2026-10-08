@@ -262,17 +262,29 @@ function IdentificationSection({
   );
 }
 
+/**
+ * The verbatim active-ingredient text of the source comes first, before the
+ * individual ingredient rows. A product can carry it without having any join
+ * row at all, so it is stated on its own rather than inferred from the joins
+ * (GPT-6 review fix 2).
+ */
 function CompositionSection({
+  product,
   ingredients,
 }: {
+  product: MedicationProductDetail['product'];
   ingredients: MedicationProductDetail['ingredients'];
 }) {
+  const originalDciText = product.originalDciText;
   return (
     <section aria-labelledby="medication-composition-title">
       <h2 id="medication-composition-title">Composition</h2>
-      {ingredients.length === 0 ? (
-        <p>{NOT_PROVIDED}</p>
-      ) : (
+      <dl className="detail-list">
+        <Definition label="Active ingredient(s) as stated by source">
+          {fieldText(originalDciText)}
+        </Definition>
+      </dl>
+      {ingredients.length > 0 ? (
         <ol className="detail-card-list" aria-label="Product ingredients">
           {ingredients.map(({ medicationIngredient, activeIngredient }) => (
             <IngredientRow
@@ -282,6 +294,12 @@ function CompositionSection({
             />
           ))}
         </ol>
+      ) : originalDciText.status === 'present' ? (
+        <p>
+          No individual ingredient records are available in the local dataset.
+        </p>
+      ) : (
+        <p>{NOT_PROVIDED}</p>
       )}
     </section>
   );
@@ -464,7 +482,7 @@ function ProductDetail({
         </p>
       )}
       <IdentificationSection product={product} dosageForm={detail.dosageForm} />
-      <CompositionSection ingredients={detail.ingredients} />
+      <CompositionSection product={product} ingredients={detail.ingredients} />
       <AtcSection atcCodes={detail.atcCodes} />
       <PartiesSection
         manufacturers={detail.manufacturers}

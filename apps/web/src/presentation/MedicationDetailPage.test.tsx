@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -11,6 +11,7 @@ import {
   unknownField,
   type DatasetStateSource,
   type DatasetUpdateState,
+  type FieldState,
   type LocalDatasetGeneration,
   type MedicationProductDetail,
 } from '@intermed/domain';
@@ -173,18 +174,27 @@ function fixtureProvenance(): Pick<
   return { generation, dataSource: source, datasetVersion };
 }
 
-function detail(status: 'active' | 'removed' | 'unresolved' = 'active') {
+function detail(
+  status: 'active' | 'removed' | 'unresolved' = 'active',
+  composition: {
+    readonly originalDciText?: FieldState<string>;
+    readonly ingredients?: MedicationProductDetail['ingredients'];
+  } = {},
+) {
   const { product, dosageForm, atcCode, manufacturers, authorizationHolder } =
     fixtureProduct(status);
   const documents = fixtureDocuments(product);
   const { generation, dataSource, datasetVersion } = fixtureProvenance();
+  const composedProduct = composition.originalDciText
+    ? { ...product, originalDciText: composition.originalDciText }
+    : product;
   return {
     generation,
     product: {
-      ...product,
+      ...composedProduct,
       regulatoryDocumentIds: documents.map((document) => document.id),
     },
-    ingredients: fixtureIngredients(product),
+    ingredients: composition.ingredients ?? fixtureIngredients(composedProduct),
     dosageForm,
     atcCodes: [atcCode],
     manufacturers,
@@ -418,6 +428,83 @@ it('renders source fields, composition, regulatory references and provenance ver
   ).toBeVisible();
   expect(
     screen.queryByText('synthetic-cached-content-reference'),
+  ).not.toBeInTheDocument();
+});
+
+it('states the source active-ingredient text before the individual ingredient rows', async () => {
+  renderPage(ready, { productDetail: vi.fn(async () => detail()) });
+
+  expect(
+    await screen.findByRole('heading', { name: 'Fictivol detail' }),
+  ).toBeVisible();
+  const composition = screen.getByRole('region', { name: 'Composition' });
+  expect(
+    within(composition).getByText('Active ingredient(s) as stated by source'),
+  ).toBeVisible();
+  const sourceDci = within(composition).getByText('Original source DCI', {
+    exact: true,
+  });
+  expect(sourceDci).toBeVisible();
+  // The verbatim source text comes first; the individual rows follow it.
+  const firstIngredientRow = within(composition).getAllByRole('listitem')[0]!;
+  expect(
+    sourceDci.compareDocumentPosition(firstIngredientRow) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  expect(within(composition).getAllByRole('listitem').length).toBeGreaterThan(
+    0,
+  );
+});
+
+it('explains a composition that has source DCI text but no ingredient records', async () => {
+  renderPage(ready, {
+    productDetail: vi.fn(async () =>
+      detail('active', {
+        originalDciText: presentField('Synthetic verbatim source DCI text'),
+        ingredients: [],
+      }),
+    ),
+  });
+
+  expect(
+    await screen.findByRole('heading', { name: 'Fictivol detail' }),
+  ).toBeVisible();
+  const composition = screen.getByRole('region', { name: 'Composition' });
+  expect(
+    within(composition).getByText('Synthetic verbatim source DCI text'),
+  ).toBeVisible();
+  expect(
+    within(composition).getByText(
+      'No individual ingredient records are available in the local dataset.',
+    ),
+  ).toBeVisible();
+  expect(
+    within(composition).queryByText('Not provided by source'),
+  ).not.toBeInTheDocument();
+});
+
+it('calls the composition missing only when the source provided neither', async () => {
+  renderPage(ready, {
+    productDetail: vi.fn(async () =>
+      detail('active', { originalDciText: MISSING, ingredients: [] }),
+    ),
+  });
+
+  expect(
+    await screen.findByRole('heading', { name: 'Fictivol detail' }),
+  ).toBeVisible();
+  const composition = screen.getByRole('region', { name: 'Composition' });
+  expect(
+    within(composition).getByText('Active ingredient(s) as stated by source'),
+  ).toBeVisible();
+  expect(
+    within(composition).getAllByText('Not provided by source', { exact: true })
+      .length,
+  ).toBeGreaterThan(0);
+  expect(
+    within(composition).queryByText(
+      'No individual ingredient records are available in the local dataset.',
+    ),
   ).not.toBeInTheDocument();
 });
 
