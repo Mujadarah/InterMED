@@ -41,6 +41,61 @@ function generationOf(
   return 'generation' in state ? state.generation : null;
 }
 
+function SearchResultDetails({ row }: { row: DisambiguatedSearchResult }) {
+  return (
+    <dl className="search-result-details">
+      <div>
+        <dt>Active ingredient(s)</dt>
+        <dd>{row.ingredients}</dd>
+      </div>
+      <div>
+        <dt>Strength</dt>
+        <dd>{row.strength}</dd>
+      </div>
+      <div>
+        <dt>Dosage form</dt>
+        <dd>{row.dosageForm}</dd>
+      </div>
+      <div>
+        <dt>Route</dt>
+        <dd>{row.route}</dd>
+      </div>
+      <div>
+        <dt>Authorization status</dt>
+        <dd>{row.authorization}</dd>
+      </div>
+      <div>
+        <dt>Manufacturer</dt>
+        <dd>{row.manufacturer}</dd>
+      </div>
+      <div>
+        <dt>Pack/presentation</dt>
+        <dd>{row.pack}</dd>
+      </div>
+      <div>
+        <dt>CIM</dt>
+        <dd>{row.cim}</dd>
+      </div>
+      <div>
+        <dt>Catalogue record status</dt>
+        <dd>{row.catalogueStatus}</dd>
+      </div>
+      {row.sourceProductIdSuffix && (
+        <div>
+          <dt>Source product ID</dt>
+          <dd>{row.sourceProductIdSuffix}</dd>
+        </div>
+      )}
+      {row.productIdSuffix && (
+        <div>
+          <dt>Product ID</dt>
+          <dd>{row.productIdSuffix}</dd>
+        </div>
+      )}
+    </dl>
+  );
+}
+
 function SearchResult({
   row,
   query,
@@ -71,56 +126,7 @@ function SearchResult({
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
       >
         <span className="search-result-name">{product.commercialName}</span>
-        <dl className="search-result-details">
-          <div>
-            <dt>Active ingredient(s)</dt>
-            <dd>{row.ingredients}</dd>
-          </div>
-          <div>
-            <dt>Strength</dt>
-            <dd>{row.strength}</dd>
-          </div>
-          <div>
-            <dt>Dosage form</dt>
-            <dd>{row.dosageForm}</dd>
-          </div>
-          <div>
-            <dt>Route</dt>
-            <dd>{row.route}</dd>
-          </div>
-          <div>
-            <dt>Authorization status</dt>
-            <dd>{row.authorization}</dd>
-          </div>
-          <div>
-            <dt>Manufacturer</dt>
-            <dd>{row.manufacturer}</dd>
-          </div>
-          <div>
-            <dt>Pack/presentation</dt>
-            <dd>{row.pack}</dd>
-          </div>
-          <div>
-            <dt>CIM</dt>
-            <dd>{row.cim}</dd>
-          </div>
-          <div>
-            <dt>Catalogue record status</dt>
-            <dd>{row.catalogueStatus}</dd>
-          </div>
-          {row.sourceProductIdSuffix && (
-            <div>
-              <dt>Source product ID</dt>
-              <dd>{row.sourceProductIdSuffix}</dd>
-            </div>
-          )}
-          {row.productIdSuffix && (
-            <div>
-              <dt>Product ID</dt>
-              <dd>{row.productIdSuffix}</dd>
-            </div>
-          )}
-        </dl>
+        <SearchResultDetails row={row} />
       </Link>
     </li>
   );

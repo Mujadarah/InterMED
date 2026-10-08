@@ -41,20 +41,25 @@ function browserDatasetStore(): LocalDatasetStore {
   return browserDataset;
 }
 
+/** The shared reader closures both medication services need from a store. */
+function readerDependencies(store: LocalDatasetStore) {
+  return {
+    activeGenerationId: () => {
+      const state = store.getState();
+      return 'generation' in state
+        ? (state.generation?.generationId ?? null)
+        : null;
+    },
+    openReader: () => store.openReader(),
+  };
+}
+
 function medicationSearchFor(
   store: LocalDatasetStore,
 ): MedicationSearchService {
   let service = medicationSearchServices.get(store);
   if (!service) {
-    service = createMedicationSearchService({
-      activeGenerationId: () => {
-        const state = store.getState();
-        return 'generation' in state
-          ? (state.generation?.generationId ?? null)
-          : null;
-      },
-      openReader: () => store.openReader(),
-    });
+    service = createMedicationSearchService(readerDependencies(store));
     medicationSearchServices.set(store, service);
   }
   return service;
@@ -65,15 +70,7 @@ function medicationDetailFor(
 ): MedicationDetailService {
   let service = medicationDetailServices.get(store);
   if (!service) {
-    service = createMedicationDetailService({
-      activeGenerationId: () => {
-        const state = store.getState();
-        return 'generation' in state
-          ? (state.generation?.generationId ?? null)
-          : null;
-      },
-      openReader: () => store.openReader(),
-    });
+    service = createMedicationDetailService(readerDependencies(store));
     medicationDetailServices.set(store, service);
   }
   return service;
