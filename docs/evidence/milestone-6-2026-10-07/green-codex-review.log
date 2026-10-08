@@ -79,10 +79,10 @@ Error: Transform failed with 2 errors:
 
   Plugin: vite:oxc
   File: <worktree>/packages/local-store/src/locks.ts
- ❯ transformWithOxc ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7581:19
- ❯ TransformPluginContext.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:7653:26
- ❯ EnvironmentPluginContainer.transform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:8545:51
- ❯ loadAndTransform ../../../Proiecte%20AI/InterMED-wt/m6/node_modules/vite/dist/node/chunks/node.js:19988:26
+ ❯ transformWithOxc <worktree>/node_modules/vite/dist/node/chunks/node.js:7581:19
+ ❯ TransformPluginContext.transform <worktree>/node_modules/vite/dist/node/chunks/node.js:7653:26
+ ❯ EnvironmentPluginContainer.transform <worktree>/node_modules/vite/dist/node/chunks/node.js:8545:51
+ ❯ loadAndTransform <worktree>/node_modules/vite/dist/node/chunks/node.js:19988:26
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
 
