@@ -91,7 +91,7 @@ function runnerSource(rawLiteral: string): string {
     "const { createFakeAppwriteRest, utf8Bytes, bytesToText } = await import('./fake-appwrite-rest.mjs');",
     '',
     '// Runtime-generated fake key; never a real credential and never printed.',
-    "const SECRET = 'artifact-fake-secret-' + randomBytes(16).toString('hex');",
+    "const SECRET = randomBytes(24).toString('hex');",
     "const DATASET = 'synthetic-medication-catalogue';",
     "const SOURCE_VERSION = 'synthetic-2026-10-06';",
     "const APPROVED_AT = '2026-10-07T10:00:00Z';",
