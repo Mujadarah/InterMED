@@ -38,10 +38,12 @@ const EMPTY_IDENTITY = {
   candidateSha256: '',
 };
 
+/** Narrow a value to a nonempty string. */
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+/** Require a trimmed numeric major.minor.patch version of at most 50 characters. */
 function isNumericSemver(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   if (value.length === 0 || value.length > 50) return false;
@@ -306,6 +308,7 @@ export async function stage(req: StageRequest): Promise<StageResult> {
   };
 }
 
+/** Reject the retired candidate API; callers must stage through private ports. */
 export function generateCandidate(): never {
   throw new Error('generateCandidate is retired; use stage with private ports');
 }

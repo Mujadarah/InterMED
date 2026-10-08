@@ -49,12 +49,14 @@ export const STAGE_OPERATION = 'op-stage-0001';
 export const PUBLISH_OPERATION = 'op-publish-0001';
 export const RAW_FILE_ID = 'raw-src-0001';
 
+/** Hash synthetic text or bytes with real SHA-256 for handler binding assertions. */
 export function sha256Hex(value: Uint8Array | string): string {
   return createHash('sha256')
     .update(typeof value === 'string' ? Buffer.from(value) : Buffer.from(value))
     .digest('hex');
 }
 
+/** Take the requested digest prefix for deterministic fixture identifiers. */
 export function hexPrefix(digest: string, length: number): string {
   return digest.slice(0, length);
 }
@@ -214,6 +216,7 @@ export function buildSnapshotDocument(
   };
 }
 
+/** Serialize the synthetic raw document as UTF-8 JSON bytes. */
 export function snapshotBytes(
   document: Record<string, unknown> = buildSnapshotDocument(),
 ): Uint8Array {
@@ -245,6 +248,7 @@ export function candidateBytes(): Uint8Array {
   return utf8Bytes(serializeCatalogue(result.snapshot));
 }
 
+/** Count entity arrays used by handler fixtures, treating absent collections as empty. */
 export function catalogueCounts(
   catalogue: Record<string, unknown>,
 ): Record<string, number> {
@@ -266,6 +270,7 @@ export interface IntentDocument {
   [key: string]: unknown;
 }
 
+/** Build a synthetic private stage intent with overridable fields for negative tests. */
 export function stageIntentDocument(
   operationId: string = STAGE_OPERATION,
   overrides: Record<string, unknown> = {},
@@ -295,6 +300,7 @@ export interface PublishIntentBindings {
   baselineFingerprint?: string | null;
 }
 
+/** Build a fictional operator approval bound to the supplied candidate and baseline. */
 export function publishIntentDocument(
   operationId: string = PUBLISH_OPERATION,
   bindings: PublishIntentBindings,
@@ -361,6 +367,7 @@ export interface Harness {
   dispose(): void;
 }
 
+/** Stub handler fetch and runtime variables; callers must dispose to restore global state. */
 export function createHarness(
   options: {
     publishEnabled?: boolean;
@@ -372,6 +379,7 @@ export function createHarness(
   const restore = new Map<string, string | undefined>();
   vi.stubGlobal('fetch', rest.fetch as unknown as typeof fetch);
 
+  /** Set a test runtime variable while retaining its original value for disposal. */
   function setEnv(name: string, value: string | undefined): void {
     if (!restore.has(name)) restore.set(name, process.env[name]);
     if (value === undefined) delete process.env[name];
@@ -446,10 +454,12 @@ export function createHarness(
 export const SAFE_LOG_PATTERN =
   /^import-anmdmr event=[a-z-]+ ref=([0-9a-f]{12}|none)$/;
 
+/** Wrap an operation reference in the minimal handler request shape. */
 export function envelope(operationId: unknown): { operationId: unknown } {
   return { operationId };
 }
 
+/** Read a seeded fake file as text, throwing when the fixture is missing. */
 export function readSeedText(
   rest: FakeRest,
   bucketId: string,

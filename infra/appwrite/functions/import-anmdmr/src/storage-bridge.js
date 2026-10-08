@@ -67,36 +67,44 @@ export function publicBundleDownloadUrl(fileId) {
   return `${TRUSTED_ENDPOINT}/storage/buckets/${BUCKETS.published}/files/${fileId}/download?project=${TRUSTED_PROJECT_ID}`;
 }
 
+/** Recognize a named store error with the requested stable code. */
 function isStoreError(error, code) {
   return (
     error instanceof Error && error.name === 'StoreError' && error.code === code
   );
 }
 
+/** Identify an explicit missing-resource store failure. */
 function isNotFound(error) {
   return isStoreError(error, 'NOT_FOUND');
 }
 
+/** Identify an immutable-create conflict reported by the store. */
 function isConflict(error) {
   return isStoreError(error, 'CONFLICT');
 }
 
+/** Identify a backend failure whose write outcome may be ambiguous. */
 function isServerFailure(error) {
   return isStoreError(error, 'SERVER_ERROR');
 }
 
+/** Encode text as UTF-8 bytes for private artifact storage. */
 function utf8Bytes(text) {
   return new TextEncoder().encode(text);
 }
 
+/** Decode stored artifact bytes as UTF-8 text. */
 function utf8Text(bytes) {
   return new TextDecoder().decode(bytes);
 }
 
+/** Read a downloaded Blob into a byte array. */
 async function blobBytes(blob) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 
+/** Compare byte lengths and contents for immutable-file reuse. */
 function sameBytes(left, right) {
   if (left.length !== right.length) return false;
   for (let index = 0; index < left.length; index += 1) {
@@ -105,6 +113,7 @@ function sameBytes(left, right) {
   return true;
 }
 
+/** Limit private issue entries and truncate each string to the storage bound. */
 function boundedIssues(issues) {
   const list = Array.isArray(issues) ? issues : [];
   return list
@@ -112,11 +121,13 @@ function boundedIssues(issues) {
     .map((issue) => String(issue).slice(0, MAX_ISSUE_CHARS));
 }
 
+/** Serialize a value and truncate the text to the storage character limit. */
 function boundedJson(value) {
   const text = JSON.stringify(value);
   return text.length > MAX_JSON_CHARS ? text.slice(0, MAX_JSON_CHARS) : text;
 }
 
+/** Recognize parseable UTC timestamps with supported fractional precision. */
 function isInstant(value) {
   return (
     typeof value === 'string' &&
@@ -125,6 +136,7 @@ function isInstant(value) {
   );
 }
 
+/** Reject empty or oversized row text with a stable bridge error. */
 function assertText(value, max, label) {
   if (typeof value !== 'string' || value.length === 0 || value.length > max) {
     throw new BridgeError('row-invalid', `row ${label} out of bounds`);
@@ -136,27 +148,33 @@ function queryEqual(attribute, value) {
   return JSON.stringify({ method: 'equal', attribute, values: [value] });
 }
 
+/** Serialize an Appwrite descending-order query for one attribute. */
 function queryOrderDesc(attribute) {
   return JSON.stringify({ method: 'orderDesc', attribute });
 }
 
+/** Serialize an Appwrite ascending-order query for one attribute. */
 function queryOrderAsc(attribute) {
   return JSON.stringify({ method: 'orderAsc', attribute });
 }
 
+/** Serialize an Appwrite row-limit query. */
 function queryLimit(limit) {
   return JSON.stringify({ method: 'limit', values: [limit] });
 }
 
+/** Serialize an Appwrite cursor query starting after the supplied row ID. */
 function queryCursorAfter(rowId) {
   return JSON.stringify({ method: 'cursorAfter', values: [rowId] });
 }
 
+/** Extract a row array or reject an invalid list response. */
 function rowsOf(list) {
   if (list && Array.isArray(list.rows)) return list.rows;
   throw new BridgeError('invalid-list-response', 'row list shape invalid');
 }
 
+/** Compare stored values using JSON for objects and string coercion for scalars. */
 function valuesEqual(left, right) {
   if (left === right) return true;
   if (
@@ -186,6 +204,7 @@ function rowMatches(existing, data) {
   return true;
 }
 
+/** Project bounded run evidence into validated private Appwrite columns. */
 function buildRunRow(options) {
   const row = {
     sourceId: options.config.sourceKey,
@@ -215,6 +234,7 @@ function buildRunRow(options) {
   return row;
 }
 
+/** Project a bundle descriptor and physical file ID into bounded storage columns. */
 function buildDescriptorRow(descriptor, fileId) {
   const row = {
     datasetVersionId: descriptor.datasetVersionId,
@@ -235,6 +255,7 @@ function buildDescriptorRow(descriptor, fileId) {
   return row;
 }
 
+/** Project public manifest fields into storage columns while retaining canonical identity. */
 function buildManifestRow(manifest) {
   if (!Array.isArray(manifest.sourceIds)) {
     throw new BridgeError('row-invalid', 'manifest sourceIds invalid');
@@ -304,6 +325,7 @@ function buildManifestRow(manifest) {
   return row;
 }
 
+/** Decode manifest counts and map stored fields, using the supplied or row ID fallback. */
 function projectManifestRow(row, fallbackDatasetVersionId) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'manifest row invalid');
@@ -338,6 +360,7 @@ function projectManifestRow(row, fallbackDatasetVersionId) {
   };
 }
 
+/** Map stored descriptor fields and a resolved public URL into the core contract. */
 function projectDescriptorRow(row, publicUrl, fallbackDatasetVersionId) {
   if (!row || typeof row !== 'object' || typeof row.$id !== 'string') {
     throw new BridgeError('row-invalid', 'descriptor row invalid');
@@ -357,6 +380,7 @@ function projectDescriptorRow(row, publicUrl, fallbackDatasetVersionId) {
   };
 }
 
+/** Parse a review-purpose JSON object, returning null for invalid input or purpose. */
 function parseReviewJson(text) {
   let parsed;
   try {
@@ -370,6 +394,7 @@ function parseReviewJson(text) {
   return parsed;
 }
 
+/** Reject unknown or mismatched declared collection counts in a baseline. */
 function verifyBaselineCounts(recordCounts, catalogue) {
   if (!recordCounts || typeof recordCounts !== 'object') {
     throw new Error('published baseline verification failed');
@@ -385,6 +410,7 @@ function verifyBaselineCounts(recordCounts, catalogue) {
   }
 }
 
+/** Create the shared journal, private-write helpers and verified baseline reader. */
 function createSharedPorts(options) {
   const { store, sha256, log, dataset } = options;
   const journal = {
@@ -393,6 +419,7 @@ function createSharedPorts(options) {
     writes: [],
   };
 
+  /** Create private rows or reuse matching rows, with bounded run-summary retry matching. */
   async function createPrivateRowSemantics(tableId, rowId, data) {
     try {
       await store.createPrivateRow(tableId, rowId, data);
@@ -421,6 +448,7 @@ function createSharedPorts(options) {
     }
   }
 
+  /** Create a bounded private file; reuse conflicts only when stored bytes match. */
   async function createPrivateFileSemantics(bucketId, fileId, name, bytes) {
     if (bytes.length > MAX_ARTIFACT_BYTES) {
       throw new BridgeError('artifact-too-large', 'artifact exceeds the limit');
@@ -461,6 +489,7 @@ function createSharedPorts(options) {
     }
   }
 
+  /** Read at most four ordered pages of published manifests for the selected dataset. */
   async function listBaselineRows() {
     const collected = [];
     let cursor = null;
@@ -491,6 +520,7 @@ function createSharedPorts(options) {
     return collected;
   }
 
+  /** Select the latest publication timestamp, breaking ties by ascending row ID. */
   function pickNewest(rows) {
     const sorted = rows.slice().sort((left, right) => {
       const leftPublished = String(left.publishedAt ?? '');
@@ -505,6 +535,7 @@ function createSharedPorts(options) {
     return sorted[0] ?? null;
   }
 
+  /** Load the latest baseline and verify its bundle checksum, decoding and declared counts. */
   async function readBaseline() {
     const newest = pickNewest(await listBaselineRows());
     if (!newest) {
@@ -549,6 +580,7 @@ function createSharedPorts(options) {
     };
   }
 
+  /** Emit only a derived reference for core log text. */
   function filteredLog(message) {
     safeLog(log, 'core-log', sha256.hash(String(message)).slice(0, 12));
   }
@@ -657,6 +689,7 @@ export function createPublishBridge(options) {
     publicationTimestamp,
   } = options;
   const { journal } = shared;
+  /** Resolve the canonical generation to its physical public bundle download URL. */
   function resolvePublicUrl(versionId, fileName) {
     void fileName;
     const targetFileId = bundleFileId(sha256, versionId);
@@ -665,6 +698,7 @@ export function createPublishBridge(options) {
   const publicBaseUrl = `${TRUSTED_ENDPOINT}/storage/buckets/${BUCKETS.published}/files`;
   let activeLease = null;
 
+  /** Require the nonempty lease token currently held by this bridge. */
   function assertLease(lease) {
     if (typeof lease !== 'string' || lease.length === 0) {
       throw options.newPublicationLease();
@@ -674,6 +708,7 @@ export function createPublishBridge(options) {
     }
   }
 
+  /** Read file bytes; return null only for an explicit missing-file response. */
   async function downloadOrNull(bucketId, wantedFileId) {
     try {
       return await blobBytes(await store.downloadFile(bucketId, wantedFileId));

@@ -60,6 +60,7 @@ const compileOptions = {
   noEmitOnError: true,
 };
 
+/** Recursively collect TypeScript package sources while excluding test files. */
 function sourceFiles(directory) {
   const files = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -75,6 +76,7 @@ function sourceFiles(directory) {
   return files;
 }
 
+/** Format compiler diagnostics with repository paths and source context. */
 function diagnosticsMessage(diagnostics) {
   return ts.formatDiagnosticsWithColorAndContext(diagnostics, {
     getCanonicalFileName: (fileName) => fileName,
@@ -83,24 +85,29 @@ function diagnosticsMessage(diagnostics) {
   });
 }
 
+/** Check whether an AST node carries the requested modifier kind. */
 function hasModifier(node, kind) {
   return (node.modifiers ?? []).some((modifier) => modifier.kind === kind);
 }
 
+/** Identify import elements explicitly marked as type-only. */
 function isTypeOnlyImportElement(element) {
   return element.isTypeOnly === true;
 }
 
+/** Recognize relative or absolute filesystem module specifiers. */
 function isRelativeSpecifier(specifier) {
   return specifier.startsWith('.') || isAbsolute(specifier);
 }
 
+/** Check that a resolved path is a strict descendant of the parent directory. */
 function isInside(child, parent) {
   const childPath = resolve(child);
   const parentPath = resolve(parent);
   return childPath.startsWith(`${parentPath}${sep}`);
 }
 
+/** Reject filesystem operations outside the designated staging directory. */
 function assertInside(child, parent) {
   const childPath = resolve(child);
   const parentPath = resolve(parent);
@@ -111,6 +118,7 @@ function assertInside(child, parent) {
   }
 }
 
+/** Return the approved exact runtime dependency version or reject an unknown package. */
 function pinOf(specifier) {
   const pin = runtimeDependencyPins[specifier];
   if (typeof pin !== 'string') {
@@ -303,6 +311,7 @@ function collectModuleFacts(sourceFile) {
   return facts;
 }
 
+/** Add an explicit JavaScript path when a relative emitted module can be resolved. */
 function rewriteSpecifier(filePath, specifier) {
   if (!isRelativeSpecifier(specifier)) return specifier;
   if (
@@ -465,6 +474,7 @@ function transformJavaScript(filePath, decisions) {
   result.dispose();
 }
 
+/** Index export facts for deterministic pruning of emitted barrel exports. */
 function buildDecisions(facts) {
   const reexportsByKey = new Map();
   const namedReexports = [];
@@ -742,6 +752,7 @@ function analyzeRuntimeClosure({ program, functionFacts }) {
   return { included, factsOf, resolveSpecifier, demands };
 }
 
+/** Resolve a closure module to one of the allowed workspace packages. */
 function packageNameOfFile(file) {
   const rel = relative(packagesDir, file);
   const packageName = rel.split(/[\\/]/)[0];
@@ -751,6 +762,7 @@ function packageNameOfFile(file) {
   return packageName;
 }
 
+/** Write the vendored ESM package entry point and derived runtime dependencies. */
 function writeManifest(directory, manifest) {
   writeFileSync(
     join(directory, 'package.json'),
@@ -770,6 +782,7 @@ function writeManifest(directory, manifest) {
   );
 }
 
+/** Collect non-file imports and retained reexports needed at runtime. */
 function keptBareSpecifiers(facts) {
   const specifiers = new Set();
   for (const edge of facts.imports) {
@@ -802,6 +815,7 @@ function functionBareSpecifiers(facts) {
   return specifiers;
 }
 
+/** Traverse the Function entry and local helpers, rejecting escaping or computed imports. */
 function collectFunctionGraph(functionSourceDir) {
   const entry = join(functionSourceDir, 'main.js');
   if (!existsSync(entry)) {
@@ -852,6 +866,7 @@ function collectFunctionGraph(functionSourceDir) {
   return { files, factsList };
 }
 
+/** Resolve a Function helper to an existing file within its source directory. */
 function resolveFunctionRelative(functionSourceDir, fromFile, specifier) {
   const base = resolve(dirname(fromFile), specifier);
   const candidates = [
@@ -873,6 +888,7 @@ function resolveFunctionRelative(functionSourceDir, fromFile, specifier) {
   );
 }
 
+/** Type-check and emit package sources into the artifact staging directory. */
 function compilePackages(staging) {
   const compileDir = join(staging, '.compiled');
   const files = packageNames.flatMap((name) =>
@@ -890,6 +906,7 @@ function compilePackages(staging) {
   return { program, compileDir };
 }
 
+/** Copy only runtime-closure modules, derive package dependencies and rewrite emitted imports. */
 function emitVendorTree(staging, compileDir, closure) {
   const packagesInClosure = new Map();
   for (const file of closure.included) {
@@ -968,6 +985,7 @@ function emitVendorTree(staging, compileDir, closure) {
   return packagesInClosure;
 }
 
+/** Write the artifact manifest with local vendor links and pinned external dependencies. */
 function writeRootPackage(staging, closure, functionFacts, packagesInClosure) {
   const dependencies = {};
   for (const facts of functionFacts) {

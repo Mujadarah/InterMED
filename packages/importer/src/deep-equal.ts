@@ -19,6 +19,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   );
 }
 
+/** Narrow a value to a non-null object excluding arrays. */
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

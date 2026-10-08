@@ -105,14 +105,17 @@ const ROW_ID_FIELDS = [
   'sourceKey',
 ] as const;
 
+/** Narrow a value to a nonempty string. */
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+/** Require an array whose entries are non-null, non-array records. */
 function isRowArray(value: unknown): value is RawRow[] {
   return Array.isArray(value) && value.every((item) => isRecord(item));
 }
 
+/** Recognize a present field-state wrapper containing a string value. */
 function isPresentTextField(value: unknown): value is { value: string } {
   return (
     isRecord(value) &&
@@ -148,6 +151,7 @@ function normalizeKeys(value: unknown): void {
   }
 }
 
+/** Return the first nonempty supported row key, or null when none exists. */
 function rowIdentity(row: RawRow): string | null {
   for (const field of ROW_ID_FIELDS) {
     const value = row[field];
@@ -194,6 +198,7 @@ function normalizeRowList(
   return deduped;
 }
 
+/** Collect structural envelope and declared-count issue codes before domain validation. */
 function envelopeProblems(root: Record<string, unknown>): string[] {
   const problems: string[] = [];
   for (const key of Object.keys(root)) {

@@ -46,10 +46,12 @@ const sha256Port: SHA256Port = {
       .digest('hex'),
 };
 
+/** Express the same instant with an explicit UTC offset to test timestamp equivalence. */
 function reformatInstant(value: string): string {
   return new Date(value).toISOString().replace('Z', '+00:00');
 }
 
+/** Add synthetic REST metadata while preserving the supplied contract fields. */
 function withRestNoise(value: object): object {
   return {
     $id: 'rest-row-0001',
@@ -291,6 +293,7 @@ export class FakeStore {
 
 export const sha256 = sha256Port;
 
+/** Create a lost-write-response fault, optionally applying the write before throwing. */
 export function ambiguousFault(applyBeforeThrow = true): FaultSpec {
   return { error: new AmbiguousWriteError(), applyBeforeThrow };
 }
@@ -305,6 +308,7 @@ export function codedAmbiguousFault(applyBeforeThrow = true): FaultSpec {
   };
 }
 
+/** Create a transport failure without applying the simulated write. */
 export function transportFault(message: string): FaultSpec {
   return { error: new Error(message) };
 }

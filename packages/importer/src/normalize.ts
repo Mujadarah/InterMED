@@ -1,3 +1,4 @@
+/** Normalize keys to NFC, fold Romanian cedillas to comma-below forms and lowercase. */
 export function normalizeKey(key: string): string {
   // NFC, fold legacy cedilla to comma-below, fold case
   return key

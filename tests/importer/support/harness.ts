@@ -29,6 +29,7 @@ export interface StagedGeneration {
   raw: RawEnvelopeDocument;
 }
 
+/** Decode staged candidate bytes with the real codec, throwing for missing or invalid data. */
 export function deserialized(
   bytes: Uint8Array | undefined,
 ): MedicationCatalogueSnapshot {
@@ -38,6 +39,7 @@ export function deserialized(
   return result.snapshot;
 }
 
+/** Build a fictional approval from actual review bindings with scenario-specific overrides. */
 export function approve(
   review: ReviewData,
   overrides: Partial<ReviewApproval> = {},

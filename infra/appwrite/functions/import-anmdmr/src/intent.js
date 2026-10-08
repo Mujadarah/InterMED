@@ -26,10 +26,12 @@ const FINGERPRINT_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 const PARSER_ENCODINGS = ['utf-8', 'utf8', 'windows-1250'];
 
+/** Accept non-null objects except arrays for document validation. */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Check that the document has exactly the expected enumerable keys. */
 function hasExactKeys(value, expected) {
   const keys = Object.keys(value);
   return (
@@ -37,12 +39,14 @@ function hasExactKeys(value, expected) {
   );
 }
 
+/** Check string length against inclusive minimum and maximum bounds. */
 function isBoundedString(value, min, max) {
   return (
     typeof value === 'string' && value.length >= min && value.length <= max
   );
 }
 
+/** Require a bounded record key without whitespace or control characters. */
 function isRecordKey(value, max) {
   if (!isBoundedString(value, 1, max)) return false;
   for (const char of value) {
@@ -53,6 +57,7 @@ function isRecordKey(value, max) {
   return true;
 }
 
+/** Check the length and character policy for physical Appwrite identifiers. */
 function isSafeId(value) {
   return (
     typeof value === 'string' &&
@@ -62,6 +67,7 @@ function isSafeId(value) {
   );
 }
 
+/** Accept bounded canonical version IDs, permitting the domain unit separator. */
 function isVersionId(value) {
   if (typeof value !== 'string') return false;
   if (value.length === 0 || value.length > 512) return false;
@@ -74,6 +80,7 @@ function isVersionId(value) {
   return true;
 }
 
+/** Check for a parseable UTC timestamp in the supported precision range. */
 function isInstant(value) {
   return (
     typeof value === 'string' &&
@@ -82,6 +89,7 @@ function isInstant(value) {
   );
 }
 
+/** Accept nonnegative integer record counts. */
 function isCount(value) {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
@@ -99,6 +107,7 @@ const RECORD_COUNT_KEYS = [
   'regulatoryDocuments',
 ];
 
+/** Require all canonical collection counts and reject unknown count keys. */
 function isRecordCounts(value) {
   if (!isPlainObject(value)) return false;
   const keys = Object.keys(value).sort();
@@ -109,6 +118,7 @@ function isRecordCounts(value) {
   );
 }
 
+/** Validate the exact intent configuration schema, bounds and synthetic allowlist. */
 function validateConfig(config) {
   if (!isPlainObject(config)) return false;
   if (
@@ -178,6 +188,7 @@ function validateConfig(config) {
   return true;
 }
 
+/** Parse a JSON object; return null for non-text, invalid JSON or other shapes. */
 function parseJson(text) {
   if (typeof text !== 'string') return null;
   try {
@@ -188,6 +199,7 @@ function parseJson(text) {
   }
 }
 
+/** Validate a synthetic stage intent and its raw-file and configuration bindings. */
 function validateStageIntent(intent) {
   if (
     !hasExactKeys(intent, [
@@ -214,6 +226,7 @@ function validateStageIntent(intent) {
   return validateConfig(intent.config);
 }
 
+/** Validate publication bindings and explicit operator approval fields. */
 function validatePublishIntent(intent) {
   if (
     !hasExactKeys(intent, [
@@ -396,22 +409,27 @@ export function intentMatchesOperation(intent, operationId) {
   return false;
 }
 
+/** Combine a purpose prefix with 32 digest characters for a physical storage ID. */
 function deriveId(sha256, prefix, material) {
   return `${prefix}${sha256.hash(material).slice(0, 32)}`;
 }
 
+/** Derive the private intent file ID from its operation reference. */
 export function intentFileId(sha256, operationId) {
   return deriveId(sha256, 'oid1', `intermed-op-intent-file/v1|${operationId}`);
 }
 
+/** Build the reserved JSON filename for an operation intent. */
 export function intentFileName(operationId) {
   return `${INTENT_FILE_NAME_PREFIX}${operationId}.json`;
 }
 
+/** Require the exact reserved filename for the referenced operation. */
 export function isReservedIntentFileName(name, operationId) {
   return name === intentFileName(operationId);
 }
 
+/** Derive a private candidate file ID from the canonical generation ID. */
 export function candidateFileId(sha256, candidateVersionId) {
   return deriveId(
     sha256,
@@ -425,6 +443,7 @@ export function candidateFileName(fileId) {
   return `${CANDIDATE_FILE_NAME_PREFIX}${fileId}.json`;
 }
 
+/** Derive a review file ID bound to the stage, candidate and baseline fingerprint. */
 export function reviewFileId(sha256, binding) {
   const material = [
     'intermed-stage-review-file/v1',
@@ -436,10 +455,12 @@ export function reviewFileId(sha256, binding) {
   return deriveId(sha256, 'rev1', material);
 }
 
+/** Build the reserved JSON filename for a derived review file ID. */
 export function reviewFileName(fileId) {
   return `${REVIEW_FILE_NAME_PREFIX}${fileId}.json`;
 }
 
+/** Derive a quarantine file ID bound to the run and rejection reason. */
 export function quarantineFileId(sha256, runId, reason) {
   return deriveId(
     sha256,
@@ -448,14 +469,17 @@ export function quarantineFileId(sha256, runId, reason) {
   );
 }
 
+/** Build the reserved raw filename for a quarantine reason code. */
 export function quarantineFileName(reason) {
   return `${QUARANTINE_FILE_NAME_PREFIX}${reason}.raw`;
 }
 
+/** Derive the private run-summary row ID from its run identity. */
 export function runRowId(sha256, runId) {
   return deriveId(sha256, 'run1', `intermed-run-row/v1|${runId}`);
 }
 
+/** Derive the public bundle file ID from the canonical candidate identity. */
 export function bundleFileId(sha256, candidateVersionId) {
   return deriveId(
     sha256,

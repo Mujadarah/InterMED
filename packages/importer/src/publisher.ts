@@ -47,6 +47,7 @@ type SettleOutcome =
   | { kind: 'partial'; missing: Component[] }
   | { kind: 'collision'; issue: string };
 
+/** Require a trimmed numeric major.minor.patch version of at most 50 characters. */
 function isNumericSemver(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   if (value.length === 0 || value.length > 50) return false;
@@ -54,6 +55,7 @@ function isNumericSemver(value: unknown): value is string {
   return /^\d+\.\d+\.\d+$/.test(value);
 }
 
+/** Require an absolute HTTPS URL without credentials, fragments or control characters. */
 function isValidPublicUrl(url: string): boolean {
   if (typeof url !== 'string' || !url.startsWith('https://')) return false;
   if (hasControlCharacter(url)) return false;
@@ -68,6 +70,7 @@ function isValidPublicUrl(url: string): boolean {
   }
 }
 
+/** Compare publication byte arrays without normalizing their contents. */
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
   if (left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
@@ -86,6 +89,7 @@ function sameInstant(left: string | null, right: string | null): boolean {
   return leftTime === rightTime;
 }
 
+/** Require identical own count keys and values, independent of key order. */
 function sameCounts(
   expected: Readonly<Record<string, number>> | DatasetRecordCounts,
   actual: Readonly<Record<string, number>> | DatasetRecordCounts,
@@ -100,6 +104,7 @@ function sameCounts(
   );
 }
 
+/** Compare every public descriptor field while ignoring unrelated REST metadata. */
 function descriptorMatches(
   actual: PublishedBundleDescriptor,
   expected: PublishedBundleDescriptor,
@@ -115,6 +120,7 @@ function descriptorMatches(
   );
 }
 
+/** Compare manifest contract fields, normalizing only equivalent timestamp representations. */
 function manifestMatches(
   actual: PublishedDatasetManifest,
   expected: PublishedDatasetManifest,
@@ -182,6 +188,7 @@ function classify(
   return { kind: 'clean' };
 }
 
+/** Collect distinct source and generation mismatches across all catalogue entity rows. */
 function provenanceIssues(
   catalogue: MedicationCatalogueSnapshot,
   candidateVersionId: string,

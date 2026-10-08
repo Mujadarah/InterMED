@@ -38,6 +38,7 @@ export interface ImportIdentity {
   candidateSha256: string;
 }
 
+/** Serialize configuration in stable field order with canonical encoding and sorted allowlist. */
 export function canonicalizeConfig(config: CanonicalImporterConfig): string {
   return JSON.stringify({
     importerVersion: config.importerVersion,
@@ -114,6 +115,7 @@ export function configIssues(config: CanonicalImporterConfig): string[] {
   return issues;
 }
 
+/** Detect ASCII control characters and DEL in identity or URL text. */
 export function hasControlCharacter(value: string): boolean {
   for (const char of value) {
     const code = char.codePointAt(0);
@@ -134,6 +136,7 @@ export class ImporterConfigError extends Error {
   }
 }
 
+/** Throw ImporterConfigError when configuration validation reports any issues. */
 export function assertValidConfig(config: CanonicalImporterConfig): void {
   const issues = configIssues(config);
   if (issues.length > 0) throw new ImporterConfigError(issues);
@@ -175,6 +178,7 @@ export class PublicationLeaseError extends Error {
   }
 }
 
+/** Extract an error-like object code without relying on its message. */
 function errorCode(error: unknown): unknown {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
     return undefined;
@@ -368,6 +372,7 @@ export interface PublishResult {
 export const MAX_ISSUES = 20;
 export const MAX_ISSUE_LENGTH = 240;
 
+/** Cap issue count, collapse whitespace and truncate oversized issue messages. */
 export function boundedIssues(issues: readonly string[]): string[] {
   return issues.slice(0, MAX_ISSUES).map((issue) => {
     const single = issue.replace(/\s+/g, ' ').trim();

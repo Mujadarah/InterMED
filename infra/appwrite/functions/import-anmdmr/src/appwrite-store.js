@@ -106,14 +106,17 @@ class StoreError extends Error {
   }
 }
 
+/** Match a store failure by its class and stable code. */
 function isStoreError(err, code) {
   return err instanceof StoreError && err.code === code;
 }
 
+/** Accept non-null objects except arrays for record validation. */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Reject empty, oversized or unsafe physical Appwrite identifiers. */
 function validateId(id) {
   if (
     typeof id !== 'string' ||
@@ -125,6 +128,7 @@ function validateId(id) {
   }
 }
 
+/** Require a valid table identifier allowed for this operation. */
 function validateTableId(id, allowed) {
   validateId(id);
   if (!allowed.includes(id)) {
@@ -132,6 +136,7 @@ function validateTableId(id, allowed) {
   }
 }
 
+/** Require a valid bucket identifier allowed for this operation. */
 function validateBucketId(id, allowed) {
   validateId(id);
   if (!allowed.includes(id)) {
@@ -139,6 +144,7 @@ function validateBucketId(id, allowed) {
   }
 }
 
+/** Reject blank or oversized publication-lock owner tokens. */
 function validateOwnerToken(ownerToken) {
   if (
     typeof ownerToken !== 'string' ||
@@ -149,6 +155,7 @@ function validateOwnerToken(ownerToken) {
   }
 }
 
+/** Reject empty, oversized or control-character-bearing upload names. */
 function validateFileName(fileName) {
   if (
     typeof fileName !== 'string' ||
@@ -165,6 +172,7 @@ function validateFileName(fileName) {
   }
 }
 
+/** Require a Blob within the configured single-upload byte limit. */
 function validateUpload(fileBlob, limit) {
   if (!(fileBlob instanceof Blob)) {
     throw new StoreError('BAD_REQUEST', 'Invalid file');
@@ -177,6 +185,7 @@ function validateUpload(fileBlob, limit) {
   }
 }
 
+/** Accept strings, booleans and finite numbers as query values. */
 function isQueryScalar(value) {
   return (
     typeof value === 'string' ||
@@ -185,14 +194,17 @@ function isQueryScalar(value) {
   );
 }
 
+/** Check for an own query field without consulting its prototype. */
 function hasQueryField(parsed, field) {
   return Object.prototype.hasOwnProperty.call(parsed, field);
 }
 
+/** Create a constant query error without including caller payloads. */
 function invalidQuery() {
   return new StoreError('BAD_REQUEST', 'Invalid queries');
 }
 
+/** Require a nonempty string attribute or throw a constant query error. */
 function requireQueryAttribute(parsed) {
   const attribute = parsed.attribute;
   if (typeof attribute !== 'string' || attribute.length === 0) {
@@ -200,6 +212,7 @@ function requireQueryAttribute(parsed) {
   }
 }
 
+/** Return a nonempty values array or throw a constant query error. */
 function requireQueryValues(parsed) {
   const values = parsed.values;
   if (!Array.isArray(values) || values.length === 0) {
@@ -208,6 +221,7 @@ function requireQueryValues(parsed) {
   return values;
 }
 
+/** Reject a field forbidden by the selected query method. */
 function requireNoQueryField(parsed, field) {
   if (hasQueryField(parsed, field)) {
     throw invalidQuery();
@@ -299,6 +313,7 @@ function validateQueryObject(parsed) {
   throw invalidQuery();
 }
 
+/** Validate bounded serialized queries while preserving their wire text. */
 function validateQueries(queries) {
   if (!Array.isArray(queries) || queries.length > MAX_QUERIES) {
     throw new StoreError('BAD_REQUEST', 'Invalid queries');
@@ -322,6 +337,7 @@ function validateQueries(queries) {
   });
 }
 
+/** Serialize row data and permissions, rejecting reserved column names. */
 function serializeRowPayload(rowId, data, permissions) {
   if (!isPlainObject(data)) {
     throw new StoreError('BAD_REQUEST', 'Invalid row data');
@@ -339,6 +355,7 @@ function serializeRowPayload(rowId, data, permissions) {
   }
 }
 
+/** Validate the shape and size of optional response permissions. */
 function verifyPermissions(record) {
   const permissions = record.$permissions;
   if (permissions === undefined) return;
@@ -352,6 +369,7 @@ function verifyPermissions(record) {
   }
 }
 
+/** Reject present response context fields that disagree with the request. */
 function verifyContext(record, tableId, bucketId) {
   if (tableId !== undefined) {
     if (record.$tableId !== undefined && record.$tableId !== tableId) {
@@ -381,6 +399,7 @@ function verifyContext(record, tableId, bucketId) {
   }
 }
 
+/** Return a row after checking its identity, context and permission shape. */
 function verifyRowShape(row, requestedId, tableId) {
   if (!isPlainObject(row)) {
     throw new StoreError('SERVER_ERROR', 'Invalid response shape');
@@ -396,6 +415,7 @@ function verifyRowShape(row, requestedId, tableId) {
   return row;
 }
 
+/** Validate a row-list envelope and every returned row before use. */
 function verifyListShape(list, tableId) {
   if (!isPlainObject(list)) {
     throw new StoreError('SERVER_ERROR', 'Invalid list response shape');
@@ -413,6 +433,7 @@ function verifyListShape(list, tableId) {
   return list;
 }
 
+/** Return file metadata after checking identity, size and context. */
 function verifyFileShape(file, requestedId, bucketId) {
   if (!isPlainObject(file)) {
     throw new StoreError('SERVER_ERROR', 'Invalid response shape');
@@ -432,6 +453,7 @@ function verifyFileShape(file, requestedId, bucketId) {
   return file;
 }
 
+/** Map HTTP failures to stable store errors without backend response text. */
 function statusToError(status) {
   if (status === 404) return new StoreError('NOT_FOUND', 'Resource not found');
   if (status === 409) return new StoreError('CONFLICT', 'Resource conflict');
@@ -444,6 +466,7 @@ function statusToError(status) {
   return new StoreError('SERVER_ERROR', 'Backend error');
 }
 
+/** Attempt stream-reader cancellation without surfacing cleanup failures. */
 async function cancelReader(reader) {
   try {
     await reader.cancel();
@@ -452,6 +475,7 @@ async function cancelReader(reader) {
   }
 }
 
+/** Cancel an unread response body when supported, ignoring cleanup errors. */
 async function cancelBody(body) {
   if (!body) return;
   try {
@@ -465,6 +489,7 @@ async function cancelBody(body) {
   }
 }
 
+/** View binary stream chunks as bytes; return null for unsupported values. */
 function chunkView(chunk) {
   if (chunk instanceof ArrayBuffer) return new Uint8Array(chunk);
   if (ArrayBuffer.isView(chunk)) {
@@ -531,6 +556,7 @@ async function readBoundedBody(response, limit) {
   return out;
 }
 
+/** Build a bounded REST store restricted to the trusted development endpoint and project. */
 export function createAppwriteStore({
   fetch,
   endpoint,
@@ -560,6 +586,7 @@ export function createAppwriteStore({
 
   const databaseId = DATABASE_ID;
 
+  /** Send an authenticated request and translate transport or HTTP failures. */
   async function request(path, options = {}) {
     const url = `${endpoint}${path}`;
     const headers = new Headers(options.headers || {});
@@ -579,6 +606,7 @@ export function createAppwriteStore({
     return response;
   }
 
+  /** Read bounded response bytes and parse strict UTF-8 JSON. */
   async function requestJson(path, options = {}) {
     const response = await request(path, options);
     const bytes = await readBoundedBody(response, maxBytes);
@@ -590,6 +618,7 @@ export function createAppwriteStore({
     }
   }
 
+  /** Create an allowed private row with no resource permission grants. */
   async function createPrivateRow(tableId, rowId, data) {
     validateTableId(tableId, ALLOWED_TABLES_PRIVATE_WRITE);
     validateId(rowId);
@@ -608,6 +637,7 @@ export function createAppwriteStore({
     return verifyRowShape(res, rowId, tableId);
   }
 
+  /** Create an immutable publication row with anonymous read permission. */
   async function publishRow(tableId, rowId, data) {
     validateTableId(tableId, ALLOWED_TABLES_PUBLISH);
     validateId(rowId);
@@ -626,6 +656,7 @@ export function createAppwriteStore({
     return verifyRowShape(res, rowId, tableId);
   }
 
+  /** Read an allowed row and verify the returned identity and context. */
   async function getRow(tableId, rowId) {
     validateTableId(tableId, ALLOWED_TABLES_READ);
     validateId(rowId);
@@ -635,6 +666,7 @@ export function createAppwriteStore({
     return verifyRowShape(res, rowId, tableId);
   }
 
+  /** List allowed rows using validated SDK-shaped queries and check the response. */
   async function listRows(tableId, queries = []) {
     validateTableId(tableId, ALLOWED_TABLES_READ);
     const checked = validateQueries(queries);
@@ -648,6 +680,7 @@ export function createAppwriteStore({
     return verifyListShape(res, tableId);
   }
 
+  /** Upload a bounded multipart file under the supplied bucket and permission policy. */
   async function uploadFile(bucketId, fileId, fileBlob, fileName, permissions) {
     validateBucketId(bucketId, permissions.allowedBuckets);
     validateId(fileId);
@@ -670,6 +703,7 @@ export function createAppwriteStore({
     return verifyFileShape(res, fileId, bucketId);
   }
 
+  /** Create a file in a private bucket without resource permission grants. */
   async function createPrivateFile(bucketId, fileId, fileBlob, fileName) {
     return uploadFile(bucketId, fileId, fileBlob, fileName, {
       allowedBuckets: ALLOWED_BUCKETS_PRIVATE_WRITE,
@@ -677,6 +711,7 @@ export function createAppwriteStore({
     });
   }
 
+  /** Create a public-read bundle in the publication bucket. */
   async function publishFile(bucketId, fileId, fileBlob, fileName) {
     return uploadFile(bucketId, fileId, fileBlob, fileName, {
       allowedBuckets: ALLOWED_BUCKETS_PUBLISH,
@@ -684,6 +719,7 @@ export function createAppwriteStore({
     });
   }
 
+  /** Read file metadata and verify its identity, size and bucket context. */
   async function getFileMetadata(bucketId, fileId) {
     validateBucketId(bucketId, ALLOWED_BUCKETS_READ);
     validateId(fileId);
@@ -693,6 +729,7 @@ export function createAppwriteStore({
     return verifyFileShape(res, fileId, bucketId);
   }
 
+  /** Download an allowed file as a Blob while enforcing the response byte limit. */
   async function downloadFile(bucketId, fileId) {
     validateBucketId(bucketId, ALLOWED_BUCKETS_READ);
     validateId(fileId);
@@ -703,6 +740,7 @@ export function createAppwriteStore({
     return new Blob([bytes]);
   }
 
+  /** Create the fixed private lock row; return false when it already exists. */
   async function acquireLock(ownerToken) {
     validateOwnerToken(ownerToken);
     try {
@@ -722,6 +760,7 @@ export function createAppwriteStore({
     }
   }
 
+  /** Delete an owned lock, tolerate absence and reject foreign ownership. */
   async function releaseLock(ownerToken) {
     validateOwnerToken(ownerToken);
     let lockRow;

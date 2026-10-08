@@ -28,10 +28,12 @@ import {
 } from './storage-bridge.js';
 import { BUCKETS } from './runtime-config.js';
 
+/** Read a downloaded Blob into a byte array for hashing or decoding. */
 async function readBytes(blob) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 
+/** Recognize explicit store absence without matching backend error messages. */
 function isNotFound(error) {
   return (
     error instanceof Error &&
@@ -40,10 +42,12 @@ function isNotFound(error) {
   );
 }
 
+/** Build an operation result from its status, code, reference and summary fields. */
 function outcome(status, code, operationRef, extra = {}) {
   return { status, code, operationRef, ...extra };
 }
 
+/** Load the reserved private intent and verify its schema and operation binding. */
 async function loadIntent(store, sha256, operationId) {
   const fileId = intentFileId(sha256, operationId);
   let text;
@@ -66,6 +70,7 @@ async function loadIntent(store, sha256, operationId) {
   return { kind: 'intent', intent: parsed.intent };
 }
 
+/** Verify the intent-bound raw hash, stage the snapshot and return a bounded summary. */
 async function runStage(intent, deps, operationRef) {
   const { store, sha256, core, randomToken, log } = deps;
   let rawBytes;
@@ -135,6 +140,7 @@ async function runStage(intent, deps, operationRef) {
   });
 }
 
+/** Load and validate the intent-bound private review, returning null when unavailable or invalid. */
 async function loadReview(store, sha256, intent) {
   const fileId = reviewFileId(sha256, {
     stageOperationId: intent.stageOperationId,
@@ -155,6 +161,7 @@ async function loadReview(store, sha256, intent) {
   return parsed.ok ? parsed.review : null;
 }
 
+/** Verify review and approval bindings before invoking the publication core. */
 async function runPublish(intent, deps, operationRef) {
   const { store, sha256, core, randomToken, log } = deps;
   const configSha256 = sha256.hash(core.canonicalizeConfig(intent.config));

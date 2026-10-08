@@ -240,18 +240,22 @@ const QUERY_METHODS = new Set([
   'orderRandom',
 ]);
 
+/** Encode synthetic fixture text as UTF-8 bytes. */
 export function utf8Bytes(text) {
   return new TextEncoder().encode(text);
 }
 
+/** Decode stored synthetic fixture bytes as UTF-8 text. */
 export function bytesToText(bytes) {
   return new TextDecoder().decode(bytes);
 }
 
+/** Accept non-null, non-array records for fake REST payload validation. */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Build a JSON Response with the supplied synthetic body and status. */
 function jsonResponse(status, body) {
   return new Response(JSON.stringify(body), {
     status,
@@ -259,14 +263,17 @@ function jsonResponse(status, body) {
   });
 }
 
+/** Build a binary Response from synthetic file contents. */
 function bytesResponse(status, bytes) {
   return new Response(new Uint8Array(bytes), { status });
 }
 
+/** Build a synthetic Appwrite-style error response with a stable type and status. */
 function problem(status, type) {
   return jsonResponse(status, { message: `fake ${type}`, type, code: status });
 }
 
+/** Append fixture-schema violations for a scalar or array column value. */
 function checkColumnValue(column, value, violations) {
   if (value === null || value === undefined) {
     if (column.required) {
@@ -334,6 +341,7 @@ function checkColumnValue(column, value, violations) {
   single(value);
 }
 
+/** Return a copy of schema-valid row data, or null for unknown or invalid columns. */
 function validateRowData(tableId, data) {
   const columns = FAKE_TABLES[tableId] ?? [];
   if (!isPlainObject(data)) return null;
@@ -424,6 +432,7 @@ function parseQueries(searchParams) {
   });
 }
 
+/** Apply the supported equality, ordering, cursor and limit queries to fake rows. */
 function applyQueries(rows, queries) {
   let output = rows.slice();
   for (const query of queries) {
@@ -453,6 +462,7 @@ function applyQueries(rows, queries) {
   return output;
 }
 
+/** Create an in-memory REST fixture with schema checks, permissions and injectable faults. */
 export function createFakeAppwriteRest(options) {
   const projectId = options.projectId ?? 'intermed-dev';
   const endpoint = options.endpoint ?? 'https://fra.cloud.appwrite.io/v1';
@@ -462,11 +472,13 @@ export function createFakeAppwriteRest(options) {
   const files = new Map(Object.keys(FAKE_BUCKETS).map((id) => [id, new Map()]));
   let clock = 0;
 
+  /** Advance the deterministic fixture clock and return its UTC timestamp. */
   function nextInstant() {
     clock += 1;
     return new Date(Date.UTC(2026, 9, 7, 0, 0, clock)).toISOString();
   }
 
+  /** Add synthetic Appwrite system metadata to a stored flat row. */
   function flatRow(tableId, rowId, values) {
     return {
       $id: rowId,
@@ -484,6 +496,7 @@ export function createFakeAppwriteRest(options) {
     };
   }
 
+  /** Project stored file bytes, name and permissions into synthetic Storage metadata. */
   function flatFile(bucketId, fileId, stored) {
     return {
       $id: fileId,
@@ -500,6 +513,7 @@ export function createFakeAppwriteRest(options) {
     };
   }
 
+  /** Record a fake request and apply configured faults before normal dispatch. */
   async function handle(url, init) {
     const method = String(init?.method ?? 'GET').toUpperCase();
     const parsed = new URL(String(url));
@@ -534,6 +548,7 @@ export function createFakeAppwriteRest(options) {
     return apply(call, init, parsed);
   }
 
+  /** Dispatch supported fake REST operations after checking project and access permissions. */
   async function apply(call, init, parsed, skipFaults) {
     const method = call.method;
     void skipFaults;
@@ -680,6 +695,7 @@ export function createFakeAppwriteRest(options) {
     return problem(404, 'not_found');
   }
 
+  /** Store a bounded synthetic upload, rejecting duplicate IDs and oversized files. */
   async function createFileResponse(bucketId, fileId, file, form, storage) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const limit = FAKE_BUCKETS[bucketId] ?? 0;

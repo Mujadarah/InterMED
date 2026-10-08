@@ -34,6 +34,7 @@ const core = {
   }),
 };
 
+/** Project an operation outcome onto the bounded public response fields. */
 function responseFor(outcome) {
   const body = { code: outcome.code };
   if (outcome.operationRef) body.operationRef = outcome.operationRef;

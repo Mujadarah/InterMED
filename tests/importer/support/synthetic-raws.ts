@@ -23,6 +23,7 @@ export const SYNTHETIC_SOURCE_KEY = 'source.fictivol';
 export const RAW_VERSION_KEY = 'synthetic-fictivol-v1';
 export const SEEN_INSTANT = '2026-10-06T00:00:00Z';
 
+/** Wrap synthetic source text in the domain present-field state. */
 export function present(value: string): StringField {
   return { status: 'present', value };
 }
@@ -70,10 +71,12 @@ export interface RawEnvelopeDocument extends RawSource {
   datasetVersionKey?: string;
 }
 
+/** Preserve supplied strength text or mark an omitted value as missing. */
 function strengthField(value: string | undefined): StringField {
   return value === undefined ? missing : present(value);
 }
 
+/** Build synthetic strength fields while retaining the supplied value and unit text. */
 function joinStrength(
   value: string | undefined,
   unit: string | undefined,
@@ -91,6 +94,7 @@ function joinStrength(
   };
 }
 
+/** Return an explicitly fictional dosage-form label for the fixture key. */
 function formName(key: string): string {
   if (key === 'DF-TABLET') return 'fictional tablet';
   if (key === 'DF-CAPSULE') return 'fictional capsule';
@@ -258,6 +262,7 @@ export function buildRawDocument(options: RawOptions): RawEnvelopeDocument {
   };
 }
 
+/** Serialize a synthetic raw document to compact UTF-8 JSON bytes. */
 export function rawBytes(document: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(document));
 }
@@ -332,6 +337,7 @@ export function fictivolProduct(): ProductSpec {
   };
 }
 
+/** Build the fictional Placebex product with one synthetic ingredient link. */
 export function placebexProduct(): ProductSpec {
   return {
     sourceProductId: 'SP-PLACEBEX',
@@ -350,6 +356,7 @@ export function placebexProduct(): ProductSpec {
   };
 }
 
+/** Build the fictional Vacantol product without optional ingredient or strength fields. */
 export function vacantolProduct(): ProductSpec {
   return {
     sourceProductId: 'SP-VACANTOL',

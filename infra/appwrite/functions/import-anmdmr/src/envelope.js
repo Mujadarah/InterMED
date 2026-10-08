@@ -21,10 +21,12 @@ export const OPERATION_ID_PATTERN =
 
 const ENVELOPE_KEYS = ['operationId'];
 
+/** Accept a non-null object other than an array as an envelope candidate. */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Read bodyJson or bounded bodyText; return null for an invalid envelope value. */
 function readEnvelopeValue(req) {
   if (isPlainObject(req.bodyJson)) return { value: req.bodyJson };
   if (req.bodyJson !== undefined && req.bodyJson !== null) return null;

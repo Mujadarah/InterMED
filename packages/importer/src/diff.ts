@@ -25,6 +25,7 @@ export interface ProductDiff {
  */
 const GENERATION_PROVENANCE_FIELDS: readonly string[] = ['datasetVersionId'];
 
+/** Copy a row without generation-specific provenance for change comparison. */
 function semanticRow(row: object): Record<string, unknown> {
   const copy: Record<string, unknown> = { ...row };
   for (const field of GENERATION_PROVENANCE_FIELDS) delete copy[field];
@@ -36,6 +37,7 @@ export function productKey(product: MedicationProduct): string {
   return `${product.sourceId}\u001f${product.sourceProductId}`;
 }
 
+/** Group ingredient links by product identity for catalogue comparison. */
 function joinsByProduct(
   joins: readonly MedicationIngredient[],
 ): Map<string, MedicationIngredient[]> {
@@ -48,6 +50,7 @@ function joinsByProduct(
   return grouped;
 }
 
+/** Combine semantic product fields with ingredient links sorted by source record key. */
 function productSignature(
   product: MedicationProduct,
   joins: readonly MedicationIngredient[],
