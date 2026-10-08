@@ -1,1 +1,6 @@
-{"node":"v24.21.0","externalRequests":0,"loopbackRedirectRequests":0,"fakeCredentialForwarded":false}
+{
+  "node": "v24.21.0",
+  "externalRequests": 0,
+  "loopbackRedirectRequests": 0,
+  "fakeCredentialForwarded": false
+}
