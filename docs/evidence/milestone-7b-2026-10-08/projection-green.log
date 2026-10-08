@@ -1,0 +1,12 @@
+
+> intermed@0.0.0 test
+> vitest run packages/local-store/src/readers.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  21:23:01
+   Duration  612ms (transform 92ms, setup 0ms, import 143ms, tests 376ms, environment 0ms)

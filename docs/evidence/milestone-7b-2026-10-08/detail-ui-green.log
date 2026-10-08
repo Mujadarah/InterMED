@@ -1,0 +1,12 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/App.test.tsx apps/web/src/presentation/MedicationDetailPage.test.tsx apps/web/src/presentation/MedicationSearchPage.test.tsx apps/web/src/application/medication-detail.test.ts apps/web/src/application/services.test.ts apps/web/src/Bootstrap.test.tsx
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  6 passed (6)
+      Tests  72 passed (72)
+   Start at  21:31:19
+   Duration  2.14s (transform 336ms, setup 0ms, import 1.24s, tests 2.31s, environment 2.38s)
