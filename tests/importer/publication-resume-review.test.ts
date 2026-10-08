@@ -5,6 +5,7 @@ import {
 } from '@intermed/domain';
 import { publish } from '../../packages/importer/src/publisher';
 import {
+  AmbiguousWriteError,
   type CanonicalImporterConfig,
   PublicationConflictError,
   type PublishPorts,
@@ -224,6 +225,148 @@ describe('publisher resumed and recovered baseline recheck under lock (Root conf
     expect(store.manifests.get(candB.candidateVersionId)).toEqual(bManifest);
     expect(store.manifests.has(candA.candidateVersionId)).toBe(false);
     expect(store.descriptors.has(candA.candidateVersionId)).toBe(false);
+  });
+
+  it('rejects stale-baseline during genuine recovery when injected ambiguous write persists prefix and advances baseline to B', async () => {
+    const store = new FakeStore();
+    const candA = await stageGeneration(store, {
+      products: [fictivolProduct()],
+    });
+    const candB = await stageGeneration(store, {
+      products: [placebexProduct()],
+    });
+    const resB = await publishRequest(store, candB);
+    expect(resB.status).toBe('published');
+
+    const bManifest = store.manifests.get(candB.candidateVersionId)!;
+    const bDesc = store.descriptors.get(candB.candidateVersionId)!;
+    const bFileKey = `${candB.candidateVersionId}/${bDesc.fileName}`;
+    const bBytes = store.files.get(bFileKey)!;
+
+    store.baseline = {
+      baselineVersionId: null,
+      baselineFingerprint: null,
+    };
+
+    const realPorts = store.publishPorts();
+    let injectedFaultCalls = 0;
+    let recoveryWriteManifestCalls = 0;
+
+    const wrappedPorts: PublishPorts = {
+      ...realPorts,
+      writeDescriptorRow: async (lease, datasetVersionId, descriptor) => {
+        await realPorts.writeDescriptorRow(lease, datasetVersionId, descriptor);
+        advanceBaseline(store, candB.candidateVersionId, candB.snapshot);
+        injectedFaultCalls += 1;
+        throw new AmbiguousWriteError();
+      },
+      writeManifestRow: async (lease, datasetVersionId, manifest) => {
+        recoveryWriteManifestCalls += 1;
+        return realPorts.writeManifestRow(lease, datasetVersionId, manifest);
+      },
+    };
+
+    const result = await publishRequest(store, candA, wrappedPorts);
+
+    expect(injectedFaultCalls).toBe(1);
+    expect(result.status).toBe('rejected');
+    expect(result.reason).toBe('stale-baseline');
+    expect(recoveryWriteManifestCalls).toBe(0);
+    expect(store.manifests.has(candA.candidateVersionId)).toBe(false);
+    expect(store.manifests.size).toBe(1);
+    expect(store.manifests.get(candB.candidateVersionId)).toEqual(bManifest);
+    expect(store.descriptors.get(candB.candidateVersionId)).toEqual(bDesc);
+    expect(store.files.get(bFileKey)).toEqual(bBytes);
+  });
+
+  it('rejects stale-baseline during genuine recovery when injected conflict on bundle file persists prefix and advances baseline to B', async () => {
+    const store = new FakeStore();
+    const candA = await stageGeneration(store, {
+      products: [fictivolProduct()],
+    });
+    const candB = await stageGeneration(store, {
+      products: [placebexProduct()],
+    });
+    const resB = await publishRequest(store, candB);
+    expect(resB.status).toBe('published');
+
+    const bManifest = store.manifests.get(candB.candidateVersionId)!;
+    const bDesc = store.descriptors.get(candB.candidateVersionId)!;
+
+    store.baseline = {
+      baselineVersionId: null,
+      baselineFingerprint: null,
+    };
+
+    const realPorts = store.publishPorts();
+    let injectedFaultCalls = 0;
+    let recoveryWriteDescriptorCalls = 0;
+    let recoveryWriteManifestCalls = 0;
+
+    const wrappedPorts: PublishPorts = {
+      ...realPorts,
+      writeBundleFile: async (lease, datasetVersionId, fileName, bytes) => {
+        await realPorts.writeBundleFile(
+          lease,
+          datasetVersionId,
+          fileName,
+          bytes,
+        );
+        advanceBaseline(store, candB.candidateVersionId, candB.snapshot);
+        injectedFaultCalls += 1;
+        throw new PublicationConflictError();
+      },
+      writeDescriptorRow: async (lease, datasetVersionId, descriptor) => {
+        recoveryWriteDescriptorCalls += 1;
+        return realPorts.writeDescriptorRow(
+          lease,
+          datasetVersionId,
+          descriptor,
+        );
+      },
+      writeManifestRow: async (lease, datasetVersionId, manifest) => {
+        recoveryWriteManifestCalls += 1;
+        return realPorts.writeManifestRow(lease, datasetVersionId, manifest);
+      },
+    };
+
+    const result = await publishRequest(store, candA, wrappedPorts);
+
+    expect(injectedFaultCalls).toBe(1);
+    expect(result.status).toBe('rejected');
+    expect(result.reason).toBe('stale-baseline');
+    expect(recoveryWriteDescriptorCalls).toBe(0);
+    expect(recoveryWriteManifestCalls).toBe(0);
+    expect(store.manifests.has(candA.candidateVersionId)).toBe(false);
+    expect(store.descriptors.has(candA.candidateVersionId)).toBe(false);
+    expect(store.manifests.get(candB.candidateVersionId)).toEqual(bManifest);
+    expect(store.descriptors.get(candB.candidateVersionId)).toEqual(bDesc);
+  });
+
+  it('preserves identical committed ambiguous-write readback as green control', async () => {
+    const store = new FakeStore();
+    const candA = await stageGeneration(store, {
+      products: [fictivolProduct()],
+    });
+
+    const realPorts = store.publishPorts();
+    let manifestWriteCalls = 0;
+
+    const wrappedPorts: PublishPorts = {
+      ...realPorts,
+      writeManifestRow: async (lease, datasetVersionId, manifest) => {
+        manifestWriteCalls += 1;
+        await realPorts.writeManifestRow(lease, datasetVersionId, manifest);
+        throw new AmbiguousWriteError();
+      },
+    };
+
+    const result = await publishRequest(store, candA, wrappedPorts);
+
+    expect(manifestWriteCalls).toBe(1);
+    expect(result.status).toBe('published');
+    expect(result.warnings).toContain('post-commit-read-verified');
+    expect(store.manifests.has(candA.candidateVersionId)).toBe(true);
   });
 
   it('preserves identical committed retry idempotency after baseline advance as green control', async () => {

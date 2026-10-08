@@ -90,9 +90,13 @@ function sameCounts(
   expected: Readonly<Record<string, number>> | DatasetRecordCounts,
   actual: Readonly<Record<string, number>> | DatasetRecordCounts,
 ): boolean {
+  const expectedEntries = Object.entries(expected);
+  if (expectedEntries.length !== Object.keys(actual).length) return false;
   const actualCounts = actual as Record<string, number>;
-  return Object.entries(expected).every(
-    ([key, value]) => actualCounts[key] === value,
+  return expectedEntries.every(
+    ([key, value]) =>
+      Object.prototype.hasOwnProperty.call(actual, key) &&
+      actualCounts[key] === value,
   );
 }
 
@@ -450,6 +454,14 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
     }
   };
 
+  const isBaselineCurrent = async (): Promise<boolean> => {
+    const baseline = await ports.readBaseline();
+    return (
+      baseline.baselineVersionId === approval.baselineVersionId &&
+      baseline.baselineFingerprint === approval.baselineFingerprint
+    );
+  };
+
   /** Read-verify after a conflict or an ambiguous write; never updates or deletes. */
   const recover = async (error: unknown): Promise<PublishResult> => {
     const outcome = await settle();
@@ -464,6 +476,9 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
       };
     }
     if (outcome.kind === 'partial') {
+      if (!(await isBaselineCurrent())) {
+        return reject('stale-baseline');
+      }
       for (const component of outcome.missing) await writeComponent(component);
       warnings.push('resumed-interrupted-publication');
       return { datasetVersionId: candidateVersionId, status: 'published' };
@@ -493,18 +508,21 @@ export async function publish(req: PublishRequest): Promise<PublishResult> {
           issues: boundedIssues([outcome.issue]),
         };
       } else if (outcome.kind === 'partial') {
-        for (const component of outcome.missing)
-          await writeComponent(component);
-        warnings.push('resumed-interrupted-publication');
-        result = { datasetVersionId: candidateVersionId, status: 'published' };
+        if (!(await isBaselineCurrent())) {
+          result = reject('stale-baseline');
+        } else {
+          for (const component of outcome.missing)
+            await writeComponent(component);
+          warnings.push('resumed-interrupted-publication');
+          result = {
+            datasetVersionId: candidateVersionId,
+            status: 'published',
+          };
+        }
       } else {
         // Idempotency is settled first; the baseline is rechecked under the
         // lease so a concurrent advance can never publish stale material.
-        const baseline = await ports.readBaseline();
-        if (
-          baseline.baselineVersionId !== approval.baselineVersionId ||
-          baseline.baselineFingerprint !== approval.baselineFingerprint
-        ) {
+        if (!(await isBaselineCurrent())) {
           result = reject('stale-baseline');
         } else {
           await writeComponent('bundleFile');

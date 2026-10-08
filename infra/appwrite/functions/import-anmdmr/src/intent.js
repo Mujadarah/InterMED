@@ -481,11 +481,11 @@ export function toSafeFileName(fileName) {
 }
 
 /**
- * Public generation identity for Appwrite rows. The domain stable id of a
- * generation is longer than any Appwrite row id or `varchar(64)` column, so
- * rows use this deterministic 36-char derivation everywhere consistently:
- * the manifest row id, the descriptor row's `datasetVersionId`, and
- * `previousVersionId` lineage links.
+ * Public generation identity for physical Appwrite manifest rows. The
+ * deterministic 36-char derivation is used for physical manifest row $id
+ * only; canonical descriptor.datasetVersionId and previousVersionId lineage
+ * links use 512 field capacity (separate live migration prerequisite, not
+ * executed).
  */
 export function publicationRowId(sha256, datasetVersionId) {
   return deriveId(
