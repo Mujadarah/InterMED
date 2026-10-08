@@ -22,6 +22,8 @@ Part B remains open for the detail view and its available identification/clinica
 - A browser test records fetch/XHR requests while typing and asserts that none occur. The search reads the local dataset only.
 - `DatasetStatus` has no dataset-download control. The search page describes never-downloaded and unavailable states plainly and links to Dataset status; it does not imply that a catalogue is empty or offer a nonexistent download action.
 
+**Disambiguation (review P1).** Candidate rows also show source ingredient names, pack/presentation and CIM in the visible details and accessible name; fully colliding rows append source product ID, then product ID if needed, so candidates remain distinguishable.
+
 ## Test-first evidence
 
 The red logs record the missing behavior before implementation. The green refactor log and the full check record the passing behavior afterwards.
