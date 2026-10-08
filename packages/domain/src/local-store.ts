@@ -336,6 +336,15 @@ export type PublishedBundleRead =
 /**
  * Vendor-neutral bundle loading. The concrete loader is injected; the update
  * pipeline never touches a network API itself.
+ *
+ * A concrete loader receives raw bundle bytes and owns the text boundary. It
+ * must decode them strictly and losslessly with `decodeBundleBytes` from
+ * `@intermed/local-store` (fatal UTF-8, BOM preserved) and report
+ * `unavailable` — for example with reason `invalid-response` — when that
+ * helper returns null, never a lossy replacement: the pipeline re-encodes the
+ * text and compares the manifest's SHA-256 transport checksum against the
+ * publisher's exact bytes, so a loader that strips a BOM or substitutes
+ * malformed sequences breaks that check.
  */
 export interface PublishedBundleLoader {
   loadBundle(

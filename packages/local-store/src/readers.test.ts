@@ -12,8 +12,8 @@ import {
 
 it('pins one generation per reader and switches only at the next reader', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const pinned = (await store.openReader())!;
   expect(pinned.generationId).toBe(alpha.generationId);
@@ -35,8 +35,8 @@ it('pins one generation per reader and switches only at the next reader', async 
 
 it('rolls back to the retained previous generation', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.updates.stageAndActivate(beta.manifest, beta.text);
   expect(store.getState()).toMatchObject({
@@ -62,9 +62,9 @@ it('rolls back to the retained previous generation', async () => {
 it('collects expired generations but never active, previous or pinned ones', async () => {
   const clock = testClock();
   const store = testStore({ now: clock.now, retainReadyForMs: 0 });
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
-  const gamma = bundle('gamma');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
+  const gamma = await bundle('gamma');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const pinned = (await store.openReader())!;
 
@@ -87,9 +87,9 @@ it('collects expired generations but never active, previous or pinned ones', asy
 it('retains ready generations inside the conservative cross-tab window', async () => {
   const clock = testClock();
   const store = testStore({ now: clock.now });
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
-  const gamma = bundle('gamma');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
+  const gamma = await bundle('gamma');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.updates.stageAndActivate(beta.manifest, beta.text);
   await store.updates.stageAndActivate(gamma.manifest, gamma.text);
@@ -106,14 +106,14 @@ it('restarts the retention window when a rollback reactivates a generation', asy
   const tabA = testStore({ name, now: clock.now });
   const tabB = testStore({ name, now: clock.now });
   const rows = await testDatabase(name);
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
   const firstReadyAt = (await rows.generations.get(alpha.generationId))
     ?.readyAt;
 
   // Alpha is a full day old when the rollback makes it active again.
   clock.tick(RETAIN_READY_FOR_MS + 60 * 60 * 1000);
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await tabA.updates.stageAndActivate(beta.manifest, beta.text);
   await expect(tabA.rollback()).resolves.toEqual({ ok: true });
   // `readyAt` keeps the original staging-to-ready time; the retention window
@@ -125,8 +125,8 @@ it('restarts the retention window when a rollback reactivates a generation', asy
   // Another tab pins alpha right after the rollback; its pin is invisible to
   // this tab's collection, so the retention window is what protects alpha.
   expect(await tabB.openPinnedReader(alpha.generationId)).not.toBeNull();
-  const gamma = bundle('gamma');
-  const delta = bundle('delta');
+  const gamma = await bundle('gamma');
+  const delta = await bundle('delta');
   await tabA.updates.stageAndActivate(gamma.manifest, gamma.text);
   await tabA.updates.stageAndActivate(delta.manifest, delta.text);
 
@@ -165,7 +165,7 @@ it('refuses collection while another tab is staging instead of deleting under it
     },
   });
   const other = testStore({ name, now: clock.now });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
 
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
@@ -184,8 +184,8 @@ it('refuses collection while another tab is staging instead of deleting under it
 
 it('honours a pin taken while collection is running', async () => {
   const clock = testClock();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   let armed = false;
   let pinning: Promise<unknown> | null = null;
   const store = testStore({
@@ -204,14 +204,10 @@ it('honours a pin taken while collection is running', async () => {
   const heldAlpha = (await store.openPinnedReader(alpha.generationId))!;
   await store.updates.stageAndActivate(beta.manifest, beta.text);
   const heldBeta = (await store.openPinnedReader(beta.generationId))!;
-  await store.updates.stageAndActivate(
-    bundle('gamma').manifest,
-    bundle('gamma').text,
-  );
-  await store.updates.stageAndActivate(
-    bundle('delta').manifest,
-    bundle('delta').text,
-  );
+  const gamma = await bundle('gamma');
+  await store.updates.stageAndActivate(gamma.manifest, gamma.text);
+  const delta = await bundle('delta');
+  await store.updates.stageAndActivate(delta.manifest, delta.text);
   // Both generations are expired and unkept now; their pins kept them alive.
   heldAlpha.release();
   heldBeta.release();
@@ -233,16 +229,12 @@ it('restarts a generation retention window when a reader pins it', async () => {
   const name = uniqueName();
   const tabA = testStore({ name, now: clock.now });
   const tabB = testStore({ name, now: clock.now });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await tabA.updates.stageAndActivate(alpha.manifest, alpha.text);
-  await tabA.updates.stageAndActivate(
-    bundle('beta').manifest,
-    bundle('beta').text,
-  );
-  await tabA.updates.stageAndActivate(
-    bundle('gamma').manifest,
-    bundle('gamma').text,
-  );
+  const beta = await bundle('beta');
+  await tabA.updates.stageAndActivate(beta.manifest, beta.text);
+  const gamma = await bundle('gamma');
+  await tabA.updates.stageAndActivate(gamma.manifest, gamma.text);
   expect(await tabA.collect()).toEqual([]);
 
   // A day later another tab reads alpha: that pin restarts the retention
@@ -261,8 +253,8 @@ it('restarts a generation retention window when a reader pins it', async () => {
 it('collects abandoned staged generations only after the grace period', async () => {
   const clock = testClock();
   const store = testStore({ now: clock.now, retainReadyForMs: 0 });
-  const alpha = bundle('alpha');
-  const abandoned = bundle('abandoned');
+  const alpha = await bundle('alpha');
+  const abandoned = await bundle('abandoned');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.updates.stageBundle(abandoned.manifest, abandoned.text);
 
@@ -278,8 +270,8 @@ it('collects abandoned staged generations only after the grace period', async ()
 it('refuses to roll back to an incomplete previous generation', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
-  const beta = bundle('beta');
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.updates.stageAndActivate(beta.manifest, beta.text);
   // Eviction: parts of the previous generation's rows are gone.
@@ -299,7 +291,7 @@ it('refuses to roll back to an incomplete previous generation', async () => {
 
 it('looks up names, DCI, links and ATC codes inside the pinned generation only', async () => {
   const store = testStore();
-  const diacritics = bundle('beta', {
+  const diacritics = await bundle('beta', {
     products: [
       {
         key: 'SP-COMMA',
@@ -324,7 +316,7 @@ it('looks up names, DCI, links and ATC codes inside the pinned generation only',
   expect(await reader.productsByNamePrefix('fictăşî')).toHaveLength(2);
   expect(await reader.productsByNamePrefix('placebex')).toHaveLength(0);
 
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   // The pinned reader keeps its own generation: the new one is invisible to it.
   expect(await reader.productsByNamePrefix('fictivol')).toHaveLength(0);

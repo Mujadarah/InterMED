@@ -1,8 +1,8 @@
 import {
   MEDICATION_CATALOGUE_SCHEMA_VERSION,
   deserializeCatalogue,
-  fingerprint,
   validateReferentialIntegrity,
+  type CatalogueIssueCode,
   type DatasetUpdateFailureReason,
   type MedicationCatalogueSnapshot,
   type PublishedDatasetManifest,
@@ -11,11 +11,79 @@ import {
 /**
  * Manifest and bundle validation for the update pipeline.
  *
- * Every check runs outside IndexedDB transactions. The checksum comparison is
- * an accidental-corruption check (domain `fingerprint`, FNV-1a 64-bit), not a
- * security hash and not a source-authority claim: authority comes from trusted
- * HTTPS publication and controlled manifest promotion.
+ * Every check runs outside IndexedDB transactions. There are two deliberately
+ * separate checksums. The transport checksum (`manifest.checksum`) is the
+ * publisher's SHA-256 over the exact uploaded bundle bytes
+ * (`sha256:<64 lowercase hex>`, Web Crypto); `checkBundle` recomputes it over
+ * the bytes the bundle text re-encodes to, which reproduces the publisher's
+ * sequence only when the loader decoded the download strictly — see
+ * `decodeBundleBytes`. The internal catalogue checksum
+ * (`datasetVersions[0].checksum`, domain `fingerprint`, FNV-1a 64-bit) stays
+ * what it always was: an accidental-corruption check inside the catalogue,
+ * enforced by `validateReferentialIntegrity`. Neither checksum is a security
+ * hash or a source-authority claim: authority comes from trusted HTTPS
+ * publication and controlled manifest promotion.
  */
+
+/** Shape the published contract requires of `manifest.checksum`. */
+const TRANSPORT_CHECKSUM_PATTERN = /^sha256:[0-9a-f]{64}$/;
+
+/** Shared strict UTF-8 decoder: malformed bytes throw, a BOM is preserved. */
+const STRICT_UTF8_DECODER = new TextDecoder('utf-8', {
+  fatal: true,
+  ignoreBOM: true,
+});
+
+/**
+ * Strict, lossless text boundary for downloaded bundle bytes.
+ *
+ * Decodes UTF-8 with `fatal: true` (malformed sequences throw instead of being
+ * replaced) and `ignoreBOM: true` (a leading BOM is kept in the text, not
+ * stripped), and returns null when the bytes are not valid UTF-8. With both
+ * options `new TextEncoder().encode(decoded)` reproduces the original bytes
+ * exactly, which is what makes the SHA-256 transport checksum comparable: the
+ * publisher hashed the bytes it uploaded, and this boundary hands the pipeline
+ * text that re-encodes to those same bytes.
+ *
+ * Every concrete `PublishedBundleLoader` must decode with this helper and
+ * report `unavailable` (for example with reason `invalid-response`) when it
+ * returns null, never a lossy replacement: a loader that strips a BOM or
+ * substitutes malformed sequences breaks the transport checksum.
+ */
+export function decodeBundleBytes(bytes: Uint8Array): string | null {
+  try {
+    return STRICT_UTF8_DECODER.decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * SHA-256 transport checksum of bundle bytes: `sha256:<64 lowercase hex>`.
+ * Web Crypto exposes no synchronous digest, so callers must await it.
+ */
+export async function sha256TransportChecksum(
+  bytes: Uint8Array<ArrayBuffer>,
+): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  const hex = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+  return `sha256:${hex}`;
+}
+
+/**
+ * Referential-integrity codes that are preserved data-quality notes, not
+ * activation failures. The domain keeps these source tokens reviewable and
+ * the publisher lets them through, so a published generation may carry them.
+ * Exactly these two codes are tolerated — no wildcard, no severity
+ * inference — and every other code `validateReferentialIntegrity` can emit
+ * stays fatal.
+ */
+export const NON_FATAL_DATA_QUALITY_CODES: readonly CatalogueIssueCode[] = [
+  'invalid-unit',
+  'ambiguous-decimal',
+];
 
 /** Client version compared against `minimumClientVersion` of a manifest. */
 export const LOCAL_CLIENT_VERSION = '0.0.0';
@@ -136,12 +204,16 @@ const RECORD_COUNT_KEYS: Readonly<Record<string, true>> = {
  * Validate one downloaded bundle against its manifest.
  * Rejects corrupted bytes, malformed or non-integral catalogues, a bundle that
  * does not identify the manifest's generation, and published count mismatches.
+ * Asynchronous because the SHA-256 transport digest is (Web Crypto).
  */
-export function checkBundle(
+export async function checkBundle(
   manifest: PublishedDatasetManifest,
   bundleText: string,
-): BundleValidation {
-  if (fingerprint(bundleText) !== manifest.checksum)
+): Promise<BundleValidation> {
+  if (!TRANSPORT_CHECKSUM_PATTERN.test(manifest.checksum))
+    return { ok: false, reason: 'checksum-mismatch' };
+  const bundleBytes = new TextEncoder().encode(bundleText);
+  if ((await sha256TransportChecksum(bundleBytes)) !== manifest.checksum)
     return { ok: false, reason: 'checksum-mismatch' };
   const decoded = deserializeCatalogue(bundleText);
   if (!decoded.ok) return { ok: false, reason: 'invalid-bundle' };
@@ -169,8 +241,12 @@ export function checkBundle(
     return { ok: false, reason: 'incompatible-schema' };
   if (!isClientCompatible(version.minimumClientVersion))
     return { ok: false, reason: 'incompatible-schema' };
-  if (validateReferentialIntegrity(snapshot).length > 0)
-    return { ok: false, reason: 'integrity-failed' };
+  // Preserved data-quality notes do not reject a generation; everything else
+  // `validateReferentialIntegrity` reports does (issue #12).
+  const fatalIssues = validateReferentialIntegrity(snapshot).filter(
+    (issue) => !NON_FATAL_DATA_QUALITY_CODES.includes(issue.code),
+  );
+  if (fatalIssues.length > 0) return { ok: false, reason: 'integrity-failed' };
   for (const [key, expected] of Object.entries(manifest.recordCounts)) {
     const collection = snapshot[key as keyof MedicationCatalogueSnapshot];
     if (!Array.isArray(collection) || collection.length !== expected)

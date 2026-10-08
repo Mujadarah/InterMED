@@ -18,7 +18,7 @@ const LEASE_TTL_MS = 60_000;
 it('keeps favorites and recent searches through a replacement and a restart', async () => {
   const name = uniqueName();
   const store = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -38,7 +38,7 @@ it('keeps favorites and recent searches through a replacement and a restart', as
     (await store.preferences.listFavorites()).map((entry) => entry.status),
   ).toEqual(['available', 'available']);
 
-  const beta = bundle('beta');
+  const beta = await bundle('beta');
   await store.updates.stageAndActivate(beta.manifest, beta.text);
   const replaced = await store.preferences.listFavorites();
   expect(
@@ -65,7 +65,7 @@ it('keeps favorites and recent searches through a replacement and a restart', as
 
 it('tombstones a removed favorite instead of remapping a similar product', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const favorited = [
     alpha.productIds['SP-FICTIVOL']!,
@@ -84,7 +84,7 @@ it('tombstones a removed favorite instead of remapping a similar product', async
 
   // The replacement drops Placebex and publishes a similarly named product
   // under a different stable id. The favorite must not follow it.
-  const beta = bundle('beta', {
+  const beta = await bundle('beta', {
     products: [
       { key: 'SP-FICTIVOL', name: 'Fictivol' },
       { key: 'SP-PLACEBEX-NEXT', name: 'Placebex' },
@@ -107,7 +107,7 @@ it('tombstones a removed favorite instead of remapping a similar product', async
     },
   ]);
 
-  const gamma = bundle('gamma', {
+  const gamma = await bundle('gamma', {
     products: [{ key: 'SP-FICTIVOL', name: 'Fictivol' }],
   });
   await store.updates.stageAndActivate(gamma.manifest, gamma.text);
@@ -117,7 +117,7 @@ it('tombstones a removed favorite instead of remapping a similar product', async
 
 it('resolves a favorite against the active generation when it is added', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   const entry = await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -136,7 +136,7 @@ it('resolves a favorite against the active generation when it is added', async (
 
 it('clears every local dataset and preference record explicitly', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -195,7 +195,7 @@ it('refuses clear-all while another tab is staging instead of racing it', async 
     },
   });
   const other = testStore({ name });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await other.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
     lastKnownDisplayName: 'Fictivol alpha',
@@ -251,7 +251,7 @@ it('aborts staging cleanly when the local data is cleared underneath it', async 
     },
   });
   const clearer = testStore({ name, now: clock.now });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
 
   const running = writer.updates.stageAndActivate(alpha.manifest, alpha.text);
   await reachedStaging;
@@ -280,7 +280,7 @@ it('aborts staging cleanly when the local data is cleared underneath it', async 
 
 it('clears the tombstone when a tombstoned product comes back', async () => {
   const store = testStore();
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   await store.updates.stageAndActivate(alpha.manifest, alpha.text);
   await store.preferences.addFavorite({
     productId: alpha.productIds['SP-FICTIVOL']!,
@@ -289,7 +289,7 @@ it('clears the tombstone when a tombstoned product comes back', async () => {
   });
 
   // Generation 2 drops the product: the favorite is tombstoned.
-  const beta = bundle('beta', {
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
   });
   await store.updates.stageAndActivate(beta.manifest, beta.text);
@@ -301,7 +301,7 @@ it('clears the tombstone when a tombstoned product comes back', async () => {
   // Generation 3 publishes the same stable product id again: the tombstone is
   // gone and the favorite is available again. A similar product under another
   // id is never adopted.
-  const gamma = bundle('gamma', {
+  const gamma = await bundle('gamma', {
     products: [
       { key: 'SP-FICTIVOL', name: 'Fictivol' },
       { key: 'SP-PLACEBEX', name: 'Placebex' },
@@ -317,11 +317,11 @@ it('clears the tombstone when a tombstoned product comes back', async () => {
 });
 
 it('drops a superseded reconciliation retry instead of overwriting newer favorites', async () => {
-  const alpha = bundle('alpha');
-  const beta = bundle('beta', {
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
   });
-  const gamma = bundle('gamma');
+  const gamma = await bundle('gamma');
   let failBeta = false;
   const store = testStore({
     onMaintenance: (task) => {
@@ -366,8 +366,8 @@ it('drops a superseded reconciliation retry instead of overwriting newer favorit
 
 it('keeps reconciling other favorites when one product fails', async () => {
   const name = uniqueName();
-  const alpha = bundle('alpha');
-  const beta = bundle('beta', {
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-SYNTHETICA', name: 'Synthetica' }],
   });
   const clock = testClock();
@@ -437,8 +437,8 @@ it('keeps reconciling other favorites when one product fails', async () => {
 });
 
 it('keeps a favorite removed that was deleted while reconciliation ran', async () => {
-  const alpha = bundle('alpha');
-  const beta = bundle('beta', {
+  const alpha = await bundle('alpha');
+  const beta = await bundle('beta', {
     products: [{ key: 'SP-PLACEBEX', name: 'Placebex' }],
   });
   const clock = testClock();
@@ -486,7 +486,7 @@ it('never lets a download resume into a completed clear', async () => {
   const stalled = await testMarkerLock(name, clock.now, {
     ttlMs: LEASE_TTL_MS,
   });
-  const alpha = bundle('alpha');
+  const alpha = await bundle('alpha');
   let reachedLoad: () => void = () => {};
   let releaseBundle: () => void = () => {};
   const loadReached = new Promise<void>((resolve) => {

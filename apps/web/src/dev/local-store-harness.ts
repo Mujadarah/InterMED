@@ -75,7 +75,7 @@ function installLocalStoreHarness(): LocalStoreHarness {
   const harness: LocalStoreHarness = {
     state: () => store.open(),
     stageAndActivate: async (label) => {
-      const synthetic = buildSyntheticCatalogueBundle({ label });
+      const synthetic = await buildSyntheticCatalogueBundle({ label });
       await store.updates.stageAndActivate(synthetic.manifest, synthetic.text);
       return {
         generationId: synthetic.generationId,

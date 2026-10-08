@@ -65,8 +65,10 @@ export type {
 export {
   checkBundle,
   checkManifest,
+  decodeBundleBytes,
   isClientCompatible,
   LOCAL_CLIENT_VERSION,
+  NON_FATAL_DATA_QUALITY_CODES,
   SUPPORTED_MANIFEST_SCHEMA_VERSIONS,
 } from './validate';
 export type { BundleValidation } from './validate';

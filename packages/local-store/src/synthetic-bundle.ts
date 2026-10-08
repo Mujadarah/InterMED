@@ -2,7 +2,6 @@ import {
   MEDICATION_CATALOGUE_SCHEMA_VERSION,
   MISSING,
   deriveStableId,
-  fingerprint,
   presentField,
   sealCatalogue,
   serializeCatalogue,
@@ -25,6 +24,7 @@ import {
   type PublishedDatasetManifest,
   type RegulatoryDocument,
 } from '@intermed/domain';
+import { sha256TransportChecksum } from './validate';
 
 /**
  * Synthetic bundle builder for the local dataset store.
@@ -139,11 +139,14 @@ export function bundleByteLength(text: string): number {
 /**
  * Build one sealed, serialized synthetic catalogue bundle and its manifest.
  * The bundle passes domain deserialization, referential integrity and the
- * update pipeline's checksum, identity and count checks.
+ * update pipeline's checksum, identity and count checks. Asynchronous because
+ * the manifest and descriptor checksums are the SHA-256 transport digest of
+ * the bundle bytes (Web Crypto); the internal FNV catalogue checksum stays
+ * sealed inside `datasetVersions[0].checksum`.
  */
-export function buildSyntheticCatalogueBundle(
+export async function buildSyntheticCatalogueBundle(
   options: SyntheticBundleOptions,
-): SyntheticBundle {
+): Promise<SyntheticBundle> {
   const dataset = options.dataset ?? SYNTHETIC_DATASET;
   const { label } = options;
   const products = options.products ?? SYNTHETIC_DEFAULT_PRODUCTS;
@@ -396,7 +399,7 @@ export function buildSyntheticCatalogueBundle(
     upstreamPublishedAt: null,
     publishedAt: INSTANT,
     importedAt: version.importedAt,
-    checksum: fingerprint(text),
+    checksum: await sha256TransportChecksum(new TextEncoder().encode(text)),
     schemaVersion: version.schemaVersion,
     minimumClientVersion: version.minimumClientVersion,
     recordCounts: Object.fromEntries(Object.entries(version.recordCounts)),
