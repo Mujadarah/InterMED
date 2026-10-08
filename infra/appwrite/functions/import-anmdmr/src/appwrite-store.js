@@ -600,9 +600,18 @@ export function createAppwriteStore({
       throw new StoreError('BAD_REQUEST', 'Untrusted URL');
     }
 
+    const questionIndex = path.indexOf('?');
+    const relativePath =
+      questionIndex === -1 ? path : path.slice(0, questionIndex);
+    const queryPart = questionIndex === -1 ? '' : path.slice(questionIndex);
+
     let targetUrl;
     try {
-      targetUrl = new URL(`${endpoint}${path}`);
+      targetUrl = new URL(TRUSTED_ORIGIN + TRUSTED_PATH_PREFIX);
+      targetUrl.pathname = `${TRUSTED_PATH_PREFIX}${relativePath}`;
+      if (queryPart !== '') {
+        targetUrl.search = queryPart;
+      }
     } catch {
       throw new StoreError('BAD_REQUEST', 'Untrusted URL');
     }

@@ -1512,15 +1512,26 @@ describe('Appwrite Store', () => {
       const redirectPort = (redirectServer.address() as { port: number }).port;
 
       try {
+        const expectedStoreUrl = `${ENDPOINT}/tablesdb/intermed-datasets/tables/import-runs/rows/probe-row`;
+        let interceptedUrl: URL | undefined;
+        let interceptedCallCount = 0;
+
         const store = createAppwriteStore({
           endpoint: ENDPOINT,
           projectId: PROJECT_ID,
           serverKey: fakeCredential,
-          fetch: ((url: string | URL | Request, options?: RequestInit) =>
-            fetch(
-              `http://127.0.0.1:${redirectPort}${new URL(url.toString()).pathname}${new URL(url.toString()).search}`,
-              options,
-            )) as unknown as typeof fetch,
+          fetch: ((url: string | URL | Request, options?: RequestInit) => {
+            interceptedCallCount += 1;
+            interceptedUrl = new URL(url.toString());
+            expect(url.toString()).toBe(expectedStoreUrl);
+            expect(interceptedUrl.origin).toBe('https://fra.cloud.appwrite.io');
+            expect(interceptedUrl.protocol).toBe('https:');
+            expect(interceptedUrl.pathname).toBe(
+              '/v1/tablesdb/intermed-datasets/tables/import-runs/rows/probe-row',
+            );
+            expect(interceptedUrl.search).toBe('');
+            return fetch(`http://127.0.0.1:${redirectPort}/redirect`, options);
+          }) as unknown as typeof fetch,
         });
 
         await expect(
@@ -1530,6 +1541,7 @@ describe('Appwrite Store', () => {
           safeMessage: 'Network error',
         });
 
+        expect(interceptedCallCount).toBe(1);
         expect(targetRequests).toBe(0);
         expect(fakeKeyForwarded).toBe(false);
       } finally {
@@ -1546,6 +1558,64 @@ describe('Appwrite Store', () => {
       }
     });
 
+    it('allows successful requests with native fetch when no redirect is encountered', async () => {
+      const fakeCredential = randomBytes(24).toString('hex');
+      let directRequests = 0;
+      let directKeyReceived = false;
+
+      const directServer = http.createServer((req, res) => {
+        directRequests += 1;
+        if (req.headers['x-appwrite-key'] === fakeCredential) {
+          directKeyReceived = true;
+        }
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            $id: 'probe-row',
+            tableId: 'import-runs',
+            $createdAt: '2026-10-07T00:00:00.000+00:00',
+            $updatedAt: '2026-10-07T00:00:00.000+00:00',
+            $permissions: [],
+            data: { test: true },
+          }),
+        );
+      });
+
+      await new Promise<void>((resolve) => {
+        directServer.listen(0, '127.0.0.1', () => resolve());
+      });
+      const directPort = (directServer.address() as { port: number }).port;
+
+      try {
+        const expectedStoreUrl = `${ENDPOINT}/tablesdb/intermed-datasets/tables/import-runs/rows/probe-row`;
+        const store = createAppwriteStore({
+          endpoint: ENDPOINT,
+          projectId: PROJECT_ID,
+          serverKey: fakeCredential,
+          fetch: ((url: string | URL | Request, options?: RequestInit) => {
+            const intercepted = new URL(url.toString());
+            expect(url.toString()).toBe(expectedStoreUrl);
+            expect(intercepted.pathname).toBe(
+              '/v1/tablesdb/intermed-datasets/tables/import-runs/rows/probe-row',
+            );
+            expect(intercepted.search).toBe('');
+            return fetch(`http://127.0.0.1:${directPort}/probe`, options);
+          }) as unknown as typeof fetch,
+        });
+
+        const row = await store.getRow('import-runs', 'probe-row');
+        expect(row.$id).toBe('probe-row');
+        expect(row.tableId).toBe('import-runs');
+        expect(directRequests).toBe(1);
+        expect(directKeyReceived).toBe(true);
+      } finally {
+        if (typeof directServer.closeAllConnections === 'function') {
+          directServer.closeAllConnections();
+        }
+        await new Promise((resolve) => directServer.close(resolve));
+      }
+    });
+
     it('forces redirect: error on all outgoing requests', async () => {
       seedRow(
         'import-runs',
@@ -1554,6 +1624,49 @@ describe('Appwrite Store', () => {
       await store.getRow('import-runs', 'row1');
       const [call] = calls();
       expect(call?.redirect).toBe('error');
+    });
+  });
+
+  describe('URL construction and boundary enforcement', () => {
+    it('preserves query encoding across complex parameters and special characters', async () => {
+      seedRow(
+        'dataset-versions',
+        flatRow('dataset-versions', 'v1', { sourceId: 'src-1?name=a&b=c' }),
+      );
+      const complexQuery = JSON.stringify({
+        method: 'equal',
+        attribute: 'sourceId',
+        values: ['src-1?name=a&b=c / space + test'],
+      });
+      await store.listRows('dataset-versions', [complexQuery]);
+      const [call] = calls();
+      expect(call).toBeDefined();
+      expect(call?.url.origin).toBe('https://fra.cloud.appwrite.io');
+      expect(call?.url.protocol).toBe('https:');
+      expect(call?.url.pathname).toBe(
+        '/v1/tablesdb/intermed-datasets/tables/dataset-versions/rows',
+      );
+      expect(call?.url.searchParams.getAll('queries[]')).toEqual([
+        complexQuery,
+      ]);
+    });
+
+    it('rejects malicious relative traversals and protocol-relative inputs before network', async () => {
+      const maliciousIds = [
+        '..',
+        '../escaped',
+        '..\\escaped',
+        '/evil.com',
+        '//evil.com',
+        'https://evil.com',
+      ];
+      for (const badId of maliciousIds) {
+        await expect(store.getRow('import-runs', badId)).rejects.toMatchObject({
+          code: 'BAD_REQUEST',
+          safeMessage: 'Invalid ID',
+        });
+      }
+      expect(fakeFetch).not.toHaveBeenCalled();
     });
   });
 });
