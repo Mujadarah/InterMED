@@ -50,9 +50,7 @@ The browser check ran the search keyboard path against synthetic data after taki
 
 ## Performance budget and measurements
 
-Measurements use 20,000 synthetic products. The committed full-suite browser log reports core-search p95 of 6.8 ms for one character, 6.0 ms for two, and 3.4 ms for four. Key-to-render p95 was 259.5, 252 and 245.5 ms respectively (about 250 ms); this includes the intentional 200 ms debounce. The in-memory index built in approximately 0.6–0.84 seconds.
-
-IndexedDB staging measured 4.81 seconds in isolation and 5.0–5.9 seconds with the three-worker full browser suite. The original target was 5 seconds. Because full-suite measurements reached 5.9 seconds, the documented full-suite staging bound is 6 seconds; the isolated result met the original target, while the slowest full-suite results did not.
+Measurements use 20,000 synthetic products: the prior local run recorded core-search p95 of 6.8/6.0/3.4 ms and key-to-render p95 of 259.5/252/245.5 ms (1/2/4 characters, including the 200 ms debounce), with a 0.6–0.84 s index; CI measured Ubuntu staging 16,720 ms, index 1,929 ms and key-to-render p95 329/400/406 ms, and Windows staging 26,427 ms, index 2,766 ms and key-to-render p95 333/299/314 ms, with reported core-search p95 values of 13.5/31.6 ms and 12.9/9.3 ms respectively (four-character values were not provided). Core search remains a hard <100 ms budget everywhere; local bounds are index <5 s, staging <6 s and key-to-render p95 <300 ms, while CI uses regression guards of index <15 s, staging <60 s and key-to-render p95 <750 ms to account for runner variability. On this worker, local-profile staging measured 10.30/10.49 s (over the 6 s guard); the full suite under the CI profile measured 13.32 s staging, 1.61 s index and core-search p95 13.9/8.6/8.1 ms.
 
 ## Accessibility checks
 

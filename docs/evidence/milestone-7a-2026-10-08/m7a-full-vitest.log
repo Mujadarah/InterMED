@@ -1,0 +1,12 @@
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <WORKTREE>
+
+
+ Test Files  53 passed (53)
+      Tests  878 passed (878)
+   Start at  20:10:55
+   Duration  57.78s (transform 18.84s, setup 0ms, import 54.09s, tests 96.57s, environment 23.97s)
