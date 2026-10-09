@@ -301,7 +301,9 @@ test.describe.serial('medication search browser coverage', () => {
       await expect(
         page.getByRole('heading', { name: 'Local medication search' }),
       ).toBeVisible();
-      await expect(page.getByRole('main')).toBeFocused();
+      await expect(
+        page.getByRole('heading', { name: 'Local medication search' }),
+      ).toBeFocused();
 
       for (let tab = 0; tab < 12; tab += 1) {
         if (

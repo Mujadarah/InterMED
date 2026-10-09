@@ -27,6 +27,7 @@ import {
   product as makeProduct,
 } from '../../../../tests/domain/builders';
 import type { MedicationDetailService } from '../application/medication-detail';
+import type { PreferencesService } from '../application/preferences';
 import { MedicationDetailPage } from './MedicationDetailPage';
 
 afterEach(() => {
@@ -215,6 +216,7 @@ function renderPage(
     productDetail: vi.fn(async () => detail()),
   },
   route = '/medication/synthetic-product-id',
+  preferences: PreferencesService = emptyPreferences(),
 ) {
   return render(
     <MemoryRouter initialEntries={[route]}>
@@ -222,15 +224,141 @@ function renderPage(
         productId="synthetic-product-id"
         dataset={dataset(state)}
         detail={service}
+        preferences={preferences}
       />
     </MemoryRouter>,
   );
+}
+
+function emptyPreferences(
+  overrides: Partial<PreferencesService> = {},
+): PreferencesService {
+  return {
+    listFavorites: async () => [],
+    isFavorite: async () => false,
+    addFavorite: async (input) => ({
+      ...input,
+      createdAt: '2026-10-09T00:00:00.000Z',
+      status: 'unresolved',
+    }),
+    removeFavorite: async () => undefined,
+    listRecentSearches: async () => [],
+    recordOpenedSearch: async () => {
+      throw new Error('Unexpected recent search');
+    },
+    clearRecentSearches: async () => undefined,
+    exportPreferences: async (exportedAt) => ({
+      format: 'intermed-preferences',
+      version: 1,
+      exportedAt,
+      favorites: [],
+      recentSearches: [],
+    }),
+    clearAllLocalData: async () => ({ status: 'cleared' }),
+    ...overrides,
+  };
 }
 
 const ready: DatasetUpdateState = {
   status: 'ready',
   generation: detail().generation,
 };
+
+it('adds a favorite from detail after storage confirms the write', async () => {
+  const user = userEvent.setup();
+  const current = detail();
+  const addFavorite = vi.fn(async (input) => ({
+    ...input,
+    createdAt: '2026-10-09T00:00:00.000Z',
+    status: 'available' as const,
+  }));
+  const service = emptyPreferences({ addFavorite });
+  renderPage(ready, { productDetail: async () => current }, undefined, service);
+
+  const button = await screen.findByRole('button', {
+    name: 'Add to favorites',
+  });
+  expect(button).toHaveAttribute('aria-pressed', 'false');
+  expect(button).toHaveClass('favorite-toggle');
+  await user.click(button);
+
+  const removeButton = await screen.findByRole('button', {
+    name: 'Remove from favorites',
+  });
+  expect(removeButton).toHaveAttribute('aria-pressed', 'true');
+  expect(addFavorite).toHaveBeenCalledWith({
+    productId: current.product.id,
+    lastKnownDisplayName: current.product.commercialName,
+    lastKnownDatasetVersionId: current.product.datasetVersionId,
+  });
+  expect(screen.getByText('Added to local favorites.')).toBeVisible();
+});
+
+it('keeps the prior favorite state and explains a failed write', async () => {
+  const user = userEvent.setup();
+  const failure = new Error('synthetic write failure');
+  const service = emptyPreferences({
+    addFavorite: async () => {
+      throw failure;
+    },
+  });
+  renderPage(ready, undefined, undefined, service);
+
+  const button = await screen.findByRole('button', {
+    name: 'Add to favorites',
+  });
+  await user.click(button);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Favorite could not be saved. Your previous state is unchanged.',
+  );
+  expect(
+    screen.getByRole('button', { name: 'Add to favorites' }),
+  ).toHaveAttribute('aria-pressed', 'false');
+});
+
+it('removes an existing favorite only after storage confirms the write', async () => {
+  const user = userEvent.setup();
+  const removeFavorite = vi.fn(async () => undefined);
+  const service = emptyPreferences({
+    isFavorite: async () => true,
+    removeFavorite,
+  });
+  renderPage(ready, undefined, undefined, service);
+
+  const button = await screen.findByRole('button', {
+    name: 'Remove from favorites',
+  });
+  expect(button).toHaveAttribute('aria-pressed', 'true');
+  await user.click(button);
+
+  expect(removeFavorite).toHaveBeenCalledWith(detail().product.id);
+  expect(
+    await screen.findByRole('button', { name: 'Add to favorites' }),
+  ).toHaveAttribute('aria-pressed', 'false');
+  expect(screen.getByText('Removed from local favorites.')).toBeVisible();
+});
+
+it('keeps an existing favorite selected when its removal fails', async () => {
+  const user = userEvent.setup();
+  const service = emptyPreferences({
+    isFavorite: async () => true,
+    removeFavorite: async () => {
+      throw new Error('synthetic write failure');
+    },
+  });
+  renderPage(ready, undefined, undefined, service);
+
+  await user.click(
+    await screen.findByRole('button', { name: 'Remove from favorites' }),
+  );
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Favorite could not be removed. Your previous state is unchanged.',
+  );
+  expect(
+    screen.getByRole('button', { name: 'Remove from favorites' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+});
 
 it('shows loading without opening a reader while the local store is opening', () => {
   const productDetail = vi.fn(async () => detail());
@@ -516,6 +644,7 @@ it('shows removed and unresolved catalogue banners clearly', async () => {
         productId="synthetic-product-id"
         dataset={dataset({ status: 'ready', generation: removed.generation })}
         detail={{ productDetail: vi.fn(async () => removed) }}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );
@@ -535,6 +664,7 @@ it('shows removed and unresolved catalogue banners clearly', async () => {
           generation: unresolved.generation,
         })}
         detail={{ productDetail: vi.fn(async () => unresolved) }}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );

@@ -51,6 +51,7 @@ export async function productionServer() {
         path === '/status' ||
         path === '/unavailable' ||
         path === '/search' ||
+        path === '/favorites' ||
         path.startsWith('/medication/')
           ? 'index.html'
           : path.slice(1);

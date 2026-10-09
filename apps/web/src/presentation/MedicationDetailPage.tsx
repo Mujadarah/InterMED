@@ -1,4 +1,5 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { defineControls } from 'tempo-sdk/assets';
 import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
@@ -8,10 +9,20 @@ import type {
   RegulatoryDocument,
 } from '@intermed/domain';
 import type { MedicationDetailService } from '../application/medication-detail';
+import type { PreferencesService } from '../application/preferences';
 import { datasetAgeText } from './dataset-age';
 import { useMedicationDetail } from './use-medication-detail';
 
 const NOT_PROVIDED = 'Not provided by source';
+
+interface FavoriteViewState {
+  readonly productId: string;
+  readonly status: 'ready' | 'error';
+  readonly isFavorite: boolean | null;
+  readonly busy: boolean;
+  readonly error: string;
+  readonly notice: string;
+}
 
 function sourceText(value: string): string {
   return value.trim() ? value : NOT_PROVIDED;
@@ -455,9 +466,19 @@ function ProvenanceSection({ detail }: { detail: MedicationProductDetail }) {
 function ProductDetail({
   detail,
   online,
+  isFavorite,
+  favoriteBusy,
+  favoriteError,
+  favoriteNotice,
+  onToggleFavorite,
 }: {
   detail: MedicationProductDetail;
   online: boolean;
+  isFavorite: boolean | null;
+  favoriteBusy: boolean;
+  favoriteError: string;
+  favoriteNotice: string;
+  onToggleFavorite: () => void;
 }) {
   const { product } = detail;
   return (
@@ -465,6 +486,23 @@ function ProductDetail({
       <h1 id="medication-detail-title" tabIndex={-1}>
         {sourceText(product.commercialName)}
       </h1>
+      {isFavorite !== null && (
+        <button
+          className="favorite-toggle"
+          type="button"
+          aria-pressed={isFavorite}
+          disabled={favoriteBusy}
+          onClick={onToggleFavorite}
+        >
+          {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        </button>
+      )}
+      {favoriteError && <p role="alert">{favoriteError}</p>}
+      {favoriteNotice && (
+        <p role="status" aria-live="polite">
+          {favoriteNotice}
+        </p>
+      )}
       <p className="lead">
         Product information copied from the active local dataset.
       </p>
@@ -518,22 +556,123 @@ export function MedicationDetailPage({
   productId,
   dataset,
   detail,
+  preferences,
 }: {
   productId: string;
   dataset: DatasetStateSource;
   detail: MedicationDetailService;
+  preferences: PreferencesService;
 }) {
   const [searchParams] = useSearchParams();
   const returnQuery = searchParams.get('q');
   const { pageState, retry } = useMedicationDetail(productId, dataset, detail);
   const online = useOnlineStatus();
   const page = useRef<HTMLElement>(null);
+  const favoriteProduct =
+    pageState.status === 'success' ? pageState.detail.product : null;
+  const favoriteProductId = favoriteProduct?.id ?? null;
+  const [favoriteState, setFavoriteState] = useState<FavoriteViewState | null>(
+    null,
+  );
+  const activeFavoriteState =
+    favoriteState?.productId === favoriteProductId ? favoriteState : null;
+  const isFavorite =
+    activeFavoriteState?.status === 'ready'
+      ? activeFavoriteState.isFavorite
+      : null;
+  const favoriteBusy = activeFavoriteState?.busy ?? false;
+  const favoriteError = activeFavoriteState?.error ?? '';
+  const favoriteNotice = activeFavoriteState?.notice ?? '';
+
+  useEffect(() => {
+    if (!favoriteProductId) return;
+    let current = true;
+    void preferences.isFavorite(favoriteProductId).then(
+      (value) => {
+        if (current)
+          setFavoriteState({
+            productId: favoriteProductId,
+            status: 'ready',
+            isFavorite: value,
+            busy: false,
+            error: '',
+            notice: '',
+          });
+      },
+      () => {
+        if (current)
+          setFavoriteState({
+            productId: favoriteProductId,
+            status: 'error',
+            isFavorite: null,
+            busy: false,
+            error: 'Favorite status could not be read from this browser.',
+            notice: '',
+          });
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [favoriteProductId, preferences]);
 
   useEffect(() => {
     const section = page.current;
     if (focusWasMoved(document.activeElement, section)) return;
     section?.querySelector<HTMLElement>('h1[tabindex="-1"]')?.focus();
   }, [pageState.status]);
+
+  async function toggleFavorite() {
+    if (!favoriteProduct || isFavorite === null || favoriteBusy) return;
+    const wasFavorite = isFavorite;
+    setFavoriteState((current) =>
+      current?.productId === favoriteProduct.id && current.status === 'ready'
+        ? { ...current, busy: true, error: '', notice: '' }
+        : current,
+    );
+    try {
+      if (wasFavorite) {
+        await preferences.removeFavorite(favoriteProduct.id);
+        setFavoriteState({
+          productId: favoriteProduct.id,
+          status: 'ready',
+          isFavorite: false,
+          busy: false,
+          error: '',
+          notice: 'Removed from local favorites.',
+        });
+      } else {
+        await preferences.addFavorite({
+          productId: favoriteProduct.id,
+          lastKnownDisplayName: favoriteProduct.commercialName,
+          lastKnownDatasetVersionId: favoriteProduct.datasetVersionId,
+        });
+        setFavoriteState({
+          productId: favoriteProduct.id,
+          status: 'ready',
+          isFavorite: true,
+          busy: false,
+          error: '',
+          notice: 'Added to local favorites.',
+        });
+      }
+    } catch {
+      setFavoriteState((current) => ({
+        productId: favoriteProduct.id,
+        status: 'ready',
+        isFavorite:
+          current?.productId === favoriteProduct.id &&
+          current.status === 'ready'
+            ? current.isFavorite
+            : wasFavorite,
+        busy: false,
+        error: wasFavorite
+          ? 'Favorite could not be removed. Your previous state is unchanged.'
+          : 'Favorite could not be saved. Your previous state is unchanged.',
+        notice: '',
+      }));
+    }
+  }
 
   return (
     <section
@@ -593,8 +732,23 @@ export function MedicationDetailPage({
         </>
       )}
       {pageState.status === 'success' && (
-        <ProductDetail detail={pageState.detail} online={online} />
+        <ProductDetail
+          detail={pageState.detail}
+          online={online}
+          isFavorite={isFavorite}
+          favoriteBusy={favoriteBusy}
+          favoriteError={favoriteError}
+          favoriteNotice={favoriteNotice}
+          onToggleFavorite={() => void toggleFavorite()}
+        />
       )}
     </section>
   );
 }
+
+/* @__PURE__ */ defineControls(MedicationDetailPage, {
+  productId: false,
+  dataset: false,
+  detail: false,
+  preferences: false,
+});

@@ -11,6 +11,7 @@ import type {
 } from '@intermed/domain';
 import { presentField } from '@intermed/domain';
 import { product as makeProduct } from '../../../../tests/domain/builders';
+import type { PreferencesService } from '../application/preferences';
 import { App } from './App';
 
 afterEach(cleanup);
@@ -44,6 +45,29 @@ const appDataset: DatasetStateSource = {
 const appProduct = makeProduct('SP-APP-TEST', 'Fictivol app test', {
   strengthText: presentField('250 fictional units'),
 });
+const preferences: PreferencesService = {
+  listFavorites: async () => [],
+  isFavorite: async () => false,
+  addFavorite: async (input) => ({
+    ...input,
+    createdAt: '2026-10-09T00:00:00.000Z',
+    status: 'available',
+  }),
+  removeFavorite: async () => undefined,
+  listRecentSearches: async () => [],
+  recordOpenedSearch: async () => {
+    throw new Error('Unexpected recent search');
+  },
+  clearRecentSearches: async () => undefined,
+  exportPreferences: async (exportedAt) => ({
+    format: 'intermed-preferences',
+    version: 1,
+    exportedAt,
+    favorites: [],
+    recentSearches: [],
+  }),
+  clearAllLocalData: async () => ({ status: 'cleared' }),
+};
 const services = {
   info: {
     label: 'Synthetic contributor mode',
@@ -64,6 +88,7 @@ const services = {
   medicationDetail: {
     productDetail: async () => null,
   },
+  preferences,
 };
 
 it('labels the shell as development and keeps clinical capabilities unavailable', () => {
@@ -129,6 +154,18 @@ it('registers the medication search route in navigation', async () => {
     'href',
     '/status',
   );
+});
+
+it('registers favorites as a route in navigation', async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  await user.click(screen.getByRole('link', { name: 'Favorites' }));
+  expect(screen.getByRole('heading', { name: 'Favorites' })).toHaveFocus();
+  expect(await screen.findByText('No favorites yet.')).toBeVisible();
 });
 
 it('opens a local candidate, restores its search query, and focuses the detail heading', async () => {

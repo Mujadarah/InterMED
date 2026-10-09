@@ -11,6 +11,8 @@ import { useEffect, useRef } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
+import { FavoritesPage } from './FavoritesPage';
+import { LocalPreferencesSettings } from './LocalPreferencesSettings';
 import { MedicationDetailPage } from './MedicationDetailPage';
 import { MedicationSearchPage } from './MedicationSearchPage';
 import { ShellStatus } from './ShellStatus';
@@ -22,6 +24,7 @@ function MedicationDetailRoute({ services }: { services: AppServices }) {
       productId={productId ?? ''}
       dataset={services.dataset}
       detail={services.medicationDetail}
+      preferences={services.preferences}
     />
   );
 }
@@ -72,6 +75,9 @@ export function App({
           </NavLink>
           <NavLink to="/search" tabIndex={0}>
             Medication search
+          </NavLink>
+          <NavLink to="/favorites" tabIndex={0}>
+            Favorites
           </NavLink>
           <NavLink to="/status" tabIndex={0}>
             Development status
@@ -171,6 +177,7 @@ export function App({
                   Temporary development artwork: original I monogram, not
                   approved final branding.
                 </p>
+                <LocalPreferencesSettings preferences={services.preferences} />
               </section>
             }
           />
@@ -180,6 +187,16 @@ export function App({
               <MedicationSearchPage
                 dataset={services.dataset}
                 search={services.medicationSearch}
+                preferences={services.preferences}
+              />
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <FavoritesPage
+                dataset={services.dataset}
+                preferences={services.preferences}
               />
             }
           />

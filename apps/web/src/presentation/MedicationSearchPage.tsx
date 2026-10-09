@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { defineControls } from 'tempo-sdk/assets';
 import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
   DatasetUpdateState,
   LocalDatasetGeneration,
+  RecentSearchEntry,
 } from '@intermed/domain';
 import type {
   MedicationSearchResponse,
@@ -12,6 +14,8 @@ import type {
 import { datasetAgeText } from './dataset-age';
 import { getSearchStatusMessage } from './search-status';
 import type { SearchStatus } from './search-status';
+import type { PreferencesService } from '../application/preferences';
+import { ConfirmationDialog } from './ConfirmationDialog';
 import {
   createDisambiguatedSearchResults,
   type DisambiguatedSearchResult,
@@ -34,6 +38,13 @@ type SearchState =
       retryRevision: number;
       revision: number;
     };
+
+interface RecentSearchLoad {
+  readonly generationId: string;
+  readonly queryRevision: number;
+  readonly status: 'ready' | 'error';
+  readonly entries: readonly RecentSearchEntry[];
+}
 
 function generationOf(
   state: DatasetUpdateState,
@@ -99,9 +110,11 @@ function SearchResultDetails({ row }: { row: DisambiguatedSearchResult }) {
 function SearchResult({
   row,
   query,
+  onOpen,
 }: {
   row: DisambiguatedSearchResult;
   query: string;
+  onOpen: () => void;
 }) {
   const product = row.match.record.product;
   const path = `/medication/${encodeURIComponent(product.id)}`;
@@ -123,6 +136,7 @@ function SearchResult({
       <Link
         to={href}
         tabIndex={0}
+        onClick={onOpen}
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
       >
         <span className="search-result-name">{product.commercialName}</span>
@@ -136,9 +150,11 @@ function SearchResult({
 export function MedicationSearchPage({
   dataset,
   search,
+  preferences,
 }: {
   dataset: DatasetStateSource;
   search: MedicationSearchService;
+  preferences: PreferencesService;
 }) {
   const state = useSyncExternalStore(dataset.subscribe, dataset.getState);
   const generation = generationOf(state);
@@ -147,7 +163,25 @@ export function MedicationSearchPage({
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
+  const [recentLoad, setRecentLoad] = useState<RecentSearchLoad | null>(null);
+  const [queryRevision, setQueryRevision] = useState(0);
+  const [recentDialogOpen, setRecentDialogOpen] = useState(false);
+  const [recentNotice, setRecentNotice] = useState('');
+  const [recentError, setRecentError] = useState('');
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const requestRevision = useRef(0);
+  const hasQuery = query.trim().length > 0;
+  const currentRecentLoad =
+    generationId &&
+    !hasQuery &&
+    recentLoad?.generationId === generationId &&
+    recentLoad.queryRevision === queryRevision
+      ? recentLoad
+      : null;
+  const recentSearches = currentRecentLoad?.entries ?? [];
+  const recentLoading = Boolean(
+    generationId && !hasQuery && !currentRecentLoad,
+  );
 
   // Keep the settled query in the URL so the browser Back button restores it.
   // The write is debounced like the search itself and replaces the current
@@ -166,6 +200,38 @@ export function MedicationSearchPage({
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timeout);
   }, [query, setSearchParams]);
+
+  useEffect(() => {
+    if (!generationId || hasQuery) return;
+    let current = true;
+    void preferences.listRecentSearches().then(
+      (entries) => {
+        if (current)
+          setRecentLoad({
+            generationId,
+            queryRevision,
+            status: 'ready',
+            entries,
+          });
+      },
+      () => {
+        if (current) {
+          setRecentLoad({
+            generationId,
+            queryRevision,
+            status: 'error',
+            entries: [],
+          });
+          setRecentError(
+            'Recent searches could not be read from this browser.',
+          );
+        }
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [generationId, hasQuery, preferences, queryRevision]);
 
   useEffect(() => {
     const revision = ++requestRevision.current;
@@ -235,6 +301,35 @@ export function MedicationSearchPage({
     search: statusSearch,
   });
 
+  function recordOpenedSearch(datasetVersionId: string) {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+    void preferences
+      .recordOpenedSearch(trimmedQuery, datasetVersionId)
+      .catch(() => {
+        setRecentError('Recent search could not be saved in this browser.');
+      });
+  }
+
+  async function clearRecentSearches() {
+    try {
+      await preferences.clearRecentSearches();
+      setRecentDialogOpen(false);
+      if (generationId)
+        setRecentLoad({
+          generationId,
+          queryRevision,
+          status: 'ready',
+          entries: [],
+        });
+      setRecentNotice('Recent searches cleared.');
+      setRecentError('');
+    } catch {
+      setRecentDialogOpen(false);
+      setRecentError('Recent searches could not be cleared from this browser.');
+    }
+  }
+
   return (
     <section
       className="medication-search-page"
@@ -249,7 +344,9 @@ export function MedicationSearchPage({
       data-index-product-count={result?.indexedProductCount ?? 0}
       data-search-duration-ms={result?.searchDurationMilliseconds ?? 0}
     >
-      <h1 id="medication-search-title">Local medication search</h1>
+      <h1 id="medication-search-title" ref={headingRef} tabIndex={-1}>
+        Local medication search
+      </h1>
       <p className="lead">
         Search candidates from the dataset stored in this browser. This is a
         development feature and does not support care decisions.
@@ -292,6 +389,9 @@ export function MedicationSearchPage({
           aria-describedby="local-medication-search-help"
           onChange={(event) => {
             setSearchState(null);
+            setRecentError('');
+            setRecentNotice('');
+            setQueryRevision((revision) => revision + 1);
             setQuery(event.currentTarget.value);
           }}
         />
@@ -310,6 +410,66 @@ export function MedicationSearchPage({
       >
         {statusMessage}
       </p>
+      {generation && !hasQuery && (
+        <section
+          className="recent-search-panel"
+          aria-labelledby="recent-search-title"
+        >
+          <h2 id="recent-search-title">Recent searches</h2>
+          {recentNotice && (
+            <p className="preferences-status" role="status" aria-live="polite">
+              {recentNotice}
+            </p>
+          )}
+          {recentError && <p role="alert">{recentError}</p>}
+          {recentLoading && <p aria-live="polite">Reading recent searches.</p>}
+          {currentRecentLoad?.status === 'error' && !recentError && (
+            <p role="alert">
+              Recent searches could not be read from this browser.
+            </p>
+          )}
+          {currentRecentLoad?.status === 'ready' &&
+            recentSearches.length === 0 && <p>No recent searches yet.</p>}
+          {currentRecentLoad?.status === 'ready' &&
+            recentSearches.length > 0 && (
+              <>
+                <ul className="recent-search-list" aria-label="Recent searches">
+                  {recentSearches.map((entry) => (
+                    <li key={entry.id}>
+                      <button
+                        className="recent-search-item"
+                        type="button"
+                        aria-label={`Search again for ${entry.query}`}
+                        onClick={() => {
+                          setSearchState(null);
+                          setRecentNotice('');
+                          setRecentError('');
+                          setQueryRevision((revision) => revision + 1);
+                          setQuery(entry.query);
+                        }}
+                      >
+                        {entry.query}
+                      </button>
+                      <time dateTime={entry.occurredAt}>
+                        {entry.occurredAt}
+                      </time>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecentNotice('');
+                    setRecentError('');
+                    setRecentDialogOpen(true);
+                  }}
+                >
+                  Clear recent searches
+                </button>
+              </>
+            )}
+        </section>
+      )}
       {searchError && (
         <div className="search-error" role="alert">
           <p>
@@ -342,10 +502,29 @@ export function MedicationSearchPage({
               key={row.match.record.product.id}
               row={row}
               query={query}
+              onOpen={() =>
+                recordOpenedSearch(row.match.record.product.datasetVersionId)
+              }
             />
           ))}
         </ol>
       )}
+      {recentDialogOpen && (
+        <ConfirmationDialog
+          title="Clear recent searches?"
+          message="This removes recent searches from this browser."
+          confirmLabel="Clear searches"
+          fallbackFocusRef={headingRef}
+          onCancel={() => setRecentDialogOpen(false)}
+          onConfirm={clearRecentSearches}
+        />
+      )}
     </section>
   );
 }
+
+/* @__PURE__ */ defineControls(MedicationSearchPage, {
+  dataset: false,
+  search: false,
+  preferences: false,
+});

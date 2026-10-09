@@ -7,6 +7,7 @@ import {
   render,
   screen,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type {
@@ -14,6 +15,7 @@ import type {
   DatasetUpdateState,
   LocalDatasetGeneration,
   MedicationSearchMatch,
+  RecentSearchEntry,
 } from '@intermed/domain';
 import { presentField } from '@intermed/domain';
 import { product as makeProduct } from '../../../../tests/domain/builders';
@@ -21,6 +23,7 @@ import type {
   MedicationSearchResponse,
   MedicationSearchService,
 } from '../application/medication-search';
+import type { PreferencesService } from '../application/preferences';
 import { MedicationSearchPage } from './MedicationSearchPage';
 import { getSearchStatusMessage } from './search-status';
 
@@ -114,13 +117,161 @@ function renderPage(
   service: MedicationSearchService = {
     search: async () => response([]),
   },
+  preferences: PreferencesService = emptyPreferences(),
 ) {
   return render(
     <MemoryRouter initialEntries={['/search']}>
-      <MedicationSearchPage dataset={dataset(state)} search={service} />
+      <MedicationSearchPage
+        dataset={dataset(state)}
+        search={service}
+        preferences={preferences}
+      />
     </MemoryRouter>,
   );
 }
+
+function emptyPreferences(
+  overrides: Partial<PreferencesService> = {},
+): PreferencesService {
+  return {
+    listFavorites: async () => [],
+    isFavorite: async () => false,
+    addFavorite: async (input) => ({
+      ...input,
+      createdAt: '2026-10-09T00:00:00.000Z',
+      status: 'available',
+    }),
+    removeFavorite: async () => undefined,
+    listRecentSearches: async () => [],
+    recordOpenedSearch: async () => {
+      throw new Error('Unexpected recent search');
+    },
+    clearRecentSearches: async () => undefined,
+    exportPreferences: async (exportedAt) => ({
+      format: 'intermed-preferences',
+      version: 1,
+      exportedAt,
+      favorites: [],
+      recentSearches: [],
+    }),
+    clearAllLocalData: async () => ({ status: 'cleared' }),
+    ...overrides,
+  };
+}
+
+const recentFictivol: RecentSearchEntry = {
+  id: '2026-10-08T12:00:00.000Z#fictivol',
+  query: 'fictivol',
+  occurredAt: '2026-10-08T12:00:00.000Z',
+  lastKnownDatasetVersionId: null,
+};
+
+it('offers recent searches only for an empty search with an active dataset', async () => {
+  const user = userEvent.setup();
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-RECENT-FICTIVOL')])),
+  };
+  const preferences = emptyPreferences({
+    listRecentSearches: async () => [recentFictivol],
+  });
+  renderPage({ status: 'ready', generation }, search, preferences);
+
+  expect(
+    await screen.findByRole('heading', { name: 'Recent searches' }),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole('button', { name: 'Search again for fictivol' }),
+  );
+
+  expect(
+    await screen.findByRole('list', { name: 'Medication search results' }),
+  ).toBeVisible();
+  expect(screen.getByRole('searchbox')).toHaveValue('fictivol');
+  expect(
+    screen.getByRole('heading', { name: 'Local medication search' }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('heading', { name: 'Fictivol' }),
+  ).not.toBeInTheDocument();
+  expect(search.search).toHaveBeenCalledWith(
+    'fictivol',
+    expect.any(AbortSignal),
+  );
+});
+
+it('confirms clearing recent searches and shows the empty history', async () => {
+  const user = userEvent.setup();
+  let entries: readonly RecentSearchEntry[] = [recentFictivol];
+  const clearRecentSearches = vi.fn(async () => {
+    entries = [];
+  });
+  renderPage(
+    { status: 'ready', generation },
+    undefined,
+    emptyPreferences({
+      listRecentSearches: async () => entries,
+      clearRecentSearches,
+    }),
+  );
+
+  await screen.findByRole('button', { name: 'Search again for fictivol' });
+  await user.click(
+    screen.getByRole('button', { name: 'Clear recent searches' }),
+  );
+  const dialog = screen.getByRole('alertdialog', {
+    name: 'Clear recent searches?',
+  });
+  expect(dialog).toHaveTextContent(
+    'This removes recent searches from this browser.',
+  );
+  expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  await user.click(screen.getByRole('button', { name: 'Clear searches' }));
+
+  expect(clearRecentSearches).toHaveBeenCalledOnce();
+  expect(await screen.findByText('No recent searches yet.')).toBeVisible();
+  expect(
+    screen.getByRole('heading', { name: 'Local medication search' }),
+  ).toHaveFocus();
+});
+
+it('records a recent query only when a result is opened', async () => {
+  vi.useFakeTimers();
+  const match = candidate('SP-OPENED-RECENT');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  const preferences = emptyPreferences({ recordOpenedSearch });
+  renderPage(
+    { status: 'ready', generation },
+    { search: vi.fn(async () => response([match])) },
+    preferences,
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: '  fictivol  ' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  expect(recordOpenedSearch).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+});
+
+it('does not read or show recents when no active dataset is ready', () => {
+  const listRecentSearches = vi.fn(async () => [recentFictivol]);
+  renderPage(
+    { status: 'never-downloaded' },
+    undefined,
+    emptyPreferences({ listRecentSearches }),
+  );
+
+  expect(
+    screen.queryByRole('heading', { name: 'Recent searches' }),
+  ).not.toBeInTheDocument();
+  expect(listRecentSearches).not.toHaveBeenCalled();
+});
 
 it('shows local provenance and keeps duplicate names distinct with complete source fields', async () => {
   vi.useFakeTimers();
@@ -184,6 +335,7 @@ it('keeps the settled query in the URL for browser back', async () => {
       <MedicationSearchPage
         dataset={dataset({ status: 'ready', generation })}
         search={search}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );
@@ -211,6 +363,7 @@ it('removes the query from the URL when the input is cleared', async () => {
       <MedicationSearchPage
         dataset={dataset({ status: 'ready', generation })}
         search={search}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );
