@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/bundle-split
+ RUN  v4.1.11 <repo>
 
  Γ¥» apps/web/pwa/worker.test.ts (69 tests | 4 failed) 76ms
    ├ù serves verified index HTML for offline navigation to /search?q=fictivol 3ms
@@ -8,7 +8,7 @@
    ├ù serves verified index HTML for offline navigation to /medication/synthetic-product?q=fictivol 1ms
 node.exe : 
 At line:1 char:1
-+ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ & "<tools>\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

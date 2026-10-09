@@ -7,7 +7,8 @@ import {
   useLocation,
   useParams,
 } from 'react-router';
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { Component, lazy, Suspense, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
@@ -49,6 +50,89 @@ function MedicationDetailRoute({ services }: { services: AppServices }) {
       dataset={services.dataset}
       detail={services.medicationDetail}
     />
+  );
+}
+
+/**
+ * Reload the document without letting a test stub reach `window`: the app path
+ * reloads, and a caller may supply its own callback to observe the intent.
+ */
+function reloadPage(reload: () => void): void {
+  if (reload === defaultReload) window.location.reload();
+  else reload();
+}
+
+const defaultReload = () => window.location.reload();
+
+interface RouteErrorBoundaryProps {
+  children: ReactNode;
+  /** Test seam: called instead of the real reload. */
+  reload?: (() => void) | undefined;
+}
+
+interface RouteErrorBoundaryState {
+  failed: boolean;
+}
+
+/**
+ * Recovery screen for a route whose chunk could not be loaded. `Suspense`
+ * has no opinion about a rejected `import()`, so a failed lazy chunk used to
+ * blank the app. This keeps the header, navigation and footer usable and
+ * offers a way back in, and it logs nothing: neither the failure reason nor
+ * any product data belongs in the console.
+ */
+class Boundary extends Component<
+  RouteErrorBoundaryProps,
+  RouteErrorBoundaryState
+> {
+  override state: RouteErrorBoundaryState = { failed: false };
+
+  static getDerivedStateFromError(): RouteErrorBoundaryState {
+    return { failed: true };
+  }
+
+  override componentDidCatch(): void {
+    // Deliberately silent: no error details, no product data, no telemetry.
+  }
+
+  override render(): ReactNode {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <section className="route-error" aria-labelledby="route-error-title">
+        <h1 id="route-error-title" tabIndex={-1}>
+          This page could not be loaded
+        </h1>
+        <p>
+          Part of this app is unavailable in this browser right now. Its files
+          may have been removed while you were offline. This is not a data
+          problem and nothing you were looking at was changed.
+        </p>
+        <p>
+          <button
+            type="button"
+            onClick={() => reloadPage(this.props.reload ?? defaultReload)}
+          >
+            Reload
+          </button>{' '}
+          <Link to="/status" tabIndex={0}>
+            Check development status
+          </Link>
+        </p>
+      </section>
+    );
+  }
+}
+
+/** Boundary keyed by route, so a route change resets a shown failure. */
+export function RouteErrorBoundary({
+  reload,
+  children,
+}: RouteErrorBoundaryProps) {
+  const { pathname } = useLocation();
+  return (
+    <Boundary key={pathname} reload={reload}>
+      {children}
+    </Boundary>
   );
 }
 
@@ -105,129 +189,131 @@ export function App({
         </nav>
       </header>
       <main ref={main} id="content" tabIndex={-1}>
-        <Suspense fallback={<RouteLoading />}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <section className="intro" aria-labelledby="overview-title">
-                  <h1 id="overview-title">A foundation for InterMED</h1>
-                  <p className="lead">
-                    A future Romanian medication reference, built with care.
-                  </p>
-                  <p>
-                    This development build contains a navigation shell only. It
-                    has no clinical reference data and must not guide patient
-                    care.
-                  </p>
-                  <div className="scope-note">
-                    <h2>What you can explore</h2>
-                    <p>
-                      Local medication search reads candidates only from a
-                      dataset already stored in this browser. It does not
-                      provide clinical guidance. Interaction checking and
-                      calculators are unavailable.
+        <RouteErrorBoundary>
+          <Suspense fallback={<RouteLoading />}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <section className="intro" aria-labelledby="overview-title">
+                    <h1 id="overview-title">A foundation for InterMED</h1>
+                    <p className="lead">
+                      A future Romanian medication reference, built with care.
                     </p>
-                    <Link to="/search" tabIndex={0}>
-                      Search local medication data
+                    <p>
+                      This development build contains a navigation shell only.
+                      It has no clinical reference data and must not guide
+                      patient care.
+                    </p>
+                    <div className="scope-note">
+                      <h2>What you can explore</h2>
+                      <p>
+                        Local medication search reads candidates only from a
+                        dataset already stored in this browser. It does not
+                        provide clinical guidance. Interaction checking and
+                        calculators are unavailable.
+                      </p>
+                      <Link to="/search" tabIndex={0}>
+                        Search local medication data
+                      </Link>
+                      <br />
+                      <Link to="/status" tabIndex={0}>
+                        Read current limitations
+                      </Link>
+                    </div>
+                    <p className="mode-label">{services.info.label}</p>
+                  </section>
+                }
+              />
+              <Route
+                path="/status"
+                element={
+                  <section aria-labelledby="status-title">
+                    <h1 id="status-title">Development status</h1>
+                    <p className="lead">Development PWA shell</p>
+                    <p>
+                      Local medication search uses only an active dataset stored
+                      in this browser. Interaction checking is unavailable. No
+                      clinical capability has been validated.
+                    </p>
+                    <dl className="status-list">
+                      <div>
+                        <dt>Medication data</dt>
+                        <dd>Local browser data, when available</dd>
+                      </div>
+                      <div>
+                        <dt>Offline use and installation</dt>
+                        <dd>Public shell only, after successful caching</dd>
+                      </div>
+                      <div>
+                        <dt>Patient information</dt>
+                        <dd>No collection or storage</dd>
+                      </div>
+                    </dl>
+                    <DatasetStatus dataset={services.dataset} />
+                    <p>
+                      This build uses contributor mock mode without accounts or
+                      cloud connections. Future clinical content requires
+                      permitted sources and clinical review.
+                    </p>
+                    <h2>Install the development shell</h2>
+                    <p>
+                      iPhone/iPad Safari: Share → Add to Home Screen. If
+                      offered, enable Open as Web App, then Add.
+                    </p>
+                    <p>
+                      On other browsers, use Install development app when this
+                      browser offers it. Otherwise check its address-bar or menu
+                      installation option. Some browsers offer no installation;
+                      you can continue in a tab. Installation flows differ.
+                    </p>
+                    <p>
+                      Connect first and wait for “Shell available offline”. A
+                      brand-new offline visit cannot load this page without a
+                      previously cached worker. Installing does not download
+                      medications.
+                    </p>
+                    <p>
+                      Private mode, quota limits or browser eviction can remove
+                      or restrict storage. Installed and tab modes may use
+                      different storage. Offline availability is checked now,
+                      not guaranteed permanently.
+                    </p>
+                    <p>
+                      Temporary development artwork: original I monogram, not
+                      approved final branding.
+                    </p>
+                  </section>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <MedicationSearchPage
+                    dataset={services.dataset}
+                    search={services.medicationSearch}
+                  />
+                }
+              />
+              <Route
+                path="/medication/:productId"
+                element={<MedicationDetailRoute services={services} />}
+              />
+              <Route
+                path="*"
+                element={
+                  <section>
+                    <h1>Page unavailable</h1>
+                    <p>This route is not part of the development shell.</p>
+                    <Link to="/" tabIndex={0}>
+                      Return to overview
                     </Link>
-                    <br />
-                    <Link to="/status" tabIndex={0}>
-                      Read current limitations
-                    </Link>
-                  </div>
-                  <p className="mode-label">{services.info.label}</p>
-                </section>
-              }
-            />
-            <Route
-              path="/status"
-              element={
-                <section aria-labelledby="status-title">
-                  <h1 id="status-title">Development status</h1>
-                  <p className="lead">Development PWA shell</p>
-                  <p>
-                    Local medication search uses only an active dataset stored
-                    in this browser. Interaction checking is unavailable. No
-                    clinical capability has been validated.
-                  </p>
-                  <dl className="status-list">
-                    <div>
-                      <dt>Medication data</dt>
-                      <dd>Local browser data, when available</dd>
-                    </div>
-                    <div>
-                      <dt>Offline use and installation</dt>
-                      <dd>Public shell only, after successful caching</dd>
-                    </div>
-                    <div>
-                      <dt>Patient information</dt>
-                      <dd>No collection or storage</dd>
-                    </div>
-                  </dl>
-                  <DatasetStatus dataset={services.dataset} />
-                  <p>
-                    This build uses contributor mock mode without accounts or
-                    cloud connections. Future clinical content requires
-                    permitted sources and clinical review.
-                  </p>
-                  <h2>Install the development shell</h2>
-                  <p>
-                    iPhone/iPad Safari: Share → Add to Home Screen. If offered,
-                    enable Open as Web App, then Add.
-                  </p>
-                  <p>
-                    On other browsers, use Install development app when this
-                    browser offers it. Otherwise check its address-bar or menu
-                    installation option. Some browsers offer no installation;
-                    you can continue in a tab. Installation flows differ.
-                  </p>
-                  <p>
-                    Connect first and wait for “Shell available offline”. A
-                    brand-new offline visit cannot load this page without a
-                    previously cached worker. Installing does not download
-                    medications.
-                  </p>
-                  <p>
-                    Private mode, quota limits or browser eviction can remove or
-                    restrict storage. Installed and tab modes may use different
-                    storage. Offline availability is checked now, not guaranteed
-                    permanently.
-                  </p>
-                  <p>
-                    Temporary development artwork: original I monogram, not
-                    approved final branding.
-                  </p>
-                </section>
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                <MedicationSearchPage
-                  dataset={services.dataset}
-                  search={services.medicationSearch}
-                />
-              }
-            />
-            <Route
-              path="/medication/:productId"
-              element={<MedicationDetailRoute services={services} />}
-            />
-            <Route
-              path="*"
-              element={
-                <section>
-                  <h1>Page unavailable</h1>
-                  <p>This route is not part of the development shell.</p>
-                  <Link to="/" tabIndex={0}>
-                    Return to overview
-                  </Link>
-                </section>
-              }
-            />
-          </Routes>
-        </Suspense>
+                  </section>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </RouteErrorBoundary>
         <ShellStatus shell={shell} />
       </main>
       <footer>

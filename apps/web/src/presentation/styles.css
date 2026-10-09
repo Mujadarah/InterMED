@@ -82,6 +82,12 @@ section {
 .route-loading {
   color: var(--muted);
 }
+/* Recovery for a route chunk that could not be loaded: the alert styling is
+   deliberately absent, so it reads as a state of the page and not as a
+   clinical warning. */
+.route-error {
+  max-width: 46rem;
+}
 h1 {
   font-size: clamp(2rem, 5vw, 3.4rem);
   line-height: 1.15;
