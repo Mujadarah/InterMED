@@ -247,7 +247,7 @@ Four review findings on PR #18, one commit each, all with red → green evidence
 
 Toolchain: Node.js `v24.21.0`, npm `11.19.0`, `INTERMED_NODE22_RUNTIME` = Node.js `v22.23.2`. All logs in `docs/evidence/bundle-split-2026-10-09/` are redacted, UTF-8 without BOM and LF; each was written outside the repository first and then copied in.
 
-After the PR #18 fixes, again with the same toolchain: `npm run check` exit 0 ([`pr18-check-full.log`](evidence/bundle-split-2026-10-09/pr18-check-full.log)) — 938 unit and component tests in 58 files, 96 source files in the boundary check, 0 vulnerabilities, and 162 browser cases with 160 passed and the same 2 WebKit-only performance cases skipped by design.
+After the PR #18 fixes, again with the same toolchain: `npm run check` exit 0 ([`pr18-check-full.log`](evidence/bundle-split-2026-10-09/pr18-check-full.log)) — 939 unit and component tests in 58 files, 96 source files in the boundary check, 0 vulnerabilities, and 162 browser cases with 160 passed and the same 2 WebKit-only performance cases skipped by design.
 
 A note on flakiness: one intermediate full browser run reported two `recovery-update.spec.ts` failures on webkit-tablet while the 20,000-product search case ran on the same three workers. Re-running that spec alone passed all six cases on all three projects, the earlier full run had passed them, and the final full check passed them too, so the same code produced both outcomes. The rerun is recorded in [`recovery-update-rerun.log`](evidence/bundle-split-2026-10-09/09-recovery-update-rerun.log).
 
