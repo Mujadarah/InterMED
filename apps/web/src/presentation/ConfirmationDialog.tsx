@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { defineControls } from 'tempo-sdk/assets';
 
 /** A small focus-managed confirmation dialog for destructive local actions. */
 export function ConfirmationDialog({
@@ -111,12 +110,3 @@ export function ConfirmationDialog({
     </div>
   );
 }
-
-/* @__PURE__ */ defineControls(ConfirmationDialog, {
-  title: { type: 'text' },
-  message: { type: 'text' },
-  confirmLabel: { type: 'text' },
-  fallbackFocusRef: false,
-  onConfirm: false,
-  onCancel: false,
-});

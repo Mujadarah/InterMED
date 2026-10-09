@@ -5,7 +5,6 @@ import type {
   FavoriteListItem,
   PreferencesService,
 } from '../application/preferences';
-import { defineControls } from 'tempo-sdk/assets';
 import { ConfirmationDialog } from './ConfirmationDialog';
 
 function removedDate(removedAt: string | null): string {
@@ -174,8 +173,3 @@ export function FavoritesPage({
     </section>
   );
 }
-
-/* @__PURE__ */ defineControls(FavoritesPage, {
-  dataset: false,
-  preferences: false,
-});

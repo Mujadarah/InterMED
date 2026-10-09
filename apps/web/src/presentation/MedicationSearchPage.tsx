@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { defineControls } from 'tempo-sdk/assets';
 import { Link, useSearchParams } from 'react-router';
 import type {
   DatasetStateSource,
@@ -544,9 +543,3 @@ export function MedicationSearchPage({
     </section>
   );
 }
-
-/* @__PURE__ */ defineControls(MedicationSearchPage, {
-  dataset: false,
-  search: false,
-  preferences: false,
-});

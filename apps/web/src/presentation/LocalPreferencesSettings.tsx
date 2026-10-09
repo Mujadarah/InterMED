@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { defineControls } from 'tempo-sdk/assets';
 import type { PreferencesService } from '../application/preferences';
 import { ConfirmationDialog } from './ConfirmationDialog';
 
@@ -139,7 +138,3 @@ export function LocalPreferencesSettings({
     </section>
   );
 }
-
-/* @__PURE__ */ defineControls(LocalPreferencesSettings, {
-  preferences: false,
-});
