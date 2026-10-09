@@ -1,0 +1,24 @@
+
+ RUN  v4.1.11 <repo>
+
+  apps/web/pwa/build-output.test.ts (3 tests | 1 failed) 3090ms
+    emits every JavaScript chunk below the 500 kB advisory limit 3064ms
+
+ Failed Tests 1
+
+ FAIL  apps/web/pwa/build-output.test.ts > emits every JavaScript chunk below the 500 kB advisory limit
+AssertionError: index-CJvC-D9w.js is 546139 bytes, above the 500 kB limit: expected 546139 to be less than 512000
+  apps/web/pwa/build-output.test.ts:72:7
+     70|       chunk.bytes,
+     71|       `${chunk.name} is ${chunk.bytes} bytes, above the 500 kB limit`,
+     72|     ).toBeLessThan(maxChunkBytes);
+       |       ^
+     73| });
+     74|
+
+[1/1]
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  02:08:03
+   Duration  4.13s (transform 119ms, setup 0ms, import 281ms, tests 3.09s, environment 0ms)

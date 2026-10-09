@@ -1,0 +1,37 @@
+
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:29588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:41732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 [chromium-desktop]  tests\browser\offline-deeplinks.spec.ts:20:1  renders offline deep links to /search and /medication/:id from the precache (769ms)
+
+  1) [chromium-desktop]  tests\browser\offline-deeplinks.spec.ts:20:1  renders offline deep links to /search and /medication/:id from the precache
+
+    Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://127.0.0.1:56364/search
+    Call log:
+      - navigating to "http://127.0.0.1:56364/search", waiting until "load"
+
+      47 |     // A deep link to the search route, never visited in this session.
+      48 |     const searchTab = await context.newPage();
+    > 49 |     await searchTab.goto(`${server.url}/search`);
+         |                     ^
+      50 |     await expect(
+      51 |       searchTab.getByRole('heading', { name: 'Local medication search' }),
+      52 |     ).toBeVisible();
+        at <repo>\tests\browser\offline-deeplinks.spec.ts:49:21
+
+    Error Context: test-results\offline-deeplinks-renders--d8356-cation-id-from-the-precache-chromium-desktop\error-context.md
+
+    attachment #2: trace (application/zip)
+    test-results\offline-deeplinks-renders--d8356-cation-id-from-the-precache-chromium-desktop\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--d8356-cation-id-from-the-precache-chromium-desktop\trace.zip
+
+  1 failed
+    [chromium-desktop]  tests\browser\offline-deeplinks.spec.ts:20:1  renders offline deep links to /search and /medication/:id from the precache

@@ -26,7 +26,11 @@ test('navigates and reloads a deep link', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Development status' }),
   ).toBeVisible();
-  await expect(page.getByRole('main')).toBeFocused();
+  // A route heading is focusable, so navigation focus lands on the heading
+  // rather than on the main region around it.
+  await expect(
+    page.getByRole('heading', { name: 'Development status' }),
+  ).toBeFocused();
   await page.reload();
   await expect(
     page

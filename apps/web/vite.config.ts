@@ -82,5 +82,24 @@ export default defineConfig(({ mode }) => {
       productionShellCsp(),
       localStoreHarnessPlugin(mode),
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          // Separate the large, stable vendors so every emitted chunk stays
+          // below the 500 kB advisory. Route pages are already their own
+          // dynamic chunks; the shell entry keeps only what it needs to paint.
+          manualChunks(id) {
+            if (
+              /node_modules\/(react|react-dom|scheduler|react-router)\//.test(
+                id,
+              )
+            )
+              return 'framework-vendor';
+            if (/node_modules\/dexie\//.test(id)) return 'dexie-vendor';
+            if (/node_modules\/zod\//.test(id)) return 'zod-vendor';
+          },
+        },
+      },
+    },
   };
 });

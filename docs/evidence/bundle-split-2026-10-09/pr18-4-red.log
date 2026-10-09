@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 <repo>
+
+ Γ¥» apps/web/src/presentation/MedicationSearchPage.test.tsx (47 tests | 1 failed) 696ms
+   ├ù drops a pending query URL write when a result is opened 35ms
+node.exe : 
+At line:1 char:1
++ & "<tools>\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  apps/web/src/presentation/MedicationSearchPage.test.tsx > drops a pending query URL write when a result is 
+opened
+AssertionError: expected "replaceState" to be called 2 times, but got 3 times
+ Γ¥» apps/web/src/presentation/MedicationSearchPage.test.tsx:249:24
+    247|   });
+    248|   expect(locationPath()).toMatch(/^\/medication\//);
+    249|   expect(replaceState).toHaveBeenCalledTimes(settledWrites);
+       |                        ^
+    250| });
+    251|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 46 passed (47)
+   Start at  16:06:40
+   Duration  2.88s (transform 161ms, setup 0ms, import 486ms, tests 696ms, environment 1.45s)
