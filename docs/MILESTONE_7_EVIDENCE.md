@@ -205,7 +205,7 @@ The largest chunk drops from 546,139 bytes (533.3 KiB) to 258,585 bytes (252.5 K
 |                             | Before  | After   |
 | --------------------------- | ------- | ------- |
 | Precached assets (cap 16)   | 8       | 15      |
-| Precached bytes (cap 2 MiB) | 563,957 | 564,263 |
+| Precached bytes (cap 2 MiB) | 563,457 | 564,263 |
 
 Both caps hold ([`precache-after.txt`](evidence/bundle-split-2026-10-09/07-precache-after.txt)). The precache grew by one file per emitted chunk and stayed inside the sixteen-asset cap; `apps/web/pwa/shell-build.ts` is unchanged. One asset of headroom remains.
 
