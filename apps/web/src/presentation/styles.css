@@ -77,6 +77,11 @@ main {
 section {
   max-width: 46rem;
 }
+/* Placeholder for a lazily loaded route: quiet text, no reserved box, so the
+   shell keeps its height (main already reserves 60vh) while the chunk loads. */
+.route-loading {
+  color: var(--muted);
+}
 h1 {
   font-size: clamp(2rem, 5vw, 3.4rem);
   line-height: 1.15;

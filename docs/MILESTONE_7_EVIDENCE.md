@@ -167,7 +167,7 @@ Date: 2026-10-09. Branch `codex/bundle-split`, based on `d770ced`. Work in the `
 ### Approach
 
 1. **Measure first.** `vite build --sourcemap` into a temporary directory outside the repository, then a small Node script decoded the sourcemap and attributed generated characters to source modules ([`bundle-attribution-before.log`](evidence/bundle-split-2026-10-09/06-bundle-attribution-before.log)). The single 546,139-byte chunk was 38.2% `react-dom`, 17.5% `dexie`, 16.5% `zod`, 7.0% `react-router`, 1.5% `react`, 0.6% `scheduler` and 18.2% application code, including 11.5 kB of `MedicationDetailPage` and 5.9 kB of `MedicationSearchPage`.
-2. **Split by route.** `MedicationSearchPage` and `MedicationDetailPage` load through `React.lazy` behind one `Suspense` boundary with a polite, calm fallback (`role="status"`, `aria-busy`, no heading, no focus move). `main` already has `min-height: 60vh`, so the placeholder does not shift the shell.
+2. **Split by route.** `MedicationSearchPage` and `MedicationDetailPage` load through `React.lazy` behind one `Suspense` boundary with a polite, calm fallback (`role="status"`, `aria-busy`, no heading, no focus move). `main` already has `min-height: 60vh`, so the placeholder does not shift the shell, and the placeholder text is drawn in the muted colour to stay quiet.
 3. **Split stable vendors.** `build.rollupOptions.output.manualChunks` separates `framework-vendor` (react, react-dom, scheduler, react-router), `zod-vendor` and `dexie-vendor`. The shell entry keeps only what it needs to paint.
 4. `build.chunkSizeWarningLimit` was **not** raised and the warning was not otherwise silenced.
 
