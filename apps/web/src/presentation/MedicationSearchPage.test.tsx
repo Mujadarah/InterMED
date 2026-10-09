@@ -8,7 +8,7 @@ import {
   screen,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, useLocation } from 'react-router';
+import { BrowserRouter, MemoryRouter, useLocation } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type {
   DatasetStateSource,
@@ -30,6 +30,7 @@ import { getSearchStatusMessage } from './search-status';
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const generation: LocalDatasetGeneration = {
@@ -56,8 +57,16 @@ function LocationProbe() {
   return <div data-testid="location-search-probe">{useLocation().search}</div>;
 }
 
+function PathnameProbe() {
+  return <div data-testid="location-path-probe">{useLocation().pathname}</div>;
+}
+
 function locationSearch(): string {
   return screen.getByTestId('location-search-probe').textContent ?? '';
+}
+
+function locationPath(): string {
+  return screen.getByTestId('location-path-probe').textContent ?? '';
 }
 
 function candidate(
@@ -350,6 +359,45 @@ it('keeps the settled query in the URL for browser back', async () => {
   });
 
   expect(locationSearch()).toBe('?q=fictivol');
+});
+
+it('does not let a pending query URL update undo opening a result', async () => {
+  vi.useFakeTimers();
+  window.history.replaceState({}, '', '/search');
+  const replaceState = vi.spyOn(window.history, 'replaceState');
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-PENDING-URL')])),
+  };
+  render(
+    <BrowserRouter>
+      <PathnameProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={search}
+        preferences={emptyPreferences({
+          recordOpenedSearch: async () => recentFictivol,
+        })}
+      />
+    </BrowserRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(screen.getByRole('link', { name: /Open Fictivol/ })).toBeVisible();
+  const searchUrlWrites = replaceState.mock.calls.length;
+
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(locationPath()).toMatch(/^\/medication\//);
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationPath()).toMatch(/^\/medication\//);
+  expect(replaceState).toHaveBeenCalledTimes(searchUrlWrites);
 });
 
 it('removes the query from the URL when the input is cleared', async () => {

@@ -1,0 +1,8 @@
+Milestone 8 search URL navigation regression - RED
+Date: 2026-10-09
+Command: npm exec -- vitest run apps/web/src/presentation/MedicationSearchPage.test.tsx -t "does not let a pending query URL update undo opening a result"
+Result: expected failure (exit 1)
+Test Files: 1 failed (1)
+Tests: 1 failed, 50 skipped (51)
+Failure: expected replaceState to be called 2 times, but got 3 times after opening a result and advancing the pending URL-sync debounce.
+Cause observed: a pending search URL update still wrote browser history after result navigation.

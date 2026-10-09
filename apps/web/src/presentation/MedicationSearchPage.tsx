@@ -161,6 +161,8 @@ export function MedicationSearchPage({
   const generationId = generation?.generationId ?? null;
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const setSearchParamsRef = useRef(setSearchParams);
+  const queryUrlSyncTimeout = useRef<number | null>(null);
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const [recentLoad, setRecentLoad] = useState<RecentSearchLoad | null>(null);
@@ -183,12 +185,26 @@ export function MedicationSearchPage({
     generationId && !hasQuery && !currentRecentLoad,
   );
 
-  // Keep the settled query in the URL so the browser Back button restores it.
-  // The write is debounced like the search itself and replaces the current
-  // history entry, so typing never creates history entries.
   useEffect(() => {
+    setSearchParamsRef.current = setSearchParams;
+  }, [setSearchParams]);
+
+  function cancelQueryUrlSync() {
+    const timeout = queryUrlSyncTimeout.current;
+    if (timeout === null) return;
+    window.clearTimeout(timeout);
+    queryUrlSyncTimeout.current = null;
+  }
+
+  // Keep the settled query in the URL so the browser Back button restores it.
+  // A route change before the debounce fires means the search page no longer
+  // owns the URL update, and must not redirect away from the new route.
+  useEffect(() => {
+    const pathnameAtSchedule = window.location.pathname;
     const timeout = window.setTimeout(() => {
-      setSearchParams(
+      queryUrlSyncTimeout.current = null;
+      if (window.location.pathname !== pathnameAtSchedule) return;
+      setSearchParamsRef.current(
         (previous) => {
           const next = new URLSearchParams(previous);
           if (query.trim()) next.set('q', query);
@@ -198,8 +214,13 @@ export function MedicationSearchPage({
         { replace: true },
       );
     }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timeout);
-  }, [query, setSearchParams]);
+    queryUrlSyncTimeout.current = timeout;
+    return () => {
+      window.clearTimeout(timeout);
+      if (queryUrlSyncTimeout.current === timeout)
+        queryUrlSyncTimeout.current = null;
+    };
+  }, [query]);
 
   useEffect(() => {
     if (!generationId || hasQuery) return;
@@ -302,6 +323,7 @@ export function MedicationSearchPage({
   });
 
   function recordOpenedSearch(datasetVersionId: string) {
+    cancelQueryUrlSync();
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
     void preferences

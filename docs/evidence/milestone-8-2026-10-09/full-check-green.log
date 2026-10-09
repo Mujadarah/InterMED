@@ -12,11 +12,11 @@ Tempo controls: tempo-sdk 0.0.51 is an apps/web devDependency only. Pure-annotat
 format:check: passed
 lint: passed
 typecheck: passed
-Vitest: 59 files passed; 948 tests passed
+Vitest: 59 files passed; 949 tests passed
 Architecture boundaries: passed; 100 source files checked
 npm audit --audit-level=low: 0 vulnerabilities
-Production build: passed; 176 modules transformed; main JavaScript bundle 559.99 kB (Vite's non-fatal 500 kB chunk-size warning; 169.34 kB gzip)
+Production build: passed; 176 modules transformed; main JavaScript bundle 560.29 kB (Vite's non-fatal 500 kB chunk-size warning; 169.42 kB gzip)
 Distribution secret scan: passed; 9 files scanned, no credential-shaped strings
-Playwright: 165 tests across chromium-desktop, webkit-phone, and webkit-tablet; 163 passed, 2 skipped, 0 failed; duration 3.1m
+Playwright: 165 tests across chromium-desktop, webkit-phone, and webkit-tablet; 163 passed, 2 skipped, 0 failed; duration 1.8m
 
-The 20,000-product synthetic search performance case ran on Chromium and reported 2,568.3 ms indexing, with 95th percentile key-to-render timings of 358.6 ms (one character), 328.1 ms (two characters), and 300.9 ms (four characters). The WebKit projects skipped that measurement.
+The 20,000-product synthetic search performance case ran on Chromium and reported 718.6 ms indexing, with 95th percentile key-to-render timings of 265.5 ms (one character), 268.3 ms (two characters), and 263.3 ms (four characters). Core-search p95 was 6.0 ms, 5.7 ms, and 5.6 ms respectively. Fixture build and local-store staging took 2,216.5 ms and 6,228 ms. The WebKit projects skipped the performance measurement.
