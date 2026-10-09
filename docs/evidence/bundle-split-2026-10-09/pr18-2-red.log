@@ -1,8 +1,97 @@
 
  RUN  v4.1.11 <repo>
 
+node.exe : stderr | apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable 
+when a route chunk fails to load
+At line:1 char:1
++ & "<tools>\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | apps/w...k fails to load:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+An error occurred in one of your React components.
 
- Test Files  1 passed (1)
-      Tests  2 passed (2)
-   Start at  14:16:21
-   Duration  1.83s (transform 60ms, setup 0ms, import 240ms, tests 840ms, environment 638ms)
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+ Γ¥» apps/web/src/presentation/route-recovery.test.tsx (2 tests | 2 failed) 1028ms
+   ├ù recovers accessibly and keeps the shell usable when a route chunk fails to load 1024ms
+   ├ù reloads the page from the Reload action 2ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable when a route 
+chunk fails to load
+TestingLibraryElementError: Unable to find role="heading" and name "This page could not be loaded"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ Γ¥» waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ Γ¥» apps/web/src/presentation/route-recovery.test.tsx:56:32
+     54|   );
+     55|
+     56|   const heading = await screen.findByRole('heading', {
+       |                                ^
+     57|     name: 'This page could not be loaded',
+     58|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  apps/web/src/presentation/route-recovery.test.tsx > reloads the page from the Reload action
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite 
+components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might 
+have mixed up default and named imports.
+ Γ¥» createFiberFromTypeAndProps node_modules/react-dom/cjs/react-dom-client.development.js:5330:28
+ Γ¥» createFiberFromElement node_modules/react-dom/cjs/react-dom-client.development.js:5344:14
+ Γ¥» reconcileChildFibersImpl node_modules/react-dom/cjs/react-dom-client.development.js:7286:31
+ Γ¥» node_modules/react-dom/cjs/react-dom-client.development.js:7456:33
+ Γ¥» reconcileChildren node_modules/react-dom/cjs/react-dom-client.development.js:10097:13
+ Γ¥» beginWork node_modules/react-dom/cjs/react-dom-client.development.js:12326:15
+ Γ¥» runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ Γ¥» performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+ Γ¥» workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:19004:41
+ Γ¥» renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:18985:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Unhandled Errors ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Uncaught Exception ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+Error: synthetic chunk load failure
+ Γ¥» Object.get MedicationDetailPage [as MedicationDetailPage] apps/web/src/presentation/route-recovery.test.tsx:16:11
+     14| vi.mock('./MedicationDetailPage', () => ({
+     15|   get MedicationDetailPage() {
+     16|     throw new Error('synthetic chunk load failure');
+       |           ^
+     17|   },
+     18| }));
+ Γ¥» Object.get <repo>/node_modules/vitest/dist/chunks/startVitestModuleRunner
+.DB-7oCpn.js:321:22
+ Γ¥» apps/web/src/presentation/App.tsx:28:1
+
+This error originated in "apps/web/src/presentation/route-recovery.test.tsx" test file. It doesn't mean the error was 
+thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "recovers accessibly and keeps the shell usable when a route chunk 
+fails to load". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+     Errors  1 error
+   Start at  14:09:33
+   Duration  2.05s (transform 48ms, setup 0ms, import 254ms, tests 1.03s, environment 611ms)
