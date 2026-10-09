@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/bundle-split
+
+
+ Test Files  1 passed (1)
+      Tests  69 passed (69)
+   Start at  03:44:17
+   Duration  221ms (transform 22ms, setup 0ms, import 47ms, tests 73ms, environment 0ms)

@@ -109,6 +109,7 @@ function worker() {
     Response,
     Headers,
     URL,
+    URLSearchParams,
     crypto: webcrypto,
     setTimeout,
     clearTimeout,
@@ -445,6 +446,10 @@ it.each([
   request('/assets/nested/private.js'),
   request('https://external.example/assets/app-a.js'),
   request('/assets/app-a.js?query=value'),
+  request('/search?x=1', { mode: 'navigate' }),
+  request('/search?q=fictivol&x=1', { mode: 'navigate' }),
+  request('/medication/synthetic-product?q=a&q=b', { mode: 'navigate' }),
+  request('/assets/app-a.js?q=fictivol'),
   request('/assets/app-a.js', { method: 'POST' }),
   request('/assets/app-a.js', { method: 'HEAD' }),
   request('/assets/app-a.js', {
@@ -459,18 +464,24 @@ it.each([
   expect(env.fetch).not.toHaveBeenCalled();
 });
 
-it.each(['/', '/status', '/search', '/medication/synthetic-product'])(
-  'serves verified index HTML for offline navigation to %s',
-  async (path) => {
-    const env = worker();
-    await env.seed();
-    const response = await env.dispatch('fetch', {
-      request: request(path, { mode: 'navigate' }),
-    });
-    expect(await response?.text()).toBe(bodies.get('/index.html'));
-    expect(env.fetch).not.toHaveBeenCalled();
-  },
-);
+it.each([
+  '/',
+  '/status',
+  '/search',
+  '/medication/synthetic-product',
+  '/search?q=fictivol',
+  '/status?q=',
+  '/?q=',
+  '/medication/synthetic-product?q=fictivol',
+])('serves verified index HTML for offline navigation to %s', async (path) => {
+  const env = worker();
+  await env.seed();
+  const response = await env.dispatch('fetch', {
+    request: request(path, { mode: 'navigate' }),
+  });
+  expect(await response?.text()).toBe(bodies.get('/index.html'));
+  expect(env.fetch).not.toHaveBeenCalled();
+});
 
 it('validates the requested static asset and index without reading unrelated cached bodies', async () => {
   const env = worker();

@@ -1,0 +1,45 @@
+
+ RUN  v4.1.11 D:/Proiecte AI/InterMED-wt/bundle-split
+
+ Γ¥» apps/web/pwa/worker.test.ts (69 tests | 4 failed) 76ms
+   ├ù serves verified index HTML for offline navigation to /search?q=fictivol 3ms
+   ├ù serves verified index HTML for offline navigation to /status?q= 1ms
+   ├ù serves verified index HTML for offline navigation to /?q= 1ms
+   ├ù serves verified index HTML for offline navigation to /medication/synthetic-product?q=fictivol 1ms
+node.exe : 
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 4 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  apps/web/pwa/worker.test.ts > serves verified index HTML for offline navigation to /search?q=fictivol
+ FAIL  apps/web/pwa/worker.test.ts > serves verified index HTML for offline navigation to /status?q=
+ FAIL  apps/web/pwa/worker.test.ts > serves verified index HTML for offline navigation to /?q=
+ FAIL  apps/web/pwa/worker.test.ts > serves verified index HTML for offline navigation to 
+/medication/synthetic-product?q=fictivol
+AssertionError: expected undefined to be '<html>synthetic shell</html>' // Object.is equality
+
+- Expected:
+"<html>synthetic shell</html>"
+
++ Received:
+undefined
+
+ Γ¥» apps/web/pwa/worker.test.ts:481:36
+    479|       request: request(path, { mode: 'navigate' }),
+    480|     });
+    481|     expect(await response?.text()).toBe(bodies.get('/index.html'));
+       |                                    ^
+    482|     expect(env.fetch).not.toHaveBeenCalled();
+    483|   },
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/4]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 65 passed (69)
+   Start at  03:42:08
+   Duration  226ms (transform 21ms, setup 0ms, import 44ms, tests 76ms, environment 0ms)
