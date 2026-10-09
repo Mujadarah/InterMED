@@ -11,8 +11,8 @@ const webRoot = resolve(repositoryRoot, 'apps/web');
 const viteBinary = resolve(repositoryRoot, 'node_modules/vite/bin/vite.js');
 const buildDirectory = await mkdtemp(join(tmpdir(), 'intermed-build-output-'));
 
-/** One kilobyte is 1024 bytes; the advisory limit applies above 500 kB. */
-const maxChunkBytes = 512_000;
+/** Vite reports kilobytes as 1 kB = 1,000 bytes, so the 500 kB advisory is 500,000 bytes. */
+const maxChunkBytes = 500_000;
 const maxPrecacheAssets = 16;
 
 afterAll(async () => {

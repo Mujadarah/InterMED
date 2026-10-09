@@ -173,7 +173,7 @@ Date: 2026-10-09. Branch `codex/bundle-split`, based on `d770ced`. Work in the `
 
 ### Chunks before and after
 
-`kB` is decimal, as Vite reports it; the advisory is judged in bytes (1 kB = 1024 bytes), so the test asserts 512,000 bytes.
+`kB` is decimal, as Vite reports it; Vite counts 1 kB as 1,000 bytes, so the 500 kB advisory is 500,000 bytes and the test asserts exactly that.
 
 Before (`d770ced`), one JavaScript chunk, no vendor split:
 
@@ -215,7 +215,7 @@ The worker served its cached HTML only for `/` and `/status`, so an offline deep
 
 ### Tests
 
-- **Build output.** `apps/web/pwa/build-output.test.ts` builds into a temporary directory outside the repository and asserts that every emitted `assets/*.js` is under 500 kB (512,000 bytes; 1 kB = 1024 bytes), that every emitted JavaScript and CSS asset appears in the generated `sw.js` precache list, and that the precached release stays within sixteen assets. Red: `index-CJvC-D9w.js is 546139 bytes`; green: 3 passed ([`build-output-red.log`](evidence/bundle-split-2026-10-09/01-build-output-red.log) → [`build-output-green.log`](evidence/bundle-split-2026-10-09/02-build-output-green.log)).
+- **Build output.** `apps/web/pwa/build-output.test.ts` builds into a temporary directory outside the repository and asserts that every emitted `assets/*.js` is under 500 kB (500,000 bytes; Vite counts 1 kB as 1,000 bytes), that every emitted JavaScript and CSS asset appears in the generated `sw.js` precache list, and that the precached release stays within sixteen assets. Red: `index-CJvC-D9w.js is 546139 bytes`; green: 3 passed ([`build-output-red.log`](evidence/bundle-split-2026-10-09/01-build-output-red.log) → [`build-output-green.log`](evidence/bundle-split-2026-10-09/02-build-output-green.log)).
 - **Offline deep links.** `tests/browser/offline-deeplinks.spec.ts` stages a synthetic generation, takes the origin offline, then opens `/search` and `/medication/<synthetic id>` in fresh tabs that had visited neither route. Both render from the precache and no document, script or style reaches the origin. Red: `page.goto: net::ERR_INTERNET_DISCONNECTED at .../search`; green: 3 passed on chromium-desktop, webkit-phone and webkit-tablet ([`offline-deeplinks-red.log`](evidence/bundle-split-2026-10-09/03-offline-deeplinks-red.log) → [`offline-deeplinks-green.log`](evidence/bundle-split-2026-10-09/04-offline-deeplinks-green.log)).
 - **Worker navigation.** The existing `serves verified index HTML for offline navigation` case now also covers `/search` and `/medication/synthetic-product`; the excluded-request case is unchanged.
 - **Existing tests.** Two component tests queried a route heading synchronously. They now wait for the lazy chunk (`findByRole`), which still asserts the same rendering; no assertion was removed or relaxed. The full suites stayed green: 926 unit and component tests in 57 files, and 157 Playwright tests passed with 2 WebKit-only performance cases skipped by design.
