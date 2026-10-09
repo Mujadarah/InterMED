@@ -251,7 +251,7 @@ After the PR #18 fixes, again with the same toolchain: `npm run check` exit 0 ([
 
 A note on flakiness: one intermediate full browser run reported two `recovery-update.spec.ts` failures on webkit-tablet while the 20,000-product search case ran on the same three workers. Re-running that spec alone passed all six cases on all three projects, the earlier full run had passed them, and the final full check passed them too, so the same code produced both outcomes. The rerun is recorded in [`recovery-update-rerun.log`](evidence/bundle-split-2026-10-09/09-recovery-update-rerun.log).
 
-### Open items
+### Bundle split open items
 
 - React Router is bundled with the React vendor chunk. It could become its own chunk, but that costs one of the sixteen precache slots and the framework loads together on the first paint.
 - The shell still needs `zod` and `dexie` before it can paint. Deferring either would change when configuration parsing or the local store starts, which this work deliberately kept unchanged.
