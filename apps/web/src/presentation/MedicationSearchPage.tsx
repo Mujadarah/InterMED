@@ -12,6 +12,7 @@ import type {
 import { datasetAgeText } from './dataset-age';
 import { getSearchStatusMessage } from './search-status';
 import type { SearchStatus } from './search-status';
+import { useRouteHeadingFocus } from './route-focus';
 import {
   createDisambiguatedSearchResults,
   type DisambiguatedSearchResult,
@@ -148,6 +149,9 @@ export function MedicationSearchPage({
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const requestRevision = useRef(0);
+  // This route's chunk resolves after the App's pathname effect, so the heading
+  // takes the pending route focus once it is in the document.
+  useRouteHeadingFocus();
 
   // Keep the settled query in the URL so the browser Back button restores it.
   // The write is debounced like the search itself and replaces the current
@@ -249,7 +253,9 @@ export function MedicationSearchPage({
       data-index-product-count={result?.indexedProductCount ?? 0}
       data-search-duration-ms={result?.searchDurationMilliseconds ?? 0}
     >
-      <h1 id="medication-search-title">Local medication search</h1>
+      <h1 id="medication-search-title" tabIndex={-1}>
+        Local medication search
+      </h1>
       <p className="lead">
         Search candidates from the dataset stored in this browser. This is a
         development feature and does not support care decisions.

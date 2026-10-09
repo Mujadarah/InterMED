@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -89,9 +89,11 @@ it('navigates to limitations using an accessible link', async () => {
   );
   await user.click(screen.getByRole('link', { name: 'Development status' }));
   expect(
-    screen.getByRole('heading', { name: 'Development status' }),
+    await screen.findByRole('heading', { name: 'Development status' }),
   ).toBeVisible();
-  expect(screen.getByRole('main')).toHaveFocus();
+  expect(
+    screen.getByRole('heading', { name: 'Development status' }),
+  ).toHaveFocus();
   expect(
     screen.getByText(
       /Local medication search uses only an active dataset stored in this browser/,
@@ -129,6 +131,72 @@ it('registers the medication search route in navigation', async () => {
     'href',
     '/status',
   );
+});
+
+it('focuses the search heading once the lazy route chunk renders', async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  await user.click(screen.getByRole('link', { name: 'Medication search' }));
+
+  // The chunk resolves after the App pathname effect has already run, so the
+  // heading takes focus when it appears rather than when the route changes.
+  expect(
+    await screen.findByRole('heading', { name: 'Local medication search' }),
+  ).toHaveFocus();
+});
+
+it('keeps focus where a user moved it while a lazy route was loading', async () => {
+  const search = vi.fn(async () => ({
+    generationId: appGeneration.generationId,
+    results: [
+      {
+        record: {
+          product: appProduct,
+          ingredientNames: ['Fictivolinum'],
+          atcCodes: ['SYN-APP'],
+          dosageFormName: 'fictional tablet',
+          manufacturerNames: ['Fictional Works'],
+        },
+        rank: 'exact' as const,
+      },
+    ],
+    total: 1,
+    truncated: false,
+    indexedProductCount: 1,
+    indexDurationMilliseconds: 0,
+    searchDurationMilliseconds: 0,
+  }));
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter initialEntries={['/search?q=fictivol']}>
+      <App
+        services={{
+          ...services,
+          dataset: appDataset,
+          medicationSearch: { search },
+          medicationDetail: { productDetail: vi.fn(async () => null) },
+        }}
+      />
+    </MemoryRouter>,
+  );
+  const candidate = await screen.findByRole('link', {
+    name: /Open Fictivol app test/,
+  });
+  // The user moves focus away while the detail chunk is still loading.
+  await user.click(candidate);
+  const statusLink = screen.getByRole('link', { name: 'Development status' });
+  act(() => statusLink.focus());
+  expect(statusLink).toHaveFocus();
+
+  // The detail heading appears and must not steal that focus back.
+  expect(
+    await screen.findByRole('heading', { name: 'Product not found' }),
+  ).toBeVisible();
+  expect(statusLink).toHaveFocus();
 });
 
 it('opens a local candidate, restores its search query, and focuses the detail heading', async () => {
@@ -172,9 +240,14 @@ it('opens a local candidate, restores its search query, and focuses the detail h
   });
   await user.click(candidate);
 
-  expect(
-    await screen.findByRole('heading', { name: 'Product not found' }),
-  ).toHaveFocus();
+  // Wait for the focus itself, not only for the heading: the focus lands in an
+  // effect that runs after the settled heading commits, so waiting for the
+  // heading alone races the focus. This still fails if focus never arrives.
+  await waitFor(() =>
+    expect(
+      screen.getByRole('heading', { name: 'Product not found' }),
+    ).toHaveFocus(),
+  );
   expect(productDetail).toHaveBeenCalledWith(appProduct.id);
   expect(
     screen.getByRole('link', { name: 'Back to results for fictivol' }),

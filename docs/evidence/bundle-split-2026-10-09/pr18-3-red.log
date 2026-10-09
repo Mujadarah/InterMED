@@ -1,0 +1,236 @@
+
+ RUN  v4.1.11 <repo>
+
+ ❯ apps/web/src/presentation/App.test.tsx (7 tests | 2 failed) 1688ms
+   × navigates to limitations using an accessible link 128ms
+   × focuses the search heading once the lazy route chunk renders 84ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/presentation/App.test.tsx > navigates to limitations using an accessible link
+Error: expect(element).toHaveFocus()
+
+Expected element with focus:
+  <h1
+  id="status-title"
+>
+  Development status
+</h1>
+Received element with focus:
+  <main
+  id="content"
+  tabindex="-1"
+>
+  <section
+    aria-labelledby="status-title"
+  >
+    <h1
+      id="status-title"
+    >
+      Development status
+    </h1>
+    <p
+      class="lead"
+    >
+      Development PWA shell
+    </p>
+    <p>
+      Local medication search uses only an active dataset stored in this browser. Interaction checking is unavailable. No clinical capability has been validated.
+    </p>
+    <dl
+      class="status-list"
+    >
+      <div>
+        <dt>
+          Medication data
+        </dt>
+        <dd>
+          Local browser data, when available
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Offline use and installation
+        </dt>
+        <dd>
+          Public shell only, after successful caching
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Patient information
+        </dt>
+        <dd>
+          No collection or storage
+        </dd>
+      </div>
+    </dl>
+    <section
+      aria-labelledby="dataset-status-title"
+      class="dataset-status"
+      data-dataset-state="never-downloaded"
+      data-testid="dataset-section"
+    >
+      <h2
+        id="dataset-status-title"
+      >
+        Local medication dataset
+      </h2>
+      <p
+        role="status"
+      >
+        No medication dataset has been downloaded into this browser. Local medication search stays unavailable until one is downloaded.
+      </p>
+      <p
+        class="storage-note"
+      >
+        Persistent storage is requested as best effort only. Browser storage can still be evicted or restricted at any time, for example in private mode or when space runs out.
+      </p>
+    </section>
+    <p>
+      This build uses contributor mock mode without accounts or cloud connections. Future clinical content requires permitted sources and clinical review.
+    </p>
+    <h2>
+      Install the development shell
+    </h2>
+    <p>
+      iPhone/iPad Safari: Share → Add to Home Screen. If offered, enable Open as Web App, then Add.
+    </p>
+    <p>
+      On other browsers, use Install development app when this browser offers it. Otherwise check its address-bar or menu installation option. Some browsers offer no installation; you can continue in a tab. Installation flows differ.
+    </p>
+    <p>
+      Connect first and wait for “Shell available offline”. A brand-new offline visit cannot load this page without a previously cached worker. Installing does not download medications.
+    </p>
+    <p>
+      Private mode, quota limits or browser eviction can remove or restrict storage. Installed and tab modes may use different storage. Offline availability is checked now, not guaranteed permanently.
+    </p>
+    <p>
+      Temporary development artwork: original I monogram, not approved final branding.
+    </p>
+  </section>
+  <aside
+    aria-label="Application shell"
+    class="shell-status"
+  >
+    <p
+      role="status"
+    >
+      Development server: offline caching disabled
+    </p>
+    <p>
+      No cloud medication service is enabled. Search uses only a dataset already stored in this browser; clinical features are unavailable.
+    </p>
+  </aside>
+</main>
+ ❯ apps/web/src/presentation/App.test.tsx:96:5
+     94|   expect(
+     95|     screen.getByRole('heading', { name: 'Development status' }),
+     96|   ).toHaveFocus();
+       |     ^
+     97|   expect(
+     98|     screen.getByText(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/src/presentation/App.test.tsx > focuses the search heading once the lazy route chunk renders
+Error: expect(element).toHaveFocus()
+
+Expected element with focus:
+  <h1
+  id="medication-search-title"
+>
+  Local medication search
+</h1>
+Received element with focus:
+  <main
+  id="content"
+  tabindex="-1"
+>
+  <section
+    aria-labelledby="medication-search-title"
+    class="medication-search-page"
+    data-index-duration-ms="0"
+    data-index-product-count="0"
+    data-search-duration-ms="0"
+    data-search-revision="0"
+    data-testid="medication-search-page"
+  >
+    <h1
+      id="medication-search-title"
+    >
+      Local medication search
+    </h1>
+    <p
+      class="lead"
+    >
+      Search candidates from the dataset stored in this browser. This is a development feature and does not support care decisions.
+    </p>
+    <div
+      class="search-control"
+    >
+      <label
+        for="local-medication-search"
+      >
+        Search local medications by name, active ingredient, ATC code, or manufacturer
+      </label>
+      <input
+        aria-describedby="local-medication-search-help"
+        autocomplete="off"
+        disabled=""
+        id="local-medication-search"
+        type="search"
+        value=""
+      />
+      <p
+        id="local-medication-search-help"
+      >
+        Search reads only this browser’s active dataset. Your query is not sent to a server. Choose a result to continue; no product is selected automatically.
+      </p>
+    </div>
+    <p
+      aria-atomic="true"
+      aria-live="polite"
+      class="search-status"
+      role="status"
+    >
+      No medication dataset has been downloaded into this browser. Search is unavailable. This build has no dataset download control.
+    </p>
+    <p>
+      <a
+        data-discover="true"
+        href="/status"
+      >
+        Dataset status
+      </a>
+    </p>
+  </section>
+  <aside
+    aria-label="Application shell"
+    class="shell-status"
+  >
+    <p
+      role="status"
+    >
+      Development server: offline caching disabled
+    </p>
+    <p>
+      No cloud medication service is enabled. Search uses only a dataset already stored in this browser; clinical features are unavailable.
+    </p>
+  </aside>
+</main>
+ ❯ apps/web/src/presentation/App.test.tsx:149:5
+    147|   expect(
+    148|     await screen.findByRole('heading', { name: 'Local medication searc…
+    149|   ).toHaveFocus();
+       |     ^
+    150| });
+    151|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed (7)
+   Start at  14:51:20
+   Duration  4.39s (transform 289ms, setup 0ms, import 784ms, tests 1.69s, environment 1.58s)

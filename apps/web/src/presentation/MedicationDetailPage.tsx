@@ -10,6 +10,7 @@ import type {
 import type { MedicationDetailService } from '../application/medication-detail';
 import { datasetAgeText } from './dataset-age';
 import { useMedicationDetail } from './use-medication-detail';
+import { useRouteHeadingFocus } from './route-focus';
 
 const NOT_PROVIDED = 'Not provided by source';
 
@@ -499,10 +500,10 @@ function ProductDetail({
 
 /**
  * Whether focus has moved somewhere the user is working with. Focus resting on
- * the document body, on `<main>`, on the page section itself or on the heading
- * of a previous page state was never moved by the user, so a state change may
- * move it. Anything else - a link, a button, an input - was reached
- * deliberately and keeps its focus (GPT-6 review fix 3).
+ * the document body, on `<main>`, on the route loading placeholder, on the page
+ * section itself or on the heading of a previous page state was never moved by
+ * the user, so a state change may move it. Anything else - a link, a button, an
+ * input - was reached deliberately and keeps its focus (GPT-6 review fix 3).
  */
 function focusWasMoved(active: Element | null, page: HTMLElement | null) {
   if (active === null || active === document.body) return false;
@@ -510,6 +511,11 @@ function focusWasMoved(active: Element | null, page: HTMLElement | null) {
     return false;
   if (page !== null && active === page) return false;
   if (active instanceof HTMLElement && active.tagName === 'MAIN') return false;
+  if (
+    active instanceof HTMLElement &&
+    active.closest('[data-route-loading]') !== null
+  )
+    return false;
   return true;
 }
 
@@ -528,6 +534,9 @@ export function MedicationDetailPage({
   const { pageState, retry } = useMedicationDetail(productId, dataset, detail);
   const online = useOnlineStatus();
   const page = useRef<HTMLElement>(null);
+  // This route's chunk resolves after the App's pathname effect, so the heading
+  // takes the pending route focus once it is in the document.
+  useRouteHeadingFocus();
 
   useEffect(() => {
     const section = page.current;
