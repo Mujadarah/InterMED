@@ -74,7 +74,7 @@ These are automated keyboard and browser checks. Manual screen-reader and real-d
 - Add product-specific RCP/prospect links and show provenance, dataset version and age on the detail page; explain when a link cannot be opened offline (addressed in part B, see below).
 - Keep unvalidated or absent fields visibly unavailable; the current route is a placeholder and does not establish clinical-content or source-rights acceptance (addressed in part B, see below).
 - Complete the real-device checks under Milestone 12. Browser automation does not establish installed-mode behavior on physical devices.
-- The production bundle remains above the build tool’s 500 kB warning threshold (527.64 kB; prior branch measurement 513.68 kB). The build passed, but this size warning remains.
+- ~~The production bundle remains above the build tool's 500 kB warning threshold (527.64 kB; prior branch measurement 513.68 kB). The build passed, but this size warning remains.~~ Resolved by [Bundle size follow-up](#bundle-size-follow-up).
 
 ## Part B — medication detail page
 
@@ -154,8 +154,92 @@ Log: [`full-check-green.log`](evidence/milestone-7b-2026-10-08/full-check-green.
 
 ### Open items
 
-- The mapping model has `confirmed` and `unresolved` but no separate “ambiguous” status, so the page labels that state “Unresolved or ambiguous mapping”.
-- The bundle grew to 544.41 kB, above the 500 kB advisory. Consider route-level code splitting later.
+- The mapping model has `confirmed` and `unresolved` but no separate "ambiguous" status, so the page labels that state "Unresolved or ambiguous mapping".
+- ~~The bundle grew to 544.41 kB, above the 500 kB advisory. Consider route-level code splitting later.~~ Resolved by [Bundle size follow-up](#bundle-size-follow-up).
 - Browser back to `/search` (not via the back link) does not restore the query, because the search input does not write `q` into the URL.
 - Real-device checks remain in Milestone 12.
 - Clinical-content and source-rights acceptance are still not established; data stays synthetic.
+
+## Bundle size follow-up
+
+Date: 2026-10-09. Branch `codex/bundle-split`, based on `d770ced`. Work in the `bundle-split` worktree; nothing pushed. The catalogue and every fixture stay synthetic; no Appwrite or other network service was used.
+
+### Approach
+
+1. **Measure first.** `vite build --sourcemap` into a temporary directory outside the repository, then a small Node script decoded the sourcemap and attributed generated characters to source modules ([`bundle-attribution-before.log`](evidence/bundle-split-2026-10-09/06-bundle-attribution-before.log)). The single 546,139-byte chunk was 38.2% `react-dom`, 17.5% `dexie`, 16.5% `zod`, 7.0% `react-router`, 1.5% `react`, 0.6% `scheduler` and 18.2% application code, including 11.5 kB of `MedicationDetailPage` and 5.9 kB of `MedicationSearchPage`.
+2. **Split by route.** `MedicationSearchPage` and `MedicationDetailPage` load through `React.lazy` behind one `Suspense` boundary with a polite, calm fallback (`role="status"`, `aria-busy`, no heading, no focus move). `main` already has `min-height: 60vh`, so the placeholder does not shift the shell.
+3. **Split stable vendors.** `build.rollupOptions.output.manualChunks` separates `framework-vendor` (react, react-dom, scheduler, react-router), `zod-vendor` and `dexie-vendor`. The shell entry keeps only what it needs to paint.
+4. `build.chunkSizeWarningLimit` was **not** raised and the warning was not otherwise silenced.
+
+### Chunks before and after
+
+`kB` is decimal, as Vite reports it; the advisory is judged in bytes (1 kB = 1024 bytes), so the test asserts 512,000 bytes.
+
+Before (`d770ced`), one JavaScript chunk, no vendor split:
+
+| Asset                | Bytes   | kB     | gzip kB |
+| -------------------- | ------- | ------ | ------- |
+| `assets/index-*.js`  | 546,139 | 546.13 | 165.99  |
+| `assets/index-*.css` | 6,574   | 6.57   | 1.83    |
+| `index.html`         | 1,587   | 1.59   | 0.64    |
+
+After, ten JavaScript chunks and one stylesheet:
+
+| Asset                                               | Bytes   | kB     | gzip kB |
+| --------------------------------------------------- | ------- | ------ | ------- |
+| `assets/framework-vendor-*.js`                      | 258,585 | 258.58 | 82.08   |
+| `assets/dexie-vendor-*.js`                          | 95,195  | 95.19  | 31.30   |
+| `assets/zod-vendor-*.js`                            | 90,913  | 90.91  | 25.65   |
+| `assets/index-*.js` (entry)                         | 78,076  | 78.08  | 22.35   |
+| `assets/MedicationDetailPage-*.js`                  | 12,692  | 12.69  | 3.58    |
+| `assets/MedicationSearchPage-*.js`                  | 7,749   | 7.75   | 2.60    |
+| `assets/search-status-*.js` (shared by both routes) | 2,808   | 2.81   | 1.03    |
+| `assets/rolldown-runtime-*.js`                      | 589     | 0.59   | 0.36    |
+| `assets/index-*.css`                                | 6,574   | 6.57   | 1.83    |
+| `index.html`                                        | 1,925   | 1.93   | 0.72    |
+
+The largest chunk drops from 546,139 bytes (533.3 KiB) to 258,585 bytes (252.5 KiB), and every JavaScript chunk is now below the advisory. Total JavaScript is 546,607 bytes, i.e. 468 bytes (0.09%) more than before: the split adds the rolldown runtime and per-chunk wrappers, and nothing was removed from the shell. The first load carries 523,358 bytes of JavaScript instead of 546,139, about 4.2% less, because the two route chunks and their shared helper (23,249 bytes) load only when a route opens. The rest of the shell really does need `react-dom`, `zod` and `dexie` before it can paint: the store is opened and the configuration is parsed during `Bootstrap`, so deferring them would change behaviour.
+
+### Asset count and precache size
+
+|                             | Before  | After   |
+| --------------------------- | ------- | ------- |
+| Precached assets (cap 16)   | 8       | 15      |
+| Precached bytes (cap 2 MiB) | 563,957 | 564,263 |
+
+Both caps hold ([`precache-after.txt`](evidence/bundle-split-2026-10-09/07-precache-after.txt)). The precache grew by one file per emitted chunk and stayed inside the sixteen-asset cap; `apps/web/pwa/shell-build.ts` is unchanged. One asset of headroom remains.
+
+### Offline deep links
+
+The worker served its cached HTML only for `/` and `/status`, so an offline deep link to `/search` failed outright. `apps/web/pwa/worker.ts` now serves the cached HTML for every route the shell renders (`/`, `/status`, `/search` and `/medication/*`). No precache, readiness, activation or integrity logic changed: the same verified release answers the navigation, and the same `publicAsset` rule answers scripts and styles.
+
+### Tests
+
+- **Build output.** `apps/web/pwa/build-output.test.ts` builds into a temporary directory outside the repository and asserts that every emitted `assets/*.js` is under 500 kB (512,000 bytes; 1 kB = 1024 bytes), that every emitted JavaScript and CSS asset appears in the generated `sw.js` precache list, and that the precached release stays within sixteen assets. Red: `index-CJvC-D9w.js is 546139 bytes`; green: 3 passed ([`build-output-red.log`](evidence/bundle-split-2026-10-09/01-build-output-red.log) → [`build-output-green.log`](evidence/bundle-split-2026-10-09/02-build-output-green.log)).
+- **Offline deep links.** `tests/browser/offline-deeplinks.spec.ts` stages a synthetic generation, takes the origin offline, then opens `/search` and `/medication/<synthetic id>` in fresh tabs that had visited neither route. Both render from the precache and no document, script or style reaches the origin. Red: `page.goto: net::ERR_INTERNET_DISCONNECTED at .../search`; green: 3 passed on chromium-desktop, webkit-phone and webkit-tablet ([`offline-deeplinks-red.log`](evidence/bundle-split-2026-10-09/03-offline-deeplinks-red.log) → [`offline-deeplinks-green.log`](evidence/bundle-split-2026-10-09/04-offline-deeplinks-green.log)).
+- **Worker navigation.** The existing `serves verified index HTML for offline navigation` case now also covers `/search` and `/medication/synthetic-product`; the excluded-request case is unchanged.
+- **Existing tests.** Two component tests queried a route heading synchronously. They now wait for the lazy chunk (`findByRole`), which still asserts the same rendering; no assertion was removed or relaxed. The full suites stayed green: 926 unit and component tests in 57 files, and 157 Playwright tests passed with 2 WebKit-only performance cases skipped by design.
+
+### Commands
+
+| Command                       | Result                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `npm run format:check`        | Exit 0                                                                          |
+| `npm run lint`                | Exit 0                                                                          |
+| `npm run typecheck`           | Exit 0                                                                          |
+| `npm run test`                | Exit 0; 57 files, 926 tests                                                     |
+| `npm run check:boundaries`    | Exit 0; 94 source files                                                         |
+| `npm audit --audit-level=low` | 0 vulnerabilities                                                               |
+| `npm run build`               | Exit 0, no chunk-size warning                                                   |
+| `npm run scan:dist`           | Exit 0                                                                          |
+| `npm run test:browser`        | Exit 0; 157 passed, 2 skipped                                                   |
+| `npm run check`               | Exit 0 ([`check-full.log`](evidence/bundle-split-2026-10-09/10-check-full.log)) |
+
+Toolchain: Node.js `v24.21.0`, npm `11.19.0`, `INTERMED_NODE22_RUNTIME` = Node.js `v22.23.2`. All logs in `docs/evidence/bundle-split-2026-10-09/` are redacted, UTF-8 without BOM and LF; each was written outside the repository first and then copied in.
+
+A note on flakiness: one intermediate full browser run reported two `recovery-update.spec.ts` failures on webkit-tablet while the 20,000-product search case ran on the same three workers. Re-running that spec alone passed all six cases on all three projects, the earlier full run had passed them, and the final full check passed them too, so the same code produced both outcomes. The rerun is recorded in [`recovery-update-rerun.log`](evidence/bundle-split-2026-10-09/09-recovery-update-rerun.log).
+
+### Open items
+
+- React Router is bundled with the React vendor chunk. It could become its own chunk, but that costs one of the sixteen precache slots and the framework loads together on the first paint.
+- The shell still needs `zod` and `dexie` before it can paint. Deferring either would change when configuration parsing or the local store starts, which this work deliberately kept unchanged.

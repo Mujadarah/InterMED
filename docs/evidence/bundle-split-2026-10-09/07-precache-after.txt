@@ -1,0 +1,24 @@
+# Precached public shell read from the emitted sw.js release descriptor.
+# Generated from the build in apps/web/dist.
+# Caps enforced by apps/web/pwa/shell-build.ts: 16 assets, 2 MiB total.
+
+release version: 22192de4f0c5908439bb
+
+   95195  /assets/dexie-vendor-IbC1YGSs.js
+  258585  /assets/framework-vendor-b34q1Hby.js
+   78076  /assets/index-CZd_BdJN.js
+    6574  /assets/index-DOYJIIIf.css
+   12692  /assets/MedicationDetailPage-BfV-mVF_.js
+    7749  /assets/MedicationSearchPage--EBHNNTw.js
+     589  /assets/rolldown-runtime-CbXtAM7H.js
+    2808  /assets/search-status-BRMNX2ez.js
+   90913  /assets/zod-vendor-C0xu5dkI.js
+     835  /icons/apple-touch-180.png
+     882  /icons/icon-192.png
+    3359  /icons/icon-512.png
+    3359  /icons/maskable-512.png
+    1925  /index.html
+     722  /manifest.webmanifest
+
+assets: 15 (cap 16)
+precached bytes: 564263 (cap 2097152)

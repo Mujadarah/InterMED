@@ -1,0 +1,5 @@
+Running 3 tests using 3 workers
+  ok 1 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (2.4s)
+  ok 3 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (6.5s)
+  ok 2 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (7.6s)
+  3 passed (19.6s)
