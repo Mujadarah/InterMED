@@ -1,14 +1,14 @@
 
  RUN  v4.1.11 <repo>
 
-node.exe : stderr | apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable 
+node.exe : stderr | apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable
 when a route chunk fails to load
 At line:1 char:1
 + & "<tools>\node-v24.21.0-win-x64/node.exe" "D: ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (stderr | apps/w...k fails to load:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
- 
+
 An error occurred in one of your React components.
 
 Consider adding an error boundary to your tree to customize error handling behavior.
@@ -21,7 +21,7 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 
 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
 
- FAIL  apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable when a route 
+ FAIL  apps/web/src/presentation/route-recovery.test.tsx > recovers accessibly and keeps the shell usable when a route
 chunk fails to load
 TestingLibraryElementError: Unable to find role="heading" and name "This page could not be loaded"
 
@@ -47,8 +47,8 @@ Ignored nodes: comments, script, style
 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
 
  FAIL  apps/web/src/presentation/route-recovery.test.tsx > reloads the page from the Reload action
-Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite 
-components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might 
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite
+components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might
 have mixed up default and named imports.
  Γ¥» createFiberFromTypeAndProps node_modules/react-dom/cjs/react-dom-client.development.js:5330:28
  Γ¥» createFiberFromElement node_modules/react-dom/cjs/react-dom-client.development.js:5344:14
@@ -81,9 +81,9 @@ Error: synthetic chunk load failure
 .DB-7oCpn.js:321:22
  Γ¥» apps/web/src/presentation/App.tsx:28:1
 
-This error originated in "apps/web/src/presentation/route-recovery.test.tsx" test file. It doesn't mean the error was 
+This error originated in "apps/web/src/presentation/route-recovery.test.tsx" test file. It doesn't mean the error was
 thrown inside the file itself, but while it was running.
-The latest test that might've caused the error is "recovers accessibly and keeps the shell usable when a route chunk 
+The latest test that might've caused the error is "recovers accessibly and keeps the shell usable when a route chunk
 fails to load". It might mean one of the following:
 - The error was thrown, while Vitest was running this test.
 - If the error occurred after the test had been completed, this was the last documented test before it was thrown.
