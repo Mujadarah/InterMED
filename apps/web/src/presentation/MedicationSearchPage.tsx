@@ -100,9 +100,11 @@ function SearchResultDetails({ row }: { row: DisambiguatedSearchResult }) {
 function SearchResult({
   row,
   query,
+  onActivate,
 }: {
   row: DisambiguatedSearchResult;
   query: string;
+  onActivate: () => void;
 }) {
   const product = row.match.record.product;
   const path = `/medication/${encodeURIComponent(product.id)}`;
@@ -125,6 +127,11 @@ function SearchResult({
         to={href}
         tabIndex={0}
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
+        onClick={onActivate}
+        onKeyDown={(event) => {
+          // Enter on a focused link also fires a click, so both paths land here.
+          if (event.key === 'Enter') onActivate();
+        }}
       >
         <span className="search-result-name">{product.commercialName}</span>
         <SearchResultDetails row={row} />
@@ -146,6 +153,8 @@ export function MedicationSearchPage({
   const generationId = generation?.generationId ?? null;
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const setSearchParamsRef = useRef(setSearchParams);
+  const queryUrlSyncTimeout = useRef<number | null>(null);
   const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [retryRevision, setRetryRevision] = useState(0);
   const requestRevision = useRef(0);
@@ -153,12 +162,36 @@ export function MedicationSearchPage({
   // takes the pending route focus once it is in the document.
   useRouteHeadingFocus();
 
+  // React Router hands out a new setSearchParams identity on every location
+  // change, so the latest one is kept here instead of being a dependency of the
+  // debounced URL write below.
+  useEffect(() => {
+    setSearchParamsRef.current = setSearchParams;
+  }, [setSearchParams]);
+
+  function cancelQueryUrlSync() {
+    const timeout = queryUrlSyncTimeout.current;
+    if (timeout === null) return;
+    window.clearTimeout(timeout);
+    queryUrlSyncTimeout.current = null;
+  }
+
   // Keep the settled query in the URL so the browser Back button restores it.
   // The write is debounced like the search itself and replaces the current
   // history entry, so typing never creates history entries.
+  //
+  // The effect depends on the query alone. Route pages load lazily, so while a
+  // detail chunk arrives React keeps this page mounted and the changing
+  // location gives setSearchParams a new identity: depending on it would
+  // reschedule this write, which would then navigate back to /search from the
+  // page the user just opened. The pathname recorded when the debounce is
+  // scheduled drops such a write, and opening a result cancels it outright.
   useEffect(() => {
+    const pathnameAtSchedule = window.location.pathname;
     const timeout = window.setTimeout(() => {
-      setSearchParams(
+      queryUrlSyncTimeout.current = null;
+      if (window.location.pathname !== pathnameAtSchedule) return;
+      setSearchParamsRef.current(
         (previous) => {
           const next = new URLSearchParams(previous);
           if (query.trim()) next.set('q', query);
@@ -168,8 +201,13 @@ export function MedicationSearchPage({
         { replace: true },
       );
     }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timeout);
-  }, [query, setSearchParams]);
+    queryUrlSyncTimeout.current = timeout;
+    return () => {
+      window.clearTimeout(timeout);
+      if (queryUrlSyncTimeout.current === timeout)
+        queryUrlSyncTimeout.current = null;
+    };
+  }, [query]);
 
   useEffect(() => {
     const revision = ++requestRevision.current;
@@ -348,6 +386,7 @@ export function MedicationSearchPage({
               key={row.match.record.product.id}
               row={row}
               query={query}
+              onActivate={cancelQueryUrlSync}
             />
           ))}
         </ol>

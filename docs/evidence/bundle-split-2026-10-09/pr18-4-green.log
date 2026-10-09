@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 <repo>
+
+
+ Test Files  58 passed (58)
+      Tests  939 passed (939)
+   Start at  16:09:52
+   Duration  55.27s (transform 18.91s, setup 0ms, import 58.28s, tests 104.18s, environment 26.24s)
