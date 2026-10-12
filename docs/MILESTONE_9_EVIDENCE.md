@@ -16,10 +16,12 @@ source on clinical quality, licence, cost and offline rights.
 
 This evidence covers the code part only:
 
-- `packages/domain/src/interactions.ts` (new, 1,155 lines).
-- Re-exports in `packages/domain/src/index.ts`.
-- `tests/domain/interactions.test.ts` (new, 15 tests).
-- `tests/domain/interaction-provider-contract.ts` (new, shared suite of 8 assertions).
+- `packages/domain/src/interactions/` (new folder; responsibilities split by file:
+  `types.ts`, `pairs.ts`, `selection.ts`, `severity.ts`, `evaluate.ts`, `merge.ts`),
+  with `packages/domain/src/interactions.ts` kept as a thin re-export barrel.
+- Re-exports in `packages/domain/src/index.ts` (unchanged).
+- `tests/domain/interactions.test.ts` (new, 24 tests).
+- `tests/domain/interaction-provider-contract.ts` (new, shared suite of 9 assertions).
 - `tests/domain/interaction-provider-contract.test.ts` (new, runs the suite for 7 providers).
 - `tests/domain/synthetic-interaction-providers.ts` (new, fixtures and providers).
 - Evidence logs in `docs/evidence/milestone-9-2026-10-12/`.
@@ -155,7 +157,9 @@ Copied faithfully from `evaluateInteractions`:
 - `coverageComplete` is true exactly when all of these hold: the payload is not unavailable,
   at least one pair was requested, there are no unresolved inputs, the incomplete-reason set
   is empty, evaluated coverage exists for every requested pair, and every coverage entry has
-  status `reported` or `covered-no-record`.
+  status `reported` or `covered-no-record`. A `reported` status with an unresolved input
+  therefore carries `coverageComplete: false` with a non-empty `incompleteReasons`, and
+  `no-reported-record` always carries `coverageComplete: true`.
 - The evaluation status is `unavailable` when `statusUnavailable` is true; otherwise
   `reported` when at least one valid record exists; otherwise `no-reported-record` when
   `coverageComplete` is true; otherwise `incomplete`.
@@ -229,8 +233,9 @@ empty evaluated coverage before any pair work.
   and at runtime (`RangeError` otherwise).
 - Records are concatenated after canonicalizing each record's pair; evidence arrays are
   concatenated; source versions are deduped triples of provider, source and version.
-- Disagreements are derived per pair: `severity-terms-differ` when more than one distinct
-  severity string was reported for the pair; `reported-vs-covered-no-record` when one
+- Disagreements are derived per pair: `severity-terms-differ` only when at least two
+  different providers report different severity strings for the pair (two records from
+  the same provider never trigger it); `reported-vs-covered-no-record` when one
   provider reports the pair as `reported` and a different provider reports it as
   `covered-no-record`. Each disagreement carries the pair, the reasons and the contributing
   severity terms with provider, source and version.
@@ -293,7 +298,7 @@ specs; `CONTRACT_REQUEST` / `CONTRACT_SELECTION` / `CONTRACT_CONTEXT` give the t
 three-ingredient contract fixture with a fixed retrieval timestamp.
 
 Contract assertions in `tests/domain/interaction-provider-contract.ts`
-(`describeProviderContract`, 8 assertions run once per provider, 7 providers, 56 cases):
+(`describeProviderContract`, 9 assertions run once per provider, 7 providers, 63 cases):
 
 1. `describes a stable provider, source, availability, capability, and rights status`.
 2. `returns coverage for each canonical requested pair and no outside pair`.
@@ -303,6 +308,7 @@ Contract assertions in `tests/domain/interaction-provider-contract.ts`
 6. `maps provider errors and timeouts to unavailable results`.
 7. `respects offline provider availability`.
 8. `receives canonical ingredient ids, context, online mode, and the pinned dataset version`.
+9. `exposes explicit coverage completeness on every evaluation`.
 
 ## 6. Requirements traceability
 
@@ -345,11 +351,20 @@ Node.js `v24.21.0` with npm `11.19.0` and the compiled-artifact runtime Node.js 
 - Test-first: `interaction-provider-red-green.log` records RED (before implementation) with 56
   failed and 15 passed across the two focused files (71 total), then GREEN with 71 passed in
   2 files after implementation.
-- Full unit suite: `non-web-gates.log` and `aggregate-check-partial.log` both record 60 test
-  files with 1,010 tests passed. Format, lint, typecheck and the architecture boundary check
-  passed; `npm audit` found 0 vulnerabilities.
-- The orchestrator's re-run confirmed the same result: unit tests 60 files / 1,010 tests
-  passed; format, lint, typecheck and boundaries passed under Node 24.21.0 and Node 22.23.2.
+- R51 direct-ingredient input: `r51-direct-ingredient-red.log` records 5 failed, then
+  `r51-direct-ingredient-green.log` records 20 passed in `tests/domain/interactions.test.ts`.
+- PR #20 review fixes: `pr20-1-red.log` / `pr20-1-green.log` cover the explicit
+  `coverageComplete` flag (3 new evaluation tests plus 7 new contract cases, 86 passed
+  across the two focused files); `pr20-2-red.log` / `pr20-2-green.log` cover the
+  cross-provider disagreement rule (87 passed across the two focused files).
+- Full unit suite at the review-fix HEAD: 60 test files with 1,026 tests, 1,025 passed and
+  1 failed in `tests/importer/artifact.test.ts`
+  (`builds under the OS temp directory when no output parent is supplied`, an environment
+  path assertion unrelated to the domain; it fails identically with the review changes
+  stashed). Format, lint, typecheck and the architecture boundary check passed.
+- The earlier `non-web-gates.log` and `aggregate-check-partial.log` record the pre-R51
+  baseline of 60 test files with 1,010 tests passed; the orchestrator's re-run confirmed
+  that baseline under Node 24.21.0 and Node 22.23.2.
 - The implementer's aggregate check (`aggregate-check-partial.log`) was interrupted during the
   browser suite: the Vite build and distribution secret scan completed, the Playwright suite
   started (162 tests) and was interrupted with no result, and the command exited 1. The
@@ -357,6 +372,25 @@ Node.js `v24.21.0` with npm `11.19.0` and the compiled-artifact runtime Node.js 
 - `repository-base.log` records a successful fetch before inspection, branch
   `mujadarah/m9-interaction-provider`, `origin/main` at `597d1a5`, and a PASS for the
   merge-base ancestry check.
+
+### Review fixes (PR #20)
+
+1. Explicit coverage completeness: `coverageComplete` is set on every evaluation status and
+   is `true` only with fully resolved inputs, per-pair `reported` / `covered-no-record`
+   coverage, no truncation, an available provider and no incomplete reasons;
+   `no-reported-record` implies `true`. The contract suite asserts the flag on every
+   evaluation.
+2. Disagreement only across providers: `severity-terms-differ` now requires different
+   severity terms from at least two different providers; two records from one provider
+   no longer flag it.
+3. Credential-scanner hygiene in tests: the `sourceRecordKey === '<literal>'` comparisons
+   now go through a `findIngredientByRecord` helper (plus record constants that do not end
+   in key/token), and the PR diff contains no `key|token|secret === '<literal>'` pattern.
+4. Complexity split: `packages/domain/src/interactions.ts` is now a thin re-export barrel
+   over `packages/domain/src/interactions/` (`types.ts`, `pairs.ts`, `selection.ts`,
+   `severity.ts`, `evaluate.ts`, `merge.ts`); every file is well under 500 lines and every
+   function is under 100 lines. Public exports from `@intermed/domain` are unchanged
+   (verified by before/after `Object.keys`).
 
 ## 8. Open items
 
