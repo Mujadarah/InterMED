@@ -1159,3 +1159,138 @@ it('counts direct ingredients toward the too-many-pairs limit', async () => {
   expect(result.evaluatedPairCoverage).toEqual([]);
   expect(called).toBe(false);
 });
+
+it('treats a null product entry as malformed input instead of throwing', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-CORRUPT-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-CORRUPT-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const snapshot = {
+    ...base.snapshot,
+    products: [null, ...base.snapshot.products],
+  } as unknown as MedicationCatalogueSnapshot;
+  const result = await evaluateInteractions(
+    {
+      snapshot,
+      productIds: [...base.productIds],
+      datasetVersionId: base.datasetVersionId,
+    },
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'malformed-snapshot',
+    ),
+  ).toBe(true);
+});
+
+it('treats a null active-ingredient entry as malformed input instead of throwing', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-CORRUPT-AI-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-AI-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-CORRUPT-AI-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-AI-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const snapshot = {
+    ...base.snapshot,
+    activeIngredients: [null, ...base.snapshot.activeIngredients],
+  } as unknown as MedicationCatalogueSnapshot;
+  const result = await evaluateInteractions(
+    {
+      snapshot,
+      productIds: [...base.productIds],
+      datasetVersionId: base.datasetVersionId,
+    },
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'malformed-snapshot',
+    ),
+  ).toBe(true);
+});
+
+it('treats a null medication-ingredient entry as malformed input instead of throwing', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-CORRUPT-JOIN-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-JOIN-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-CORRUPT-JOIN-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-CORRUPT-JOIN-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const snapshot = {
+    ...base.snapshot,
+    medicationIngredients: [null, ...base.snapshot.medicationIngredients],
+  } as unknown as MedicationCatalogueSnapshot;
+  const result = await evaluateInteractions(
+    {
+      snapshot,
+      productIds: [...base.productIds],
+      datasetVersionId: base.datasetVersionId,
+    },
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'malformed-snapshot',
+    ),
+  ).toBe(true);
+});

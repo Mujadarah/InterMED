@@ -108,15 +108,25 @@ function pinSnapshotToVersion(
   return {
     ...snapshot,
     products: snapshot.products.filter(
-      (item) => item.datasetVersionId === datasetVersionId,
+      (item) => isRecord(item) && item.datasetVersionId === datasetVersionId,
     ),
     activeIngredients: snapshot.activeIngredients.filter(
-      (item) => item.datasetVersionId === datasetVersionId,
+      (item) => isRecord(item) && item.datasetVersionId === datasetVersionId,
     ),
     medicationIngredients: snapshot.medicationIngredients.filter(
-      (item) => item.datasetVersionId === datasetVersionId,
+      (item) => isRecord(item) && item.datasetVersionId === datasetVersionId,
     ),
   };
+}
+
+function hasCorruptSnapshotItem(
+  snapshot: MedicationCatalogueSnapshot,
+): boolean {
+  return (
+    snapshot.products.some((item) => !isRecord(item)) ||
+    snapshot.activeIngredients.some((item) => !isRecord(item)) ||
+    snapshot.medicationIngredients.some((item) => !isRecord(item))
+  );
 }
 
 function resolveDirectIngredients(
@@ -127,7 +137,7 @@ function resolveDirectIngredients(
   const directIngredientIds: ActiveIngredientId[] = [];
   for (const ingredientId of rawDirectIds) {
     const linked = pinnedSnapshot.activeIngredients.find(
-      (item) => item.id === ingredientId,
+      (item) => isRecord(item) && item.id === ingredientId,
     );
     if (linked) directIngredientIds.push(ingredientId);
     else
@@ -168,6 +178,7 @@ function expandSingleProduct(
   }
 
   for (const join of snapshot.medicationIngredients) {
+    if (!isRecord(join)) continue;
     if (
       join.productId === productId &&
       join.datasetVersionId !== datasetVersionId
@@ -204,7 +215,7 @@ function expandSingleProduct(
     )
       continue;
     const linked = pinnedSnapshot.activeIngredients.find(
-      (item) => item.id === ingredientState.value,
+      (item) => isRecord(item) && item.id === ingredientState.value,
     );
     if (linked) ingredientIds.push(ingredientState.value);
   }
@@ -303,6 +314,8 @@ export function expandSelection(
   );
   if (!datasetVersionPresent)
     pushUnresolved(unresolvedInputs, { reason: 'dataset-version-missing' });
+  if (hasCorruptSnapshotItem(snapshot))
+    pushUnresolved(unresolvedInputs, { reason: 'malformed-snapshot' });
 
   const pinnedSnapshot = pinSnapshotToVersion(
     snapshot,
