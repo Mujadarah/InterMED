@@ -1,0 +1,158 @@
+Toolchain: Node v24.21.0, npm 11.19.0; INTERMED_NODE22_RUNTIME Node v22.23.2
+COMMAND: vitest run tests/domain/interaction-dimensions.test.ts tests/domain/interactions.test.ts tests/domain/interaction-provider-contract.test.ts --reporter=verbose
+EXIT CODE: 0
+
+
+ RUN  v4.1.11 <worktree>
+
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 1: a current finding stays visible beside disagreeing source positions 5ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 2: a withdrawn record remains history beside a current record 1ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 3: withdrawn and superseded records alone are history, not findings or negative findings 1ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 4: complete covered-no-record evidence supports a source-attributed negative position 1ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 5: a source negative position never cancels another source current finding 0ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 6: incomplete, unresolved, unsupported, unavailable, offline, rights-blocked, and truncated coverage cannot affirm none 2ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 7: source-version-mismatched records are flagged outdated and not current findings 0ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 8: source-stated uncertainty and evidence levels are preserved without inference 0ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 9: the assessment has no safety or no-interaction wording 0ms
+ ✓ tests/domain/interaction-dimensions.test.ts > scenario 10: repeated assessment is deterministic and deeply frozen 0ms
+ ✓ tests/domain/interaction-dimensions.test.ts > removes the rejected single-category precedence API 0ms
+ ✓ tests/domain/interactions.test.ts > canonicalizes pairs and returns the full unique pair set without self-pairs 1ms
+ ✓ tests/domain/interactions.test.ts > returns an explicit pair-limit outcome without truncating the pair set 0ms
+ ✓ tests/domain/interactions.test.ts > reports a source record while preserving its exact source severity vocabulary 2ms
+ ✓ tests/domain/interactions.test.ts > uses no-reported-record only when every requested pair is explicitly covered without records 0ms
+ ✓ tests/domain/interactions.test.ts > marks reported evaluations with full coverage as coverage-complete 0ms
+ ✓ tests/domain/interactions.test.ts > marks reported evaluations with unresolved inputs as coverage-incomplete 1ms
+ ✓ tests/domain/interactions.test.ts > marks unavailable and incomplete evaluations as coverage-incomplete 1ms
+ ✓ tests/domain/interactions.test.ts > marks unresolved ingredients incomplete and does not guess their identity 0ms
+ ✓ tests/domain/interactions.test.ts > expands a combination product while retaining its product-to-ingredient mapping 0ms
+ ✓ tests/domain/interactions.test.ts > reports duplicate exposure separately and never creates a self-pair 0ms
+ ✓ tests/domain/interactions.test.ts > keeps stale or partial pair coverage visible alongside reported records 0ms
+ ✓ tests/domain/interactions.test.ts > returns unavailable when provider rights are not permitted or online access is required 0ms
+ ✓ tests/domain/interactions.test.ts > maps thrown and timed-out provider calls to unavailable without leaking exceptions 11ms
+ ✓ tests/domain/interactions.test.ts > marks unsupported context limitations incomplete without calling an incapable provider 0ms
+ ✓ tests/domain/interactions.test.ts > applies only explicit severity mappings and flags unreviewed mappings 1ms
+ ✓ tests/domain/interactions.test.ts > merges provider records and flags source-term and reported-versus-covered disagreement 1ms
+ ✓ tests/domain/interactions.test.ts > does not report inactive records as cross-provider findings 0ms
+ ✓ tests/domain/interactions.test.ts > flags severity disagreement only when different providers report different terms 0ms
+ ✓ tests/domain/interactions.test.ts > returns an incomplete evaluation when the configured pair limit is exceeded 0ms
+ ✓ tests/domain/interactions.test.ts > keeps source versions and does not label a result as safe or as no interaction 0ms
+ ✓ tests/domain/interactions.test.ts > evaluates two directly selected ingredients with a known synthetic reported pair 0ms
+ ✓ tests/domain/interactions.test.ts > includes direct ingredients alongside product ingredients in pair building 0ms
+ ✓ tests/domain/interactions.test.ts > marks unknown direct ingredient ids incomplete with unknown-ingredient and no guessing 0ms
+ ✓ tests/domain/interactions.test.ts > records direct duplicate of a product ingredient with both origins and no self-pair 0ms
+ ✓ tests/domain/interactions.test.ts > counts direct ingredients toward the too-many-pairs limit 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null product entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null active-ingredient entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null medication-ingredient entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > marks direct ingredients with empty crosswalks incomplete without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > marks direct ingredients with only unreviewed mappings incomplete without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider records payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider pair-coverage payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider evidence payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a descriptor without capabilities to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps an unexpected post-call processing failure to unavailable instead of rejecting 0ms
+ ✓ tests/domain/interactions.test.ts > marks unreviewed ingredient mappings incomplete while still evaluating the pairs 0ms
+ ✓ tests/domain/interactions.test.ts > marks rejected ingredient mappings incomplete while still evaluating the pairs 0ms
+ ✓ tests/domain/interactions.test.ts > aborts the provider signal when the evaluation times out 8ms
+ ✓ tests/domain/interactions.test.ts > still maps to unavailable when the provider ignores the abort signal 15ms
+ ✓ tests/domain/interactions.test.ts > keeps records from an unavailable provider qualified with an explicit flag 0ms
+ ✓ tests/domain/interactions.test.ts > canonicalizes adversarial reversed provider pairs 0ms
+ ✓ tests/domain/interactions.test.ts > rejects adversarial records outside the request and self-pairs 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial omitted pair coverage 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial provider identity mismatches 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial dangling evidence links 0ms
+ ✓ tests/domain/interactions.test.ts > keeps unresolved inputs visible when the provider call times out 14ms
+ ✓ tests/domain/interactions.test.ts > marks absent source severity as explicitly unmapped when a mapping is requested 0ms
+ ✓ tests/domain/interactions.test.ts > flags records from another dataset version without rewriting them 0ms
+ ✓ tests/domain/interactions.test.ts > keeps a withdrawn-only pair incomplete and retains its source history 0ms
+ ✓ tests/domain/interactions.test.ts > reports a current record while listing its superseded predecessor 0ms
+ ✓ tests/domain/interactions.test.ts > flags records from an older provider source version without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > preserves uncertainty only when the source states it 0ms
+ ✓ tests/domain/interactions.test.ts > never turns a withdrawn record into covered-no-record coverage 0ms
+ ✓ tests/domain/interactions.test.ts > keeps a superseded-only pair incomplete instead of covered-no-record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > describes a stable provider, source, availability, capability, and rights status 1ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > returns coverage for each canonical requested pair and no outside pair 1ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > preserves source severity terms and leaves absent source fields absent 2ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > maps provider errors and timeouts to unavailable results 13ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > maps provider errors and timeouts to unavailable results 13ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: online only > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > maps provider errors and timeouts to unavailable results 13ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > maps provider errors and timeouts to unavailable results 15ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > maps provider errors and timeouts to unavailable results 30ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > maps provider errors and timeouts to unavailable results 15ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > maps provider errors and timeouts to unavailable results 14ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: disagreement source > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > describes a stable provider, source, availability, capability, and rights status 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > returns coverage for each canonical requested pair and no outside pair 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > preserves source severity terms and leaves absent source fields absent 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > supplies explicit lifecycle metadata and exact update history 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > links every evidence identifier to its interaction record 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > uses canonical pairs independent of argument order 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > maps provider errors and timeouts to unavailable results 14ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > respects offline provider availability 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > exposes explicit coverage completeness on every evaluation 0ms
+ ✓ tests/domain/interaction-provider-contract.test.ts > flags record source versions that differ from the provider descriptor 1ms
+
+ Test Files  3 passed (3)
+      Tests  146 passed (146)
+   Start at  22:07:33
+   Duration  371ms (transform 269ms, setup 0ms, import 373ms, tests 222ms, environment 0ms)

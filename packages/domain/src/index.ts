@@ -131,17 +131,21 @@ export type {
   UnresolvedInteractionInputReason,
 } from './interactions';
 export type {
-  CategorizedInteractionOutcomes,
   InactiveInteractionRecord,
   InactiveInteractionRecordReason,
-  InteractionOutcomeCategory,
-  InteractionOutcomeNotes,
-  InteractionPairOutcome,
   InteractionRecordStatus,
   InteractionRecordUpdateChange,
   InteractionRecordUpdateHistoryEntry,
+  PairAssessment,
+  PairAssessmentCoverageStatus,
+  PairAssessmentEvidenceLevel,
+  PairAssessmentInput,
+  PairAssessmentProvenance,
+  PairAssessmentSourcePosition,
+  PairAssessmentSourcePositionEntry,
+  PairAssessmentSourceSeverity,
 } from './interactions/types';
-export { categorizeInteractionOutcomes } from './interactions/outcomes';
+export { assessInteractionPair } from './interactions/assessment';
 export {
   canonicalPair,
   evaluateInteractions,

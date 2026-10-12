@@ -291,33 +291,76 @@ export interface InteractionEvaluation {
   };
 }
 
-export type InteractionOutcomeCategory =
-  | 'conflicting-or-uncertain'
-  | 'documented-interaction'
-  | 'inactive-or-outdated'
-  | 'insufficient-information'
-  | 'evaluated-no-interaction-identified';
+export type PairAssessmentCoverageStatus =
+  | 'covered'
+  | 'not-covered'
+  | 'unsupported-context'
+  | 'inputs-unresolved'
+  | 'unavailable'
+  | 'truncated';
 
-export interface InteractionPairOutcome {
+export type PairAssessmentSourcePosition =
+  'documents-interaction' | 'affirms-none' | 'no-coverage' | 'unavailable';
+
+export interface PairAssessmentSourceSeverity {
+  readonly sourceId: DataSourceId;
+  readonly sourceVersion: string;
+  readonly recordId: string;
+  readonly severityTerm?: string;
+  readonly normalizedSeverity?: NormalizedSeverity | 'unmapped';
+  readonly severityMappingReviewed?: boolean;
+}
+
+export interface PairAssessmentSourcePositionEntry {
+  readonly sourceId: DataSourceId;
+  readonly sourceVersion: string;
+  readonly position: PairAssessmentSourcePosition;
+}
+
+export interface PairAssessmentEvidenceLevel {
+  readonly sourceId: DataSourceId;
+  readonly recordId: string;
+  readonly evidenceLevel?: string;
+}
+
+export interface PairAssessmentProvenance {
+  readonly sourceId: DataSourceId;
+  readonly sourceVersion: string;
+  readonly recordId: string;
+  readonly datasetVersionId: DatasetVersionId;
+  readonly retrievedAt?: string;
+}
+
+export interface PairAssessment {
   readonly pair: CanonicalIngredientPair;
-  readonly category: InteractionOutcomeCategory;
-  readonly message?: string;
+  readonly finding: {
+    readonly documentedInteraction: boolean;
+    readonly affirmedNoInteraction: boolean;
+    readonly sourceSeverities: readonly PairAssessmentSourceSeverity[];
+  };
+  readonly evidence: {
+    readonly evidenceConflict: boolean;
+    readonly positions: readonly PairAssessmentSourcePositionEntry[];
+    readonly sourceStatedUncertainty: boolean;
+    readonly evidenceLevels: readonly PairAssessmentEvidenceLevel[];
+  };
+  readonly currency: {
+    readonly currentRecordIds: readonly string[];
+    readonly historicalRecordIds: readonly string[];
+    readonly outdatedRecordIds: readonly string[];
+  };
+  readonly coverage: {
+    readonly status: PairAssessmentCoverageStatus;
+    readonly coverageComplete: boolean;
+    readonly reasons: readonly string[];
+  };
+  readonly provenance: readonly PairAssessmentProvenance[];
 }
 
-export interface InteractionOutcomeNotes {
-  readonly evaluationStatus: InteractionEvaluationStatus;
-  readonly coverageComplete: boolean;
-  readonly sourceVersions: readonly InteractionSourceVersion[];
-  readonly incompleteReasons: readonly InteractionIncompleteReason[];
-  readonly unresolvedInputs: readonly UnresolvedInteractionInput[];
-  readonly unavailableReason?: string;
-  readonly recordsFromUnavailableProvider?: boolean;
-}
-
-export interface CategorizedInteractionOutcomes {
-  readonly pairOutcomes: readonly InteractionPairOutcome[];
-  readonly notes: InteractionOutcomeNotes;
-}
+export type PairAssessmentInput =
+  | InteractionEvaluation
+  | readonly InteractionEvaluation[]
+  | MergedProviderResults;
 
 export type InteractionDisagreementReason =
   'severity-terms-differ' | 'reported-vs-covered-no-record';

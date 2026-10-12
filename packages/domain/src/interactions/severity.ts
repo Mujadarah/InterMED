@@ -31,18 +31,19 @@ export function mapSeverity(
   void existingMappingVersion;
   void existingMappingReviewed;
   if (!mapping) return sourceRecord;
-  // An unreviewed mapping travels with each record next to the normalized
-  // value and the mapping version; the top-level review marker is kept too.
-  const reviewFlag =
-    mapping.reviewed !== true ? { severityMappingReviewed: false } : {};
+  const mappingMetadata = {
+    severityMappingVersion: mapping.mappingVersion,
+    severityMappingReviewed: mapping.reviewed === true,
+  } as const;
+  // An unreviewed mapping must not produce a normalized severity value.
+  if (mapping.reviewed !== true) return { ...sourceRecord, ...mappingMetadata };
   // Without a source term there is nothing to map, but "unknown" stays
   // explicit so it cannot be confused with "not requested".
   if (interaction.severity === undefined)
     return {
       ...sourceRecord,
       normalizedSeverity: 'unmapped',
-      severityMappingVersion: mapping.mappingVersion,
-      ...reviewFlag,
+      ...mappingMetadata,
     };
 
   const sourceTerm = interaction.severity;
@@ -56,8 +57,7 @@ export function mapSeverity(
   return {
     ...sourceRecord,
     normalizedSeverity,
-    severityMappingVersion: mapping.mappingVersion,
-    ...reviewFlag,
+    ...mappingMetadata,
   };
 }
 
