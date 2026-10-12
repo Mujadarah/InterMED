@@ -1,0 +1,35 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts -t 'keeps a registration-time snapshot'
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: EXPECTED RED (nonzero); exit code 1
+
+Captured test output:
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts (89 tests | 1 failed | 88 skipped) 10ms
+     × keeps a registration-time snapshot of plausible input ranges 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > keeps a registration-time snapshot of plausible input ranges
+AssertionError: expected 'invalid-input' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "invalid-input"
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:156:27
+    154|     );
+    155|
+    156|     expect(result.status).toBe('ok');
+       |                           ^
+    157|   });
+    158|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 88 skipped (89)
+   Start at  16:26:48
+   Duration  441ms (transform 137ms, setup 0ms, import 187ms, tests 10ms, environment 0ms)

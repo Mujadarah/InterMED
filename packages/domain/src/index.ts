@@ -91,6 +91,43 @@ export { MedicationDetailIntegrityError } from './medication-detail';
 export type { DeserializeCatalogueResult } from './serialize';
 export { deserializeCatalogue, serializeCatalogue } from './serialize';
 
+export {
+  calculateFormula,
+  FormulaRegistrationError,
+  FormulaRegistry,
+  STANDARD_UNIT_CONVERSIONS,
+} from './calculators';
+export type {
+  CalculationInput,
+  CalculationInputEcho,
+  CalculationInvalidInputResult,
+  CalculationOkResult,
+  CalculationOutOfPopulationResult,
+  CalculationRequest,
+  CalculationResult,
+  CalculationResultMetadata,
+  CalculationUnitError,
+  CalculationUnitErrorResult,
+  CalculationUnavailableResult,
+  FormulaDefinition,
+  FormulaDeprecation,
+  FormulaInputDefinition,
+  FormulaOutputDefinition,
+  FormulaPopulationLimits,
+  FormulaQuantityKind,
+  FormulaReference,
+  FormulaReviewStatus,
+  FormulaUnitConversions,
+  FormulaVersionSummary,
+  InputValidationCode,
+  InputValidationError,
+  PopulationGuard,
+  PopulationLimitHit,
+  UnitConversionRecord,
+  UnitConversionRule,
+  UnitErrorCode,
+} from './calculators';
+
 export interface BootstrapInfo {
   readonly label: string;
   readonly referenceData: 'unavailable';
