@@ -121,7 +121,7 @@ The architecture should allow multiple `DrugInteractionProvider` implementations
 
 Every released formula needs a named primary source, explicit version, units, intended population, limitations and boundary/missing-data tests. Do not silently switch formulas or treat a renal estimate as a complete prescribing decision. Initial calculator inputs are ephemeral, without patient profiles.
 
-Rounding and classification rules are calculator-specific and must be documented and tested for each version. Apply classification thresholds to unrounded values; never reuse display-rounded values in calculations. Any formula-prescribed intermediate rounding is a separate, explicitly sourced rule, not display rounding.
+Rounding and classification rules are calculator-specific and must be documented and tested for each version. Apply classification thresholds to unrounded values unless the validated source methodology for that formula or classification explicitly requires otherwise; record any such exception per formula version. Never reuse display-rounded values in calculations. Any formula-prescribed intermediate rounding is a separate, explicitly sourced rule, not display rounding.
 
 ## Clinical content governance
 
