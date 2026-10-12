@@ -1,0 +1,1483 @@
+Node24=v24.21.0
+npm=11.19.0
+Node22=v22.23.2
+
+command=npm run test -- tests/domain/calculators/bmi-bsa.test.ts tests/domain/calculators/calculator-engine.test.ts
+exit_code=1
+
+
+> intermed@0.0.0 test
+> vitest run tests/domain/calculators/bmi-bsa.test.ts tests/domain/calculators/calculator-engine.test.ts
+
+
+ RUN  v4.1.11 [WORKTREE]
+
+ ❯ tests/domain/calculators/bmi-bsa.test.ts (60 tests | 14 failed) 32ms
+     × exports the pinned, explicitly unreviewed formula versions 7ms
+     × keeps both exact formula versions in the pending-approval list 2ms
+     × documents the unreviewed engineering ranges and formula limitations 3ms
+     × keeps a version-pinned BMI golden with unrounded and display values 1ms
+     × keeps a version-pinned Mosteller BSA golden with full precision 1ms
+     × uses decimal half-up presentation for the BMI 22.85 vector 1ms
+     × uses decimal half-up presentation for the BSA 1.005, 2.675 and 0.125 vectors 1ms
+     × classifies exact BMI cutoffs from the unrounded value 0ms
+     × classifies just below each BMI cutoff using the unrounded value 0ms
+     × does not classify a rounded BMI display of 25 as pre-obese below 25 0ms
+     × accepts the adult technical age bounds and rejects ages below 18 1ms
+     × requires explicit confirmation for proposed unusual input and BMI ranges 1ms
+     × treats proposed soft-check endpoints as inclusive 0ms
+     × returns values only after every triggered check is confirmed 0ms
+ ❯ tests/domain/calculators/calculator-engine.test.ts (184 tests | 143 failed) 58ms
+     × computes the declared positive case with provenance 4ms
+     × accepts exact minimum range boundary 1ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 1ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 1ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 1ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × omits the optional input from compute values with a distinct result 1ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 2ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × rejects values that convert outside the canonical plausible range 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × rejects out-of-range submitted values even when the canonical value is plausible 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × requires confirmation for triggered soft checks and returns no value 1ms
+     × lists confirmed soft checks on the successful result 0ms
+     × omits the optional input from compute values with a distinct result 0ms
+     × lists registered versions explicitly without selecting one as latest 2ms
+     × identifies a calculator by its independent component-version set 0ms
+     × resolves a pinned deprecated version and includes its notice in the result 0ms
+     × rounds half-up from shortest decimal text, including exponent values 1ms
+     × classifies from the unrounded value, not the display value 0ms
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯ Failed Tests 157 ⎯⎯⎯⎯⎯⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > exports the pinned, explicitly unreviewed formula versions
+AssertionError: expected { formulaId: 'bmi', …(11) } to match object { formulaId: 'bmi', …(3) }
+(15 matching properties omitted from actual)
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+@@ -1,17 +1,10 @@
+  {
+-   "componentVersions": {
+-     "classification": "2.0.0",
+-     "confirmation": "1.0.0",
+-     "formula": "1.0.0",
+-     "population": "2.0.0",
+-     "presentation": "2.0.0",
+-   },
+    "formulaId": "bmi",
+    "output": {
+      "rounding": {
+-       "mode": "half-up-decimal",
++       "mode": "half-away-from-zero",
+        "precision": 1,
+      },
+      "unit": "kg/m²",
+    },
+    "reviewStatus": "unreviewed",
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:197:24
+    195|     if (!bmiFormula || !bsaFormula) return;
+    196|
+    197|     expect(bmiFormula).toMatchObject({
+       |                        ^
+    198|       formulaId: 'bmi',
+    199|       componentVersions: {
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > keeps both exact formula versions in the pending-approval list
+TypeError: Cannot convert undefined or null to object
+ ❯ expectedPendingComponents tests/domain/calculators/bmi-bsa.test.ts:86:17
+     84|   definition: TestFormulaDefinition,
+     85| ): PendingApproval[] {
+     86|   return Object.entries(definition.componentVersions)
+       |                 ^
+     87|     .filter((entry): entry is [string, string] => typeof entry[1] === …
+     88|     .map(([component, componentVersion]) => ({
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:244:12
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > documents the unreviewed engineering ranges and formula limitations
+AssertionError: expected 'candidate who adult bmi categories (w…' to contain 'technical bounds, not clinically vali…'
+System.Management.Automation.RemoteException
+Expected: "technical bounds, not clinically validated plausibility thresholds"
+Received: "candidate who adult bmi categories (who technical report series 894, 2000) are included for engineering review only; their thresholds and application to ages 18–19 are pending owner clinical approval. for adults only; values below age 18 return an out-of-population result. bmi is a screening index, not a direct body-fat measure and not a diagnosis. interpretation may be affected by muscle mass, pregnancy, amputation, edema (oedema), and body-composition extremes. no ethnicity-specific thresholds, dose, diagnosis, or treatment advice are provided. engineering plausibility limits, pending owner review: weight 1–500 kg, height 50–272 cm, and adult age 18–130 years. values outside these limits are not calculated. original-paper rounding and instrument-specific reuse rights have not been verified."
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:253:30
+    251|       const bsaLimitations = bsaFormula.limitations.join(' ').toLowerC…
+    252|       const bmiCitation = bmiFormula.primaryReference.citation.toLower…
+    253|       expect(bmiLimitations).toContain(
+       |                              ^
+    254|         'technical bounds, not clinically validated plausibility thres…
+    255|       );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > keeps a version-pinned BMI golden with unrounded and display values
+AssertionError: expected { status: 'ok', …(14) } to match object { formulaId: 'bmi', …(5) }
+(13 matching properties omitted from actual)
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+@@ -2,10 +2,10 @@
+    "displayValue": 22.9,
+    "formulaId": "bmi",
+    "formulaVersion": "1.0.0",
+    "reviewStatus": "unreviewed",
+    "rounding": {
+-     "mode": "half-up-decimal",
++     "mode": "half-away-from-zero",
+      "precision": 1,
+    },
+    "unroundedValue": 22.857142857142858,
+  }
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:307:22
+    305|       });
+    306|
+    307|       expect(result).toMatchObject({
+       |                      ^
+    308|         formulaId: 'bmi',
+    309|         formulaVersion: bmiFormula.formulaVersion,
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > keeps a version-pinned Mosteller BSA golden with full precision
+AssertionError: expected { status: 'ok', …(13) } to match object { formulaId: 'bsa-mosteller', …(5) }
+(10 matching properties omitted from actual)
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+@@ -2,10 +2,10 @@
+    "displayValue": 1.84,
+    "formulaId": "bsa-mosteller",
+    "formulaVersion": "1.0.0",
+    "reviewStatus": "unreviewed",
+    "rounding": {
+-     "mode": "half-up-decimal",
++     "mode": "half-away-from-zero",
+      "precision": 2,
+    },
+    "unroundedValue": 1.8446619684315546,
+  }
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:356:22
+    354|       });
+    355|
+    356|       expect(result).toMatchObject({
+       |                      ^
+    357|         formulaId: 'bsa-mosteller',
+    358|         formulaVersion: bsaFormula.formulaVersion,
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > uses decimal half-up presentation for the BMI 22.85 vector
+AssertionError: expected { mode: 'half-away-from-zero', …(1) } to deeply equal { mode: 'half-up-decimal', …(1) }
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+  {
+-   "mode": "half-up-decimal",
++   "mode": "half-away-from-zero",
+    "precision": 1,
+  }
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:407:31
+    405|       expect(result.unroundedValue).toBe(22.85);
+    406|       expect(result.displayValue).toBe(22.9);
+    407|       expect(result.rounding).toEqual({
+       |                               ^
+    408|         mode: 'half-up-decimal',
+    409|         precision: 1,
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > uses decimal half-up presentation for the BSA 1.005, 2.675 and 0.125 vectors
+AssertionError: expected 1 to be 1.01 // Object.is equality
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+- 1.01
++ 1
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:458:37
+    456|
+    457|         expect(result.unroundedValue).toBeCloseTo(vector.expected, 12);
+    458|         expect(result.displayValue).toBe(vector.display);
+       |                                     ^
+    459|         expect(result.confirmedChecks?.map((check) => check.id)).toEqu…
+    460|           vector.confirmedChecks,
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > classifies exact BMI cutoffs from the unrounded value
+AssertionError: expected 'normal' to be 'who-international-adult-normal' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "who-international-adult-normal"
+Received: "normal"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:516:45
+    514|
+    515|         expect(result.unroundedValue).toBe(testCase.value);
+    516|         expect(result.classification?.code).toBe(testCase.code);
+       |                                             ^
+    517|         expect(result.displayValue).toBe(testCase.value);
+    518|         expect(result.classificationNote).toBeUndefined();
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > classifies just below each BMI cutoff using the unrounded value
+AssertionError: expected 'underweight' to be 'who-international-adult-underweight' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "who-international-adult-underweight"
+Received: "underweight"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:563:45
+    561|         expect(result.unroundedValue).toBe(testCase.value);
+    562|         expect(result.displayValue).toBe(testCase.displayValue);
+    563|         expect(result.classification?.code).toBe(testCase.code);
+       |                                             ^
+    564|         expect(result.classificationNote).toContain(
+    565|           String(testCase.value),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > does not classify a rounded BMI display of 25 as pre-obese below 25
+AssertionError: expected 'normal' to be 'who-international-adult-normal' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "who-international-adult-normal"
+Received: "normal"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:579:43
+    577|       expect(result.unroundedValue).toBe(24.96);
+    578|       expect(result.displayValue).toBe(25);
+    579|       expect(result.classification?.code).toBe(
+       |                                           ^
+    580|         'who-international-adult-normal',
+    581|       );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > accepts the adult technical age bounds and rejects ages below 18
+AssertionError: expected 'out-of-population' to be 'invalid-input' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "invalid-input"
+Received: "out-of-population"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:597:31
+    595|           ...baseInputs(17.999),
+    596|         });
+    597|         expect(result.status).toBe('invalid-input');
+       |                               ^
+    598|         expect(result.errors).toEqual(
+    599|           expect.arrayContaining([
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > requires explicit confirmation for proposed unusual input and BMI ranges
+AssertionError: bmi: weight below 30 kg: expected 'ok' to be 'confirmation-required' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "confirmation-required"
+Received: "ok"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:674:74
+    672|         for (const vector of vectors) {
+    673|           const result = calculate(formula, vector.inputs);
+    674|           expect(result.status, `${formula.formulaId}: ${vector.label}…
+       |                                                                          ^
+    675|             'confirmation-required',
+    676|           );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > treats proposed soft-check endpoints as inclusive
+AssertionError: expected undefined to deeply equal []
+System.Management.Automation.RemoteException
+- Expected:
+[]
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:714:68
+    712|           const result = calculate(formula, inputs, vector.checkIds);
+    713|           expect(result.status).toBe('ok');
+    714|           expect(result.confirmedChecks?.map((check) => check.id)).toE…
+       |                                                                    ^
+    715|             vector.checkIds,
+    716|           );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > returns values only after every triggered check is confirmed
+AssertionError: expected 'ok' to be 'confirmation-required' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "confirmation-required"
+Received: "ok"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:734:33
+    732|       for (const formula of [bmiFormula, bsaFormula]) {
+    733|         const required = calculate(formula, inputs);
+    734|         expect(required.status).toBe('confirmation-required');
+       |                                 ^
+    735|         expect(required.checks?.map((check) => check.id)).toEqual([
+    736|           'weight-unusual',
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:296:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:309:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:337:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:356:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:376:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:390:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@formula=1.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@formula=1.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=1.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@formula=1.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:406:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@formula=1.0|population=1.0|presentation=1.0 > omits the optional input from compute values with a distinct result
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:476:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > computes the declared positive case with provenance
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:296:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > accepts exact maximum range boundary
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:309:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > returns missing-required for synthetic-axis
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:337:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > rejects negative infinite input values
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:356:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > records declared unit conversions in the input echo
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:376:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:390:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@formula=2.0|population=1.0|presentation=1.0 > reports structured population-limit hits
+AssertionError: expected undefined to deeply equal { formula: '2.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "2.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:406:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > computes the declared positive case with provenance
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:296:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > accepts exact maximum range boundary
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:309:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > returns missing-required for synthetic-axis
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:337:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > rejects negative infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > rejects negative infinite input values
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:356:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > records declared unit conversions in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > records declared unit conversions in the input echo
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:376:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > rejects undeclared units with a field-level unit error
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:390:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-least-guard@formula=1.0|population=2.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-at-most-guard@formula=1.0|population=2.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > reports structured population-limit hits
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:406:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-narrow@formula=1.0|population=2.0|presentation=1.0 > rejects values that convert outside the canonical plausible range
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:520:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-divergent-wide@formula=1.0|population=2.0|presentation=1.0 > rejects out-of-range submitted values even when the canonical value is plausible
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(2) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "formula": "1.0",
+  "population": "2.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:536:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > computes the declared positive case with provenance
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:296:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > accepts exact maximum range boundary
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:309:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > returns missing-required for synthetic-axis
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:337:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > rejects NaN input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > rejects infinite input values
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > rejects negative infinite input values
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:356:7
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > records declared unit conversions in the input echo
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:376:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > rejects undeclared units with a field-level unit error
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:390:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > reports structured population-limit hits
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:406:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > requires confirmation for triggered soft checks and returns no value
+AssertionError: expected 'ok' to be 'confirmation-required' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "confirmation-required"
+Received: "ok"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/describe-formula-contract.ts:419:27
+    417|       expectedStatus: 'confirmation-required',
+    418|     });
+    419|     expect(result.status).toBe('confirmation-required');
+       |                           ^
+    420|     expect(result.checks).toEqual(cases.expectedChecks);
+    421|     expect(result).not.toHaveProperty('displayValue');
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > lists confirmed soft checks on the successful result
+AssertionError: expected undefined to deeply equal [ { …(3) } ]
+System.Management.Automation.RemoteException
+- Expected:
+[
+  {
+    "id": "synthetic-optional-unusual",
+    "inputIds": [
+      "synthetic-optional",
+    ],
+    "message": "Confirm the unusual fictional optional value.",
+  },
+]
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/describe-formula-contract.ts:433:36
+    431|     expect(result.status).toBe('ok');
+    432|     expect(result.displayValue).toBe(cases.expectedValue);
+    433|     expect(result.confirmedChecks).toEqual(cases.expectedChecks);
+       |                                    ^
+    434|     expectProvenance(definition, result);
+    435|   });
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-confirmation-required@formula=1.0|population=1.0|presentation=1.0|confirmation=1.0 > omits the optional input from compute values with a distinct result
+AssertionError: expected undefined to deeply equal { formula: '1.0', …(3) }
+System.Management.Automation.RemoteException
+- Expected:
+{
+  "confirmation": "1.0",
+  "formula": "1.0",
+  "population": "1.0",
+  "presentation": "1.0",
+}
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ expectProvenance tests/domain/calculators/describe-formula-contract.ts:277:36
+    275|   expect(result.formulaId).toBe(definition.formulaId);
+    276|   expect(result.formulaVersion).toBe(definition.formulaVersion);
+    277|   expect(result.componentVersions).toEqual(definition.componentVersion…
+       |                                    ^
+    278|   expect(result.primaryReference).toEqual(definition.primaryReference);
+    279|   expect(result.limitations).toEqual(definition.limitations);
+ ❯ tests/domain/calculators/describe-formula-contract.ts:476:5
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > lists registered versions explicitly without selecting one as latest
+AssertionError: expected [ { …(2) }, { …(3) } ] to deeply equal [ { …(3) }, { …(4) } ]
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+  [
+    {
+-     "componentVersions": {
+-       "formula": "2.0",
+-       "population": "1.0",
+-       "presentation": "1.0",
+-     },
+      "deprecated": false,
+      "version": "formula=2.0|population=1.0|presentation=1.0",
+    },
+    {
+-     "componentVersions": {
+-       "formula": "1.0",
+-       "population": "1.0",
+-       "presentation": "1.0",
+-     },
+      "deprecated": true,
+      "deprecationNotice": "This fictional test version is deprecated.",
+      "version": "formula=1.0|population=1.0|presentation=1.0",
+    },
+  ]
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/calculator-engine.test.ts:200:58
+    198|     registry.register(olderVersion);
+    199|
+    200|     expect(registry.listVersions('synthetic-versioned')).toEqual([
+       |                                                          ^
+    201|       {
+    202|         version: newerVersion.formulaVersion,
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > identifies a calculator by its independent component-version set
+AssertionError: expected undefined to be type of 'function'
+System.Management.Automation.RemoteException
+Expected: "function"
+Received: "undefined"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/calculator-engine.test.ts:223:27
+    221|   it('identifies a calculator by its independent component-version set…
+    222|     const makeVersionId = calculatorEngine.getFormulaVersionId;
+    223|     expect(makeVersionId).toBeTypeOf('function');
+       |                           ^
+    224|     if (!makeVersionId) return;
+    225|
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > resolves a pinned deprecated version and includes its notice in the result
+AssertionError: expected 'formula=1.0|population=1.0|presentati…' to be '1.0' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "1.0"
+Received: "formula=1.0|population=1.0|presentation=1.0"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/calculators/calculator-engine.test.ts:629:35
+    627|
+    628|     expect(result.status).toBe('ok');
+    629|     expect(result.formulaVersion).toBe('1.0');
+       |                                   ^
+    630|     expect(result.deprecationNotice).toBe(
+    631|       'This fictional test version is deprecated.',
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds half-up from shortest decimal text, including exponent values
+FormulaRegistrationError: A formula output requires a unit and an explicit supported rounding mode with non-negative integer precision.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:29:9
+     27|
+     28| function invalidDefinition(message: string): never {
+     29|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     30| }
+     31|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:408:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:518:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:910:16
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/157]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > classifies from the unrounded value, not the display value
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+ ❯ tests/domain/calculators/calculator-engine.test.ts:1000:22
+    998|     expect(result.unroundedValue).toBe(24.999999);
+    999|     expect(result.displayValue).toBe(25);
+    1000|     expect(classify).toHaveBeenCalledTimes(2);
+       |                      ^
+    1001|     expect(classify).toHaveBeenNthCalledWith(1, 24.999999);
+    1002|     expect(classify).toHaveBeenNthCalledWith(2, 25);
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/157]⎯
+System.Management.Automation.RemoteException
+
+ Test Files  2 failed (2)
+      Tests  157 failed | 87 passed (244)
+   Start at  21:51:28
+   Duration  524ms (transform 175ms, setup 0ms, import 234ms, tests 90ms, environment 0ms)
