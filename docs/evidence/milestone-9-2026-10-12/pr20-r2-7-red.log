@@ -1,0 +1,39 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/interactions.test.ts (39 tests | 1 failed) 65ms
+   ├ù flags records from another dataset version without rewriting them 8ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > flags records from another dataset version without rewriting them
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» tests/domain/interactions.test.ts:1723:35
+    1721|   expect(result.interactions).toHaveLength(1);
+    1722|   expect(result.interactions[0]?.datasetVersionId).toBe(otherDatasetVeΓÇª
+    1723|   expect(result.coverageComplete).toBe(false);
+       |                                   ^
+    1724|   expect(result.incompleteReasons).toContain('record-dataset-version-mΓÇª
+    1725| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 101 passed (102)
+   Start at  16:20:16
+   Duration  551ms (transform 324ms, setup 0ms, import 428ms, tests 184ms, environment 0ms)
+

@@ -1,0 +1,98 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/interactions.test.ts (47 tests | 5 failed) 115ms
+   ├ù canonicalizes adversarial reversed provider pairs 12ms
+   ├ù rejects adversarial records outside the request and self-pairs 3ms
+   ├ù flags adversarial omitted pair coverage 1ms
+   ├ù flags adversarial provider identity mismatches 1ms
+   ├ù flags adversarial dangling evidence links 1ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 5 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > canonicalizes adversarial reversed provider pairs
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ Γ¥» tests/domain/interactions.test.ts:1771:61
+    1769|   expect(rawRecord).toBeDefined();
+    1770|   if (!rawRecord) return;
+    1771|   expect(rawRecord.ingredientAId > rawRecord.ingredientBId).toBe(true);
+       |                                                             ^
+    1772|
+    1773|   const result = await evaluateInteractions(
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > rejects adversarial records outside the request and self-pairs
+AssertionError: expected [] to include 'record-pair-outside-request'
+ Γ¥» tests/domain/interactions.test.ts:1795:36
+    1793|   );
+    1794|   expect(result.interactions).toHaveLength(1);
+    1795|   expect(result.incompleteReasons).toContain('record-pair-outside-requΓÇª
+       |                                    ^
+    1796|   expect(result.incompleteReasons).toContain('provider-pair-coverage-iΓÇª
+    1797| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > flags adversarial omitted pair coverage
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» tests/domain/interactions.test.ts:1805:35
+    1803|     options(),
+    1804|   );
+    1805|   expect(result.coverageComplete).toBe(false);
+       |                                   ^
+    1806|   expect(result.incompleteReasons).toContain(
+    1807|     'provider-pair-coverage-incomplete',
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > flags adversarial provider identity mismatches
+AssertionError: expected [] to include 'provider-version-mismatch'
+ Γ¥» tests/domain/interactions.test.ts:1822:36
+    1820|     options(),
+    1821|   );
+    1822|   expect(result.incompleteReasons).toContain('provider-version-mismatcΓÇª
+       |                                    ^
+    1823|   expect(result.incompleteReasons).toContain('record-dataset-version-mΓÇª
+    1824| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > flags adversarial dangling evidence links
+AssertionError: expected [] to include 'evidence-link-invalid'
+ Γ¥» tests/domain/interactions.test.ts:1832:36
+    1830|     options(),
+    1831|   );
+    1832|   expect(result.incompleteReasons).toContain('evidence-link-invalid');
+       |                                    ^
+    1833|   expect(result.evidence).toEqual([]);
+    1834| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/5]ΓÄ»
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  5 failed | 105 passed (110)
+   Start at  16:24:31
+   Duration  824ms (transform 530ms, setup 0ms, import 701ms, tests 226ms, environment 0ms)
+

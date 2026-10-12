@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/interactions.test.ts (41 tests | 1 failed) 88ms
+   ├ù keeps unresolved inputs visible when the provider call times out 24ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > keeps unresolved inputs visible when the provider call times out
+AssertionError: expected 0 to be greater than 0
+ Γ¥» tests/domain/interactions.test.ts:1726:43
+    1724|   expect(result.status).toBe('unavailable');
+    1725|   expect(result.unavailableReason).toBe('provider-timeout');
+    1726|   expect(result.incompleteReasons.length).toBeGreaterThan(0);
+       |                                           ^
+    1727|   expect(result.incompleteReasons).toContain('unresolved-inputs');
+    1728| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 103 passed (104)
+   Start at  16:21:51
+   Duration  832ms (transform 535ms, setup 0ms, import 714ms, tests 195ms, environment 0ms)
+
