@@ -407,3 +407,42 @@ export const throwing = makeDefinition({
     throw new Error('synthetic compute failure with private input');
   },
 });
+
+function withConcentrationRanges(
+  definition: TestFormulaDefinition,
+  ranges: Readonly<
+    Record<string, { readonly min: number; readonly max: number }>
+  >,
+): TestFormulaDefinition {
+  return {
+    ...definition,
+    inputs: definition.inputs.map((item) =>
+      item.id === 'synthetic-concentration'
+        ? { ...item, plausibleRangeByUnit: ranges }
+        : item,
+    ),
+  };
+}
+
+function withFormulaId(
+  definition: TestFormulaDefinition,
+  formulaId: string,
+): TestFormulaDefinition {
+  return { ...definition, formulaId };
+}
+
+export const divergentNarrow = withFormulaId(
+  withConcentrationRanges(linear, {
+    'mg/dL': { min: 0, max: 100 },
+    'µmol/L': { min: 0, max: 2000 },
+  }),
+  'synthetic-divergent-narrow',
+);
+
+export const divergentWide = withFormulaId(
+  withConcentrationRanges(linear, {
+    'mg/dL': { min: 0, max: 20000 },
+    'µmol/L': { min: 0, max: 2000 },
+  }),
+  'synthetic-divergent-wide',
+);

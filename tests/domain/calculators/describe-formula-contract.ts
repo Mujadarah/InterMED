@@ -106,6 +106,7 @@ export interface TestCalculationResult {
   readonly errors?: readonly {
     readonly inputId: string;
     readonly code: string;
+    readonly message?: string;
   }[];
   readonly unitErrors?: readonly {
     readonly inputId: string;
@@ -159,6 +160,13 @@ export interface FormulaContractCases {
   readonly invalidUnit: FormulaContractCase & { readonly inputId: string };
   readonly outOfPopulation: FormulaContractCase & { readonly guardId: string };
   readonly optionalMissing?: FormulaContractCase & { readonly inputId: string };
+  readonly submittedInRangeCanonicalOut?: FormulaContractCase & {
+    readonly inputId: string;
+    readonly canonicalUnit: string;
+  };
+  readonly submittedOutOfRangeCanonicalIn?: FormulaContractCase & {
+    readonly inputId: string;
+  };
 }
 
 function calculateForDefinition(
@@ -325,6 +333,48 @@ function describeOptionalCase(
   });
 }
 
+function describeCanonicalRangeCases(
+  definition: TestFormulaDefinition,
+  cases: FormulaContractCases,
+): void {
+  const inRangeOut = cases.submittedInRangeCanonicalOut;
+  if (inRangeOut) {
+    it('rejects values that convert outside the canonical plausible range', () => {
+      const result = calculateForDefinition(definition, inRangeOut);
+      expect(result.status).toBe('invalid-input');
+      expect(result.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            inputId: inRangeOut.inputId,
+            code: 'out-of-range',
+          }),
+        ]),
+      );
+      const messages = (result.errors ?? []).map((item) => item.message ?? '');
+      expect(
+        messages.some((message) => message.includes(inRangeOut.canonicalUnit)),
+      ).toBe(true);
+      expectProvenance(definition, result);
+    });
+  }
+  const outRangeIn = cases.submittedOutOfRangeCanonicalIn;
+  if (outRangeIn) {
+    it('rejects out-of-range submitted values even when the canonical value is plausible', () => {
+      const result = calculateForDefinition(definition, outRangeIn);
+      expect(result.status).toBe('invalid-input');
+      expect(result.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            inputId: outRangeIn.inputId,
+            code: 'out-of-range',
+          }),
+        ]),
+      );
+      expectProvenance(definition, result);
+    });
+  }
+}
+
 export function describeFormulaContract(
   definition: TestFormulaDefinition,
   cases: FormulaContractCases,
@@ -334,6 +384,7 @@ export function describeFormulaContract(
     describeInputValidation(definition, cases);
     describeUnitCases(definition, cases);
     describePopulationCase(definition, cases.outOfPopulation);
+    describeCanonicalRangeCases(definition, cases);
     if (cases.optionalMissing) {
       describeOptionalCase(definition, cases.optionalMissing);
     }

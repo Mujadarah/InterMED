@@ -10,6 +10,8 @@ import {
 } from './describe-formula-contract';
 import {
   commonCases,
+  divergentNarrow,
+  divergentWide,
   guarded,
   linear,
   makeDefinition,
@@ -55,6 +57,29 @@ describeFormulaContract(
     expectedConversionStatus: 'unavailable',
   }),
 );
+describeFormulaContract(divergentNarrow, {
+  ...commonCases(divergentNarrow, { expectedPositiveValue: 50 }),
+  submittedInRangeCanonicalOut: {
+    request: request(divergentNarrow.formulaId, divergentNarrow.formulaVersion, {
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-concentration': { value: 800, unit: 'µmol/L' },
+    }),
+    expectedStatus: 'invalid-input',
+    inputId: 'synthetic-concentration',
+    canonicalUnit: 'mg/dL',
+  },
+});
+describeFormulaContract(divergentWide, {
+  ...commonCases(divergentWide, { expectedPositiveValue: 50 }),
+  submittedOutOfRangeCanonicalIn: {
+    request: request(divergentWide.formulaId, divergentWide.formulaVersion, {
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-concentration': { value: 2500, unit: 'µmol/L' },
+    }),
+    expectedStatus: 'invalid-input',
+    inputId: 'synthetic-concentration',
+  },
+});
 
 describe('calculator registry and result provenance', () => {
   it('requires an explicit id and version without substituting a registered version', () => {

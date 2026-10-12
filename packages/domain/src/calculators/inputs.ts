@@ -185,7 +185,7 @@ function validatePlausibleRange(
         error: inputError(
           definition.id,
           'out-of-range',
-          'Input value is outside its declared plausible range.',
+          `Input value is outside its declared plausible range for ${unit}.`,
         ),
       }
     : undefined;
@@ -229,6 +229,29 @@ function convertedInputOutcome(
         definition.id,
         'conversion-failed',
         'The declared unit conversion did not produce a finite value.',
+      ),
+    };
+  }
+  const canonicalRange =
+    definition.plausibleRangeByUnit[definition.canonicalUnit];
+  if (
+    canonicalRange &&
+    (converted.value < canonicalRange.min ||
+      converted.value > canonicalRange.max)
+  ) {
+    return {
+      echo: {
+        inputId: definition.id,
+        submittedValue: value,
+        submittedUnit,
+        normalizedValue: converted.value,
+        normalizedUnit: definition.canonicalUnit,
+        conversions: converted.records,
+      },
+      error: inputError(
+        definition.id,
+        'out-of-range',
+        `Input value is outside its declared plausible range for ${definition.canonicalUnit}.`,
       ),
     };
   }
