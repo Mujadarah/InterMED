@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as Domain from '@intermed/domain';
 
 export interface TestInputDefinition {
@@ -343,9 +343,30 @@ function describeOptionalCase(
   definition: TestFormulaDefinition,
   testCase: NonNullable<FormulaContractCases['optionalMissing']>,
 ): void {
-  it('accepts an omitted optional input and echoes its absence', () => {
-    const result = calculateForDefinition(definition, testCase);
+  it('omits the optional input from compute values with a distinct result', () => {
+    const innerCompute = definition.compute;
+    const computeSpy = vi.fn(
+      (values: Readonly<Record<string, number | undefined>>) =>
+        innerCompute(values),
+    );
+    const spiedDefinition: TestFormulaDefinition = {
+      ...definition,
+      compute: computeSpy,
+    };
+    const registry = new calculatorEngine.FormulaRegistry();
+    registry.register(spiedDefinition);
+    const result = calculatorEngine.calculateFormula(registry, testCase.request);
     expect(result.status).toBe(testCase.expectedStatus);
+    expect(computeSpy).toHaveBeenCalledTimes(1);
+    const seenValues = computeSpy.mock.calls[0]?.[0] as
+      | Record<string, number | undefined>
+      | undefined;
+    expect(seenValues).toBeDefined();
+    const seen =
+      seenValues && testCase.inputId in seenValues
+        ? seenValues[testCase.inputId]
+        : undefined;
+    expect(seen).toBeUndefined();
     expect(
       result.inputEcho.find((item) => item.inputId === testCase.inputId),
     ).toMatchObject({
@@ -355,6 +376,25 @@ function describeOptionalCase(
       conversions: [],
     });
     expectProvenance(definition, result);
+    if (testCase.expectedValue !== undefined) {
+      expect(result.status).toBe('ok');
+      expect(result.displayValue).toBe(testCase.expectedValue);
+      const optionalInput = definition.inputs.find(
+        (item) => item.id === testCase.inputId,
+      );
+      const unit = optionalInput?.allowedUnits[0];
+      if (unit) {
+        const zeroFilled = calculatorEngine.calculateFormula(registry, {
+          ...testCase.request,
+          inputs: {
+            ...testCase.request.inputs,
+            [testCase.inputId]: { value: 0, unit },
+          },
+        });
+        expect(zeroFilled.status).toBe('ok');
+        expect(zeroFilled.displayValue).not.toBe(testCase.expectedValue);
+      }
+    }
   });
 }
 

@@ -117,10 +117,14 @@ export function makeDefinition(options: {
       : {}),
     compute:
       options.compute ??
-      ((values) =>
-        (values['synthetic-axis'] ?? 0) +
-        (values['synthetic-concentration'] ?? 0) / 3 +
-        (values['synthetic-optional'] ?? 0)),
+      ((values) => {
+        const axis = values['synthetic-axis'];
+        const concentration = values['synthetic-concentration'];
+        if (axis === undefined || concentration === undefined) {
+          throw new Error('Synthetic required input is missing.');
+        }
+        return axis + concentration / 3;
+      }),
   };
 }
 
@@ -319,6 +323,7 @@ function optionalInputCase(
   definition: TestFormulaDefinition,
   baseInputs: CommonFormulaInputs['baseInputs'],
   expectedStatus: TestCalculationResult['status'],
+  expectedValue?: number,
 ): Pick<FormulaContractCases, 'optionalMissing'> | Record<string, never> {
   const optionalInput = definition.inputs.find(
     (item) => item.id === 'synthetic-optional',
@@ -332,6 +337,7 @@ function optionalInputCase(
             baseInputs,
           ),
           expectedStatus,
+          ...(expectedValue !== undefined ? { expectedValue } : {}),
           inputId: optionalInput.id,
         },
       }
@@ -361,47 +367,74 @@ export function commonCases(
     ...invalidInputCases(values),
     ...unitCases(values, options.expectedConversionStatus ?? 'ok'),
     ...populationCase(values),
-    ...optionalInputCase(definition, values.baseInputs, expectedStatus),
+    ...optionalInputCase(
+      definition,
+      values.baseInputs,
+      expectedStatus,
+      options.expectedPositiveValue,
+    ),
   };
 }
 
 export const linear = makeDefinition({
   id: 'synthetic-linear',
   version: '1.0',
-  compute: (values) =>
-    (values['synthetic-axis'] ?? 0) +
-    (values['synthetic-concentration'] ?? 0) / 3,
 });
 
 export const guarded = makeDefinition({
   id: 'synthetic-population-guard',
   version: '1.0',
   canonicalConcentrationUnit: 'µmol/L',
-  compute: (values) =>
-    (values['synthetic-axis'] ?? 0) +
-    (values['synthetic-concentration'] ?? 0) / 9,
+  compute: (values) => {
+    const axis = values['synthetic-axis'];
+    const concentration = values['synthetic-concentration'];
+    if (axis === undefined || concentration === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    return axis + concentration / 9;
+  },
 });
 
 export const optional = makeDefinition({
   id: 'synthetic-optional-input',
   version: '1.0',
   includeOptional: true,
+  compute: (values) => {
+    const axis = values['synthetic-axis'];
+    const concentration = values['synthetic-concentration'];
+    if (axis === undefined || concentration === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    const extra = values['synthetic-optional'];
+    return axis + concentration / 3 + (extra === undefined ? 7 : extra);
+  },
 });
 
 export const olderVersion = makeDefinition({
   id: 'synthetic-versioned',
   version: '1.0',
   deprecated: 'This fictional test version is deprecated.',
-  compute: (values) =>
-    (values['synthetic-axis'] ?? 0) + (values['synthetic-concentration'] ?? 0),
+  compute: (values) => {
+    const axis = values['synthetic-axis'];
+    const concentration = values['synthetic-concentration'];
+    if (axis === undefined || concentration === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    return axis + concentration;
+  },
 });
 
 export const newerVersion = makeDefinition({
   id: 'synthetic-versioned',
   version: '2.0',
-  compute: (values) =>
-    (values['synthetic-axis'] ?? 0) +
-    (values['synthetic-concentration'] ?? 0) / 2,
+  compute: (values) => {
+    const axis = values['synthetic-axis'];
+    const concentration = values['synthetic-concentration'];
+    if (axis === undefined || concentration === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    return axis + concentration / 2;
+  },
 });
 
 export const throwing = makeDefinition({

@@ -48,7 +48,7 @@ describeFormulaContract(guarded, {
   }),
 });
 describeFormulaContract(optional, {
-  ...commonCases(optional, { expectedPositiveValue: 50 }),
+  ...commonCases(optional, { expectedPositiveValue: 57 }),
 });
 describeFormulaContract(olderVersion, commonCases(olderVersion));
 describeFormulaContract(newerVersion, commonCases(newerVersion));
@@ -602,7 +602,13 @@ describe('calculator registry and result provenance', () => {
         ...base.unitConversions,
         mass: calculatorEngine.STANDARD_UNIT_CONVERSIONS.mass ?? [],
       },
-      compute: (values) => values['synthetic-axis'] ?? 0,
+      compute: (values) => {
+        const axis = values['synthetic-axis'];
+        if (axis === undefined) {
+          throw new Error('Synthetic required input is missing.');
+        }
+        return axis;
+      },
     };
     const registry = createFormulaRegistry();
     registry.register(formula);
@@ -860,9 +866,14 @@ describe('calculator registry and result provenance', () => {
 
   it('does not call compute when a population guard is hit', () => {
     const compute = vi.fn(
-      (values: Readonly<Record<string, number | undefined>>) =>
-        (values['synthetic-axis'] ?? 0) +
-        (values['synthetic-concentration'] ?? 0),
+      (values: Readonly<Record<string, number | undefined>>) => {
+        const axis = values['synthetic-axis'];
+        const concentration = values['synthetic-concentration'];
+        if (axis === undefined || concentration === undefined) {
+          throw new Error('Synthetic required input is missing.');
+        }
+        return axis + concentration;
+      },
     );
     const formula: TestFormulaDefinition = { ...guarded, compute };
     const registry = createFormulaRegistry();
