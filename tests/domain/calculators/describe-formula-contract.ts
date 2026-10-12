@@ -21,15 +21,32 @@ export interface TestUnitConversion {
   readonly offset?: number;
 }
 
-export type TestPopulationGuard = {
-  readonly id: string;
-  readonly inputId: string;
-  readonly operator: 'between';
-  readonly minimum: number;
-  readonly maximum: number;
-  readonly unit: string;
-  readonly message: string;
-};
+export type TestPopulationGuard =
+  | {
+      readonly id: string;
+      readonly inputId: string;
+      readonly operator: 'between';
+      readonly minimum: number;
+      readonly maximum: number;
+      readonly unit: string;
+      readonly message: string;
+    }
+  | {
+      readonly id: string;
+      readonly inputId: string;
+      readonly operator: 'at-least';
+      readonly value: number;
+      readonly unit: string;
+      readonly message: string;
+    }
+  | {
+      readonly id: string;
+      readonly inputId: string;
+      readonly operator: 'at-most';
+      readonly value: number;
+      readonly unit: string;
+      readonly message: string;
+    };
 
 export interface TestFormulaDefinition {
   readonly formulaId: string;

@@ -10,6 +10,8 @@ import {
 } from './describe-formula-contract';
 import {
   commonCases,
+  atLeastGuarded,
+  atMostGuarded,
   divergentNarrow,
   divergentWide,
   guarded,
@@ -56,6 +58,14 @@ describeFormulaContract(
     expectedPositiveStatus: 'unavailable',
     expectedConversionStatus: 'unavailable',
   }),
+);
+describeFormulaContract(
+  atLeastGuarded,
+  commonCases(atLeastGuarded, { expectedPositiveValue: 50 }),
+);
+describeFormulaContract(
+  atMostGuarded,
+  commonCases(atMostGuarded, { expectedPositiveValue: 50 }),
 );
 describeFormulaContract(divergentNarrow, {
   ...commonCases(divergentNarrow, { expectedPositiveValue: 50 }),
@@ -751,6 +761,56 @@ describe('calculator registry and result provenance', () => {
       code: 'below-25',
       label: 'Fictional below category.',
     });
+  });
+
+  it('treats the at-least limit as inside and just below as out-of-population', () => {
+    for (const [value, expectedStatus] of [
+      [18, 'ok'],
+      [17.999, 'out-of-population'],
+    ] as const) {
+      const registry = createFormulaRegistry();
+      registry.register(atLeastGuarded);
+      const result = calculateWith(
+        registry,
+        request(atLeastGuarded.formulaId, atLeastGuarded.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value, unit: 'mg/dL' },
+        }),
+      );
+      expect(result.status).toBe(expectedStatus);
+      if (expectedStatus === 'out-of-population') {
+        expect(result.limitsHit).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ guardId: 'synthetic-at-least-floor' }),
+          ]),
+        );
+      }
+    }
+  });
+
+  it('treats the at-most limit as inside and just above as out-of-population', () => {
+    for (const [value, expectedStatus] of [
+      [150, 'ok'],
+      [150.001, 'out-of-population'],
+    ] as const) {
+      const registry = createFormulaRegistry();
+      registry.register(atMostGuarded);
+      const result = calculateWith(
+        registry,
+        request(atMostGuarded.formulaId, atMostGuarded.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value, unit: 'mg/dL' },
+        }),
+      );
+      expect(result.status).toBe(expectedStatus);
+      if (expectedStatus === 'out-of-population') {
+        expect(result.limitsHit).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ guardId: 'synthetic-at-most-ceiling' }),
+          ]),
+        );
+      }
+    }
   });
 
   it('does not call compute when a population guard is hit', () => {

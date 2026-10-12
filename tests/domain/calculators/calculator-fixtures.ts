@@ -450,3 +450,40 @@ export const divergentWide = withFormulaId(
   }),
   'synthetic-divergent-wide',
 );
+
+function withExtraGuard(
+  definition: TestFormulaDefinition,
+  guard: TestFormulaDefinition['populationLimits']['guards'][number],
+): TestFormulaDefinition {
+  return {
+    ...definition,
+    populationLimits: {
+      text: definition.populationLimits.text,
+      guards: [...definition.populationLimits.guards, guard],
+    },
+  };
+}
+
+export const atLeastGuarded = withFormulaId(
+  withExtraGuard(linear, {
+    id: 'synthetic-at-least-floor',
+    inputId: 'synthetic-concentration',
+    operator: 'at-least',
+    value: 18,
+    unit: 'mg/dL',
+    message: 'Fictional test floor only.',
+  }),
+  'synthetic-at-least-guard',
+);
+
+export const atMostGuarded = withFormulaId(
+  withExtraGuard(linear, {
+    id: 'synthetic-at-most-ceiling',
+    inputId: 'synthetic-concentration',
+    operator: 'at-most',
+    value: 150,
+    unit: 'mg/dL',
+    message: 'Fictional test ceiling only.',
+  }),
+  'synthetic-at-most-guard',
+);
