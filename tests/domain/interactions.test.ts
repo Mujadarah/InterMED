@@ -1678,6 +1678,55 @@ it('still maps to unavailable when the provider ignores the abort signal', async
   expect(result.unavailableReason).toBe('provider-timeout');
 });
 
+it('keeps unresolved inputs visible when the provider call times out', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-TIMEOUT-REASONS-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-TIMEOUT-REASONS-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-TIMEOUT-REASONS-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-TIMEOUT-REASONS-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const unknownId = mustId(
+    'ActiveIngredient',
+    SOURCE_KEY,
+    'AI-TIMEOUT-REASONS-UNKNOWN',
+  );
+  const inner = createOfflineSyntheticProvider();
+  const provider: DrugInteractionProvider = {
+    describe: () => inner.describe(),
+    evaluate: () => new Promise<ProviderResult>(() => {}),
+  };
+  const result = await evaluateInteractions(
+    {
+      snapshot: base.snapshot,
+      productIds: [...base.productIds],
+      datasetVersionId: base.datasetVersionId,
+      ingredientIds: [unknownId],
+    },
+    provider,
+    options({ timeoutMs: 1 }),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-timeout');
+  expect(result.incompleteReasons.length).toBeGreaterThan(0);
+  expect(result.incompleteReasons).toContain('unresolved-inputs');
+});
+
 it('marks absent source severity as explicitly unmapped when a mapping is requested', async () => {
   const selection = makeSyntheticSelection([
     {

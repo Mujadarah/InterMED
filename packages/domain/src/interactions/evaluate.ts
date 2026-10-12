@@ -211,15 +211,30 @@ function collectExpansionReasons(
   expanded: ExpandedSelection,
   pairCount: number,
 ): Set<InteractionIncompleteReason> {
+  const reasonSet = expansionReasonSet(expanded);
+  if (pairCount === 0) addIncompleteReason(reasonSet, 'no-pairs-to-evaluate');
+  return reasonSet;
+}
+
+function expansionReasonSet(
+  expanded: ExpandedSelection,
+): Set<InteractionIncompleteReason> {
   const reasonSet = new Set<InteractionIncompleteReason>();
   if (expanded.unresolvedInputs.length > 0)
     addIncompleteReason(reasonSet, 'unresolved-inputs');
   if (expanded.mappings.length === 0 && !expanded.hasDirectInput)
     addIncompleteReason(reasonSet, 'no-products-selected');
-  if (pairCount === 0) addIncompleteReason(reasonSet, 'no-pairs-to-evaluate');
   if (!expanded.datasetVersionPresent)
     addIncompleteReason(reasonSet, 'dataset-version-missing');
   return reasonSet;
+}
+
+function withCoverageIncomplete(
+  reasons: ReadonlySet<InteractionIncompleteReason>,
+): InteractionIncompleteReason[] {
+  return reasons.has('provider-pair-coverage-incomplete')
+    ? [...reasons]
+    : [...reasons, 'provider-pair-coverage-incomplete'];
 }
 
 function unsupportedLimitations(
@@ -410,6 +425,7 @@ async function invokeProvider(
   selection: InteractionSelection,
   descriptor: ProviderDescriptor,
   options: InteractionEvaluationOptions,
+  reasonSet: ReadonlySet<InteractionIncompleteReason>,
 ): Promise<
   | { readonly result: ProviderResult }
   | { readonly evaluation: InteractionEvaluation }
@@ -427,6 +443,7 @@ async function invokeProvider(
           descriptor,
           'timeout-scheduler-unavailable',
         ),
+        incompleteReasons: withCoverageIncomplete(reasonSet),
       }),
     };
 
@@ -452,6 +469,7 @@ async function invokeProvider(
           descriptor,
           'provider-timeout',
         ),
+        incompleteReasons: withCoverageIncomplete(reasonSet),
       }),
     };
   if (call.kind === 'error')
@@ -463,6 +481,7 @@ async function invokeProvider(
           descriptor,
           'provider-error',
         ),
+        incompleteReasons: withCoverageIncomplete(reasonSet),
       }),
     };
   return { result: call.result };
@@ -486,6 +505,7 @@ export async function evaluateInteractions(
       }
     : undefined;
   const descriptor = describeProvider(provider);
+  const gateReasons = expansionReasonSet(expanded);
   if (!descriptor) {
     const base = buildEvaluationBase(
       selection,
@@ -496,7 +516,7 @@ export async function evaluateInteractions(
     );
     return makeEvaluation(base, 'unavailable', {
       unavailableReason: 'provider-description-error',
-      incompleteReasons: ['provider-pair-coverage-incomplete'],
+      incompleteReasons: withCoverageIncomplete(gateReasons),
     });
   }
   if (!isProviderDescriptor(descriptor)) {
@@ -509,7 +529,7 @@ export async function evaluateInteractions(
     );
     return makeEvaluation(base, 'unavailable', {
       unavailableReason: 'provider-descriptor-invalid',
-      incompleteReasons: ['provider-pair-coverage-incomplete'],
+      incompleteReasons: withCoverageIncomplete(gateReasons),
     });
   }
 
@@ -527,6 +547,7 @@ export async function evaluateInteractions(
     return makeEvaluation(base, 'unavailable', {
       unavailableReason: gateReason,
       evaluatedPairCoverage: [],
+      incompleteReasons: withCoverageIncomplete(gateReasons),
     });
 
   const prepared = preparePairsAndReasons(base, expanded, descriptor, options);
@@ -541,6 +562,7 @@ export async function evaluateInteractions(
     selection,
     descriptor,
     options,
+    prepared.reasonSet,
   );
   if ('evaluation' in invoked) return invoked.evaluation;
 
@@ -552,7 +574,7 @@ export async function evaluateInteractions(
         descriptor,
         'provider-result-invalid',
       ),
-      incompleteReasons: ['provider-pair-coverage-incomplete'],
+      incompleteReasons: withCoverageIncomplete(prepared.reasonSet),
     });
 
   try {
@@ -574,7 +596,7 @@ export async function evaluateInteractions(
         descriptor,
         'provider-result-invalid',
       ),
-      incompleteReasons: ['provider-pair-coverage-incomplete'],
+      incompleteReasons: withCoverageIncomplete(prepared.reasonSet),
     });
   }
 }
