@@ -234,6 +234,26 @@ describe('Milestone 11 BMI and BSA candidates', () => {
     });
   });
 
+  it('exports deeply frozen definitions so a pinned version cannot be mutated before registration', () => {
+    for (const formula of [bmiFormula, bsaFormula]) {
+      expect(formula).toBeDefined();
+      if (!formula) return;
+      expect(Object.isFrozen(formula)).toBe(true);
+      expect(Object.isFrozen(formula.primaryReference)).toBe(true);
+      expect(Object.isFrozen(formula.inputs)).toBe(true);
+      for (const input of formula.inputs) {
+        expect(Object.isFrozen(input)).toBe(true);
+        expect(Object.isFrozen(input.allowedUnits)).toBe(true);
+      }
+      expect(Object.isFrozen(formula.output)).toBe(true);
+      expect(Object.isFrozen(formula.output.rounding)).toBe(true);
+      expect(Object.isFrozen(formula.limitations)).toBe(true);
+      expect(Object.isFrozen(formula.populationLimits)).toBe(true);
+      expect(() => {
+        (formula.limitations as string[]).push('tampered');
+      }).toThrow(TypeError);
+    }
+  });
   it('exports an immutable empty approval register and pendingApprovals', () => {
     expect(m11.FORMULA_APPROVALS).toEqual([]);
     expect(Object.isFrozen(m11.FORMULA_APPROVALS)).toBe(true);

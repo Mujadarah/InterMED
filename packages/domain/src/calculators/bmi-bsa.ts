@@ -1,4 +1,5 @@
 import { STANDARD_UNIT_CONVERSIONS } from './units';
+import { freezeDefinition } from './registry';
 import { getFormulaVersionId } from './types';
 import type {
   FormulaClassification,
@@ -202,7 +203,7 @@ const BSA_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
 const WHO_ADULT_BMI_CITATION =
   'WHO. Obesity: Preventing and Managing the Global Epidemic. WHO Technical Report Series 894 (2000).';
 
-export const BMI_FORMULA: FormulaDefinition = {
+export const BMI_FORMULA: FormulaDefinition = freezeDefinition({
   formulaId: 'bmi',
   formulaVersion: getFormulaVersionId(BMI_COMPONENT_VERSIONS),
   componentVersions: BMI_COMPONENT_VERSIONS,
@@ -240,9 +241,9 @@ export const BMI_FORMULA: FormulaDefinition = {
     return weightKg / (heightM * heightM);
   },
   classify: classifyBmi,
-};
+});
 
-export const MOSTELLER_BSA_FORMULA: FormulaDefinition = {
+export const MOSTELLER_BSA_FORMULA: FormulaDefinition = freezeDefinition({
   formulaId: 'bsa-mosteller',
   formulaVersion: getFormulaVersionId(BSA_COMPONENT_VERSIONS),
   componentVersions: BSA_COMPONENT_VERSIONS,
@@ -277,4 +278,4 @@ export const MOSTELLER_BSA_FORMULA: FormulaDefinition = {
     if (weightKg === undefined || heightCm === undefined) return Number.NaN;
     return Math.sqrt((heightCm * weightKg) / 3600);
   },
-};
+});

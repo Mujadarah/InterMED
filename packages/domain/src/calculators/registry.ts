@@ -633,7 +633,10 @@ function validateDefinition(definition: FormulaDefinition): void {
   }
 }
 
-function freezeDefinition(definition: FormulaDefinition): FormulaDefinition {
+/** Returns a deeply frozen copy, so a definition cannot change after its version is fixed. */
+export function freezeDefinition(
+  definition: FormulaDefinition,
+): FormulaDefinition {
   const inputs = definition.inputs.map((input) =>
     Object.freeze({
       ...input,
