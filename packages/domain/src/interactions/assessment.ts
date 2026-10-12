@@ -548,13 +548,13 @@ function sourceIsComplete(source: PairSource): boolean {
 }
 
 function sourcePosition(source: PairSource): PairAssessmentSourcePosition {
-  if (
-    source.records.some(
-      (entry) => entry.record.recordStatus === 'current' && !entry.historical,
-    )
-  )
+  // Only a valid current record documents the interaction. A current-status
+  // record that is outdated or source/dataset mismatched is retained as
+  // provenance, but it is neither a documenting position nor an affirmative
+  // negative for its source.
+  if (source.records.some((entry) => entry.validCurrent))
     return 'documents-interaction';
-  if (source.records.some((entry) => entry.historical)) return 'no-coverage';
+  if (source.records.length > 0) return 'no-coverage';
   if (!source.available) return 'unavailable';
   if (
     source.status === 'covered-no-record' &&
@@ -580,10 +580,7 @@ function createPositions(
     positions.push({
       sourceId: entry.record.sourceId,
       sourceVersion: entry.record.sourceVersion,
-      position:
-        entry.record.recordStatus === 'current' && !entry.historical
-          ? 'documents-interaction'
-          : 'no-coverage',
+      position: entry.validCurrent ? 'documents-interaction' : 'no-coverage',
     });
   }
   const unique = new Map<string, (typeof positions)[number]>();

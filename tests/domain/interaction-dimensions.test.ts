@@ -4,12 +4,14 @@ import {
   evaluateInteractions,
   mergeProviderResults,
   type CanonicalIngredientPair,
+  type DrugInteractionProvider,
   type InteractionEvaluation,
   type InteractionEvaluationOptions,
   type InteractionSelection,
   type MergedProviderResults,
   type ProviderResult,
 } from '@intermed/domain';
+import { mustId, SOURCE_KEY } from './builders';
 import {
   CONTRACT_INGREDIENT_A,
   CONTRACT_INGREDIENT_B,
@@ -644,6 +646,79 @@ it('scenario 12: a stale uncovered pair reports only real limitation codes', asy
     ]),
   );
   expect(result.coverage.reasons).not.toContain('synthetic-partial-coverage');
+});
+
+it('scenario 13: only a valid current record reports a documenting position', async () => {
+  const outdatedEvaluation = await evaluate(createOutdatedSyntheticProvider());
+  const outdatedRecord = outdatedEvaluation.interactions[0];
+  if (!outdatedRecord) throw new Error('synthetic outdated record is missing');
+  const noRecordEvaluation = await evaluate(createNoRecordSyntheticProvider());
+
+  const outdatedResult = assess(
+    [outdatedEvaluation, noRecordEvaluation],
+    CONTRACT_PAIR_AB,
+  );
+
+  expect(
+    outdatedResult.evidence.positions.some(
+      (entry) => entry.position === 'documents-interaction',
+    ),
+  ).toBe(false);
+  expect(outdatedResult.evidence.positions).toContainEqual({
+    sourceId: outdatedRecord.sourceId,
+    sourceVersion: outdatedRecord.sourceVersion,
+    position: 'no-coverage',
+  });
+  expect(outdatedResult.currency.outdatedRecordIds).toContain(
+    outdatedRecord.id,
+  );
+  expect(outdatedResult.currency.currentRecordIds).toEqual([]);
+  expect(outdatedResult.finding.documentedInteraction).toBe(false);
+  expect(outdatedResult.finding.affirmedNoInteraction).toBe(false);
+  expect(outdatedResult.coverage.coverageComplete).toBe(false);
+
+  const mismatchBase = createOfflineSyntheticProvider();
+  const mismatchedProvider: DrugInteractionProvider = {
+    describe: () => mismatchBase.describe(),
+    evaluate: async (request) => {
+      const result = await mismatchBase.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) => ({
+          ...record,
+          datasetVersionId: mustId(
+            'DatasetVersion',
+            SOURCE_KEY,
+            'synthetic-other-generation',
+          ),
+        })),
+      };
+    },
+  };
+  const mismatchedEvaluation = await evaluate(mismatchedProvider);
+  const mismatchedRecord = mismatchedEvaluation.interactions[0];
+  if (!mismatchedRecord)
+    throw new Error('synthetic mismatched record is missing');
+
+  const mismatchedResult = assess(
+    [mismatchedEvaluation, noRecordEvaluation],
+    CONTRACT_PAIR_AB,
+  );
+
+  expect(
+    mismatchedResult.evidence.positions.some(
+      (entry) => entry.position === 'documents-interaction',
+    ),
+  ).toBe(false);
+  expect(mismatchedResult.evidence.positions).toContainEqual({
+    sourceId: mismatchedRecord.sourceId,
+    sourceVersion: mismatchedRecord.sourceVersion,
+    position: 'no-coverage',
+  });
+  expect(mismatchedResult.currency.currentRecordIds).toEqual([]);
+  expect(mismatchedResult.finding.documentedInteraction).toBe(false);
+  expect(mismatchedResult.finding.affirmedNoInteraction).toBe(false);
+  expect(mismatchedResult.coverage.coverageComplete).toBe(false);
 });
 
 it('removes the rejected single-category precedence API', () => {
