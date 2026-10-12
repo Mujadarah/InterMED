@@ -130,6 +130,18 @@ export type {
   UnresolvedInteractionInput,
   UnresolvedInteractionInputReason,
 } from './interactions';
+export type {
+  CategorizedInteractionOutcomes,
+  InactiveInteractionRecord,
+  InactiveInteractionRecordReason,
+  InteractionOutcomeCategory,
+  InteractionOutcomeNotes,
+  InteractionPairOutcome,
+  InteractionRecordStatus,
+  InteractionRecordUpdateChange,
+  InteractionRecordUpdateHistoryEntry,
+} from './interactions/types';
+export { categorizeInteractionOutcomes } from './interactions/outcomes';
 export {
   canonicalPair,
   evaluateInteractions,
