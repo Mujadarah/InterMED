@@ -1295,6 +1295,88 @@ it('treats a null medication-ingredient entry as malformed input instead of thro
   ).toBe(true);
 });
 
+it('marks unreviewed ingredient mappings incomplete while still evaluating the pairs', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-UNREVIEWED-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNREVIEWED-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+          reviewStatus: 'unreviewed',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-UNREVIEWED-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNREVIEWED-PLACEBEXIUM',
+          displayName: 'Placebexium',
+          reviewStatus: 'reviewed',
+        },
+      ],
+    },
+  ]);
+  const result = await evaluateInteractions(
+    selection,
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'unreviewed-ingredient-mapping',
+    ),
+  ).toBe(true);
+  expect(result.evaluatedIngredientIds).toHaveLength(2);
+  expect(result.evaluatedPairCoverage).toHaveLength(1);
+});
+
+it('marks rejected ingredient mappings incomplete while still evaluating the pairs', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-REJECTED-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-REJECTED-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+          reviewStatus: 'rejected',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-REJECTED-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-REJECTED-PLACEBEXIUM',
+          displayName: 'Placebexium',
+          reviewStatus: 'reviewed',
+        },
+      ],
+    },
+  ]);
+  const result = await evaluateInteractions(
+    selection,
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'unreviewed-ingredient-mapping',
+    ),
+  ).toBe(true);
+  expect(result.evaluatedIngredientIds).toHaveLength(2);
+  expect(result.evaluatedPairCoverage).toHaveLength(1);
+});
+
 it('aborts the provider signal when the evaluation times out', async () => {
   const selection = makeSyntheticSelection([
     {

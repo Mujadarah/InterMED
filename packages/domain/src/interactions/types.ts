@@ -164,7 +164,8 @@ export type UnresolvedInteractionInputReason =
   | 'dataset-version-mismatch'
   | 'dataset-version-missing'
   | 'no-products-selected'
-  | 'unknown-ingredient';
+  | 'unknown-ingredient'
+  | 'unreviewed-ingredient-mapping';
 
 export interface UnresolvedInteractionInput {
   readonly productId?: MedicationProductId;

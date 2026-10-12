@@ -24,14 +24,18 @@ export interface ExpandedSelection {
   readonly datasetVersionPresent: boolean;
 }
 
-const UNRESOLVED_EXPANSION_CODES: ReadonlySet<string> = new Set([
-  'product-not-found',
-  'no-ingredients',
-  'unresolved-mapping',
-  'confirmed-mapping-missing-ingredient',
-  'dangling-ingredient',
-  'malformed-snapshot',
-]);
+const EXPANSION_CODE_TO_REASON: Readonly<
+  Record<string, UnresolvedInteractionInputReason>
+> = {
+  'product-not-found': 'product-not-found',
+  'no-ingredients': 'no-ingredients',
+  'unresolved-mapping': 'unresolved-mapping',
+  'confirmed-mapping-missing-ingredient':
+    'confirmed-mapping-missing-ingredient',
+  'dangling-ingredient': 'dangling-ingredient',
+  'malformed-snapshot': 'malformed-snapshot',
+  'ingredient-mapping-unreviewed': 'unreviewed-ingredient-mapping',
+};
 
 export function stableUnique<T extends string>(values: readonly T[]): T[] {
   const seen = new Set<T>();
@@ -192,8 +196,12 @@ function expandSingleProduct(
 
   const expansion = expandProductIngredients(pinnedSnapshot, productId);
   for (const issue of expansion.issues) {
-    if (!UNRESOLVED_EXPANSION_CODES.has(issue.code)) continue;
-    const reason = issue.code as UnresolvedInteractionInputReason;
+    // An unreviewed or rejected crosswalk still leaves the ingredient
+    // evaluated so any reported record is shown, but the unresolved input
+    // blocks complete coverage (DATA_MODEL: an unresolved crosswalk blocks
+    // complete interaction coverage).
+    const reason = EXPANSION_CODE_TO_REASON[issue.code];
+    if (reason === undefined) continue;
     pushUnresolved(
       unresolvedInputs,
       issue.entity === 'MedicationIngredient'

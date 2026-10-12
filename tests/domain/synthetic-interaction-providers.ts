@@ -76,6 +76,7 @@ export interface SyntheticProductSpec {
     readonly sourceIngredientId: string;
     readonly displayName: string;
     readonly mappingStatus?: 'confirmed' | 'unresolved';
+    readonly reviewStatus?: 'reviewed' | 'unreviewed' | 'rejected';
   }[];
 }
 
@@ -91,10 +92,20 @@ export function makeSyntheticSelection(
     if (!selectedProduct) return [];
     return spec.ingredients.map((part, ingredientIndex) => {
       const mappingStatus = part.mappingStatus ?? 'confirmed';
+      const reviewStatus = part.reviewStatus ?? 'reviewed';
       const linked =
         mappingStatus === 'confirmed'
           ? (ingredientsByKey.get(part.sourceIngredientId) ??
-            ingredient(part.sourceIngredientId, part.displayName))
+            ingredient(part.sourceIngredientId, part.displayName, {
+              externalMappings: [
+                {
+                  sourceId,
+                  sourceIngredientId: part.sourceIngredientId,
+                  mappingVersion: 'map-synthetic-1',
+                  reviewStatus,
+                },
+              ],
+            }))
           : undefined;
       if (linked) ingredientsByKey.set(part.sourceIngredientId, linked);
       return join(
