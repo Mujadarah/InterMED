@@ -1,0 +1,51 @@
+Final non-web gates; Node 24.21.0 and npm 11.19.0; INTERMED_NODE22_RUNTIME pointed to the available Node 22.23.2 executable.
+
+=== npm run format:check ===
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+EXIT_CODE=0
+
+=== npm run lint ===
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+EXIT_CODE=0
+
+=== npm run typecheck ===
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+EXIT_CODE=0
+
+=== npm run test (Node 22 runtime configured) ===
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  60 passed (60)
+      Tests  1010 passed (1010)
+   Start at  14:29:11
+   Duration  32.69s (transform 17.74s, setup 0ms, import 43.97s, tests 63.03s, environment 13.65s)
+
+EXIT_CODE=0
+
+=== npm run check:boundaries ===
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (97 source files; dependency-free domain; local-store confined to the composition root).
+EXIT_CODE=0
+
+=== npm audit --audit-level=low (from aggregate run) ===
+found 0 vulnerabilities

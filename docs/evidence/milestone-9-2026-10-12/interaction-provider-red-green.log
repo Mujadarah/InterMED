@@ -1,0 +1,426 @@
+=== RED: focused tests before implementation ===
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/interactions.test.ts (15 tests | 15 failed) 7ms
+   × canonicalizes pairs and returns the full unique pair set without self-pairs 3ms
+   × returns an explicit pair-limit outcome without truncating the pair set 0ms
+   × reports a source record while preserving its exact source severity vocabulary 0ms
+   × uses no-reported-record only when every requested pair is explicitly covered without records 0ms
+   × marks unresolved ingredients incomplete and does not guess their identity 0ms
+   × expands a combination product while retaining its product-to-ingredient mapping 0ms
+   × reports duplicate exposure separately and never creates a self-pair 0ms
+   × keeps stale or partial pair coverage visible alongside reported records 0ms
+   × returns unavailable when provider rights are not permitted or online access is required 0ms
+   × maps thrown and timed-out provider calls to unavailable without leaking exceptions 0ms
+   × marks unsupported context limitations incomplete without calling an incapable provider 0ms
+   × applies only explicit severity mappings and flags unreviewed mappings 0ms
+   × merges provider records and flags source-term and reported-versus-covered disagreement 0ms
+   × returns an incomplete evaluation when the configured pair limit is exceeded 0ms
+   × keeps source versions and does not label a result as safe or as no interaction 0ms
+ ❯ tests/domain/interaction-provider-contract.test.ts (56 tests | 41 failed) 12ms
+     × returns coverage for each canonical requested pair and no outside pair 2ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × returns coverage for each canonical requested pair and no outside pair 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × returns coverage for each canonical requested pair and no outside pair 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × returns coverage for each canonical requested pair and no outside pair 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × returns coverage for each canonical requested pair and no outside pair 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × returns coverage for each canonical requested pair and no outside pair 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+     × preserves source severity terms and leaves absent source fields absent 0ms
+     × uses canonical pairs independent of argument order 0ms
+     × maps provider errors and timeouts to unavailable results 0ms
+     × respects offline provider availability 0ms
+     × receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+node.exe :
+At line:1 char:1
++ & "<node-runtime-root>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 56 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > returns coverage for
+each canonical requested pair and no outside pair
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > returns coverage for each
+canonical requested pair and no outside pair
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > returns coverage for
+each canonical requested pair and no outside pair
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > returns coverage for
+each canonical requested pair and no outside pair
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > returns coverage
+for each canonical requested pair and no outside pair
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+returns coverage for each canonical requested pair and no outside pair
+TypeError: canonicalPair is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:57:22
+     55|         expect(requested.has(pairKeyForTest(coverage.pair))).toBe(true…
+     56|       for (const record of result.records) {
+     57|         const pair = canonicalPair(record.ingredientAId, record.ingred…
+       |                      ^
+     58|         expect(requested.has(pairKeyForTest(pair))).toBe(true);
+     59|         expect(pair).toEqual([record.ingredientAId, record.ingredientB…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/56]⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > preserves source
+severity terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > preserves source severity
+terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > preserves source
+severity terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > preserves source
+severity terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > preserves source
+severity terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+preserves source severity terms and leaves absent source fields absent
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record >
+preserves source severity terms and leaves absent source fields absent
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:68:31
+     66|       const sourceRecord = result.records[0];
+     67|
+     68|       const evaluated = await evaluateInteractions(
+       |                               ^
+     69|         CONTRACT_SELECTION,
+     70|         provider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/56]⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > uses canonical pairs
+independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > uses canonical pairs
+independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > uses canonical pairs
+independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > uses canonical pairs
+independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > uses canonical
+pairs independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+uses canonical pairs independent of argument order
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > uses
+canonical pairs independent of argument order
+TypeError: canonicalPair is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:118:14
+    116|
+    117|     it('uses canonical pairs independent of argument order', () => {
+    118|       expect(canonicalPair(CONTRACT_INGREDIENT_A, CONTRACT_INGREDIENT_…
+       |              ^
+    119|         canonicalPair(CONTRACT_INGREDIENT_B, CONTRACT_INGREDIENT_A),
+    120|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/56]⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > maps provider errors
+and timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > maps provider errors and
+timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > maps provider errors
+and timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > maps provider errors
+and timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > maps provider
+errors and timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+maps provider errors and timeouts to unavailable results
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > maps
+provider errors and timeouts to unavailable results
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:129:28
+    127|         evaluate: () => Promise.reject(new Error('synthetic failure de…
+    128|       };
+    129|       const thrown = await evaluateInteractions(
+       |                            ^
+    130|         CONTRACT_SELECTION,
+    131|         throwingProvider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/56]⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > respects offline
+provider availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > respects offline provider
+availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > respects offline
+provider availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > respects offline
+provider availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > respects offline
+provider availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+respects offline provider availability
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record >
+respects offline provider availability
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:154:28
+    152|       const provider = factory();
+    153|       const descriptor = provider.describe();
+    154|       const result = await evaluateInteractions(
+       |                            ^
+    155|         CONTRACT_SELECTION,
+    156|         provider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/56]⎯
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > receives canonical
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > receives canonical
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > receives canonical
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > receives canonical
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > receives canonical
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary >
+receives canonical ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record >
+receives canonical ingredient ids, context, online mode, and the pinned dataset version
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interaction-provider-contract.ts:175:13
+    173|         },
+    174|       };
+    175|       await evaluateInteractions(CONTRACT_SELECTION, wrapper, EVALUATI…
+       |             ^
+    176|       expect(observed?.ingredientIds).toHaveLength(3);
+    177|       expect(observed?.pairs).toHaveLength(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > canonicalizes pairs and returns the full unique pair set without self-pairs
+TypeError: uniquePairs is not a function
+ ❯ tests/domain/interactions.test.ts:40:19
+     38|
+     39| it('canonicalizes pairs and returns the full unique pair set without s…
+     40|   const forward = uniquePairs(
+       |                   ^
+     41|     [CONTRACT_INGREDIENT_A, CONTRACT_INGREDIENT_B, CONTRACT_INGREDIENT…
+     42|     { maxPairs: 3 },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > returns an explicit pair-limit outcome without truncating the pair set
+TypeError: uniquePairs is not a function
+ ❯ tests/domain/interactions.test.ts:61:18
+     59|
+     60| it('returns an explicit pair-limit outcome without truncating the pair…
+     61|   const result = uniquePairs(
+       |                  ^
+     62|     [CONTRACT_INGREDIENT_A, CONTRACT_INGREDIENT_B, CONTRACT_INGREDIENT…
+     63|     { maxPairs: 2 },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > reports a source record while preserving its exact source severity
+vocabulary
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:92:24
+     90|   ]);
+     91|   const provider = createOfflineSyntheticProvider();
+     92|   const result = await evaluateInteractions(selection, provider, optio…
+       |                        ^
+     93|   expect(result.status).toBe('reported');
+     94|   expect(result.interactions).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > uses no-reported-record only when every requested pair is explicitly
+covered without records
+TypeError: evaluateInteractions is not a function
+
+ Test Files  2 failed (2)
+      Tests  56 failed | 15 passed (71)
+   Start at  14:19:09
+   Duration  263ms (transform 99ms, setup 0ms, import 145ms, tests 19ms, environment 0ms)
+
+ ❯ tests/domain/interactions.test.ts:122:24
+    120|     },
+    121|   ]);
+    122|   const result = await evaluateInteractions(
+       |                        ^
+    123|     selection,
+    124|     createNoRecordSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > marks unresolved ingredients incomplete and does not guess their identity
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:162:24
+    160|     },
+    161|   ]);
+    162|   const result = await evaluateInteractions(
+       |                        ^
+    163|     selection,
+    164|     createNoRecordSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > expands a combination product while retaining its product-to-ingredient
+mapping
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:186:24
+    184|     },
+    185|   ]);
+    186|   const result = await evaluateInteractions(
+       |                        ^
+    187|     selection,
+    188|     createOfflineSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > reports duplicate exposure separately and never creates a self-pair
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:228:24
+    226|     },
+    227|   ]);
+    228|   const result = await evaluateInteractions(
+       |                        ^
+    229|     selection,
+    230|     createOfflineSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > keeps stale or partial pair coverage visible alongside reported records
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:267:24
+    265|     },
+    266|   ]);
+    267|   const result = await evaluateInteractions(
+       |                        ^
+    268|     selection,
+    269|     createPartialCoverageSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > returns unavailable when provider rights are not permitted or online access
+is required
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:309:30
+    307|     },
+    308|   ]);
+    309|   const rightsResult = await evaluateInteractions(
+       |                              ^
+    310|     selection,
+    311|     rightsProvider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > maps thrown and timed-out provider calls to unavailable without leaking
+exceptions
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:344:24
+    342|     },
+    343|   ]);
+    344|   const thrown = await evaluateInteractions(
+       |                        ^
+    345|     throwingSelection,
+    346|     createThrowingSyntheticProvider(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > marks unsupported context limitations incomplete without calling an
+incapable provider
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:406:24
+    404|     },
+    405|   ]);
+    406|   const result = await evaluateInteractions(
+       |                        ^
+    407|     selection,
+    408|     provider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > applies only explicit severity mappings and flags unreviewed mappings
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:436:24
+    434|   ]);
+    435|   const provider = createOfflineSyntheticProvider();
+    436|   const mapped = await evaluateInteractions(
+       |                        ^
+    437|     selection,
+    438|     provider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > merges provider records and flags source-term and reported-versus-covered
+disagreement
+TypeError: mergeProviderResults is not a function
+ ❯ tests/domain/interactions.test.ts:476:25
+    474|   const firstResult = await firstProvider.evaluate(CONTRACT_REQUEST);
+    475|   const secondResult = await secondProvider.evaluate(CONTRACT_REQUEST);
+    476|   const severityMerge = mergeProviderResults([firstResult, secondResul…
+       |                         ^
+    477|   expect(severityMerge.records).toHaveLength(2);
+    478|   expect(severityMerge.records.map((record) => record.severity)).toEqu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > returns an incomplete evaluation when the configured pair limit is exceeded
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:537:24
+    535|     },
+    536|   };
+    537|   const result = await evaluateInteractions(
+       |                        ^
+    538|     selection,
+    539|     provider,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/56]⎯
+
+ FAIL  tests/domain/interactions.test.ts > keeps source versions and does not label a result as safe or as no
+interaction
+TypeError: evaluateInteractions is not a function
+ ❯ tests/domain/interactions.test.ts:555:24
+    553|
+    554| it('keeps source versions and does not label a result as safe or as no…
+    555|   const result = await evaluateInteractions(
+       |                        ^
+    556|     makeSyntheticSelection([
+    557|       {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/56]⎯
+
+EXIT_CODE=1
+
+=== GREEN: focused tests on final implementation ===
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  2 passed (2)
+      Tests  71 passed (71)
+   Start at  14:26:12
+   Duration  269ms (transform 107ms, setup 0ms, import 147ms, tests 113ms, environment 0ms)
+
+EXIT_CODE=0
