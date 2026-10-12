@@ -9,7 +9,7 @@ const PREFIX = 'intermed-public-shell-v1-';
 const CACHE = PREFIX + SHELL.version;
 // Every route this shell renders from its own HTML is served from the
 // precache, so a cold deep link works offline exactly like a warm navigation.
-const shellRoute = path => path === '/' || path === '/status' || path === '/search' || path.startsWith('/medication/');
+const shellRoute = path => path === '/' || path === '/status' || path === '/search' || path === '/favorites' || path.startsWith('/medication/');
 // The app itself creates /search?q=… and detail links keep it as
 // /medication/<id>?q=…, so a navigation to a shell route may carry one q. Any
 // other query, a repeated q or a query on an asset is not part of a shell
