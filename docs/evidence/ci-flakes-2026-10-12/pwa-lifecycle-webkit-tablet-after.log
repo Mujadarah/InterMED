@@ -1,0 +1,80 @@
+Command: npm run test:browser -- tests/browser/pwa-lifecycle.spec.ts --project=webkit-tablet --grep "offline origin outage preserves launch, reload and deep links" --repeat-each=20
+Node: v24.21.0
+npm: 11.19.0
+Node 22: v22.23.2
+Exit: 0
+Duration: 15.723 s
+
+
+> intermed@0.0.0 test:browser
+> playwright test tests/browser/pwa-lifecycle.spec.ts --project=webkit-tablet --grep offline origin outage preserves launch, reload and deep links --repeat-each=20
+
+[WebServer] (node:53948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use`node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:49812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use`node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 3 workers
+
+(node:4460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:14596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:13388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok  1 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok  3 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.3s)
+  ok  2 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+(node:44112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:36200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:41600) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok  4 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok  5 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok  6 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+(node:26528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:34348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:19016) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok  7 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok  8 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+(node:36132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok  9 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.3s)
+(node:41052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:9236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok 10 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.1s)
+  ok 11 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+(node:27040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok 12 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.1s)
+(node:56180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:13708) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok 13 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok 14 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok 15 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+(node:54200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:25928) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:47348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok 16 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok 17 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.2s)
+  ok 18 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.1s)
+(node:49908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+(node:34460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use`node --trace-warnings ...` to show where the warning was created)
+  ok 19 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.1s)
+  ok 20 [webkit-tablet] › tests\browser\pwa-lifecycle.spec.ts:23:1 › offline origin outage preserves launch, reload and deep links (1.0s)
+
+  20 passed (15.1s)
