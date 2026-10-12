@@ -715,7 +715,7 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
   expect(mapped.interactions[0]?.severityMappingVersion).toBe(
     'synthetic-map-v1',
   );
-  expect(mapped.interactions[0]).not.toHaveProperty('severityMappingReviewed');
+  expect(mapped.interactions[0]?.severityMappingReviewed).toBe(false);
   expect(mapped.severityMappingReview).toEqual({
     mappingVersion: 'synthetic-map-v1',
     reviewed: false,
@@ -734,6 +734,9 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
   );
   expect(unmapped.interactions[0]?.severity).toBe('source-band-amber');
   expect(unmapped.interactions[0]?.normalizedSeverity).toBe('unmapped');
+  expect(unmapped.interactions[0]).not.toHaveProperty(
+    'severityMappingReviewed',
+  );
 });
 
 it('merges provider records and flags source-term and reported-versus-covered disagreement', async () => {
@@ -1673,6 +1676,63 @@ it('still maps to unavailable when the provider ignores the abort signal', async
   );
   expect(result.status).toBe('unavailable');
   expect(result.unavailableReason).toBe('provider-timeout');
+});
+
+it('marks absent source severity as explicitly unmapped when a mapping is requested', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-NOSEV-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-NOSEV-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-NOSEV-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-NOSEV-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const base = createOfflineSyntheticProvider();
+  const provider: DrugInteractionProvider = {
+    describe: () => base.describe(),
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) => {
+          const { severity: _severity, ...rest } = record;
+          void _severity;
+          return rest;
+        }),
+      };
+    },
+  };
+  const result = await evaluateInteractions(
+    selection,
+    provider,
+    options({
+      severityMapping: {
+        mappingVersion: 'synthetic-map-v1',
+        reviewed: true,
+        map: { 'source-band-amber': 'synthetic-tier-1' },
+      },
+    }),
+  );
+  expect(result.interactions).toHaveLength(1);
+  expect(result.interactions[0]).not.toHaveProperty('severity');
+  expect(result.interactions[0]?.normalizedSeverity).toBe('unmapped');
+  expect(result.interactions[0]?.severityMappingVersion).toBe(
+    'synthetic-map-v1',
+  );
 });
 
 it('flags records from another dataset version without rewriting them', async () => {

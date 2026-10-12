@@ -42,6 +42,7 @@ export interface DrugInteraction {
   readonly severity?: string;
   readonly normalizedSeverity?: NormalizedSeverity | 'unmapped';
   readonly severityMappingVersion?: string;
+  readonly severityMappingReviewed?: boolean;
   readonly clinicalEffect?: string;
   readonly mechanism?: string;
   readonly evidenceLevel?: string;
