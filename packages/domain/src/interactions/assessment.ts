@@ -1,8 +1,10 @@
 import type {
   CanonicalIngredientPair,
   DrugInteraction,
+  EvaluatedPairCoverage,
   InteractionEvaluation,
   InteractionEvidence,
+  InteractionIncompleteReason,
   MergedProviderResults,
   PairAssessment,
   PairAssessmentInput,
@@ -193,24 +195,31 @@ function addRecord(
   if (entry.sourceMismatch) state.reasons.add('provider-version-mismatch');
 }
 
-function addEvaluation(
+interface EvaluationDescriptor {
+  readonly providerId?: string;
+  readonly sourceId?: DrugInteraction['sourceId'];
+  readonly sourceVersion?: string;
+}
+
+interface EvaluationInputs {
+  readonly evaluation: InteractionEvaluation;
+  readonly rows: readonly EvaluatedPairCoverage[];
+  readonly descriptor: EvaluationDescriptor;
+}
+
+interface FilteredPairRecord {
+  readonly record: DrugInteraction;
+  readonly historical: boolean;
+}
+
+/**
+ * Apply the evaluation-level flags. Returns whether the evaluation is
+ * available for this pair.
+ */
+function applyEvaluationFlags(
   state: AssessmentState,
   evaluation: InteractionEvaluation,
-  requestedKey: string,
-): void {
-  const rows = evaluation.evaluatedPairCoverage.filter((row) =>
-    matchesPair(row.pair, requestedKey),
-  );
-  const fallbackRow = rows[0] ?? evaluation.evaluatedPairCoverage[0];
-  const fallbackVersion = evaluation.sourceVersions[0];
-  const descriptor = {
-    providerId: fallbackRow?.providerId ?? fallbackVersion?.providerId,
-    sourceId: fallbackRow?.sourceId ?? fallbackVersion?.sourceId,
-    sourceVersion: fallbackRow?.sourceVersion ?? fallbackVersion?.sourceVersion,
-  };
-  const available = evaluation.status !== 'unavailable';
-  const sources: PairSource[] = [];
-
+): boolean {
   if (evaluation.pairLimit) {
     state.truncated = true;
     state.reasons.add('pair-limit-exceeded');
@@ -221,36 +230,66 @@ function addEvaluation(
     for (const input of evaluation.unresolvedInputs)
       addReason(state, input.reason);
   }
+  const available = evaluation.status !== 'unavailable';
   if (!available) {
     // An unavailable evaluation is unavailable for every pair, including when
     // it carries no coverage rows and no source version to attribute them to.
     state.providerUnavailable = true;
     addUnavailableReason(state, evaluation.unavailableReason);
   }
+  return available;
+}
 
-  if (rows.length > 0) {
-    for (const row of rows) {
-      const duplicate =
-        rows.filter((candidate) => candidate.providerId === row.providerId)
-          .length > 1;
-      const sourceId = row.sourceId ?? descriptor.sourceId;
-      const sourceVersion = row.sourceVersion ?? descriptor.sourceVersion;
-      const providerId = row.providerId ?? descriptor.providerId;
-      const source = createSource(state, {
-        ...(sourceId ? { sourceId } : {}),
-        ...(sourceVersion ? { sourceVersion } : {}),
-        ...(providerId ? { providerId } : {}),
-        status: row.status,
-        hasCoverage: true,
-        available,
-        stale: row.stale === true,
-        invalidCoverage: duplicate,
-        ...(row.retrievedAt ? { retrievedAt: row.retrievedAt } : {}),
-        ...(row.reason ? { reason: row.reason } : {}),
-      });
-      if (source) sources.push(source);
-      if (duplicate) state.globalInvalidity = true;
-    }
+/** Source identity for rows that omit it, preferring this pair's coverage. */
+function describeEvaluation(
+  rows: readonly EvaluatedPairCoverage[],
+  evaluation: InteractionEvaluation,
+): EvaluationDescriptor {
+  const fallbackRow = rows[0] ?? evaluation.evaluatedPairCoverage[0];
+  const fallbackVersion = evaluation.sourceVersions[0];
+  const providerId = fallbackRow?.providerId ?? fallbackVersion?.providerId;
+  const sourceId = fallbackRow?.sourceId ?? fallbackVersion?.sourceId;
+  const sourceVersion =
+    fallbackRow?.sourceVersion ?? fallbackVersion?.sourceVersion;
+  return {
+    ...(providerId !== undefined ? { providerId } : {}),
+    ...(sourceId !== undefined ? { sourceId } : {}),
+    ...(sourceVersion !== undefined ? { sourceVersion } : {}),
+  };
+}
+
+/**
+ * Build this pair's sources from its coverage rows plus every source version
+ * that has no row of its own, so no provider version is silently dropped.
+ */
+function buildEvaluationSources(
+  state: AssessmentState,
+  inputs: EvaluationInputs,
+  available: boolean,
+): PairSource[] {
+  const { evaluation, rows, descriptor } = inputs;
+  const sources: PairSource[] = [];
+  for (const row of rows) {
+    const duplicate =
+      rows.filter((candidate) => candidate.providerId === row.providerId)
+        .length > 1;
+    const sourceId = row.sourceId ?? descriptor.sourceId;
+    const sourceVersion = row.sourceVersion ?? descriptor.sourceVersion;
+    const providerId = row.providerId ?? descriptor.providerId;
+    const source = createSource(state, {
+      ...(sourceId ? { sourceId } : {}),
+      ...(sourceVersion ? { sourceVersion } : {}),
+      ...(providerId ? { providerId } : {}),
+      status: row.status,
+      hasCoverage: true,
+      available,
+      stale: row.stale === true,
+      invalidCoverage: duplicate,
+      ...(row.retrievedAt ? { retrievedAt: row.retrievedAt } : {}),
+      ...(row.reason ? { reason: row.reason } : {}),
+    });
+    if (source) sources.push(source);
+    if (duplicate) state.globalInvalidity = true;
   }
 
   const coveredProviders = new Set(
@@ -276,8 +315,18 @@ function addEvaluation(
   }
   if (sources.length === 0 && !evaluation.pairLimit)
     state.reasons.add('provider-pair-coverage-incomplete');
+  return sources;
+}
 
-  const records = [
+/** Retain this pair's records with their currency, provenance and history. */
+function ingestEvaluationRecords(
+  state: AssessmentState,
+  inputs: EvaluationInputs,
+  sources: readonly PairSource[],
+  requestedKey: string,
+): FilteredPairRecord[] {
+  const { evaluation, rows, descriptor } = inputs;
+  const records: FilteredPairRecord[] = [
     ...evaluation.interactions.map((record) => ({ record, historical: false })),
     ...evaluation.inactiveRecords.map(({ record }) => ({
       record,
@@ -342,7 +391,14 @@ function addEvaluation(
     )
       state.reasons.add('only-inactive-records');
   }
+  return records;
+}
 
+/** A source that claims coverage it does not evidence invalidates the pair. */
+function validateEvaluationSources(
+  state: AssessmentState,
+  sources: readonly PairSource[],
+): void {
   for (const source of sources) {
     if (
       source.status === 'reported' &&
@@ -356,7 +412,14 @@ function addEvaluation(
       state.globalInvalidity = true;
     }
   }
+}
 
+/** Current records and evidence links must agree in both directions. */
+function validateEvaluationEvidenceLinks(
+  state: AssessmentState,
+  evaluation: InteractionEvaluation,
+  records: readonly FilteredPairRecord[],
+): void {
   const invalidEvidenceLink = records
     .filter(
       ({ record, historical }) =>
@@ -376,17 +439,47 @@ function addEvaluation(
     state.reasons.add('evidence-link-invalid');
     state.globalInvalidity = true;
   }
+}
 
+/** Incomplete reasons that invalidate every pair, not just this one. */
+const GLOBAL_INCOMPLETE_REASONS: ReadonlySet<InteractionIncompleteReason> =
+  new Set<InteractionIncompleteReason>([
+    'dataset-version-missing',
+    'no-pairs-to-evaluate',
+    'no-products-selected',
+  ]);
+
+function applyEvaluationIncompleteReasons(
+  state: AssessmentState,
+  evaluation: InteractionEvaluation,
+): void {
   for (const reason of evaluation.incompleteReasons) {
-    if (
-      reason === 'dataset-version-missing' ||
-      reason === 'no-pairs-to-evaluate' ||
-      reason === 'no-products-selected'
-    ) {
+    if (GLOBAL_INCOMPLETE_REASONS.has(reason)) {
       state.reasons.add(reason);
       state.globalInvalidity = true;
     }
   }
+}
+
+function addEvaluation(
+  state: AssessmentState,
+  evaluation: InteractionEvaluation,
+  requestedKey: string,
+): void {
+  const rows = evaluation.evaluatedPairCoverage.filter((row) =>
+    matchesPair(row.pair, requestedKey),
+  );
+  const inputs: EvaluationInputs = {
+    evaluation,
+    rows,
+    descriptor: describeEvaluation(rows, evaluation),
+  };
+  const available = applyEvaluationFlags(state, evaluation);
+  const sources = buildEvaluationSources(state, inputs, available);
+  const records = ingestEvaluationRecords(state, inputs, sources, requestedKey);
+  validateEvaluationSources(state, sources);
+  validateEvaluationEvidenceLinks(state, evaluation, records);
+  applyEvaluationIncompleteReasons(state, evaluation);
 }
 
 /**
@@ -689,13 +782,8 @@ function freezeTree<T>(value: T): T {
   return Object.freeze(value);
 }
 
-function createAssessment(
-  input: PairAssessmentInput,
-  requestedPair: CanonicalIngredientPair,
-): PairAssessment {
-  const pair = canonicalPair(requestedPair[0], requestedPair[1]);
-  const requestedKey = pairKey(pair);
-  const state: AssessmentState = {
+function createAssessmentState(): AssessmentState {
+  return {
     records: [],
     sources: [],
     reasons: new Set<string>(),
@@ -705,26 +793,58 @@ function createAssessment(
     providerUnavailable: false,
     evidenceConflict: false,
   };
+}
+
+/** A merged result and an evaluation list are ingested the same way. */
+function ingestAssessmentInput(
+  state: AssessmentState,
+  input: PairAssessmentInput,
+  requestedKey: string,
+): void {
   if (!Array.isArray(input) && 'providerResults' in input)
     addMergedResults(state, input, requestedKey);
   else
     for (const evaluation of Array.isArray(input) ? input : [input])
       addEvaluation(state, evaluation, requestedKey);
+}
 
-  const current = state.records.filter((entry) => entry.validCurrent);
-  const historical = state.records.filter((entry) => entry.historical);
-  const outdated = state.records.filter((entry) => entry.outdated);
-  const status = assessmentStatus(state);
-  const coverageComplete =
+interface AssessmentRecordSets {
+  readonly current: readonly AssessmentRecord[];
+  readonly historical: readonly AssessmentRecord[];
+  readonly outdated: readonly AssessmentRecord[];
+}
+
+function collectRecordSets(state: AssessmentState): AssessmentRecordSets {
+  return {
+    current: state.records.filter((entry) => entry.validCurrent),
+    historical: state.records.filter((entry) => entry.historical),
+    outdated: state.records.filter((entry) => entry.outdated),
+  };
+}
+
+/**
+ * Coverage is complete only when every source is complete, nothing invalidated
+ * the pair, and no retained record is outdated or source/dataset mismatched.
+ */
+function isCoverageComplete(
+  state: AssessmentState,
+  status: PairAssessment['coverage']['status'],
+): boolean {
+  return (
     status === 'covered' &&
     state.sources.every(sourceIsComplete) &&
     !state.globalInvalidity &&
     !state.records.some(
       (entry) =>
         entry.outdated || entry.datasetMismatch || entry.sourceMismatch,
-    );
-  const positions = createPositions(state);
-  const sourceSeverities = state.records
+    )
+  );
+}
+
+function createSourceSeverities(
+  state: AssessmentState,
+): PairAssessment['finding']['sourceSeverities'] {
+  return state.records
     .map(sourceSeverity)
     .sort(
       (left, right) =>
@@ -733,11 +853,12 @@ function createAssessment(
         compareStrings(left.recordId, right.recordId) ||
         compareStrings(left.severityTerm ?? '', right.severityTerm ?? ''),
     );
-  const crossSourceSeverityConflict = hasCrossSourceSeverityConflict(current);
-  const hasPositionConflict =
-    positions.some((item) => item.position === 'documents-interaction') &&
-    positions.some((item) => item.position === 'affirms-none');
-  const evidenceLevels = state.records
+}
+
+function createEvidenceLevels(
+  state: AssessmentState,
+): PairAssessment['evidence']['evidenceLevels'] {
+  return state.records
     .map(({ record }) => ({
       sourceId: record.sourceId,
       recordId: record.id,
@@ -751,7 +872,12 @@ function createAssessment(
         compareStrings(left.recordId, right.recordId) ||
         compareStrings(left.evidenceLevel ?? '', right.evidenceLevel ?? ''),
     );
-  const provenance = state.records
+}
+
+function createProvenance(
+  state: AssessmentState,
+): PairAssessment['provenance'] {
+  return state.records
     .map(({ record, retrievedAt }) => ({
       sourceId: record.sourceId,
       sourceVersion: record.sourceVersion,
@@ -767,9 +893,16 @@ function createAssessment(
         compareStrings(left.datasetVersionId, right.datasetVersionId) ||
         compareStrings(left.retrievedAt ?? '', right.retrievedAt ?? ''),
     );
+}
 
-  if (outdated.length > 0) state.reasons.add('outdated-record-source-version');
-  if (historical.length > 0 && current.length === 0)
+/** Reasons that only become visible once every source has been ingested. */
+function applyAssessmentReasons(
+  state: AssessmentState,
+  sets: AssessmentRecordSets,
+): void {
+  if (sets.outdated.length > 0)
+    state.reasons.add('outdated-record-source-version');
+  if (sets.historical.length > 0 && sets.current.length === 0)
     state.reasons.add('only-inactive-records');
   if (
     state.sources.some(
@@ -784,45 +917,100 @@ function createAssessment(
     )
   )
     state.reasons.add('provider-pair-coverage-invalid');
+}
+
+function createFindingDimension(
+  sets: AssessmentRecordSets,
+  positions: PairAssessment['evidence']['positions'],
+  coverageComplete: boolean,
+  sourceSeverities: PairAssessment['finding']['sourceSeverities'],
+): PairAssessment['finding'] {
+  return {
+    documentedInteraction: sets.current.length > 0,
+    affirmedNoInteraction:
+      positions.some((item) => item.position === 'affirms-none') &&
+      coverageComplete &&
+      sets.current.length === 0,
+    sourceSeverities,
+  };
+}
+
+function createEvidenceDimension(
+  state: AssessmentState,
+  sets: AssessmentRecordSets,
+  positions: PairAssessment['evidence']['positions'],
+  evidenceLevels: PairAssessment['evidence']['evidenceLevels'],
+): PairAssessment['evidence'] {
+  const crossSourceSeverityConflict = hasCrossSourceSeverityConflict(
+    sets.current,
+  );
+  const hasPositionConflict =
+    positions.some((item) => item.position === 'documents-interaction') &&
+    positions.some((item) => item.position === 'affirms-none');
+  return {
+    evidenceConflict:
+      state.evidenceConflict ||
+      hasPositionConflict ||
+      crossSourceSeverityConflict,
+    positions,
+    sourceStatedUncertainty: state.records.some(
+      ({ record }) => record.sourceStatesUncertainEvidence === true,
+    ),
+    evidenceLevels,
+  };
+}
+
+function recordIds(records: readonly AssessmentRecord[]): string[] {
+  return [...new Set(records.map(({ record }) => record.id))].sort(
+    compareStrings,
+  );
+}
+
+function createCurrencyDimension(
+  sets: AssessmentRecordSets,
+): PairAssessment['currency'] {
+  return {
+    currentRecordIds: recordIds(sets.current),
+    historicalRecordIds: recordIds(sets.historical),
+    outdatedRecordIds: recordIds(sets.outdated),
+  };
+}
+
+function createAssessment(
+  input: PairAssessmentInput,
+  requestedPair: CanonicalIngredientPair,
+): PairAssessment {
+  const pair = canonicalPair(requestedPair[0], requestedPair[1]);
+  const state = createAssessmentState();
+  ingestAssessmentInput(state, input, pairKey(pair));
+
+  const sets = collectRecordSets(state);
+  const status = assessmentStatus(state);
+  const coverageComplete = isCoverageComplete(state, status);
+  const positions = createPositions(state);
+  applyAssessmentReasons(state, sets);
 
   return freezeTree({
     pair,
-    finding: {
-      documentedInteraction: current.length > 0,
-      affirmedNoInteraction:
-        positions.some((item) => item.position === 'affirms-none') &&
-        coverageComplete &&
-        current.length === 0,
-      sourceSeverities,
-    },
-    evidence: {
-      evidenceConflict:
-        state.evidenceConflict ||
-        hasPositionConflict ||
-        crossSourceSeverityConflict,
+    finding: createFindingDimension(
+      sets,
       positions,
-      sourceStatedUncertainty: state.records.some(
-        ({ record }) => record.sourceStatesUncertainEvidence === true,
-      ),
-      evidenceLevels,
-    },
-    currency: {
-      currentRecordIds: [
-        ...new Set(current.map(({ record }) => record.id)),
-      ].sort(compareStrings),
-      historicalRecordIds: [
-        ...new Set(historical.map(({ record }) => record.id)),
-      ].sort(compareStrings),
-      outdatedRecordIds: [
-        ...new Set(outdated.map(({ record }) => record.id)),
-      ].sort(compareStrings),
-    },
+      coverageComplete,
+      createSourceSeverities(state),
+    ),
+    evidence: createEvidenceDimension(
+      state,
+      sets,
+      positions,
+      createEvidenceLevels(state),
+    ),
+    currency: createCurrencyDimension(sets),
     coverage: {
       status,
       coverageComplete,
       reasons: [...state.reasons].sort(compareStrings),
     },
-    provenance,
+    provenance: createProvenance(state),
   });
 }
 

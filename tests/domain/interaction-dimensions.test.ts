@@ -393,133 +393,158 @@ it('scenario 5: a source negative position never cancels another source current 
   );
 });
 
-it('scenario 6: incomplete, unresolved, unsupported, unavailable, offline, rights-blocked, and truncated coverage cannot affirm none', async () => {
-  const partial = await evaluate(
-    createPartialCoverageSyntheticProvider(),
-    CONTRACT_SELECTION,
-  );
-  const missingPair = partial.evaluatedPairCoverage.find(
-    (coverage) => coverage.status === 'not-covered',
-  )?.pair;
-  if (!missingPair) throw new Error('synthetic uncovered pair is missing');
-
-  const unresolvedSelection = makeSyntheticSelection([
-    {
-      sourceProductId: 'SP-DIMENSION-A',
-      displayName: 'Fictivol',
-      ingredients: [
-        {
-          sourceIngredientId: 'AI-CONTRACT-FICTIVOLINUM',
-          displayName: 'Fictivolinum',
-        },
-      ],
-    },
-    {
-      sourceProductId: 'SP-DIMENSION-B',
-      displayName: 'Synthetica',
-      ingredients: [
-        {
-          sourceIngredientId: 'AI-CONTRACT-SYNTHETINIX',
-          displayName: 'Synthetinix',
-        },
-      ],
-    },
-    {
-      sourceProductId: 'SP-DIMENSION-UNRESOLVED',
-      displayName: 'Unresolvedex',
-      ingredients: [
-        {
-          sourceIngredientId: 'AI-UNRESOLVED-SYNTHETIC',
-          displayName: 'Unresolvedium',
-          mappingStatus: 'unresolved',
-        },
-      ],
-    },
-  ]);
-  const unresolved = await evaluate(
-    createNoRecordSyntheticProvider(),
-    unresolvedSelection,
-  );
-  const unsupported = await evaluate(
-    createNoRecordSyntheticProvider(),
-    CONTRACT_SELECTION,
-    {
-      context: {
-        requiredContextLimitations: ['synthetic-unsupported-context'],
+const UNRESOLVED_SELECTION: InteractionSelection = makeSyntheticSelection([
+  {
+    sourceProductId: 'SP-DIMENSION-A',
+    displayName: 'Fictivol',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-CONTRACT-FICTIVOLINUM',
+        displayName: 'Fictivolinum',
       },
-    },
-  );
-  const unavailableSelection: InteractionSelection = THROW_TRIGGER_SELECTION;
-  const unavailable = await evaluate(
-    createThrowingSyntheticProvider(),
-    unavailableSelection,
-  );
-  const unavailablePair = unavailable.evaluatedPairCoverage[0]?.pair;
-  if (!unavailablePair)
-    throw new Error('synthetic unavailable pair is missing');
-  const offline = await evaluate(createOnlineOnlySyntheticProvider());
-  const rightsBlocked = await evaluate(
-    createOfflineSyntheticProvider({ rightsStatus: 'unknown' }),
-  );
-  const truncated = await evaluate(
-    createNoRecordSyntheticProvider(),
-    CONTRACT_SELECTION,
-    {
-      maxPairs: 0,
-    },
-  );
+    ],
+  },
+  {
+    sourceProductId: 'SP-DIMENSION-B',
+    displayName: 'Synthetica',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-CONTRACT-SYNTHETINIX',
+        displayName: 'Synthetinix',
+      },
+    ],
+  },
+  {
+    sourceProductId: 'SP-DIMENSION-UNRESOLVED',
+    displayName: 'Unresolvedex',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-UNRESOLVED-SYNTHETIC',
+        displayName: 'Unresolvedium',
+        mappingStatus: 'unresolved',
+      },
+    ],
+  },
+]);
 
-  const cases: readonly {
-    readonly evaluation: InteractionEvaluation;
-    readonly pair: CanonicalIngredientPair;
-    readonly status: PairAssessment['coverage']['status'];
-    readonly reason?: string;
-  }[] = [
-    { evaluation: partial, pair: missingPair, status: 'not-covered' },
-    {
-      evaluation: unresolved,
-      pair: CONTRACT_PAIR_AB,
-      status: 'inputs-unresolved',
-    },
-    {
-      evaluation: unsupported,
-      pair: CONTRACT_PAIR_AB,
-      status: 'unsupported-context',
-    },
-    {
-      evaluation: unavailable,
-      pair: unavailablePair,
-      status: 'unavailable',
-      reason: 'provider-error',
-    },
-    {
-      evaluation: offline,
-      pair: CONTRACT_PAIR_AB,
-      status: 'unavailable',
-      reason: 'online-required',
-    },
-    {
-      evaluation: rightsBlocked,
-      pair: CONTRACT_PAIR_AB,
-      status: 'unavailable',
-      reason: 'rights-not-permitted',
-    },
-    {
-      evaluation: truncated,
-      pair: CONTRACT_PAIR_AB,
-      status: 'truncated',
-      reason: 'pair-limit-exceeded',
-    },
-  ];
+interface Scenario6Case {
+  readonly name: string;
+  readonly status: PairAssessment['coverage']['status'];
+  readonly reason?: string;
+  readonly load: () => Promise<{
+    evaluation: InteractionEvaluation;
+    pair: CanonicalIngredientPair;
+  }>;
+}
 
-  for (const item of cases) {
-    const result = assess(item.evaluation, item.pair);
+/**
+ * One row per way a pair can lack complete coverage, with the status and the
+ * reason code that must accompany it.
+ */
+const SCENARIO_6_CASES: Scenario6Case[] = [
+  {
+    name: 'incomplete pair coverage',
+    status: 'not-covered',
+    load: async () => {
+      const evaluation = await evaluate(
+        createPartialCoverageSyntheticProvider(),
+        CONTRACT_SELECTION,
+      );
+      const pair = evaluation.evaluatedPairCoverage.find(
+        (coverage) => coverage.status === 'not-covered',
+      )?.pair;
+      if (!pair) throw new Error('synthetic uncovered pair is missing');
+      return { evaluation, pair };
+    },
+  },
+  {
+    name: 'unresolved inputs',
+    status: 'inputs-unresolved',
+    load: async () => ({
+      evaluation: await evaluate(
+        createNoRecordSyntheticProvider(),
+        UNRESOLVED_SELECTION,
+      ),
+      pair: CONTRACT_PAIR_AB,
+    }),
+  },
+  {
+    name: 'unsupported context',
+    status: 'unsupported-context',
+    load: async () => ({
+      evaluation: await evaluate(
+        createNoRecordSyntheticProvider(),
+        CONTRACT_SELECTION,
+        {
+          context: {
+            requiredContextLimitations: ['synthetic-unsupported-context'],
+          },
+        },
+      ),
+      pair: CONTRACT_PAIR_AB,
+    }),
+  },
+  {
+    name: 'provider error',
+    status: 'unavailable',
+    reason: 'provider-error',
+    load: async () => {
+      const evaluation = await evaluate(
+        createThrowingSyntheticProvider(),
+        THROW_TRIGGER_SELECTION,
+      );
+      const pair = evaluation.evaluatedPairCoverage[0]?.pair;
+      if (!pair) throw new Error('synthetic unavailable pair is missing');
+      return { evaluation, pair };
+    },
+  },
+  {
+    name: 'offline access',
+    status: 'unavailable',
+    reason: 'online-required',
+    load: async () => ({
+      evaluation: await evaluate(createOnlineOnlySyntheticProvider()),
+      pair: CONTRACT_PAIR_AB,
+    }),
+  },
+  {
+    name: 'rights not permitted',
+    status: 'unavailable',
+    reason: 'rights-not-permitted',
+    load: async () => ({
+      evaluation: await evaluate(
+        createOfflineSyntheticProvider({ rightsStatus: 'unknown' }),
+      ),
+      pair: CONTRACT_PAIR_AB,
+    }),
+  },
+  {
+    name: 'truncated pair limit',
+    status: 'truncated',
+    reason: 'pair-limit-exceeded',
+    load: async () => ({
+      evaluation: await evaluate(
+        createNoRecordSyntheticProvider(),
+        CONTRACT_SELECTION,
+        { maxPairs: 0 },
+      ),
+      pair: CONTRACT_PAIR_AB,
+    }),
+  },
+];
+
+it.each(SCENARIO_6_CASES)(
+  'scenario 6: $name cannot affirm none',
+  async ({ load, status, reason }) => {
+    const { evaluation, pair } = await load();
+    const result = assess(evaluation, pair);
+
     expect(result.finding.affirmedNoInteraction).toBe(false);
-    expect(result.coverage.status).toBe(item.status);
+    expect(result.coverage.status).toBe(status);
     expect(result.coverage.coverageComplete).toBe(false);
-    if (item.reason) expect(result.coverage.reasons).toContain(item.reason);
-  }
-});
+    if (reason) expect(result.coverage.reasons).toContain(reason);
+  },
+);
 
 it('scenario 7: source-version-mismatched records are flagged outdated and not current findings', async () => {
   const evaluation = await evaluate(createOutdatedSyntheticProvider());
