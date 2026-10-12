@@ -1,0 +1,9 @@
+Command: npm exec -- vitest run tests/domain/interaction-dimensions.test.ts -t 'severity differences' --reporter=verbose --no-color
+Toolchain: Node v24.21.0; npm 11.19.0; INTERMED_NODE22_RUNTIME v22.23.2
+
+GREEN result:
+PASS does not flag severity differences between current records from one source
+PASS flags severity differences between current records from different sources
+
+Test Files: 1 passed (1)
+Tests: 2 passed | 11 skipped (13)

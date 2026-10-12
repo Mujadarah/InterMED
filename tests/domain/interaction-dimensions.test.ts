@@ -149,6 +149,77 @@ function isDeeplyFrozen(value: unknown): boolean {
   return Object.values(value).every(isDeeplyFrozen);
 }
 
+it('does not flag severity differences between current records from one source', async () => {
+  const evaluation = await evaluate(
+    createOfflineSyntheticProvider({ severity: 'source-band-amber' }),
+  );
+  const [firstRecord] = evaluation.interactions;
+  if (!firstRecord)
+    throw new Error('synthetic current interaction record is missing');
+  const secondRecord = {
+    ...firstRecord,
+    id: `${firstRecord.id}-context-specific`,
+    severity: 'source-band-cobalt',
+    contextLimitations: ['synthetic-second-context'],
+    evidenceIds: [],
+  };
+  const evaluationWithContextRecord = {
+    ...evaluation,
+    interactions: [...evaluation.interactions, secondRecord],
+  };
+
+  const result = assess(evaluationWithContextRecord, CONTRACT_PAIR_AB);
+
+  expect(result.evidence.evidenceConflict).toBe(false);
+  expect(result.finding.sourceSeverities).toHaveLength(2);
+  expect(result.finding.sourceSeverities).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        sourceId: firstRecord.sourceId,
+        recordId: firstRecord.id,
+        severityTerm: 'source-band-amber',
+      }),
+      expect.objectContaining({
+        sourceId: firstRecord.sourceId,
+        recordId: secondRecord.id,
+        severityTerm: 'source-band-cobalt',
+      }),
+    ]),
+  );
+});
+
+it('flags severity differences between current records from different sources', async () => {
+  const firstEvaluation = await evaluate(
+    createOfflineSyntheticProvider({ severity: 'source-band-amber' }),
+  );
+  const secondEvaluation = await evaluate(
+    createDisagreementSyntheticProvider(),
+  );
+  const firstRecord = firstEvaluation.interactions[0];
+  const secondRecord = secondEvaluation.interactions[0];
+  if (!firstRecord || !secondRecord)
+    throw new Error('synthetic cross-source records are missing');
+  expect(firstRecord.sourceId).not.toBe(secondRecord.sourceId);
+
+  const result = assess([firstEvaluation, secondEvaluation], CONTRACT_PAIR_AB);
+
+  expect(result.evidence.evidenceConflict).toBe(true);
+  expect(result.finding.sourceSeverities).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        sourceId: firstRecord.sourceId,
+        recordId: firstRecord.id,
+        severityTerm: 'source-band-amber',
+      }),
+      expect.objectContaining({
+        sourceId: secondRecord.sourceId,
+        recordId: secondRecord.id,
+        severityTerm: 'source-band-crimson',
+      }),
+    ]),
+  );
+});
+
 it('scenario 1: a current finding stays visible beside disagreeing source positions', async () => {
   const request = requestForPair(CONTRACT_PAIR_AB);
   const firstResult = await createOfflineSyntheticProvider({
