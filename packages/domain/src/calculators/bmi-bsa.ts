@@ -131,7 +131,7 @@ const ADULT_POPULATION = Object.freeze({
       value: 18,
       unit: 'years',
       message:
-        'This formula is specified only for adults aged 18 years or older.',
+        'This release limits this calculator to adults aged 18 years or older; this is a product scope decision, not a statement that the formula is invalid at younger ages.',
     }),
   ]),
 });
