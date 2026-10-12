@@ -5,6 +5,7 @@ import type {
   EvaluatedPairCoverage,
   EvaluationBase,
   EvaluationDetails,
+  InteractionAbortSignal,
   InteractionContext,
   InteractionEvaluation,
   InteractionEvaluationOptions,
@@ -34,6 +35,11 @@ import { collectValidRecords } from './severity';
 import { collectLinkedEvidence } from './merge';
 
 const DEFAULT_PROVIDER_TIMEOUT_MS = 10_000;
+
+interface AbortControllerLike {
+  readonly signal: InteractionAbortSignal;
+  abort(): void;
+}
 
 function makeEvaluation(
   base: EvaluationBase,
@@ -110,9 +116,9 @@ async function callProviderWithTimeout(
   return outcome;
 }
 
-function createTimeoutController(): AbortController | undefined {
+function createTimeoutController(): AbortControllerLike | undefined {
   const runtime = globalThis as unknown as {
-    AbortController?: new () => AbortController;
+    AbortController?: new () => AbortControllerLike;
   };
   if (typeof runtime.AbortController !== 'function') return undefined;
   try {

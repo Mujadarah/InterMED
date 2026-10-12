@@ -5,6 +5,7 @@ import {
   mergeProviderResults,
   uniquePairs,
   type DrugInteractionProvider,
+  type InteractionAbortSignal,
   type InteractionEvaluationOptions,
   type MedicationCatalogueSnapshot,
   type ProviderResult,
@@ -1634,7 +1635,7 @@ it('aborts the provider signal when the evaluation times out', async () => {
     },
   ]);
   const base = createOfflineSyntheticProvider();
-  let observed: AbortSignal | undefined;
+  let observed: InteractionAbortSignal | undefined;
   const provider: DrugInteractionProvider = {
     describe: () => base.describe(),
     evaluate: (request) => {

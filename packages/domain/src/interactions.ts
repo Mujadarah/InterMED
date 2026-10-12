@@ -4,6 +4,7 @@ export type {
   DrugInteractionProvider,
   DuplicateExposure,
   EvaluatedPairCoverage,
+  InteractionAbortSignal,
   InteractionContext,
   InteractionDisagreement,
   InteractionDisagreementReason,
