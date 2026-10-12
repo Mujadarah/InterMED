@@ -602,6 +602,30 @@ function sourceSeverity(
   return severity;
 }
 
+function hasCrossSourceSeverityConflict(
+  records: readonly AssessmentRecord[],
+): boolean {
+  for (let leftIndex = 0; leftIndex < records.length; leftIndex += 1) {
+    const left = records[leftIndex]?.record;
+    if (!left || left.severity === undefined) continue;
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < records.length;
+      rightIndex += 1
+    ) {
+      const right = records[rightIndex]?.record;
+      if (
+        right &&
+        right.sourceId !== left.sourceId &&
+        right.severity !== undefined &&
+        right.severity !== left.severity
+      )
+        return true;
+    }
+  }
+  return false;
+}
+
 function assessmentStatus(
   state: AssessmentState,
 ): PairAssessment['coverage']['status'] {
@@ -668,11 +692,7 @@ function createAssessment(
         compareStrings(left.recordId, right.recordId) ||
         compareStrings(left.severityTerm ?? '', right.severityTerm ?? ''),
     );
-  const severityTerms = new Set(
-    current
-      .map(({ record }) => record.severity)
-      .filter((term): term is string => term !== undefined),
-  );
+  const crossSourceSeverityConflict = hasCrossSourceSeverityConflict(current);
   const hasPositionConflict =
     positions.some((item) => item.position === 'documents-interaction') &&
     positions.some((item) => item.position === 'affirms-none');
@@ -736,7 +756,9 @@ function createAssessment(
     },
     evidence: {
       evidenceConflict:
-        state.evidenceConflict || hasPositionConflict || severityTerms.size > 1,
+        state.evidenceConflict ||
+        hasPositionConflict ||
+        crossSourceSeverityConflict,
       positions,
       sourceStatedUncertainty: state.records.some(
         ({ record }) => record.sourceStatesUncertainEvidence === true,
