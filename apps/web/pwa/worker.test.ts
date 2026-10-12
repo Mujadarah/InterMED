@@ -468,6 +468,7 @@ it.each([
   '/',
   '/status',
   '/search',
+  '/favorites',
   '/medication/synthetic-product',
   '/search?q=fictivol',
   '/status?q=',

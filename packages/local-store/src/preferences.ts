@@ -22,6 +22,12 @@ import {
   type LocalDatasetDatabase,
 } from './schema';
 
+/** Maximum number of recent queries retained for one browser profile. */
+export const MAX_RECENT_SEARCHES = 10;
+
+/** Recent queries older than this are removed on both reads and writes. */
+export const RECENT_SEARCH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
 /** Everything preference handling needs from the rest of the store. */
 export interface PreferencesDeps {
   readonly now: () => number;
@@ -40,6 +46,31 @@ export interface PreferencesDeps {
 export interface Preferences {
   reconcilePreferences(generationId: string): Promise<void>;
   readonly store: LocalPreferencesStore;
+}
+
+/** Keep the local history bounded and sorted without changing the Dexie schema. */
+async function pruneRecentSearches(
+  db: LocalDatasetDatabase,
+  now: number,
+): Promise<readonly RecentSearchEntry[]> {
+  const entries = await db.recentSearches.toArray();
+  const cutoff = now - RECENT_SEARCH_RETENTION_MS;
+  const retained = entries
+    .filter((entry) => {
+      const occurredAt = Date.parse(entry.occurredAt);
+      return Number.isFinite(occurredAt) && occurredAt >= cutoff;
+    })
+    .sort((left, right) => {
+      const byTime = right.occurredAt.localeCompare(left.occurredAt);
+      return byTime || right.id.localeCompare(left.id);
+    })
+    .slice(0, MAX_RECENT_SEARCHES);
+  const retainedIds = new Set(retained.map((entry) => entry.id));
+  const expiredIds = entries
+    .filter((entry) => !retainedIds.has(entry.id))
+    .map((entry) => entry.id);
+  if (expiredIds.length > 0) await db.recentSearches.bulkDelete(expiredIds);
+  return retained;
 }
 
 export function createPreferences(deps: PreferencesDeps): Preferences {
@@ -148,22 +179,33 @@ export function createPreferences(deps: PreferencesDeps): Preferences {
     },
     listRecentSearches: async () => {
       await deps.open();
-      return deps
-        .requireDatabase()
-        .recentSearches.orderBy('occurredAt')
-        .reverse()
-        .toArray();
+      const db = deps.requireDatabase();
+      return db.transaction('rw', db.recentSearches, () =>
+        pruneRecentSearches(db, deps.now()),
+      );
     },
     addRecentSearch: async (input) => {
+      const query = input.query.trim();
+      if (!query) throw new Error('A recent search query must not be empty.');
       await deps.open();
       const db = deps.requireDatabase();
+      const now = deps.now();
       const entry: RecentSearchEntry = {
-        id: `${new Date(deps.now()).toISOString()}#${input.query}`,
-        query: input.query,
-        occurredAt: new Date(deps.now()).toISOString(),
+        id: `${new Date(now).toISOString()}#${query}`,
+        query,
+        occurredAt: new Date(now).toISOString(),
         lastKnownDatasetVersionId: input.lastKnownDatasetVersionId,
       };
-      await db.recentSearches.put(entry);
+      await db.transaction('rw', db.recentSearches, async () => {
+        const current = await db.recentSearches.toArray();
+        const duplicateIds = current
+          .filter((existing) => existing.query.trim() === query)
+          .map((existing) => existing.id);
+        if (duplicateIds.length > 0)
+          await db.recentSearches.bulkDelete(duplicateIds);
+        await db.recentSearches.put(entry);
+        await pruneRecentSearches(db, now);
+      });
       return entry;
     },
     clearRecentSearches: async () => {

@@ -1,0 +1,16 @@
+Command: npm run test -- packages/local-store/src/preferences.test.ts -t "trims a repeated search|keeps ten recent searches|prunes expired and excess"
+Runtime: Node v24.21.0, npm 11.19.0
+Vitest: v4.1.11
+Result: exit 1 (expected RED before implementation)
+
+ RUN  v4.1.11 <worktree>
+ ❯ packages/local-store/src/preferences.test.ts (16 tests | 3 failed | 13 skipped)
+   × trims a repeated search and moves its single entry to the top
+     expected [ ' fictivol ', 'placebex', '  fictivol  ' ] to equal [ 'fictivol', 'placebex' ]
+   × keeps ten recent searches on write and drops searches older than thirty days
+     expected ten entries; received eleven, including query-1
+   × prunes expired and excess legacy rows when recent searches are read
+     expected ten current entries; received twelve, including legacy-1, legacy-2 and expired-query
+
+Test Files  1 failed (1)
+Tests       3 failed | 13 skipped (16)
