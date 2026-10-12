@@ -619,6 +619,15 @@ The fixture-only reason `synthetic-partial-coverage` is no longer whitelisted in
 
 Two new tests failed against the previous source and pass with the fix. With this fix, the non-browser unit suite has 1,275 passing tests; one importer temp-directory test fails only in the orchestrator's local shell, because of its environment, and is unrelated.
 
+Codacy review follow-ups:
+
+- `18ed2d1`: a source position is `documents-interaction` only for a valid current record. Outdated or mismatched records give `no-coverage`, stay in `outdatedRecordIds` and keep coverage incomplete.
+- `02999eb`: an unavailable evaluation reports `unavailable` even with no coverage rows.
+- `cb657a6`: the shared guard also validates coverage-row pairs and statuses and record field types. Malformed data is unavailable on every path.
+- `676111d`: `addEvaluation`, `createAssessment` and scenario 6 are split into helpers or table cases, with no behaviour change.
+
+Four new tests (scenarios 11, 13 and 14, plus a guard test) failed against the previous source and pass with the fixes. The unit suite has 1,284 passing tests, plus the same environment-only importer test that fails locally.
+
 ### Pending owner clinical sign-off
 
 The owner's 2026-10-12 decision selects independent finding/evidence/currency/coverage dimensions and record-level provenance; final clinical sign-off of the implemented semantics and presentation is still pending. Review must retain current documented findings alongside conflict, history and coverage limits; keep source-affirmed negatives conditional on complete coverage; preserve verbatim source severity/positions/uncertainty; and avoid an overall clinical verdict. Provider selection, source rights, reviewed ingredient/severity mappings, real-provider clinical validation and M10 presentation remain open as described above and in `docs/INTERACTION_SOURCE_ASSESSMENT.md`.
