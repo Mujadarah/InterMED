@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/interactions.test.ts (24 tests | 1 failed | 23 skipped) 5ms
+   × flags severity disagreement only when different providers report different terms 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/interactions.test.ts > flags severity disagreement only when different providers report different terms
+AssertionError: expected [ 'severity-terms-differ', …(1) ] to not include 'severity-terms-differ'
+ ❯ tests/domain/interactions.test.ts:788:38
+    786|   ]);
+    787|   for (const disagreement of sameProviderMerge.disagreements)
+    788|     expect(disagreement.reasons).not.toContain('severity-terms-differ'…
+       |                                      ^
+    789|
+    790|   const secondResult = await createSecondVocabularySyntheticProvider()…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 23 skipped (24)
+   Start at  15:52:01
+   Duration  196ms (transform 66ms, setup 0ms, import 88ms, tests 5ms, environment 0ms)
+

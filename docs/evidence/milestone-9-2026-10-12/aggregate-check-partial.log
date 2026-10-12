@@ -1,0 +1,94 @@
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  60 passed (60)
+      Tests  1010 passed (1010)
+   Start at  14:23:37
+   Duration  22.52s (transform 5.15s, setup 0ms, import 49.77s, tests 38.98s, environment 81.79s)
+
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (97 source files; dependency-free domain; local-store confined to the composition root).
+found 0 vulnerabilities
+
+> intermed@0.0.0 build
+> npm run build --workspace @intermed/web
+
+
+> @intermed/web@0.0.0 build
+> vite build
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 171 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 1.92 kB │ gzip:  0.72 kB
+dist/assets/index-CezKvf4P.css                  6.63 kB │ gzip:  1.85 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js        0.58 kB │ gzip:  0.36 kB
+dist/assets/search-status-BRMNX2ez.js           2.80 kB │ gzip:  1.03 kB
+dist/assets/MedicationSearchPage-74Ruy97m.js    8.12 kB │ gzip:  2.74 kB
+dist/assets/MedicationDetailPage-D08e5WB1.js   12.77 kB │ gzip:  3.62 kB
+dist/assets/index-CbwuaAsA.js                  79.75 kB │ gzip: 22.90 kB
+dist/assets/zod-vendor-C0xu5dkI.js             90.91 kB │ gzip: 25.65 kB
+dist/assets/dexie-vendor-IbC1YGSs.js           95.19 kB │ gzip: 31.30 kB
+dist/assets/framework-vendor-b34q1Hby.js      258.58 kB │ gzip: 82.08 kB
+
+✓ built in 180ms
+
+> intermed@0.0.0 scan:dist
+> node scripts/scan-dist-secrets.mjs
+
+scan-dist-secrets: 16 file(s) scanned in <worktree>\apps\web\dist, no credential-shaped strings.
+
+> intermed@0.0.0 test:browser
+> playwright test
+
+npm.cmd : [WebServer] (node:35220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:178
++ ... ols\node-v22.23.2-win-x64\node.exe'; & npm.cmd run check 2>&1 | Tee-O ...
++                                          ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 162 tests using 3 workers
+
+(node:42556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:46576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+=== STATUS ===
+The aggregate command did not complete. Format, lint, typecheck, 1,010 unit tests, architecture boundaries, and npm audit completed successfully. Vite build and scan:dist also completed, writing generated build output under apps/web/dist. The browser suite then started (162 tests) and was interrupted; it has no result.
+The command exited 1 after interruption. The apps/web build output was left in place because the task explicitly forbids further changes under apps/web/**.

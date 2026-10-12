@@ -1,0 +1,103 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/interactions.test.ts (38 tests | 5 failed) 59ms
+   ├ù maps a null provider records payload to unavailable instead of throwing 7ms
+   ├ù maps a null provider pair-coverage payload to unavailable instead of throwing 1ms
+   ├ù maps a null provider evidence payload to unavailable instead of throwing 1ms
+   ├ù maps a descriptor without capabilities to unavailable instead of throwing 7ms
+   ├ù maps an unexpected post-call processing failure to unavailable instead of rejecting 1ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 5 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > maps a null provider records payload to unavailable instead of throwing
+TypeError: result.records is not iterable
+ Γ¥» collectValidRecords packages/domain/src/interactions/severity.ts:60:31
+     58|   const validRecords: DrugInteraction[] = [];
+     59|   const recordsByPair = new Map<string, DrugInteraction[]>();
+     60|   for (const record of result.records) {
+       |                               ^
+     61|     const pair = canonicalPair(record.ingredientAId, record.ingredientΓÇª
+     62|     const key = pairKey(pair);
+ Γ¥» summarizeProviderResult packages/domain/src/interactions/evaluate.ts:324:43
+ Γ¥» evaluateInteractions packages/domain/src/interactions/evaluate.ts:485:10
+ Γ¥» tests/domain/interactions.test.ts:1425:18
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > maps a null provider pair-coverage payload to unavailable instead of 
+throwing
+TypeError: result.pairCoverage is not iterable
+ Γ¥» indexCoverageByPair packages/domain/src/interactions/pairs.ts:101:33
+     99| ): Map<string, ProviderPairCoverage> {
+    100|   const coverageByPair = new Map<string, ProviderPairCoverage>();
+    101|   for (const coverage of result.pairCoverage) {
+       |                                 ^
+    102|     const pair = canonicalPair(coverage.pair[0], coverage.pair[1]);
+    103|     const key = pairKey(pair);
+ Γ¥» summarizeProviderResult packages/domain/src/interactions/evaluate.ts:331:26
+ Γ¥» evaluateInteractions packages/domain/src/interactions/evaluate.ts:485:10
+ Γ¥» tests/domain/interactions.test.ts:1444:18
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > maps a null provider evidence payload to unavailable instead of throwing
+TypeError: result.evidence is not iterable
+ Γ¥» collectLinkedEvidence packages/domain/src/interactions/merge.ts:160:29
+    158|   const recordById = new Map(validRecords.map((record) => [record.id, ΓÇª
+    159|   const evidence: InteractionEvidence[] = [];
+    160|   for (const item of result.evidence) {
+       |                             ^
+    161|     const record = recordById.get(item.interactionId);
+    162|     if (record?.evidenceIds.includes(item.id)) evidence.push(item);
+ Γ¥» summarizeProviderResult packages/domain/src/interactions/evaluate.ts:339:20
+ Γ¥» evaluateInteractions packages/domain/src/interactions/evaluate.ts:485:10
+ Γ¥» tests/domain/interactions.test.ts:1463:18
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > maps a descriptor without capabilities to unavailable instead of throwing
+AssertionError: expected 'reported' to be 'unavailable' // Object.is equality
+
+Expected: "unavailable"
+Received: "reported"
+
+ Γ¥» tests/domain/interactions.test.ts:1489:25
+    1487|     options(),
+    1488|   );
+    1489|   expect(result.status).toBe('unavailable');
+       |                         ^
+    1490|   expect(result.unavailableReason).toBe('provider-descriptor-invalid');
+    1491| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/5]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > maps an unexpected post-call processing failure to unavailable instead of 
+rejecting
+Error: synthetic explosive detail
+ Γ¥» Object.get tests/domain/interactions.test.ts:1503:17
+    1501|       Object.defineProperty(explosive, 'ingredientAId', {
+    1502|         get(): unknown {
+    1503|           throw new Error('synthetic explosive detail');
+       |                 ^
+    1504|         },
+    1505|       });
+ Γ¥» collectValidRecords packages/domain/src/interactions/severity.ts:61:39
+ Γ¥» summarizeProviderResult packages/domain/src/interactions/evaluate.ts:324:43
+ Γ¥» evaluateInteractions packages/domain/src/interactions/evaluate.ts:485:10
+ Γ¥» tests/domain/interactions.test.ts:1512:18
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/5]ΓÄ»
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  5 failed | 96 passed (101)
+   Start at  16:19:25
+   Duration  782ms (transform 464ms, setup 0ms, import 658ms, tests 163ms, environment 0ms)
+

@@ -1,0 +1,97 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/interactions.test.ts (29 tests | 1 failed) 58ms
+   ├ù aborts the provider signal when the evaluation times out 11ms
+ Γ¥» tests/domain/interaction-provider-contract.test.ts (63 tests | 7 failed) 106ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 5ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 1ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 1ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 1ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 1ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 1ms
+     ├ù receives canonical ingredient ids, context, online mode, and the pinned dataset version 0ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 8 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > receives canonical 
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > receives canonical 
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > receives canonical 
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > receives canonical 
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > receives canonical 
+ingredient ids, context, online mode, and the pinned dataset version
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: covered pair without a record > 
+receives canonical ingredient ids, context, online mode, and the pinned dataset version
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ Γ¥» tests/domain/interaction-provider-contract.ts:190:41
+    188|       expect(observed?.context).toEqual(CONTRACT_CONTEXT);
+    189|       expect(observed?.online).toBe(true);
+    190|       expect(observed?.signal?.aborted).toBe(false);
+       |                                         ^
+    191|     });
+    192|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/8]ΓÄ»
+
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > 
+receives canonical ingredient ids, context, online mode, and the pinned dataset version
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ Γ¥» tests/domain/interaction-provider-contract.ts:190:41
+    188|       expect(observed?.context).toEqual(CONTRACT_CONTEXT);
+    189|       expect(observed?.online).toBe(true);
+    190|       expect(observed?.signal?.aborted).toBe(false);
+       |                                         ^
+    191|     });
+    192|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/8]ΓÄ»
+
+ FAIL  tests/domain/interactions.test.ts > aborts the provider signal when the evaluation times out
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ Γ¥» tests/domain/interactions.test.ts:1337:29
+    1335|   expect(result.status).toBe('unavailable');
+    1336|   expect(result.unavailableReason).toBe('provider-timeout');
+    1337|   expect(observed?.aborted).toBe(true);
+       |                             ^
+    1338| });
+    1339|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/8]ΓÄ»
+
+
+ Test Files  2 failed (2)
+      Tests  8 failed | 84 passed (92)
+   Start at  16:15:19
+   Duration  635ms (transform 347ms, setup 0ms, import 500ms, tests 164ms, environment 0ms)
+
