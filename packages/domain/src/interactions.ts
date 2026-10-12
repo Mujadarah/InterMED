@@ -130,6 +130,7 @@ export interface InteractionSelection {
   readonly snapshot: MedicationCatalogueSnapshot;
   readonly productIds: readonly MedicationProductId[];
   readonly datasetVersionId: DatasetVersionId;
+  readonly ingredientIds?: readonly ActiveIngredientId[];
 }
 
 export interface InteractionProductIngredientMapping {
@@ -140,6 +141,7 @@ export interface InteractionProductIngredientMapping {
 export interface DuplicateExposure {
   readonly ingredientId: ActiveIngredientId;
   readonly productIds: readonly MedicationProductId[];
+  readonly directInput: boolean;
 }
 
 export type UnresolvedInteractionInputReason =
@@ -151,11 +153,13 @@ export type UnresolvedInteractionInputReason =
   | 'malformed-snapshot'
   | 'dataset-version-mismatch'
   | 'dataset-version-missing'
-  | 'no-products-selected';
+  | 'no-products-selected'
+  | 'unknown-ingredient';
 
 export interface UnresolvedInteractionInput {
   readonly productId?: MedicationProductId;
   readonly joinId?: MedicationIngredientId;
+  readonly ingredientId?: ActiveIngredientId;
   readonly reason: UnresolvedInteractionInputReason;
 }
 
@@ -229,6 +233,7 @@ export type UniquePairsResult = UniquePairsComplete | TooManyPairsOutcome;
 export interface InteractionEvaluation {
   readonly datasetVersionId: DatasetVersionId;
   readonly selectedProductToIngredientMappings: readonly InteractionProductIngredientMapping[];
+  readonly directIngredientIds: readonly ActiveIngredientId[];
   readonly evaluatedIngredientIds: readonly ActiveIngredientId[];
   readonly unresolvedInputs: readonly UnresolvedInteractionInput[];
   readonly duplicateExposure: readonly DuplicateExposure[];
@@ -353,6 +358,8 @@ export function uniquePairs(
 interface ExpandedSelection {
   readonly mappings: readonly InteractionProductIngredientMapping[];
   readonly ingredientIds: readonly ActiveIngredientId[];
+  readonly directIngredientIds: readonly ActiveIngredientId[];
+  readonly hasDirectInput: boolean;
   readonly unresolvedInputs: readonly UnresolvedInteractionInput[];
   readonly duplicateExposure: readonly DuplicateExposure[];
   readonly datasetVersionPresent: boolean;
@@ -380,6 +387,7 @@ function pushUnresolved(
     (item) =>
       item.productId === input.productId &&
       item.joinId === input.joinId &&
+      item.ingredientId === input.ingredientId &&
       item.reason === input.reason,
   );
   if (!duplicate) target.push(input);
@@ -387,19 +395,28 @@ function pushUnresolved(
 
 function expandSelection(selection: InteractionSelection): ExpandedSelection {
   const productIds = stableUnique(selection.productIds ?? []);
+  const rawDirectIds = stableUnique(selection.ingredientIds ?? []);
+  const hasDirectInput = rawDirectIds.length > 0;
   const mappings: InteractionProductIngredientMapping[] = [];
   const unresolvedInputs: UnresolvedInteractionInput[] = [];
-  if (productIds.length === 0)
+  if (productIds.length === 0 && !hasDirectInput)
     pushUnresolved(unresolvedInputs, { reason: 'no-products-selected' });
 
   if (!isSnapshot(selection.snapshot)) {
     pushUnresolved(unresolvedInputs, { reason: 'malformed-snapshot' });
+    for (const ingredientId of rawDirectIds)
+      pushUnresolved(unresolvedInputs, {
+        ingredientId,
+        reason: 'unknown-ingredient',
+      });
     return {
       mappings: productIds.map((productId) => ({
         productId,
         ingredientIds: [],
       })),
       ingredientIds: [],
+      directIngredientIds: [],
+      hasDirectInput,
       unresolvedInputs,
       duplicateExposure: [],
       datasetVersionPresent: false,
@@ -425,6 +442,21 @@ function expandSelection(selection: InteractionSelection): ExpandedSelection {
       (item) => item.datasetVersionId === selection.datasetVersionId,
     ),
   };
+
+  const directIngredientIds: ActiveIngredientId[] = [];
+  for (const ingredientId of rawDirectIds) {
+    const linked = pinnedSnapshot.activeIngredients.find(
+      (item) => item.id === ingredientId,
+    );
+    if (linked) directIngredientIds.push(ingredientId);
+    else
+      pushUnresolved(unresolvedInputs, {
+        ingredientId,
+        reason: 'unknown-ingredient',
+      });
+  }
+  const resolvedDirectIds =
+    stableUnique(directIngredientIds).sort(compareStrings);
 
   for (const productId of productIds) {
     const selectedProduct = snapshot.products.find(
@@ -505,11 +537,21 @@ function expandSelection(selection: InteractionSelection): ExpandedSelection {
       productIdsByIngredient.set(ingredientId, products);
     }
   }
-  const duplicateExposure = [...productIdsByIngredient.entries()]
-    .filter(([, selectedProducts]) => selectedProducts.length > 1)
-    .map(([ingredientId, selectedProducts]) => ({
+  const directIdSet = new Set<ActiveIngredientId>(resolvedDirectIds);
+  const allIngredientIds = stableUnique([
+    ...[...productIdsByIngredient.keys()],
+    ...resolvedDirectIds,
+  ]).sort(compareStrings);
+  const duplicateExposure = allIngredientIds
+    .filter((ingredientId) => {
+      const selectedProducts = productIdsByIngredient.get(ingredientId) ?? [];
+      if (selectedProducts.length > 1) return true;
+      return selectedProducts.length >= 1 && directIdSet.has(ingredientId);
+    })
+    .map((ingredientId) => ({
       ingredientId,
-      productIds: selectedProducts,
+      productIds: productIdsByIngredient.get(ingredientId) ?? [],
+      directInput: directIdSet.has(ingredientId),
     }))
     .sort((left, right) =>
       compareStrings(left.ingredientId, right.ingredientId),
@@ -517,7 +559,9 @@ function expandSelection(selection: InteractionSelection): ExpandedSelection {
 
   return {
     mappings,
-    ingredientIds: [...productIdsByIngredient.keys()].sort(compareStrings),
+    ingredientIds: allIngredientIds,
+    directIngredientIds: resolvedDirectIds,
+    hasDirectInput,
     unresolvedInputs,
     duplicateExposure,
     datasetVersionPresent,
@@ -545,6 +589,7 @@ function addSourceVersion(
 interface EvaluationBase {
   readonly datasetVersionId: DatasetVersionId;
   readonly selectedProductToIngredientMappings: readonly InteractionProductIngredientMapping[];
+  readonly directIngredientIds: readonly ActiveIngredientId[];
   readonly evaluatedIngredientIds: readonly ActiveIngredientId[];
   readonly unresolvedInputs: readonly UnresolvedInteractionInput[];
   readonly duplicateExposure: readonly DuplicateExposure[];
@@ -720,6 +765,7 @@ export async function evaluateInteractions(
     const base: EvaluationBase = {
       datasetVersionId: selection.datasetVersionId,
       selectedProductToIngredientMappings: expanded.mappings,
+      directIngredientIds: expanded.directIngredientIds,
       evaluatedIngredientIds: expanded.ingredientIds,
       unresolvedInputs: expanded.unresolvedInputs,
       duplicateExposure: expanded.duplicateExposure,
@@ -737,6 +783,7 @@ export async function evaluateInteractions(
   const base: EvaluationBase = {
     datasetVersionId: selection.datasetVersionId,
     selectedProductToIngredientMappings: expanded.mappings,
+    directIngredientIds: expanded.directIngredientIds,
     evaluatedIngredientIds: expanded.ingredientIds,
     unresolvedInputs: expanded.unresolvedInputs,
     duplicateExposure: expanded.duplicateExposure,
@@ -773,7 +820,7 @@ export async function evaluateInteractions(
   const reasonSet = new Set<InteractionIncompleteReason>();
   if (expanded.unresolvedInputs.length > 0)
     addIncompleteReason(reasonSet, 'unresolved-inputs');
-  if (expanded.mappings.length === 0)
+  if (expanded.mappings.length === 0 && !expanded.hasDirectInput)
     addIncompleteReason(reasonSet, 'no-products-selected');
   if (pairResult.pairs.length === 0)
     addIncompleteReason(reasonSet, 'no-pairs-to-evaluate');

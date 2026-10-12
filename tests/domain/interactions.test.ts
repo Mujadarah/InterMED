@@ -23,6 +23,7 @@ import {
   createTimeoutSyntheticProvider,
   makeSyntheticSelection,
 } from './synthetic-interaction-providers';
+import { mustId, SOURCE_KEY } from './builders';
 
 function options(
   overrides: Partial<InteractionEvaluationOptions> = {},
@@ -677,4 +678,254 @@ it('keeps source versions and does not label a result as safe or as no interacti
   expect(JSON.stringify(result)).not.toMatch(
     /\bsafe\b|\bnone\b|no interaction/i,
   );
+});
+
+it('evaluates two directly selected ingredients with a known synthetic reported pair', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-DIRECT-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-DIRECT-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const directIds = [...base.snapshot.activeIngredients.map((item) => item.id)];
+  const selection = {
+    snapshot: base.snapshot,
+    productIds: [],
+    datasetVersionId: base.datasetVersionId,
+    ingredientIds: directIds,
+  };
+  const result = await evaluateInteractions(
+    selection,
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('reported');
+  expect(result.evaluatedIngredientIds).toHaveLength(2);
+  expect(result.evaluatedPairCoverage).toHaveLength(1);
+  expect(result.directIngredientIds).toEqual(expect.arrayContaining(directIds));
+  expect(result.selectedProductToIngredientMappings).toEqual([]);
+});
+
+it('includes direct ingredients alongside product ingredients in pair building', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-MIXED-FICTIVOL',
+      displayName: 'Fictivol Combination',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-MIXED-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+        {
+          sourceIngredientId: 'AI-MIXED-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-MIXED-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-MIXED-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const directId = base.snapshot.activeIngredients.find(
+    (item) => item.sourceRecordKey === 'AI-MIXED-PLACEBEXIUM',
+  )?.id;
+  if (!directId) throw new Error('synthetic direct fixture missing');
+  const selection = {
+    snapshot: base.snapshot,
+    productIds: base.productIds.slice(0, 1),
+    datasetVersionId: base.datasetVersionId,
+    ingredientIds: [directId],
+  };
+  const result = await evaluateInteractions(
+    selection,
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(result.evaluatedIngredientIds).toHaveLength(3);
+  expect(result.evaluatedPairCoverage).toHaveLength(3);
+  expect(result.directIngredientIds).toEqual([directId]);
+});
+
+it('marks unknown direct ingredient ids incomplete with unknown-ingredient and no guessing', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-UNKNOWN-DIRECT-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNKNOWN-DIRECT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-UNKNOWN-DIRECT-SYNTHETICA',
+      displayName: 'Synthetica',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNKNOWN-DIRECT-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+  ]);
+  const unknownId = mustId(
+    'ActiveIngredient',
+    SOURCE_KEY,
+    'AI-UNKNOWN-DIRECT-PLACEBEXIUM',
+  );
+  const selection = {
+    snapshot: base.snapshot,
+    productIds: [...base.productIds],
+    datasetVersionId: base.datasetVersionId,
+    ingredientIds: [unknownId],
+  };
+  const result = await evaluateInteractions(
+    selection,
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'unknown-ingredient',
+    ),
+  ).toBe(true);
+  expect(result.evaluatedIngredientIds).not.toContain(unknownId);
+  expect(JSON.stringify(result.evaluatedIngredientIds)).not.toContain(
+    'AI-UNKNOWN-DIRECT-PLACEBEXIUM',
+  );
+});
+
+it('records direct duplicate of a product ingredient with both origins and no self-pair', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-DUP-DIRECT-FICTIVOL',
+      displayName: 'Fictivol Combination',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DUP-DIRECT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+        {
+          sourceIngredientId: 'AI-DUP-DIRECT-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+  ]);
+  const duplicateId = base.snapshot.activeIngredients.find(
+    (item) => item.sourceRecordKey === 'AI-DUP-DIRECT-FICTIVOLINUM',
+  )?.id;
+  if (!duplicateId) throw new Error('synthetic duplicate fixture missing');
+  const selection = {
+    snapshot: base.snapshot,
+    productIds: [...base.productIds],
+    datasetVersionId: base.datasetVersionId,
+    ingredientIds: [duplicateId],
+  };
+  const result = await evaluateInteractions(
+    selection,
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(result.duplicateExposure).toHaveLength(1);
+  expect(result.duplicateExposure[0]?.ingredientId).toBe(duplicateId);
+  expect(result.duplicateExposure[0]?.productIds).toEqual(
+    expect.arrayContaining([...base.productIds]),
+  );
+  expect(result.duplicateExposure[0]).toMatchObject({ directInput: true });
+  expect(
+    result.evaluatedPairCoverage.every(({ pair }) => pair[0] !== pair[1]),
+  ).toBe(true);
+});
+
+it('counts direct ingredients toward the too-many-pairs limit', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-LIMIT-DIRECT-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-LIMIT-DIRECT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-LIMIT-DIRECT-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-LIMIT-DIRECT-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+        {
+          sourceIngredientId: 'AI-LIMIT-DIRECT-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+  ]);
+  const directIds = base.snapshot.activeIngredients
+    .filter((item) =>
+      ['AI-LIMIT-DIRECT-PLACEBEXIUM', 'AI-LIMIT-DIRECT-SYNTHETINIX'].includes(
+        item.sourceRecordKey,
+      ),
+    )
+    .map((item) => item.id);
+  expect(directIds).toHaveLength(2);
+  let called = false;
+  const inner = createOfflineSyntheticProvider();
+  const provider: DrugInteractionProvider = {
+    describe: () => inner.describe(),
+    evaluate: (request) => {
+      called = true;
+      return inner.evaluate(request);
+    },
+  };
+  const selection = {
+    snapshot: base.snapshot,
+    productIds: base.productIds.slice(0, 1),
+    datasetVersionId: base.datasetVersionId,
+    ingredientIds: directIds,
+  };
+  const result = await evaluateInteractions(
+    selection,
+    provider,
+    options({ maxPairs: 2 }),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.pairLimit).toEqual({
+    status: 'too-many-pairs',
+    ingredientCount: 3,
+    pairCount: 3,
+    maxPairs: 2,
+    pairs: [],
+  });
+  expect(result.evaluatedPairCoverage).toEqual([]);
+  expect(called).toBe(false);
 });

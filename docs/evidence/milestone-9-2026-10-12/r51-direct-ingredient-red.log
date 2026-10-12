@@ -1,0 +1,111 @@
+RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/interactions.test.ts (20 tests | 5 failed) 19ms
+   × evaluates two directly selected ingredients with a known synthetic reported pair 3ms
+   × includes direct ingredients alongside product ingredients in pair building 2ms
+   × marks unknown direct ingredient ids incomplete with unknown-ingredient and no guessing 0ms
+   × records direct duplicate of a product ingredient with both origins and no self-pair 0ms
+   × counts direct ingredients toward the too-many-pairs limit 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/interactions.test.ts > evaluates two directly selected ingredients with a known synthetic reported pair
+AssertionError: expected 'incomplete' to be 'reported' // Object.is equality
+
+Expected: "reported"
+Received: "incomplete"
+
+ ❯ tests/domain/interactions.test.ts:718:25
+    716|     options(),
+    717|   );
+    718|   expect(result.status).toBe('reported');
+       |                         ^
+    719|   expect(result.evaluatedIngredientIds).toHaveLength(2);
+    720|   expect(result.evaluatedPairCoverage).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/domain/interactions.test.ts > includes direct ingredients alongside product ingredients in pair building
+AssertionError: expected [ …(2) ] to have a length of 3 but got 2
+
+- Expected
++ Received
+
+- 3
++ 2
+
+ ❯ tests/domain/interactions.test.ts:767:41
+    765|     options(),
+    766|   );
+    767|   expect(result.evaluatedIngredientIds).toHaveLength(3);
+       |                                         ^
+    768|   expect(result.evaluatedPairCoverage).toHaveLength(3);
+    769|   expect(result.directIngredientIds).toEqual([directId]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/domain/interactions.test.ts > marks unknown direct ingredient ids incomplete with unknown-ingredient and no guessing
+AssertionError: expected 'no-reported-record' to be 'incomplete' // Object.is equality
+
+Expected: "incomplete"
+Received: "no-reported-record"
+
+ ❯ tests/domain/interactions.test.ts:811:25
+    809|     options(),
+    810|   );
+    811|   expect(result.status).toBe('incomplete');
+       |                         ^
+    812|   expect(
+    813|     result.unresolvedInputs.some(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/domain/interactions.test.ts > records direct duplicate of a product ingredient with both origins and no self-pair
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/domain/interactions.test.ts:855:36
+    853|     options(),
+    854|   );
+    855|   expect(result.duplicateExposure).toHaveLength(1);
+       |                                    ^
+    856|   expect(result.duplicateExposure[0]?.ingredientId).toBe(duplicateId);
+    857|   expect(result.duplicateExposure[0]?.productIds).toEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/domain/interactions.test.ts > counts direct ingredients toward the too-many-pairs limit
+AssertionError: expected undefined to deeply equal { status: 'too-many-pairs', …(4) }
+
+- Expected:
+{
+  "ingredientCount": 3,
+  "maxPairs": 2,
+  "pairCount": 3,
+  "pairs": [],
+  "status": "too-many-pairs",
+}
+
++ Received:
+undefined
+
+ ❯ tests/domain/interactions.test.ts:923:28
+    921|   );
+    922|   expect(result.status).toBe('incomplete');
+    923|   expect(result.pairLimit).toEqual({
+       |                            ^
+    924|     status: 'too-many-pairs',
+    925|     ingredientCount: 3,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 15 passed (20)
+   Start at  15:06:07
+   Duration  214ms (transform 64ms, setup 0ms, import 87ms, tests 19ms, environment 0ms)
