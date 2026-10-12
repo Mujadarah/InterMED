@@ -217,97 +217,127 @@ The review-fix worker re-ran the gates on this branch from PowerShell: format, l
 
 - Selection of real formulas belongs to the owner, starting from the source assessment.
 - Each selected formula needs a named clinical reviewer with a review date, and a per-formula rights review covering implementation, wording, attribution, adaptation, translation, commercial distribution, and offline scope.
-- The rounding tie-breaking rule needs an explicit, clinically reviewed decision. The source assessment records that nearest integer alone does not select a convention. Today the engine rounds half away from zero on the exact binary value with `roundingRuleReviewed: false`. The owner (a surgeon) is the project's clinical reviewer: the tie rule and the real-formula selection both await the owner's decision.
+- At the M11a review snapshot, the tie-breaking rule and real-formula selection still awaited the owner's decision; the engine used exact-binary rounding with `roundingRuleReviewed: false`. The M11b owner-decision section below supersedes that snapshot with the current calculator-specific presentation and component sign-off requirements.
 - Romanian applicability, excluded and uncertain states, missing-data policy, and display conventions need per-formula review.
 - The calculator UI, including source, units, limitations, version, deprecation, and review-marker display, is not implemented.
 - Real-device, accessibility, privacy, security, and release hardening repeat under Milestone 12 for the expanded rollout.
 
 ## BMI and Mosteller BSA candidates (M11b)
 
-Date: 2026-10-12. Branch `codex/m11-bmi-bsa`, implementation verified at `ae64a3b` after merging main. Definitions are in `packages/domain/src/calculators/bmi-bsa.ts`; tests are in `tests/domain/calculators/bmi-bsa.test.ts` and `tests/domain/calculators/calculator-engine.test.ts`. Both exact versions are **UNREVIEWED candidates**, not clinically approved calculators or M11 clinical acceptance. The historical M11a evidence above remains a record of its earlier scope and runs.
+Date: 2026-10-12. Branch `codex/m11-bmi-bsa`, PR #26, implementation verified at `0e93856` after merging main. Commit `ee56daa` applies the owner's decisions, `36d4fed` records their checks, and `0e93856` clarifies adult-only release scope. Definitions are in `packages/domain/src/calculators/bmi-bsa.ts`; engine, types, registry and approval logic are in the same directory. Tests are in `tests/domain/calculators/bmi-bsa.test.ts` and `tests/domain/calculators/calculator-engine.test.ts`. Both candidates remain `unreviewed` with marker **UNREVIEWED**: implementing the decisions does not supply final clinical sign-off. The M11a sections above describe historical behavior, not the current candidate policies below.
 
-### Owner directives, rounding and approval register
+### Owner directives and component approvals
 
-The owner's 2026-10-12 directives require explicit approval of each formula version, calculator-specific rounding, and MDCalc only for a manual cross-check. MDCalc is not a primary formula source, an automated oracle, or a source of copied implementation/content.
+The owner's 2026-10-12 directives require explicit versioned approval, calculator-specific rounding, and MDCalc only for manual cross-checking. MDCalc is not a primary reference, automated oracle or source of copied implementation/content.
 
-`FormulaOutputDefinition` now requires `output.rounding: { mode, precision }`. There is no default rounding policy. Registration rejects a missing declaration, unsupported mode, negative precision or non-integer precision. The only implemented mode is `half-away-from-zero`, evaluated on the exact stored binary value; the engine does not implement other calculator-specific modes. Each candidate declares this mode separately: BMI precision **1**, Mosteller BSA precision **2**. These are candidate display policies awaiting owner review, not verified original-paper rounding mandates. Results echo the declared mode and precision; M11b no longer emits the historical `roundingRuleReviewed: false` property. `unroundedValue` remains the compute result, and `displayValue` is display-only.
+`FormulaComponentVersions` separates formula arithmetic, population scope, classification, presentation and confirmation. Current component versions are:
 
-`packages/domain/src/calculators/approvals.ts` exports the frozen, **empty** `FORMULA_APPROVALS` register. A `clinically-reviewed` definition cannot register without an exact `formulaId` / `formulaVersion` approval record whose `approvedBy` and `approvedOn` match the reviewer's name and review date, and whose `scope` is non-empty. A reviewer/date label alone is rejected. An approval for one `id@version` does not approve another version. No approval record has been added by this work.
+| Component        | BMI (`bmi`) | Mosteller BSA (`bsa-mosteller`) |
+| ---------------- | ----------- | ------------------------------- |
+| `formula`        | `1.0.0`     | `1.0.0`                         |
+| `population`     | `2.0.0`     | `2.0.0`                         |
+| `classification` | `2.0.0`     | Absent: no classifier           |
+| `presentation`   | `2.0.0`     | `2.0.0`                         |
+| `confirmation`   | `1.0.0`     | `1.0.0`                         |
 
-`pendingApprovals(registry)` delegates to `listPendingApprovals()`: it returns a frozen, sorted list of unreviewed id/version pairs. Registering these two candidates returns `bmi@1.0.0` and `bsa-mosteller@1.0.0`. Successful arithmetic does not change their `UNREVIEWED` marker.
+`getFormulaVersionId` in `types.ts` produces the exact composite lookup version in formula/population/classification/presentation/confirmation order, omitting absent components:
 
-### Pinned formulas, units and limitations
+- BMI: `formula=1.0.0|population=2.0.0|classification=2.0.0|presentation=2.0.0|confirmation=1.0.0`.
+- BSA: `formula=1.0.0|population=2.0.0|presentation=2.0.0|confirmation=1.0.0`.
 
-| Candidate             | Implemented formula and output                                      | Declared primary reference                                                                                                                                                                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bmi@1.0.0`           | `weightKg / (heightM * heightM)`, output `kg/m²`, precision 1       | Keys A, Fidanza F, Karvonen MJ, Kimura N, Taylor HL. _Indices of relative weight and obesity._ J Chronic Dis. 1972;25:329–343. [DOI 10.1016/0021-9681(72)90027-6](<https://doi.org/10.1016/0021-9681(72)90027-6>). The definition also preserves historical attribution to Quetelet (1835). |
-| `bsa-mosteller@1.0.0` | `Math.sqrt((heightCm * weightKg) / 3600)`, output `m²`, precision 2 | Mosteller RD. _Simplified calculation of body-surface area._ N Engl J Med. 1987;317:1098. [DOI 10.1056/NEJM198710223171717](https://doi.org/10.1056/NEJM198710223171717).                                                                                                                   |
+These composite strings, together with the formula id, pin calculations and golden vectors; the former plain `1.0.0` lookup is not the current registered candidate version. Registration rejects a composite id inconsistent with its component set, unknown/malformed components, a classification version without a classifier (or the reverse), and a confirmation version without non-empty soft checks (or the reverse).
 
-Both require manually submitted `weight`, `height`, and `age`. Weight accepts `kg` or `lb`, normalized to `kg`; height accepts `cm`, `m`, or `in`, normalized to `m` for BMI and `cm` for BSA; age accepts `years` only. Their declared mass/length maps use `STANDARD_UNIT_CONVERSIONS` in `packages/domain/src/calculators/units.ts`: `lb × 0.45359237 = kg`, `kg × 2.2046226218487757 = lb`, `in × 2.54 = cm`, and `cm × 0.01 = m`, with the inverse and direct metre/inch pairs also declared. Normalized values feed computation without intermediate display rounding; submitted values, normalized units and conversion steps remain in `inputEcho`.
+`packages/domain/src/calculators/approvals.ts` still exports a frozen, **empty** `FORMULA_APPROVALS` register. Approval records now identify `formulaId`, `component`, `componentVersion`, `approvedBy`, `approvedOn` and `scope`. A component approval requires an exact id/component/version match, non-empty approver/scope and a parseable approval date. Registering a `clinically-reviewed` definition also requires a reviewer and valid review date, plus approval for **every declared current component version**. Approval of arithmetic alone cannot approve population, classification, presentation or confirmation behavior. The previous whole-version reviewer/date equality check is no longer the approval model.
 
-Both declare the `adult-age` guard: age **at least 18 years**, inclusive. Valid subadult inputs such as `17.999 years` produce `out-of-population` before computation. Age input validation accepts 0–130 years so this guard can distinguish subadult scope from malformed/out-of-range input. The implemented calculated age range is therefore 18–130, with both endpoints tested.
+`pendingApprovals(registry)` returns frozen pending entries containing the formula id, composite formula version, component and component version, sorted by id/version and component order. With both candidates registered and the register empty, all **nine** declared components are pending (five BMI, four BSA); it is no longer a list of just two unreviewed id/version pairs.
 
-**Engineering plausibility limits — pending owner review:** weight 1–500 kg; height 50–272 cm (0.5–2.72 m); age input 0–130 years with the adult guard above. Pound bounds are `2.2046226218487757` through `500 * 2.2046226218487757`; inch bounds are `50 / 2.54` through `272 / 2.54`. Endpoints are inclusive and tested in every accepted weight/height unit; just-outside values are rejected without clamping. These are engineering validation bounds, not clinically validated normal ranges or population evidence.
+### Formula references, units and release scope
 
-BMI limitations explicitly state that it is a screening index, not a direct body-fat measure or diagnosis. Muscle mass, pregnancy, amputation, edema/oedema and body-composition extremes can affect interpretation. No ethnicity-specific thresholds, dose, diagnosis or treatment advice are provided. Mosteller BSA is an estimate with no dosing advice; it differs from Du Bois, with no superiority claim or automatic substitution. Applicability beyond source populations is unvalidated; obesity, pregnancy, amputation, edema/oedema and pediatrics require review. Original-paper rounding/derivation checks and instrument-specific reuse rights remain unverified as recorded in the definitions and `docs/CALCULATOR_SOURCE_ASSESSMENT.md`. No calculator UI, patient persistence or auto-population is added.
+| Calculator    | Implemented arithmetic and output               | Declared reference                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| BMI           | `weightKg / (heightM * heightM)`, `kg/m²`       | Formula citation: Keys A, Fidanza F, Karvonen MJ, Kimura N, Taylor HL. _Indices of relative weight and obesity._ J Chronic Dis. 1972;25:329–343, with historical attribution to Quetelet (1835). The definition now also cites WHO _Obesity: Preventing and Managing the Global Epidemic_, Technical Report Series 894 (2000), and its reference URL is the [WHO publication record](https://iris.who.int/handle/10665/42330). |
+| Mosteller BSA | `Math.sqrt((heightCm * weightKg) / 3600)`, `m²` | Mosteller RD. _Simplified calculation of body-surface area._ N Engl J Med. 1987;317:1098. [DOI 10.1056/NEJM198710223171717](https://doi.org/10.1056/NEJM198710223171717).                                                                                                                                                                                                                                                      |
 
-### BMI WHO candidate categories — PENDING owner approval
+Both require manually submitted `weight`, `height` and `age`. Weight accepts `kg`/`lb` and normalizes to `kg`; height accepts `cm`/`m`/`in` and normalizes to `m` for BMI or `cm` for BSA; age accepts `years` only. Declared `STANDARD_UNIT_CONVERSIONS` retain `lb × 0.45359237 = kg`, `kg × 2.2046226218487757 = lb`, `in × 2.54 = cm`, and `cm × 0.01 = m`, with inverse and direct metre/inch rules. Computation uses normalized values without intermediate display rounding; `inputEcho` retains submitted values, normalized units and conversion steps.
 
-The definition cites WHO Technical Report Series 894 (2000) for candidate adult categories. Their thresholds, labels, intended population and application to ages 18–19 remain **PENDING owner clinical approval**. The code applies them to the **unrounded** result, not the displayed number:
+**Adult-only is product release scope, not a claim of formula invalidity in children.** The current release accepts ages 18–130 years. The `adult-age` guard remains declared with an inclusive lower bound of 18, but the age input's technical range is now 18–130: a submitted age of `17.999` fails input validation first with `invalid-input` / `out-of-range`, rather than returning the former candidate `out-of-population` result. WHO BMI-for-age references include adolescents up to 19 years; that classification is not implemented. Assessment outside this release's adult scope requires separate evidence/review, and the BSA limitation explicitly avoids implying that Mosteller is inherently invalid for children.
 
-| Unrounded BMI (`kg/m²`) | Code              | Candidate label        |
-| ----------------------- | ----------------- | ---------------------- |
-| `< 18.5`                | `underweight`     | Underweight            |
-| `18.5` to `< 25`        | `normal`          | Normal range           |
-| `25` to `< 30`          | `pre-obese`       | Pre-obese (overweight) |
-| `30` to `< 35`          | `obese-class-i`   | Obese class I          |
-| `35` to `< 40`          | `obese-class-ii`  | Obese class II         |
-| `>= 40`                 | `obese-class-iii` | Obese class III        |
+**Technical bounds, not clinically validated plausibility thresholds:** weight **1–500 kg**, height **50–272 cm** (0.5–2.72 m), age **18–130 years**. Pound bounds are `2.2046226218487757` through `500 * 2.2046226218487757`; inch bounds are `50 / 2.54` through `272 / 2.54`. Bounds are inclusive; outside values return `invalid-input` without clamping. Passing these technical bounds does not establish clinical plausibility or bypass confirmation checks. Endpoint tests acknowledge triggered checks before expecting an `ok` value, including age 130.
 
-Tests cover every exact cutoff and just-below value. For example, unrounded `24.96` displays `25` at precision 1 but retains code `normal`. BSA has no classification hook or returned category.
+BMI remains a screening index, not a direct body-fat measure or diagnosis; muscle mass, pregnancy, amputation, edema/oedema and body-composition extremes can affect interpretation. The definition explicitly warns that **cardiometabolic risk may occur at lower BMI values in certain populations**. The international adult classification does not implement population-specific thresholds or assessment; any future population-specific assessment needs separate evidence, review and versioning. No ethnicity-specific thresholds, dose, diagnosis or treatment advice are supplied.
 
-### Golden vectors and revalidation rule
+Mosteller BSA remains an estimate with no dosing advice, no Du Bois superiority claim and no automatic substitution. Applicability beyond source populations is unvalidated. Its explicit presentation limitation is: **the displayed rounded value must not be used as an implicit input for medication-dose calculations**. Original-paper rounding/derivation and instrument-specific reuse rights remain unverified as stated by the definitions. This change adds no calculator UI, patient persistence or auto-population.
 
-`tests/domain/calculators/bmi-bsa.test.ts` pins these engineering vectors to each exact version; all use age 30 years. These are arithmetic regression cases, not owner-approved clinical oracles. Display values are numeric, so precision metadata, rather than trailing zero characters, declares the number of decimal places.
+### Proposed confirmation checks — pending owner sign-off
 
-| Exact version         | Weight (`kg`) | Height (`cm`) | Expected unrounded value | Expected display value |
-| --------------------- | ------------- | ------------- | ------------------------ | ---------------------- |
-| `bmi@1.0.0`           | 70            | 175           | `22.857142857142858`     | `22.9`                 |
-| `bmi@1.0.0`           | 100           | 200           | `25`                     | `25` (`pre-obese`)     |
-| `bmi@1.0.0`           | 56.65625      | 175           | `18.5`                   | `18.5` (`normal`)      |
-| `bsa-mosteller@1.0.0` | 70            | 175           | `1.8446619684315546`     | `1.84`                 |
-| `bsa-mosteller@1.0.0` | 80            | 180           | `2`                      | `2`                    |
-| `bsa-mosteller@1.0.0` | 50            | 160           | `1.4907119849998598`     | `1.49`                 |
+Both formulas declare the following soft checks inside the technical input bounds. These are proposed confirmation prompts, **not clinically validated thresholds**:
 
-Revalidation rule: a change to formula arithmetic, conversion factors, population guards, plausibility limits, rounding or classification requires rerunning that version's golden, boundary, negative, missing-input and conversion cases and reviewing the clinical meaning. A changed formula version needs its own pinned vectors and explicit owner approval; neither golden results nor approval carry forward automatically. Shared engine/conversion changes require revalidation of every affected registered version. The registry enforces exact-version lookup and approval matching; this broader revalidation rule is an owner review/release requirement, not an automatic approval mechanism.
+| Check id                    | Trigger                                                                    |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `weight-unusual`            | Weight `< 30` or `> 250 kg`                                                |
+| `height-unusual`            | Height `< 130` or `> 220 cm`                                               |
+| `age-over-110`              | Age `> 110 years`                                                          |
+| `implied-bmi-outside-range` | Implied `weightKg / heightM²` `< 12` or `> 70 kg/m²`, for both BMI and BSA |
 
-### Contract and failure-path evidence
+Exact soft-check endpoints do not trigger their respective check; other simultaneous checks can still trigger. Input-range bounds are converted to canonical units before comparison, and the implied-BMI check uses normalized kilograms/metres. After input validation and population guards, any unacknowledged hit returns the new **`confirmation-required`** status with shared metadata and `checks` (`id`, `inputIds`, `message`), **without** display/unrounded values or classification and before formula computation. The result includes all triggered hits, including already acknowledged hits when another remains outstanding.
 
-Both candidates run `describeFormulaContract` from `tests/domain/calculators/describe-formula-contract.ts`. Candidate tests cover positive arithmetic, all six accepted mass/length unit combinations per formula, conversion echoes and round trips, missing inputs, zero/negative weight and height, non-finite values for every input, unsupported units, adult boundaries, inclusive plausibility endpoints and just-outside rejection.
+The caller resubmits `confirmedChecks` as unique declared string ids. Non-arrays, duplicate/non-string ids and undeclared ids are rejected as invalid input. Every currently triggered check must be acknowledged before calculation proceeds; partial acknowledgement still returns `confirmation-required`. An `ok` result carries the triggered hits in `confirmedChecks` (an empty array when none trigger). Confirmation does not override technical bounds or grant clinical approval. The proposed values and this confirmation workflow remain pending owner sign-off.
 
-Engine tests additionally pin malformed runtime requests: null/string/number requests return `unavailable`; null/array/string/number `inputs` return `invalid-input` with `invalid-input-shape`; throwing input getters and a null registry are contained. Synthetic `compute` functions returning `NaN`, positive infinity, a string or `undefined` return `unavailable` with the sanitized reason `The pinned formula did not return a finite result.` Private output text is not exposed. These synthetic failure tests verify containment; they do not imply such outputs are valid BMI/BSA results.
+### Decimal rounding and classification presentation
+
+Each formula explicitly declares `output.rounding`; there is no default. BMI uses **`half-up-decimal`, precision 1**; BSA uses **`half-up-decimal`, precision 2**. In `calculate.ts`, rounding parses `Math.abs(value).toString()` (the shortest round-trip decimal, including exponent notation), uses `BigInt` coefficient/scale and quotient/remainder arithmetic to round the decimal magnitude, rebuilds decimal text, and converts it back to a finite number. It does not make these candidates' tie decisions from the exact binary expansion or an epsilon adjustment. For the positive candidate values, a decimal half tie rounds up. Results retain raw `unroundedValue`, numeric `displayValue`, units, precision and declared rounding metadata; they do not add trailing-zero characters to the numeric value.
+
+Tests pin BMI `22.85 → 22.9`, and BSA `1.005 → 1.01`, `2.675 → 2.68`, `0.125 → 0.13` (with required confirmations for unusual inputs). These are engineering presentation cases, not original-publication rounding mandates. The engine still supports the earlier binary mode for other explicitly declared definitions; neither current BMI nor BSA candidate selects it.
+
+BMI returns **WHO international adult classification, WHO Technical Report Series 894 (2000)** labels based on the **unrounded** BMI. Each full label starts with that exact phrase followed by `: ` and the suffix below:
+
+| Unrounded BMI (`kg/m²`) | Exact code                                | Label suffix           |
+| ----------------------- | ----------------------------------------- | ---------------------- |
+| `< 18.5`                | `who-international-adult-underweight`     | Underweight            |
+| `18.5` to `< 25`        | `who-international-adult-normal`          | Normal range           |
+| `25` to `< 30`          | `who-international-adult-pre-obese`       | Pre-obese (overweight) |
+| `30` to `< 35`          | `who-international-adult-obese-class-i`   | Obese class I          |
+| `35` to `< 40`          | `who-international-adult-obese-class-ii`  | Obese class II         |
+| `>= 40`                 | `who-international-adult-obese-class-iii` | Obese class III        |
+
+The pure classifier is also evaluated on the display value solely to detect a presentation boundary crossing. If its code differs from the actual unrounded classification, `classificationNote` explains both values/units and the display-derived category; the returned `classification` remains unchanged. For example, `24.96` displays `25.0` in the note while retaining `who-international-adult-normal`; the note explains that the display would fall in the pre-obese category. No note is emitted when codes agree. Mosteller BSA has no classifier, classification component, category or classification note. WHO classification behavior and the note remain proposed pending owner sign-off.
+
+### Golden vectors, revalidation and failure paths
+
+`tests/domain/calculators/bmi-bsa.test.ts` pins the following vectors to each candidate's **current composite version above**, with age 30 years. These are engineering regression cases, not owner-approved clinical oracles:
+
+| Calculator | Weight (`kg`) | Height (`cm`) | Expected unrounded value | Expected numeric display                   |
+| ---------- | ------------- | ------------- | ------------------------ | ------------------------------------------ |
+| BMI        | 70            | 175           | `22.857142857142858`     | `22.9`                                     |
+| BMI        | 100           | 200           | `25`                     | `25` (`who-international-adult-pre-obese`) |
+| BMI        | 56.65625      | 175           | `18.5`                   | `18.5` (`who-international-adult-normal`)  |
+| BSA        | 70            | 175           | `1.8446619684315546`     | `1.84`                                     |
+| BSA        | 80            | 180           | `2`                      | `2`                                        |
+| BSA        | 50            | 160           | `1.4907119849998598`     | `1.49`                                     |
+
+A change to formula arithmetic, population limits, classification, display/rounding or confirmation policy needs the corresponding component version and exact composite lookup identity, affected golden/boundary/negative/missing/conversion/confirmation tests, and an approval record for each changed component before clinical review can be claimed. Approval of an unchanged component does not approve a changed component. Shared engine/conversion changes require revalidation of every affected candidate. Component identity and approval matching are registry checks; the broader revalidation obligation remains a review/release rule, not automatic clinical approval.
+
+Both candidates still run `describeFormulaContract` and test six accepted mass/length combinations, conversion echoes/round trips, missing/zero/negative and non-finite inputs, unsupported units, technical endpoints and just-outside rejection. Added tests cover composite versioning, per-component pending approvals, decimal rounding, exact/just-below WHO cutoffs and classification notes, each proposed soft-check trigger/endpoints, and partial/full acknowledgement. Engine tests retain malformed null/string/number requests (`unavailable`), malformed null/array/string/number `inputs` (`invalid-input-shape`), throwing getters/null registry containment, and synthetic `compute` outputs `NaN`, positive infinity, string or `undefined` (`unavailable`, sanitized reason `The pinned formula did not return a finite result.`). Private output text is not exposed.
 
 ### Recorded checks and post-merge verification
 
-All historical logs below are under `docs/evidence/milestone-11-2026-10-12/`:
+Logs are in `docs/evidence/milestone-11-2026-10-12/`. Earlier `bmi-bsa-*.log` totals describe the initial candidate implementation, not these owner-decision changes.
 
-| Log                                | Recorded result                                                                                                                                                                                                      |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bmi-bsa-red.log`                  | 2 files failed; 8 failed / 150 passed. Missing candidate exports/approval API and rounding/approval behavior fail before implementation.                                                                             |
-| `bmi-bsa-green.log`                | Focused engine/candidate suite: 2 files / 213 passed, exit 0.                                                                                                                                                        |
-| `bmi-bsa-full-check-attempt-1.log` | Format passed; lint stopped on `no-loss-of-precision`, exit 1.                                                                                                                                                       |
-| `bmi-bsa-full-check-attempt-2.log` | Format/lint passed; typecheck stopped on potentially undefined conversion arrays, exit 2.                                                                                                                            |
-| `bmi-bsa-full-check.log`           | Full `npm run check` exit 0: format, lint, typecheck, unit 60 files / 1,152 passed, architecture boundaries (104 source files), audit (0 vulnerabilities), build, distribution scan, browser 160 passed / 2 skipped. |
+| Owner-decision log          | Recorded result                                                                                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `owner-decisions-red.log`   | Focused feature-red run, exit 1: 2 files failed; 157 failed / 87 passed (244 total).                                                                                                                                                                                                 |
+| `owner-decisions-green.log` | Focused engine/candidate run, exit 0: 2 files / 244 passed.                                                                                                                                                                                                                          |
+| `owner-decisions-check.log` | Full `npm run check`, exit 0: format, lint, typecheck, unit **62 files / 1,293 passed**, boundaries (111 source files), audit (0 vulnerabilities), build, distribution scan, browser **160 passed / 2 skipped**. Toolchain: Node `24.21.0`, npm `11.19.0`, secondary Node `22.23.2`. |
 
-The orchestrator's 2026-10-12 rerun after merging main reports **format, lint, typecheck, unit tests (62 files / 1,273 passed), and architecture boundaries passed** at the supplied implementation baseline `ae64a3b`. This post-merge result is separate from the earlier log totals above; it does not assert a post-merge audit/build/browser rerun. Automated gates and synthetic tests do not establish clinical approval, original-source/rights verification, UI acceptance or real-device acceptance.
+The orchestrator's rerun after merging main reports **1,326 unit tests passed**. This later total is separate from the owner-decision log's pre-merge 1,293 tests; the older M11b documentation run at `ae64a3b` (1,273 tests) is also superseded for the current baseline. No post-merge audit/build/browser rerun is inferred from these unit results. Automated checks do not establish clinical sign-off, source/reuse-rights verification, UI acceptance or real-device acceptance.
 
-The documentation worker independently reran format, lint, typecheck, unit tests and architecture boundaries at `ae64a3b` on 2026-10-12 using Node `24.21.0`, npm `11.19.0` and the existing Node `22.23.2` executable via `INTERMED_NODE22_RUNTIME`. The unit rerun confirmed **62 files / 1,273 passed**; boundaries passed for **111 source files**. An initial unit attempt failed to load the compiled-artifact suite because that environment variable was unset (61 files / 1,272 tests passed, 1 suite failed); the configured rerun passed without code changes. Only this evidence document was edited.
+The documentation worker independently reran lint, typecheck, unit tests and architecture boundaries at `0e93856` with Node `24.21.0`, npm `11.19.0` and Node `22.23.2` configured through `INTERMED_NODE22_RUNTIME`: **66 files / 1,326 tests passed**, and boundaries passed for **119 source files**. The updated document also passed `npx prettier --write` and `npm run format:check`. Only this evidence document was changed.
 
-### Pending owner clinical approval
+### Pending owner clinical sign-off
 
-- Separate explicit approval records for `bmi@1.0.0` and `bsa-mosteller@1.0.0`, with reviewer, date and scope; the approval register remains empty.
-- Calculator-specific rounding mode and precision, including exact-binary tie behavior; any requested unsupported mode needs implementation and revalidation before use.
-- BMI WHO candidate thresholds/labels and their applicability to the chosen adult population, particularly ages 18–19.
-- Adult guard, engineering plausibility limits, Romanian applicability and exclusions/uncertain states for each formula.
-- Clinical reference vectors, original publication/derivation verification and per-formula reuse/attribution rights; manual MDCalc comparison is supplementary only.
-- Clinical interpretation and limitations, with no automatic diagnosis, treatment or dosing decision; calculator presentation and Milestone 12 hardening remain separate gates.
+- **Per-component approvals:** all current BMI components (`formula@1.0.0`, `population@2.0.0`, `classification@2.0.0`, `presentation@2.0.0`, `confirmation@1.0.0`) and BSA components (`formula@1.0.0`, `population@2.0.0`, `presentation@2.0.0`, `confirmation@1.0.0`), with approver, date and scope; `FORMULA_APPROVALS` remains empty.
+- **Population policy and limitations:** adult-only release ages 18–130 as product scope, WHO BMI-for-age through 19 not implemented, lower-BMI cardiometabolic-risk population warning and no population-specific thresholds; no claim that Mosteller is invalid for children.
+- **Technical bounds and proposed confirmation policy:** bounds 1–500 kg / 50–272 cm / 18–130 years are not clinically validated; proposed soft checks weight `<30`/`>250 kg`, height `<130`/`>220 cm`, age `>110 years`, implied BMI `<12`/`>70 kg/m²`, including endpoint behavior and acknowledgement of every triggered check.
+- **WHO classification behavior:** international adult labels/cutoffs applied to the unrounded result, their intended population/application at ages 18–19, and the boundary-crossing `classificationNote`.
+- **Presentation:** decimal half-up from the shortest decimal, BMI 1 dp / BSA 2 dp, and the explicit prohibition on using displayed rounded BSA as an implicit medication-dose input.
+- **Clinical/reference and rights evidence:** clinical reference vectors, original publication/derivation and instrument-specific reuse rights remain unverified; MDCalc is supplementary manual cross-checking only. Calculator UI and Milestone 12 hardening remain separate acceptance gates.
