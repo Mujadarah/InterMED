@@ -102,6 +102,67 @@ describe('calculator registry and result provenance', () => {
     expect(() => registry.register(olderVersion)).toThrow();
   });
 
+  it('rejects a guard with an unknown operator at registration', () => {
+    const unknownGuard = {
+      id: 'synthetic-unknown-guard',
+      inputId: 'synthetic-concentration',
+      operator: 'greater-than',
+      value: 10,
+      unit: 'mg/dL',
+      message: 'Fictional test guard only.',
+    };
+    const definition = {
+      ...linear,
+      formulaId: 'synthetic-unknown-guard',
+      populationLimits: {
+        text: linear.populationLimits.text,
+        guards: [unknownGuard],
+      },
+    };
+    const registry = createFormulaRegistry();
+    let error: unknown;
+    try {
+      registry.register(definition as unknown as TestFormulaDefinition);
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toMatchObject({
+      name: 'FormulaRegistrationError',
+      code: 'invalid-definition',
+    });
+  });
+
+  it('returns unavailable when a stored guard has an unknown operator', () => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const internal = registry as unknown as {
+      definitions: Map<string, Record<string, unknown>>;
+    };
+    const key = JSON.stringify([linear.formulaId, linear.formulaVersion]);
+    const stored = internal.definitions.get(key);
+    if (!stored) throw new Error('Synthetic fixture is missing.');
+    const limits = stored['populationLimits'] as {
+      text: string;
+      guards: readonly Record<string, unknown>[];
+    };
+    const tampered = {
+      ...stored,
+      populationLimits: {
+        text: limits.text,
+        guards: [{ ...limits.guards[0], operator: 'greater-than' }],
+      },
+    };
+    internal.definitions.set(key, tampered);
+    const result = calculateWith(
+      registry,
+      request('synthetic-linear', '1.0', {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+      }),
+    );
+    expect(result.status).toBe('unavailable');
+  });
+
   it('rejects malformed runtime definitions with structured registration errors', () => {
     const malformedDefinitions: unknown[] = [
       { ...linear, inputs: [null, ...linear.inputs.slice(1)] },

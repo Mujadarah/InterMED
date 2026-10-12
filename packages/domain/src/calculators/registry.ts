@@ -199,6 +199,13 @@ function assertGuard(
     }
     return;
   }
+  if (guard.operator !== 'at-least' && guard.operator !== 'at-most') {
+    const operator = (guard as { readonly operator: unknown }).operator;
+    const guardId = (guard as { readonly id: unknown }).id;
+    invalidDefinition(
+      `Population guard ${String(guardId)} has an unknown operator ${String(operator)}.`,
+    );
+  }
   if (!Number.isFinite(guard.value)) {
     invalidDefinition(`Population guard ${guard.id} requires a finite limit.`);
   }

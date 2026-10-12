@@ -105,7 +105,12 @@ function populationLimitHit(
       message: guard.message,
     };
   }
-  return undefined;
+  if (guard.operator === 'at-least' || guard.operator === 'at-most') {
+    return undefined;
+  }
+  throw new Error(
+    `Unknown population guard operator ${(guard as { operator: unknown }).operator}.`,
+  );
 }
 
 function findPopulationLimitHits(
@@ -119,6 +124,17 @@ function findPopulationLimitHits(
     return hit ? [hit] : [];
   });
   return Object.freeze(hits);
+}
+
+function findPopulationLimitHitsGuarded(
+  definition: FormulaDefinition,
+  normalizedValues: Readonly<Record<string, number | undefined>>,
+): readonly PopulationLimitHit[] | undefined {
+  try {
+    return findPopulationLimitHits(definition, normalizedValues);
+  } catch {
+    return undefined;
+  }
 }
 
 function roundForDisplay(value: number, precision: number): number | undefined {
@@ -148,10 +164,17 @@ function calculateKnownFormula(
       unitErrors: validation.unitErrors,
     };
   }
-  const limitsHit = findPopulationLimitHits(
+  const limitsHit = findPopulationLimitHitsGuarded(
     definition,
     validation.normalizedValues,
   );
+  if (limitsHit === undefined) {
+    return {
+      status: 'unavailable',
+      ...metadata,
+      reason: 'The pinned formula population limits could not be evaluated.',
+    };
+  }
   if (limitsHit.length > 0) {
     return { status: 'out-of-population', ...metadata, limitsHit };
   }

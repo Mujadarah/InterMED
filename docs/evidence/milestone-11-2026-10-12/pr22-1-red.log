@@ -1,0 +1,60 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts (91 tests | 2 failed) 24ms
+     ├ù rejects a guard with an unknown operator at registration 3ms
+     ├ù returns unavailable when a stored guard has an unknown operator 1ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects a
+guard with an unknown operator at registration
+AssertionError: expected undefined to match object { ΓÇª(2) }
+
+- Expected:
+{
+  "code": "invalid-definition",
+  "name": "FormulaRegistrationError",
+}
+
++ Received:
+undefined
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts:129:19
+    127|       error = caught;
+    128|     }
+    129|     expect(error).toMatchObject({
+       |                   ^
+    130|       name: 'FormulaRegistrationError',
+    131|       code: 'invalid-definition',
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > returns
+unavailable when a stored guard has an unknown operator
+AssertionError: expected 'ok' to be 'unavailable' // Object.is equality
+
+Expected: "unavailable"
+Received: "ok"
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts:163:27
+    161|       }),
+    162|     );
+    163|     expect(result.status).toBe('unavailable');
+       |                           ^
+    164|   });
+    165|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 89 passed (91)
+   Start at  17:49:45
+   Duration  229ms (transform 71ms, setup 0ms, import 95ms, tests 24ms, environment 0ms)
