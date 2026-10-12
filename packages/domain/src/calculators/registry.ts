@@ -1,4 +1,4 @@
-import { findConversionPath } from './units';
+import { findConversionPath, STANDARD_UNIT_CONVERSIONS } from './units';
 import type {
   FormulaDefinition,
   FormulaInputDefinition,
@@ -120,6 +120,9 @@ function assertConversionRules(
     for (const rule of rules) {
       assertConversionRule(kind, rule, units, seenEdges);
     }
+    assertStandardAgreement(kind, rules);
+    assertInverseConsistency(kind, rules);
+    assertChainConsistency(kind, rules, conversions);
   }
 
   for (const input of inputs) {
@@ -170,6 +173,126 @@ function assertConversionRule(
   seenEdges.add(edge);
 }
 
+const CONVERSION_CONSISTENCY_TOLERANCE = 1e-12;
+
+function conversionEdge(fromUnit: string, toUnit: string): string {
+  return `${fromUnit}\u0000${toUnit}`;
+}
+
+function relativeDifference(first: number, second: number): number {
+  return (
+    Math.abs(first - second) /
+    Math.max(1, Math.abs(first), Math.abs(second))
+  );
+}
+
+function assertStandardAgreement(
+  kind: string,
+  rules: readonly UnitConversionRule[],
+): void {
+  const standard = STANDARD_UNIT_CONVERSIONS[kind];
+  if (!standard) return;
+  const standardByEdge = new Map(
+    standard.map((rule) => [conversionEdge(rule.fromUnit, rule.toUnit), rule]),
+  );
+  for (const rule of rules) {
+    const match = standardByEdge.get(
+      conversionEdge(rule.fromUnit, rule.toUnit),
+    );
+    if (!match) continue;
+    const offset = rule.offset ?? 0;
+    const standardOffset = match.offset ?? 0;
+    if (
+      relativeDifference(rule.factor, match.factor) >
+        CONVERSION_CONSISTENCY_TOLERANCE ||
+      Math.abs(offset - standardOffset) >
+        CONVERSION_CONSISTENCY_TOLERANCE *
+          Math.max(1, Math.abs(offset), Math.abs(standardOffset))
+    ) {
+      invalidDefinition(
+        `Unit conversion for ${kind} from ${rule.fromUnit} to ${rule.toUnit} disagrees with the standard table.`,
+      );
+    }
+  }
+}
+
+function assertInverseConsistency(
+  kind: string,
+  rules: readonly UnitConversionRule[],
+): void {
+  const byEdge = new Map(
+    rules.map((rule) => [conversionEdge(rule.fromUnit, rule.toUnit), rule]),
+  );
+  for (const rule of rules) {
+    const inverse = byEdge.get(conversionEdge(rule.toUnit, rule.fromUnit));
+    if (!inverse) continue;
+    if (
+      Math.abs(rule.factor * inverse.factor - 1) >
+      CONVERSION_CONSISTENCY_TOLERANCE
+    ) {
+      invalidDefinition(
+        `Unit conversion for ${kind} from ${rule.fromUnit} to ${rule.toUnit} is not round-trip consistent with its inverse.`,
+      );
+    }
+    const roundTripOffset =
+      (rule.offset ?? 0) * inverse.factor + (inverse.offset ?? 0);
+    if (
+      Math.abs(roundTripOffset) >
+      CONVERSION_CONSISTENCY_TOLERANCE *
+        Math.max(
+          1,
+          Math.abs((rule.offset ?? 0) * inverse.factor),
+          Math.abs(inverse.offset ?? 0),
+        )
+    ) {
+      invalidDefinition(
+        `Unit conversion for ${kind} from ${rule.fromUnit} to ${rule.toUnit} is not round-trip consistent with its inverse.`,
+      );
+    }
+  }
+}
+
+function composeConversionPath(
+  path: readonly UnitConversionRule[],
+): { readonly factor: number; readonly offset: number } {
+  let factor = 1;
+  let offset = 0;
+  for (const rule of path) {
+    offset = offset * rule.factor + (rule.offset ?? 0);
+    factor *= rule.factor;
+  }
+  return { factor, offset };
+}
+
+function assertChainConsistency(
+  kind: string,
+  rules: readonly UnitConversionRule[],
+  conversions: FormulaUnitConversions,
+): void {
+  for (const rule of rules) {
+    const withoutDirect = rules.filter((other) => other !== rule);
+    const alternative = findConversionPath(
+      { ...conversions, [kind]: withoutDirect },
+      kind,
+      rule.fromUnit,
+      rule.toUnit,
+    );
+    if (!alternative || alternative.rules.length === 0) continue;
+    const composed = composeConversionPath(alternative.rules);
+    const offset = rule.offset ?? 0;
+    if (
+      relativeDifference(rule.factor, composed.factor) >
+        CONVERSION_CONSISTENCY_TOLERANCE ||
+      Math.abs(offset - composed.offset) >
+        CONVERSION_CONSISTENCY_TOLERANCE *
+          Math.max(1, Math.abs(offset), Math.abs(composed.offset))
+    ) {
+      invalidDefinition(
+        `Unit conversion for ${kind} from ${rule.fromUnit} to ${rule.toUnit} disagrees with its composed chain.`,
+      );
+    }
+  }
+}
 function assertGuard(
   guard: PopulationGuard,
   inputsById: ReadonlyMap<string, FormulaInputDefinition>,

@@ -132,6 +132,132 @@ describe('calculator registry and result provenance', () => {
     });
   });
 
+  it('rejects a conversion factor that disagrees with the standard table', () => {
+    const base = makeDefinition({
+      id: 'synthetic-standard-typo',
+      version: '1.0',
+    });
+    const axisInput = base.inputs.find((item) => item.id === 'synthetic-axis');
+    if (!axisInput) throw new Error('Synthetic fixture input is missing.');
+    const concentrationInput = base.inputs.find(
+      (item) => item.id === 'synthetic-concentration',
+    );
+    if (!concentrationInput) {
+      throw new Error('Synthetic fixture input is missing.');
+    }
+    const massInput = {
+      ...axisInput,
+      quantityKind: 'mass',
+      canonicalUnit: 'kg',
+      allowedUnits: ['kg', 'lb'],
+      plausibleRangeByUnit: {
+        kg: { min: 0, max: 100 },
+        lb: { min: 0, max: 220 },
+      },
+    };
+    const drift = 1 + 1e-9;
+    const formula: TestFormulaDefinition = {
+      ...base,
+      formulaId: 'synthetic-standard-typo',
+      inputs: [massInput, concentrationInput],
+      unitConversions: {
+        ...base.unitConversions,
+        mass: [
+          { fromUnit: 'kg', toUnit: 'lb', factor: 2.2046226218487757 * drift },
+          { fromUnit: 'lb', toUnit: 'kg', factor: 0.45359237 / drift },
+        ],
+      },
+    };
+    const registry = createFormulaRegistry();
+    let error: unknown;
+    try {
+      registry.register(formula);
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toMatchObject({
+      name: 'FormulaRegistrationError',
+      code: 'invalid-definition',
+    });
+  });
+
+  it('rejects declared inverses that are not round-trip consistent', () => {
+    const base = makeDefinition({
+      id: 'synthetic-bad-inverse',
+      version: '1.0',
+    });
+    const formula: TestFormulaDefinition = {
+      ...base,
+      formulaId: 'synthetic-bad-inverse',
+      unitConversions: {
+        ...base.unitConversions,
+        'synthetic-concentration': [
+          { fromUnit: 'µmol/L', toUnit: 'mg/dL', factor: 7.321 },
+          { fromUnit: 'mg/dL', toUnit: 'µmol/L', factor: 1 / 7.5 },
+        ],
+      },
+    };
+    const registry = createFormulaRegistry();
+    let error: unknown;
+    try {
+      registry.register(formula);
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toMatchObject({
+      name: 'FormulaRegistrationError',
+      code: 'invalid-definition',
+    });
+  });
+
+  it('rejects a direct pair that disagrees with its composed chain', () => {
+    const base = makeDefinition({
+      id: 'synthetic-bad-chain',
+      version: '1.0',
+    });
+    const chainInput = {
+      id: 'synthetic-chain',
+      label: 'Fictional input synthetic-chain',
+      quantityKind: 'synthetic-chain',
+      canonicalUnit: 'synthetic-unit-c',
+      allowedUnits: [
+        'synthetic-unit-a',
+        'synthetic-unit-b',
+        'synthetic-unit-c',
+      ],
+      plausibleRangeByUnit: {
+        'synthetic-unit-a': { min: 0, max: 100 },
+        'synthetic-unit-b': { min: 0, max: 100 },
+        'synthetic-unit-c': { min: 0, max: 100 },
+      },
+      required: false,
+    };
+    const formula: TestFormulaDefinition = {
+      ...base,
+      formulaId: 'synthetic-bad-chain',
+      inputs: [...base.inputs, chainInput],
+      unitConversions: {
+        ...base.unitConversions,
+        'synthetic-chain': [
+          { fromUnit: 'synthetic-unit-a', toUnit: 'synthetic-unit-b', factor: 2 },
+          { fromUnit: 'synthetic-unit-b', toUnit: 'synthetic-unit-c', factor: 3 },
+          { fromUnit: 'synthetic-unit-a', toUnit: 'synthetic-unit-c', factor: 7 },
+        ],
+      },
+    };
+    const registry = createFormulaRegistry();
+    let error: unknown;
+    try {
+      registry.register(formula);
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toMatchObject({
+      name: 'FormulaRegistrationError',
+      code: 'invalid-definition',
+    });
+  });
+
   it('returns unavailable when a stored guard has an unknown operator', () => {
     const registry = createFormulaRegistry();
     registry.register(linear);
