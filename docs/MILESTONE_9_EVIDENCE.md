@@ -607,6 +607,18 @@ The orchestrator's rerun after merging main and the severity fix reports **forma
 
 The documentation worker independently reran lint, typecheck, unit tests and architecture boundaries at `a3f95f0` using Node `24.21.0`, npm `11.19.0` and Node `22.23.2` via `INTERMED_NODE22_RUNTIME`: **66 files / 1,273 tests passed**, and boundaries passed for **118 source files**. The rewritten document also passed `npx prettier --write` and `npm run format:check`. Only this evidence document was changed.
 
+### Review follow-up: malformed provider payloads
+
+Commit `9578e0d` (found in an independent read-only review) closes a robustness gap on the raw `MergedProviderResults` path. The structural `isProviderResult` guard moved from `evaluate.ts` into a shared `provider-result.ts`. Evaluation behaviour is unchanged.
+
+- `mergeProviderResults` keeps a malformed payload in `providerResults` but takes no records, evidence, source versions or disagreements from it.
+- `assessInteractionPair` reports that source as unavailable with `provider-result-invalid`, so the pair's coverage status is `unavailable` and `affirmedNoInteraction` stays false. Before this fix, the code threw a `TypeError` and returned no assessment.
+- A valid source's current documented finding remains visible.
+
+The fixture-only reason `synthetic-partial-coverage` is no longer whitelisted in production coverage reasons.
+
+Two new tests failed against the previous source and pass with the fix. With this fix, the non-browser unit suite has 1,275 passing tests; one importer temp-directory test fails only in the orchestrator's local shell, because of its environment, and is unrelated.
+
 ### Pending owner clinical sign-off
 
 The owner's 2026-10-12 decision selects independent finding/evidence/currency/coverage dimensions and record-level provenance; final clinical sign-off of the implemented semantics and presentation is still pending. Review must retain current documented findings alongside conflict, history and coverage limits; keep source-affirmed negatives conditional on complete coverage; preserve verbatim source severity/positions/uncertainty; and avoid an overall clinical verdict. Provider selection, source rights, reviewed ingredient/severity mappings, real-provider clinical validation and M10 presentation remain open as described above and in `docs/INTERACTION_SOURCE_ASSESSMENT.md`.
