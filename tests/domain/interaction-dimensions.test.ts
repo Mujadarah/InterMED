@@ -623,6 +623,22 @@ it('scenario 11: a malformed provider result makes the pair unavailable instead 
       position: 'documents-interaction',
     },
   ]);
+
+  const [documentedRecord] = documented.records;
+  if (!documentedRecord)
+    throw new Error('synthetic documented record is missing');
+  const invalidField = {
+    ...documented,
+    records: [{ ...documentedRecord, severity: 42 }],
+  } as unknown as ProviderResult;
+  const fieldResult = assess(
+    mergeProviderResults([invalidField, valid]),
+    CONTRACT_PAIR_AB,
+  );
+  expect(fieldResult.coverage.status).toBe('unavailable');
+  expect(fieldResult.coverage.reasons).toContain('provider-result-invalid');
+  expect(fieldResult.finding.affirmedNoInteraction).toBe(false);
+  expect(fieldResult.finding.documentedInteraction).toBe(true);
 });
 
 it('scenario 12: a stale uncovered pair reports only real limitation codes', async () => {

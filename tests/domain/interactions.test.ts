@@ -900,6 +900,57 @@ it('reports malformed provider results as unusable instead of throwing', async (
   expect(mixed.evidence).toHaveLength(otherResult.evidence.length);
 });
 
+it('rejects structurally malformed coverage rows and record fields', async () => {
+  const valid: ProviderResult =
+    await createNoRecordSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const base: ProviderResult =
+    await createOfflineSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const [sourceRecord] = base.records;
+  const [sourceCoverage] = base.pairCoverage;
+  if (!sourceRecord || !sourceCoverage)
+    throw new Error('synthetic provider payload is missing');
+
+  const malformedResults = [
+    { ...base, pairCoverage: [{ status: 'reported' }] },
+    {
+      ...base,
+      pairCoverage: [{ pair: [sourceCoverage.pair[0]], status: 'reported' }],
+    },
+    { ...base, pairCoverage: [{ pair: [1, 2], status: 'reported' }] },
+    {
+      ...base,
+      pairCoverage: [
+        { pair: sourceCoverage.pair, status: 'unexpected-status' },
+      ],
+    },
+    {
+      ...base,
+      pairCoverage: [
+        { pair: sourceCoverage.pair, status: 'reported', stale: 'yes' },
+      ],
+    },
+    { ...base, records: [{ ...sourceRecord, severity: 42 }] },
+    { ...base, records: [{ ...sourceRecord, sourceId: 1 }] },
+    { ...base, records: [{ ...sourceRecord, datasetVersionId: 7 }] },
+    { ...base, records: [{ ...sourceRecord, evidenceIds: null }] },
+    { ...base, records: [{ ...sourceRecord, contextLimitations: 'none' }] },
+  ] as unknown as ProviderResult[];
+
+  for (const malformed of malformedResults) {
+    const merged = mergeProviderResults([malformed, valid]);
+    expect(merged.records).toEqual([]);
+    expect(merged.evidence).toEqual([]);
+    expect(merged.sourceVersions).toEqual([
+      {
+        providerId: valid.providerId,
+        sourceId: valid.sourceId,
+        sourceVersion: valid.sourceVersion,
+      },
+    ]);
+    expect(merged.disagreements).toEqual([]);
+  }
+});
+
 it('returns an incomplete evaluation when the configured pair limit is exceeded', async () => {
   const selection = makeSyntheticSelection([
     {
