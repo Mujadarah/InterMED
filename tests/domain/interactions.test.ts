@@ -15,13 +15,18 @@ import {
   CONTRACT_INGREDIENT_C,
   CONTRACT_REQUEST,
   SYNTHETIC_RETRIEVED_AT,
+  createDanglingEvidenceSyntheticProvider,
   createNoRecordSyntheticProvider,
   createOfflineSyntheticProvider,
+  createOmittedCoverageSyntheticProvider,
   createOnlineOnlySyntheticProvider,
+  createOutsidePairSyntheticProvider,
   createPartialCoverageSyntheticProvider,
+  createReversedOrderSyntheticProvider,
   createSecondVocabularySyntheticProvider,
   createThrowingSyntheticProvider,
   createTimeoutSyntheticProvider,
+  createVersionMismatchSyntheticProvider,
   makeSyntheticSelection,
 } from './synthetic-interaction-providers';
 import { mustId, SOURCE_KEY } from './builders';
@@ -510,6 +515,7 @@ it('keeps stale or partial pair coverage visible alongside reported records', as
   expect(result.evaluatedPairCoverage.some((item) => item.stale === true)).toBe(
     true,
   );
+  expect(result.incompleteReasons.length).toBeGreaterThan(0);
 });
 
 it('returns unavailable when provider rights are not permitted or online access is required', async () => {
@@ -1718,6 +1724,113 @@ it('keeps records from an unavailable provider qualified with an explicit flag',
   expect(result.unavailableReason).toBe('synthetic-license-suspended');
   expect(result.interactions).toHaveLength(1);
   expect(result.recordsFromUnavailableProvider).toBe(true);
+});
+
+function adversarialSelection() {
+  return makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-ADVERSARIAL-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-ADVERSARIAL-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-ADVERSARIAL-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-ADVERSARIAL-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-ADVERSARIAL-SYNTHETICA',
+      displayName: 'Synthetica',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-ADVERSARIAL-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+  ]);
+}
+
+it('canonicalizes adversarial reversed provider pairs', async () => {
+  const provider = createReversedOrderSyntheticProvider();
+  const raw = await provider.evaluate(CONTRACT_REQUEST);
+  expect(raw.records.length).toBeGreaterThan(0);
+  const rawRecord = raw.records[0];
+  expect(rawRecord).toBeDefined();
+  if (!rawRecord) return;
+  expect(rawRecord.ingredientAId > rawRecord.ingredientBId).toBe(true);
+
+  const result = await evaluateInteractions(
+    adversarialSelection(),
+    provider,
+    options(),
+  );
+  expect(result.interactions).toHaveLength(1);
+  const evaluated = result.interactions[0];
+  expect(evaluated).toBeDefined();
+  if (!evaluated) return;
+  expect(evaluated.ingredientAId <= evaluated.ingredientBId).toBe(true);
+  expect(result.incompleteReasons).not.toContain(
+    'provider-pair-coverage-invalid',
+  );
+});
+
+it('rejects adversarial records outside the request and self-pairs', async () => {
+  const result = await evaluateInteractions(
+    adversarialSelection(),
+    createOutsidePairSyntheticProvider(),
+    options(),
+  );
+  expect(result.interactions).toHaveLength(1);
+  expect(result.incompleteReasons).toContain('record-pair-outside-request');
+  expect(result.incompleteReasons).toContain('provider-pair-coverage-invalid');
+});
+
+it('flags adversarial omitted pair coverage', async () => {
+  const result = await evaluateInteractions(
+    adversarialSelection(),
+    createOmittedCoverageSyntheticProvider(),
+    options(),
+  );
+  expect(result.coverageComplete).toBe(false);
+  expect(result.incompleteReasons).toContain(
+    'provider-pair-coverage-incomplete',
+  );
+  expect(
+    result.evaluatedPairCoverage.some(
+      (coverage) => coverage.reason === 'provider-omitted-pair-coverage',
+    ),
+  ).toBe(true);
+});
+
+it('flags adversarial provider identity mismatches', async () => {
+  const result = await evaluateInteractions(
+    adversarialSelection(),
+    createVersionMismatchSyntheticProvider(),
+    options(),
+  );
+  expect(result.incompleteReasons).toContain('provider-version-mismatch');
+  expect(result.incompleteReasons).toContain('record-dataset-version-mismatch');
+});
+
+it('flags adversarial dangling evidence links', async () => {
+  const result = await evaluateInteractions(
+    adversarialSelection(),
+    createDanglingEvidenceSyntheticProvider(),
+    options(),
+  );
+  expect(result.incompleteReasons).toContain('evidence-link-invalid');
+  expect(result.evidence).toEqual([]);
 });
 
 it('keeps unresolved inputs visible when the provider call times out', async () => {

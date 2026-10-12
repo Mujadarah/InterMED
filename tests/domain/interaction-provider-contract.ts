@@ -9,9 +9,12 @@ import {
   CONTRACT_CONTEXT,
   CONTRACT_INGREDIENT_A,
   CONTRACT_INGREDIENT_B,
+  CONTRACT_INGREDIENT_C,
   CONTRACT_REQUEST,
   CONTRACT_SELECTION,
   SYNTHETIC_RETRIEVED_AT,
+  THROW_TRIGGER_SELECTION,
+  TIMEOUT_TRIGGER_SELECTION,
   pairKeyForTest,
 } from './synthetic-interaction-providers';
 
@@ -21,6 +24,15 @@ const EVALUATION_OPTIONS = {
   timeoutMs: 20,
   now: () => SYNTHETIC_RETRIEVED_AT,
 };
+
+// Fixed expected pairs for the three contract ingredients, derived from the
+// fixture ingredients rather than echoing the provider request, so providers
+// cannot pass by parroting the request back.
+const EXPECTED_CONTRACT_PAIR_KEYS = [
+  pairKeyForTest(canonicalPair(CONTRACT_INGREDIENT_A, CONTRACT_INGREDIENT_B)),
+  pairKeyForTest(canonicalPair(CONTRACT_INGREDIENT_A, CONTRACT_INGREDIENT_C)),
+  pairKeyForTest(canonicalPair(CONTRACT_INGREDIENT_B, CONTRACT_INGREDIENT_C)),
+];
 
 export function describeProviderContract(
   name: string,
@@ -46,15 +58,25 @@ export function describeProviderContract(
     it('returns coverage for each canonical requested pair and no outside pair', async () => {
       const provider = factory();
       const result = await provider.evaluate(CONTRACT_REQUEST);
-      const requested = new Set(CONTRACT_REQUEST.pairs.map(pairKeyForTest));
+      const requested = new Set(EXPECTED_CONTRACT_PAIR_KEYS);
       expect(result.retrievedAt).toBe(SYNTHETIC_RETRIEVED_AT);
       expect(['available', 'unavailable']).toContain(result.status);
-      expect(result.pairCoverage).toHaveLength(CONTRACT_REQUEST.pairs.length);
-      expect(
-        result.pairCoverage.map((coverage) => pairKeyForTest(coverage.pair)),
-      ).toEqual(CONTRACT_REQUEST.pairs.map(pairKeyForTest));
-      for (const coverage of result.pairCoverage)
+      expect(result.pairCoverage).toHaveLength(
+        EXPECTED_CONTRACT_PAIR_KEYS.length,
+      );
+      const observedKeys = result.pairCoverage.map((coverage) =>
+        pairKeyForTest(coverage.pair),
+      );
+      expect([...observedKeys].sort()).toEqual(
+        [...EXPECTED_CONTRACT_PAIR_KEYS].sort(),
+      );
+      expect(new Set(observedKeys).size).toBe(observedKeys.length);
+      for (const coverage of result.pairCoverage) {
         expect(requested.has(pairKeyForTest(coverage.pair))).toBe(true);
+        expect(coverage.pair).toEqual(
+          canonicalPair(coverage.pair[0], coverage.pair[1]),
+        );
+      }
       for (const record of result.records) {
         const pair = canonicalPair(record.ingredientAId, record.ingredientBId);
         expect(requested.has(pairKeyForTest(pair))).toBe(true);
@@ -150,6 +172,25 @@ export function describeProviderContract(
       );
       expect(timedOut.status).toBe('unavailable');
       expect(timedOut.unavailableReason).toBe('provider-timeout');
+
+      if (descriptor.providerId === 'synthetic-throwing-provider') {
+        const triggered = await evaluateInteractions(
+          THROW_TRIGGER_SELECTION,
+          factory(),
+          { ...EVALUATION_OPTIONS, timeoutMs: 1000 },
+        );
+        expect(triggered.status).toBe('unavailable');
+        expect(triggered.unavailableReason).toBe('provider-error');
+      }
+      if (descriptor.providerId === 'synthetic-timeout-provider') {
+        const triggered = await evaluateInteractions(
+          TIMEOUT_TRIGGER_SELECTION,
+          factory(),
+          { ...EVALUATION_OPTIONS, timeoutMs: 1 },
+        );
+        expect(triggered.status).toBe('unavailable');
+        expect(triggered.unavailableReason).toBe('provider-timeout');
+      }
     });
 
     it('respects offline provider availability', async () => {

@@ -399,6 +399,177 @@ export function createNoRecordSyntheticProvider(): DrugInteractionProvider {
   });
 }
 
+function reversedPair(pair: CanonicalIngredientPair): CanonicalIngredientPair {
+  return [pair[1], pair[0]];
+}
+
+export function createReversedOrderSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        pairCoverage: result.pairCoverage.map((coverage) => ({
+          ...coverage,
+          pair: reversedPair(coverage.pair),
+        })),
+        records: result.records.map((record) => ({
+          ...record,
+          ingredientAId: record.ingredientBId,
+          ingredientBId: record.ingredientAId,
+        })),
+      };
+    },
+  };
+}
+
+export function createOutsidePairSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      const template = result.records[0];
+      const first = request.ingredientIds[0];
+      if (!template || first === undefined) return result;
+      const outsider = mustId(
+        'ActiveIngredient',
+        SOURCE_KEY,
+        'AI-ADVERSARIAL-OUTSIDER',
+      );
+      const outsideRecord: DrugInteraction = {
+        ...template,
+        id: template.id + '-outside',
+        ingredientAId: outsider,
+        ingredientBId: first,
+        evidenceIds: [],
+      };
+      const selfRecord: DrugInteraction = {
+        ...template,
+        id: template.id + '-self',
+        ingredientAId: first,
+        ingredientBId: first,
+        evidenceIds: [],
+      };
+      const outsideCoverage: ProviderPairCoverage = {
+        pair: fixturePair(outsider, first),
+        status: 'covered-no-record',
+        retrievedAt: SYNTHETIC_RETRIEVED_AT,
+      };
+      return {
+        ...result,
+        records: [...result.records, outsideRecord, selfRecord],
+        pairCoverage: [...result.pairCoverage, outsideCoverage],
+      };
+    },
+  };
+}
+
+export function createOmittedCoverageSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        pairCoverage: result.pairCoverage.filter(
+          (_coverage, index) => index !== 1,
+        ),
+      };
+    },
+  };
+}
+
+export function createVersionMismatchSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        providerId: 'synthetic-impostor-provider',
+        sourceVersion: 'synthetic-interactions-v9',
+        records: result.records.map((record) => ({
+          ...record,
+          datasetVersionId: mustId(
+            'DatasetVersion',
+            SOURCE_KEY,
+            'synthetic-adversarial-generation',
+          ),
+        })),
+      };
+    },
+  };
+}
+
+export function createDanglingEvidenceSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) => ({
+          ...record,
+          evidenceIds: ['synthetic-missing-evidence'],
+        })),
+        evidence: [],
+      };
+    },
+  };
+}
+
+export const THROW_TRIGGER_SELECTION = makeSyntheticSelection([
+  {
+    sourceProductId: 'SP-TRIGGER-THROW-FICTIVOL',
+    displayName: 'Fictivol',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-SYNTHETIC-THROW-TRIGGER',
+        displayName: 'Fictivolinum',
+      },
+    ],
+  },
+  {
+    sourceProductId: 'SP-TRIGGER-THROW-PLACEBEX',
+    displayName: 'Placebex',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-TRIGGER-THROW-PLACEBEXIUM',
+        displayName: 'Placebexium',
+      },
+    ],
+  },
+]);
+
+export const TIMEOUT_TRIGGER_SELECTION = makeSyntheticSelection([
+  {
+    sourceProductId: 'SP-TRIGGER-TIMEOUT-FICTIVOL',
+    displayName: 'Fictivol',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-SYNTHETIC-TIMEOUT-TRIGGER',
+        displayName: 'Fictivolinum',
+      },
+    ],
+  },
+  {
+    sourceProductId: 'SP-TRIGGER-TIMEOUT-PLACEBEX',
+    displayName: 'Placebex',
+    ingredients: [
+      {
+        sourceIngredientId: 'AI-TRIGGER-TIMEOUT-PLACEBEXIUM',
+        displayName: 'Placebexium',
+      },
+    ],
+  },
+]);
+
 export function pairKeyForTest(pair: readonly [string, string]): string {
   return pairKey(pair);
 }
