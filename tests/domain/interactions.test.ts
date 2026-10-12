@@ -725,7 +725,7 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
     }),
   );
   expect(mapped.interactions[0]?.severity).toBe('source-band-amber');
-  expect(mapped.interactions[0]?.normalizedSeverity).toBe('synthetic-tier-1');
+  expect(mapped.interactions[0]).not.toHaveProperty('normalizedSeverity');
   expect(mapped.interactions[0]?.severityMappingVersion).toBe(
     'synthetic-map-v1',
   );
@@ -748,9 +748,22 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
   );
   expect(unmapped.interactions[0]?.severity).toBe('source-band-amber');
   expect(unmapped.interactions[0]?.normalizedSeverity).toBe('unmapped');
-  expect(unmapped.interactions[0]).not.toHaveProperty(
-    'severityMappingReviewed',
+  expect(unmapped.interactions[0]?.severityMappingReviewed).toBe(true);
+
+  const reviewed = await evaluateInteractions(
+    selection,
+    provider,
+    options({
+      severityMapping: {
+        mappingVersion: 'synthetic-map-v3',
+        reviewed: true,
+        map: { 'source-band-amber': 'synthetic-tier-1' },
+      },
+    }),
   );
+  expect(reviewed.interactions[0]?.severity).toBe('source-band-amber');
+  expect(reviewed.interactions[0]?.normalizedSeverity).toBe('synthetic-tier-1');
+  expect(reviewed.interactions[0]?.severityMappingReviewed).toBe(true);
 });
 
 it('merges provider records and flags source-term and reported-versus-covered disagreement', async () => {

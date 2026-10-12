@@ -1,0 +1,261 @@
+Toolchain: Node v24.21.0, npm 11.19.0; INTERMED_NODE22_RUNTIME Node v22.23.2
+COMMAND: vitest run tests/domain/interaction-dimensions.test.ts tests/domain/interactions.test.ts --reporter=verbose
+
+ RUN  v4.1.11 <worktree>
+
+ × tests/domain/interaction-dimensions.test.ts > scenario 1: a current finding stays visible beside disagreeing source positions 3ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 2: a withdrawn record remains history beside a current record 2ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 3: withdrawn and superseded records alone are history, not findings or negative findings 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 4: complete covered-no-record evidence supports a source-attributed negative position 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 5: a source negative position never cancels another source current finding 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 6: incomplete, unresolved, unsupported, unavailable, offline, rights-blocked, and truncated coverage cannot affirm none 1ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 7: source-version-mismatched records are flagged outdated and not current findings 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 8: source-stated uncertainty and evidence levels are preserved without inference 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 9: the assessment has no safety or no-interaction wording 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > scenario 10: repeated assessment is deterministic and deeply frozen 0ms
+   → assessInteractionPair export is required
+ × tests/domain/interaction-dimensions.test.ts > removes the rejected single-category precedence API 1ms
+   → expected [Function: categorizeInteractionOutcomes] to be undefined
+ ✓ tests/domain/interactions.test.ts > canonicalizes pairs and returns the full unique pair set without self-pairs 1ms
+ ✓ tests/domain/interactions.test.ts > returns an explicit pair-limit outcome without truncating the pair set 0ms
+ ✓ tests/domain/interactions.test.ts > reports a source record while preserving its exact source severity vocabulary 2ms
+ ✓ tests/domain/interactions.test.ts > uses no-reported-record only when every requested pair is explicitly covered without records 0ms
+ ✓ tests/domain/interactions.test.ts > marks reported evaluations with full coverage as coverage-complete 0ms
+ ✓ tests/domain/interactions.test.ts > marks reported evaluations with unresolved inputs as coverage-incomplete 0ms
+ ✓ tests/domain/interactions.test.ts > marks unavailable and incomplete evaluations as coverage-incomplete 1ms
+ ✓ tests/domain/interactions.test.ts > marks unresolved ingredients incomplete and does not guess their identity 0ms
+ ✓ tests/domain/interactions.test.ts > expands a combination product while retaining its product-to-ingredient mapping 0ms
+ ✓ tests/domain/interactions.test.ts > reports duplicate exposure separately and never creates a self-pair 0ms
+ ✓ tests/domain/interactions.test.ts > keeps stale or partial pair coverage visible alongside reported records 0ms
+ ✓ tests/domain/interactions.test.ts > returns unavailable when provider rights are not permitted or online access is required 0ms
+ ✓ tests/domain/interactions.test.ts > maps thrown and timed-out provider calls to unavailable without leaking exceptions 4ms
+ ✓ tests/domain/interactions.test.ts > marks unsupported context limitations incomplete without calling an incapable provider 0ms
+ × tests/domain/interactions.test.ts > applies only explicit severity mappings and flags unreviewed mappings 5ms
+   → expected { …(16) } to not have property "normalizedSeverity"
+ ✓ tests/domain/interactions.test.ts > merges provider records and flags source-term and reported-versus-covered disagreement 1ms
+ ✓ tests/domain/interactions.test.ts > does not report inactive records as cross-provider findings 0ms
+ ✓ tests/domain/interactions.test.ts > flags severity disagreement only when different providers report different terms 0ms
+ ✓ tests/domain/interactions.test.ts > returns an incomplete evaluation when the configured pair limit is exceeded 0ms
+ ✓ tests/domain/interactions.test.ts > keeps source versions and does not label a result as safe or as no interaction 0ms
+ ✓ tests/domain/interactions.test.ts > evaluates two directly selected ingredients with a known synthetic reported pair 0ms
+ ✓ tests/domain/interactions.test.ts > includes direct ingredients alongside product ingredients in pair building 0ms
+ ✓ tests/domain/interactions.test.ts > marks unknown direct ingredient ids incomplete with unknown-ingredient and no guessing 0ms
+ ✓ tests/domain/interactions.test.ts > records direct duplicate of a product ingredient with both origins and no self-pair 1ms
+ ✓ tests/domain/interactions.test.ts > counts direct ingredients toward the too-many-pairs limit 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null product entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null active-ingredient entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > treats a null medication-ingredient entry as malformed input instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > marks direct ingredients with empty crosswalks incomplete without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > marks direct ingredients with only unreviewed mappings incomplete without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider records payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider pair-coverage payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a null provider evidence payload to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps a descriptor without capabilities to unavailable instead of throwing 0ms
+ ✓ tests/domain/interactions.test.ts > maps an unexpected post-call processing failure to unavailable instead of rejecting 0ms
+ ✓ tests/domain/interactions.test.ts > marks unreviewed ingredient mappings incomplete while still evaluating the pairs 0ms
+ ✓ tests/domain/interactions.test.ts > marks rejected ingredient mappings incomplete while still evaluating the pairs 1ms
+ ✓ tests/domain/interactions.test.ts > aborts the provider signal when the evaluation times out 2ms
+ ✓ tests/domain/interactions.test.ts > still maps to unavailable when the provider ignores the abort signal 15ms
+ ✓ tests/domain/interactions.test.ts > keeps records from an unavailable provider qualified with an explicit flag 0ms
+ ✓ tests/domain/interactions.test.ts > canonicalizes adversarial reversed provider pairs 1ms
+ ✓ tests/domain/interactions.test.ts > rejects adversarial records outside the request and self-pairs 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial omitted pair coverage 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial provider identity mismatches 0ms
+ ✓ tests/domain/interactions.test.ts > flags adversarial dangling evidence links 0ms
+ ✓ tests/domain/interactions.test.ts > keeps unresolved inputs visible when the provider call times out 13ms
+ ✓ tests/domain/interactions.test.ts > marks absent source severity as explicitly unmapped when a mapping is requested 1ms
+ ✓ tests/domain/interactions.test.ts > flags records from another dataset version without rewriting them 0ms
+ ✓ tests/domain/interactions.test.ts > keeps a withdrawn-only pair incomplete and retains its source history 1ms
+ ✓ tests/domain/interactions.test.ts > reports a current record while listing its superseded predecessor 1ms
+ ✓ tests/domain/interactions.test.ts > flags records from an older provider source version without dropping them 0ms
+ ✓ tests/domain/interactions.test.ts > preserves uncertainty only when the source states it 0ms
+ ✓ tests/domain/interactions.test.ts > never turns a withdrawn record into covered-no-record coverage 0ms
+ ✓ tests/domain/interactions.test.ts > keeps a superseded-only pair incomplete instead of covered-no-record 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 1: a current finding stays visible beside disagreeing source positions
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:155:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 2: a withdrawn record remains history beside a current record
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:200:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 3: withdrawn and superseded records alone are history, not findings or negative findings
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:218:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 4: complete covered-no-record evidence supports a source-attributed negative position
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:231:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 5: a source negative position never cancels another source current finding
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:250:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 6: incomplete, unresolved, unsupported, unavailable, offline, rights-blocked, and truncated coverage cannot affirm none
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:382:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 7: source-version-mismatched records are flagged outdated and not current findings
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:395:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 8: source-stated uncertainty and evidence levels are preserved without inference
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:405:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 9: the assessment has no safety or no-interaction wording
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:423:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > scenario 10: repeated assessment is deterministic and deeply frozen
+Error: assessInteractionPair export is required
+ ❯ assess tests/domain/interaction-dimensions.test.ts:129:11
+    127|   );
+    128|   if (typeof implementation !== 'function')
+    129|     throw new Error('assessInteractionPair export is required');
+       |           ^
+    130|   return (implementation as AssessmentFunction)(input, pair);
+    131| }
+ ❯ tests/domain/interaction-dimensions.test.ts:430:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  tests/domain/interaction-dimensions.test.ts > removes the rejected single-category precedence API
+AssertionError: expected [Function: categorizeInteractionOutcomes] to be undefined
+
+- Expected:
+undefined
+
++ Received:
+[Function categorizeInteractionOutcomes]
+
+ ❯ tests/domain/interaction-dimensions.test.ts:440:5
+    438|   expect(
+    439|     Reflect.get(interactionDomain, 'categorizeInteractionOutcomes'),
+    440|   ).toBeUndefined();
+       |     ^
+    441| });
+    442|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  tests/domain/interactions.test.ts > applies only explicit severity mappings and flags unreviewed mappings
+AssertionError: expected { …(16) } to not have property "normalizedSeverity"
+
+- Expected:
+undefined
+
++ Received:
+"synthetic-tier-1"
+
+ ❯ tests/domain/interactions.test.ts:728:38
+    726|   );
+    727|   expect(mapped.interactions[0]?.severity).toBe('source-band-amber');
+    728|   expect(mapped.interactions[0]).not.toHaveProperty('normalizedSeverit…
+       |                                      ^
+    729|   expect(mapped.interactions[0]?.severityMappingVersion).toBe(
+    730|     'synthetic-map-v1',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  12 failed | 53 passed (65)
+   Start at  21:48:50
+   Duration  331ms (transform 190ms, setup 0ms, import 258ms, tests 70ms, environment 0ms)
+
+
+exit code: 1

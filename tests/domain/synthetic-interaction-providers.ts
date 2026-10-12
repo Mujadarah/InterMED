@@ -6,6 +6,7 @@ import {
   type InteractionContext,
   type InteractionProviderDescriptor,
   type InteractionSelection,
+  type DataSourceId,
   type ProviderPairCoverage,
   type ProviderRequest,
   type ProviderResult,
@@ -18,6 +19,7 @@ import {
   mustId,
   product,
   sourceId,
+  SOURCE_NAMESPACE,
   SOURCE_KEY,
 } from './builders';
 
@@ -192,6 +194,7 @@ interface SyntheticProviderOptions {
   readonly providerId: string;
   readonly sourceVersion: string;
   readonly severity: string;
+  readonly sourceId?: DataSourceId;
   readonly availability?: InteractionProviderDescriptor['availability'];
   readonly rightsStatus?: InteractionProviderDescriptor['rightsStatus'];
   readonly evaluableContextLimitations?: readonly string[];
@@ -207,6 +210,7 @@ function makeRecord(
   sourceVersion: string,
   pair: readonly [string, string],
   severity: string,
+  recordSourceId: DataSourceId,
 ): DrugInteraction {
   const interactionId = 'synthetic-interaction-' + providerId + '-first-pair';
   const evidenceId = 'synthetic-evidence-' + providerId + '-first-pair';
@@ -217,7 +221,7 @@ function makeRecord(
     severity,
     contextLimitations: [],
     evidenceIds: [evidenceId],
-    sourceId,
+    sourceId: recordSourceId,
     sourceVersion,
     datasetVersionId,
     lastUpdated: SYNTHETIC_RETRIEVED_AT,
@@ -257,7 +261,7 @@ function createSyntheticProvider(
 ): DrugInteractionProvider {
   const descriptor: InteractionProviderDescriptor = {
     providerId: options.providerId,
-    sourceId,
+    sourceId: options.sourceId ?? sourceId,
     sourceVersion: options.sourceVersion,
     availability: options.availability ?? 'offline-licensed',
     capabilities: {
@@ -310,6 +314,7 @@ function createSyntheticProvider(
               descriptor.sourceVersion,
               firstPair,
               options.severity,
+              descriptor.sourceId,
             ),
           ]
         : [];
@@ -423,6 +428,11 @@ export function createDisagreementSyntheticProvider(): DrugInteractionProvider {
     providerId: 'synthetic-disagreement-provider',
     sourceVersion: 'synthetic-disagreement-v1',
     severity: 'source-band-crimson',
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-disagreement',
+    ),
   });
 }
 
@@ -608,6 +618,7 @@ export function createSourceUncertainSyntheticProvider(): DrugInteractionProvide
         records: result.records.map((record) =>
           withLifecycle(record, 'current', [], {
             sourceStatesUncertainEvidence: true,
+            evidenceLevel: 'source-stated-evidence-level-alpha',
           }),
         ),
       };
