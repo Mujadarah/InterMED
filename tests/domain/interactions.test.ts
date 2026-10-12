@@ -1387,6 +1387,138 @@ it('marks direct ingredients with only unreviewed mappings incomplete without dr
   expect(result.evaluatedIngredientIds).toHaveLength(2);
 });
 
+function malformedProviderSelection() {
+  return makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-MALFORMED-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-MALFORMED-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-MALFORMED-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-MALFORMED-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+}
+
+it('maps a null provider records payload to unavailable instead of throwing', async () => {
+  const base = createOfflineSyntheticProvider();
+  const descriptor = base.describe();
+  const provider: DrugInteractionProvider = {
+    describe: () => descriptor,
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return { ...result, records: null } as unknown as ProviderResult;
+    },
+  };
+  const result = await evaluateInteractions(
+    malformedProviderSelection(),
+    provider,
+    options(),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-result-invalid');
+});
+
+it('maps a null provider pair-coverage payload to unavailable instead of throwing', async () => {
+  const base = createOfflineSyntheticProvider();
+  const descriptor = base.describe();
+  const provider: DrugInteractionProvider = {
+    describe: () => descriptor,
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return { ...result, pairCoverage: null } as unknown as ProviderResult;
+    },
+  };
+  const result = await evaluateInteractions(
+    malformedProviderSelection(),
+    provider,
+    options(),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-result-invalid');
+});
+
+it('maps a null provider evidence payload to unavailable instead of throwing', async () => {
+  const base = createOfflineSyntheticProvider();
+  const descriptor = base.describe();
+  const provider: DrugInteractionProvider = {
+    describe: () => descriptor,
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return { ...result, evidence: null } as unknown as ProviderResult;
+    },
+  };
+  const result = await evaluateInteractions(
+    malformedProviderSelection(),
+    provider,
+    options(),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-result-invalid');
+});
+
+it('maps a descriptor without capabilities to unavailable instead of throwing', async () => {
+  const base = createOfflineSyntheticProvider();
+  const { capabilities: _capabilities, ...descriptorWithoutCapabilities } =
+    base.describe();
+  void _capabilities;
+  const provider: DrugInteractionProvider = {
+    describe: () =>
+      descriptorWithoutCapabilities as unknown as ReturnType<
+        DrugInteractionProvider['describe']
+      >,
+    evaluate: (request) => base.evaluate(request),
+  };
+  const result = await evaluateInteractions(
+    malformedProviderSelection(),
+    provider,
+    options(),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-descriptor-invalid');
+});
+
+it('maps an unexpected post-call processing failure to unavailable instead of rejecting', async () => {
+  const base = createOfflineSyntheticProvider();
+  const descriptor = base.describe();
+  const provider: DrugInteractionProvider = {
+    describe: () => descriptor,
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      const explosive = Object.create(null) as Record<string, unknown>;
+      Object.defineProperty(explosive, 'ingredientAId', {
+        get(): unknown {
+          throw new Error('synthetic explosive detail');
+        },
+      });
+      return {
+        ...result,
+        records: [...result.records, explosive],
+      } as unknown as ProviderResult;
+    },
+  };
+  const result = await evaluateInteractions(
+    malformedProviderSelection(),
+    provider,
+    options(),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-result-invalid');
+  expect(JSON.stringify(result)).not.toContain('synthetic explosive detail');
+});
+
 it('marks unreviewed ingredient mappings incomplete while still evaluating the pairs', async () => {
   const selection = makeSyntheticSelection([
     {

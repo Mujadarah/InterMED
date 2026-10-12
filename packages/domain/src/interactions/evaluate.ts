@@ -149,6 +149,54 @@ function describeProvider(
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isProviderDescriptor(value: unknown): value is ProviderDescriptor {
+  try {
+    if (!isRecord(value)) return false;
+    if (typeof value.providerId !== 'string') return false;
+    if (typeof value.sourceId !== 'string') return false;
+    if (typeof value.sourceVersion !== 'string') return false;
+    if (
+      value.availability !== 'offline-licensed' &&
+      value.availability !== 'online-only'
+    )
+      return false;
+    if (
+      value.rightsStatus !== 'permitted' &&
+      value.rightsStatus !== 'not-permitted' &&
+      value.rightsStatus !== 'unknown'
+    )
+      return false;
+    if (!isRecord(value.capabilities)) return false;
+    if (!Array.isArray(value.capabilities.evaluableContextLimitations))
+      return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isProviderResult(value: unknown): value is ProviderResult {
+  try {
+    if (!isRecord(value)) return false;
+    if (typeof value.providerId !== 'string') return false;
+    if (typeof value.sourceId !== 'string') return false;
+    if (typeof value.sourceVersion !== 'string') return false;
+    if (value.status !== 'available' && value.status !== 'unavailable')
+      return false;
+    if (!Array.isArray(value.pairCoverage)) return false;
+    if (!Array.isArray(value.records)) return false;
+    if (!Array.isArray(value.evidence)) return false;
+    if (typeof value.retrievedAt !== 'string') return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function accessGateReason(
   descriptor: ProviderDescriptor,
   online: boolean,
@@ -450,6 +498,19 @@ export async function evaluateInteractions(
       incompleteReasons: ['provider-pair-coverage-incomplete'],
     });
   }
+  if (!isProviderDescriptor(descriptor)) {
+    const base = buildEvaluationBase(
+      selection,
+      expanded,
+      [],
+      generatedAt,
+      severityMappingReview,
+    );
+    return makeEvaluation(base, 'unavailable', {
+      unavailableReason: 'provider-descriptor-invalid',
+      incompleteReasons: ['provider-pair-coverage-incomplete'],
+    });
+  }
 
   const sourceVersions = providerSourceVersions(descriptor);
   const base = buildEvaluationBase(
@@ -482,14 +543,37 @@ export async function evaluateInteractions(
   );
   if ('evaluation' in invoked) return invoked.evaluation;
 
-  return summarizeProviderResult(
-    base,
-    expanded,
-    prepared.pairs,
-    invoked.result,
-    descriptor,
-    sourceVersions,
-    options,
-    prepared.reasonSet,
-  );
+  if (!isProviderResult(invoked.result))
+    return makeEvaluation(base, 'unavailable', {
+      unavailableReason: 'provider-result-invalid',
+      evaluatedPairCoverage: unavailableCoverage(
+        prepared.pairs,
+        descriptor,
+        'provider-result-invalid',
+      ),
+      incompleteReasons: ['provider-pair-coverage-incomplete'],
+    });
+
+  try {
+    return summarizeProviderResult(
+      base,
+      expanded,
+      prepared.pairs,
+      invoked.result,
+      descriptor,
+      sourceVersions,
+      options,
+      prepared.reasonSet,
+    );
+  } catch {
+    return makeEvaluation(base, 'unavailable', {
+      unavailableReason: 'provider-result-invalid',
+      evaluatedPairCoverage: unavailableCoverage(
+        prepared.pairs,
+        descriptor,
+        'provider-result-invalid',
+      ),
+      incompleteReasons: ['provider-pair-coverage-incomplete'],
+    });
+  }
 }
