@@ -85,11 +85,19 @@ async function callProviderWithTimeout(
   timer: InteractionTimer,
 ): Promise<ProviderCallOutcome> {
   let timerHandle: unknown;
+  const controller = createTimeoutController();
   const timedOut = new Promise<ProviderCallOutcome>((resolve) => {
-    timerHandle = timer.schedule(() => resolve({ kind: 'timeout' }), timeoutMs);
+    timerHandle = timer.schedule(() => {
+      controller?.abort();
+      resolve({ kind: 'timeout' });
+    }, timeoutMs);
   });
   const providerCall = Promise.resolve()
-    .then(() => provider.evaluate(request))
+    .then(() =>
+      provider.evaluate(
+        controller ? { ...request, signal: controller.signal } : request,
+      ),
+    )
     .then<ProviderCallOutcome, ProviderCallOutcome>(
       (result) => ({ kind: 'result', result }),
       () => ({ kind: 'error' }),
@@ -97,6 +105,18 @@ async function callProviderWithTimeout(
   const outcome = await Promise.race([providerCall, timedOut]);
   if (outcome.kind !== 'timeout') timer.cancel(timerHandle);
   return outcome;
+}
+
+function createTimeoutController(): AbortController | undefined {
+  const runtime = globalThis as unknown as {
+    AbortController?: new () => AbortController;
+  };
+  if (typeof runtime.AbortController !== 'function') return undefined;
+  try {
+    return new runtime.AbortController();
+  } catch {
+    return undefined;
+  }
 }
 
 function buildEvaluationBase(

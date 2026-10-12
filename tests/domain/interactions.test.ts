@@ -1294,3 +1294,77 @@ it('treats a null medication-ingredient entry as malformed input instead of thro
     ),
   ).toBe(true);
 });
+
+it('aborts the provider signal when the evaluation times out', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-SIGNAL-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-SIGNAL-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-SIGNAL-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-SIGNAL-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const base = createOfflineSyntheticProvider();
+  let observed: AbortSignal | undefined;
+  const provider: DrugInteractionProvider = {
+    describe: () => base.describe(),
+    evaluate: (request) => {
+      observed = request.signal;
+      return new Promise<ProviderResult>(() => {});
+    },
+  };
+  const result = await evaluateInteractions(
+    selection,
+    provider,
+    options({ timeoutMs: 1 }),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-timeout');
+  expect(observed?.aborted).toBe(true);
+});
+
+it('still maps to unavailable when the provider ignores the abort signal', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-SIGNAL-IGNORE-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-SYNTHETIC-TIMEOUT-TRIGGER',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-SIGNAL-IGNORE-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-SIGNAL-IGNORE-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const result = await evaluateInteractions(
+    selection,
+    createTimeoutSyntheticProvider(),
+    options({ timeoutMs: 1 }),
+  );
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('provider-timeout');
+});

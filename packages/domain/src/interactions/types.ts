@@ -9,6 +9,16 @@ import type {
 
 export type NormalizedSeverity = string;
 
+declare global {
+  interface AbortSignal {
+    readonly aborted: boolean;
+  }
+  interface AbortController {
+    readonly signal: AbortSignal;
+    abort(): void;
+  }
+}
+
 export type InteractionEvaluationStatus =
   'reported' | 'no-reported-record' | 'incomplete' | 'unavailable';
 
@@ -98,6 +108,7 @@ export interface ProviderRequest {
   readonly context: InteractionContext;
   readonly datasetVersionId: DatasetVersionId;
   readonly online: boolean;
+  readonly signal?: AbortSignal;
 }
 
 export interface ProviderPairCoverage {

@@ -187,6 +187,7 @@ export function describeProviderContract(
       );
       expect(observed?.context).toEqual(CONTRACT_CONTEXT);
       expect(observed?.online).toBe(true);
+      expect(observed?.signal?.aborted).toBe(false);
     });
 
     it('exposes explicit coverage completeness on every evaluation', async () => {
