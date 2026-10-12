@@ -1,0 +1,387 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: EXPECTED RED (nonzero); exit code 1
+
+Captured test output:
+Warning: truncated output (original token count: 7945)
+Total output lines: 471
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts (88 tests | 85 failed) 46ms
+     × computes the declared positive case with provenance 4ms
+     × accepts exact minimum range boundary 1ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 1ms
+     × returns out-of-range for synthetic-axis 1ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 1ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 1ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 1ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 1ms
+     × accepts an omitted optional input and echoes its absence 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 2ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 0ms
+     × accepts exact maximum range boundary 0ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 0ms
+     × rejects negative infinite input values 0ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts exact minimum range boundary 1ms
+     × accepts exact maximum range boundary 1ms
+     × returns negative-not-allowed for synthetic-axis 0ms
+     × returns out-of-range for synthetic-axis 0ms
+     × returns missing-required for synthetic-axis 0ms
+     × rejects NaN input values 0ms
+     × rejects infinite input values 1ms
+     × rejects negative infinite input values 1ms
+     × records declared unit conversions in the input echo 0ms
+     × rejects undeclared units with a field-level unit error 0ms
+     × reports structured population-limit hits 0ms
+     × requires an explicit id and version without substituting a registered version 1ms
+     × lists registered versions explicitly without selecting one as latest 0ms
+     × rejects duplicate id/version registration instead of replacing a formula 0ms
+     × resolves a pinned deprecated version and includes its notice in the result 3ms
+     × rounds only the display value and retains the unrounded result 1ms
+     × makes the unreviewed marker explicit on every result 0ms
+     × includes reviewer and date metadata for a test-only reviewed status 1ms
+     × does not return patient identifiers or other request metadata 0ms
+     × does not log thrown formula errors or expose the exception message 0ms
+     × applies a standard conversion only when the formula declares its unit map 1ms
+     × rounds exact decimal ties away from zero for display 0ms
+     × does not call compute when a population guard is hit 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 85 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > computes the declared positive case with provenance
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ calculateForDefinition tests/domain/calculators/describe-formula-contract.ts:167:12
+ ❯ tests/domain/calculators/describe-formula-contract.ts:193:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > accepts exact maximum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > accepts exact minimum range boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > accepts exact maximum range boundary
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ calculateForDefinition tests/domain/calculators/describe-formula-contract.ts:167:12
+ ❯ tests/domain/calculators/describe-formula-contract.ts:204:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > returns missing-required for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > returns negative-not-allowed for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > returns out-of-range for synthetic-axis
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > returns missing-required for synthetic-axis
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/…1945 tokens truncated…s
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > reports structured population-limit hits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > reports structured population-limit hits
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ calculateForDefinition tests/domain/calculators/describe-formula-contract.ts:167:12
+ ❯ tests/domain/calculators/describe-formula-contract.ts:296:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts an omitted optional input and echoes its absence
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ calculateForDefinition tests/domain/calculators/describe-formula-contract.ts:167:12
+ ❯ tests/domain/calculators/describe-formula-contract.ts:312:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > requires an explicit id and version without substituting a registered version
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:62:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > lists registered versions explicitly without selecting one as latest
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:84:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects duplicate id/version registration instead of replacing a formula
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:101:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > resolves a pinned deprecated version and includes its notice in the result
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:135:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds only the display value and retains the unrounded result
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:155:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > makes the unreviewed marker explicit on every result
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:176:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > includes reviewer and date metadata for a test-only reviewed status
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:200:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > does not return patient identifiers or other request metadata
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:215:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > does not log thrown formula errors or expose the exception message
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:234:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > applies a standard conversion only when the formula declares its unit map
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:321:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds exact decimal ties away from zero for display
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:358:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/85]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > does not call compute when a population guard is hit
+FormulaRegistrationError: A formula requires an id, pinned version, title, and compute function.
+ ❯ invalidDefinition packages/domain/src/calculators/registry.ts:23:9
+     21|
+     22| function invalidDefinition(message: string): never {
+     23|   throw new FormulaRegistrationError('invalid-definition', message);
+       |         ^
+     24| }
+     25|
+ ❯ validateDefinition packages/domain/src/calculators/registry.ts:208:5
+ ❯ FormulaRegistry.register packages/domain/src/calculators/registry.ts:319:5
+ ❯ tests/domain/calculators/calculator-engine.test.ts:378:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/85]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  85 failed | 3 passed (88)
+   Start at  16:23:58
+   Duration  1.05s (transform 188ms, setup 0ms, import 253ms, tests 46ms, environment 0ms)

@@ -1,0 +1,42 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts (121 tests | 1 failed) 29ms
+     ├ù rejects registration with an empty population guard list 4ms
+node.exe :
+At line:1 char:1
++ & "<repo-root>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects
+registration with an empty population guard list
+AssertionError: expected undefined to match object { ΓÇª(2) }
+
+- Expected:
+{
+  "code": "invalid-definition",
+  "name": "FormulaRegistrationError",
+}
+
++ Received:
+undefined
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts:146:19
+    144|       error = caught;
+    145|     }
+    146|     expect(error).toMatchObject({
+       |                   ^
+    147|       name: 'FormulaRegistrationError',
+    148|       code: 'invalid-definition',
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 120 passed (121)
+   Start at  17:54:07
+   Duration  247ms (transform 77ms, setup 0ms, import 103ms, tests 29ms, environment 0ms)

@@ -1,0 +1,371 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: EXPECTED RED (nonzero); exit code 1
+
+Captured test output:
+
+ RUN  v4.1.11 <worktree>
+
+Warning: truncated output (original token count: 6801)
+Total output lines: 396
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts (66 tests | 66 failed) 49ms
+     × exports the pinned formula registry and calculation function 16ms
+     × computes the declared positive case with provenance 1ms
+     × accepts an exact plausible minimum boundary 2ms
+     × accepts an exact plausible maximum boundary 1ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 1ms
+     × records a declared unit conversion in the input echo 2ms
+     × rejects an undeclared unit as a unit error 1ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts an exact plausible minimum boundary 0ms
+     × accepts an exact plausible maximum boundary 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 0ms
+     × records a declared unit conversion in the input echo 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts an exact plausible minimum boundary 0ms
+     × accepts an exact plausible maximum boundary 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 0ms
+     × records a declared unit conversion in the input echo 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × accepts an omitted optional input and echoes its absence 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts an exact plausible minimum boundary 1ms
+     × accepts an exact plausible maximum boundary 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 1ms
+     × records a declared unit conversion in the input echo 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts an exact plausible minimum boundary 0ms
+     × accepts an exact plausible maximum boundary 1ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 0ms
+     × records a declared unit conversion in the input echo 1ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × computes the declared positive case with provenance 0ms
+     × accepts an exact plausible minimum boundary 0ms
+     × accepts an exact plausible maximum boundary 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 2ms
+     × reports missing required input at field level 0ms
+     × records a declared unit conversion in the input echo 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × requires an explicit id and version and never substitutes a registered version 0ms
+     × lists registered versions explicitly without selecting one as latest 0ms
+     × rejects duplicate id/version registration instead of replacing a formula 0ms
+     × resolves a pinned deprecated version and includes its notice in the result 0ms
+     × rounds only the display value and retains the unrounded result 0ms
+     × makes the unreviewed marker explicit on every result 0ms
+     × includes reviewer and date metadata for a test-only reviewed status 1ms
+     × contains no patient identifier or unrecognized request metadata in its result 0ms
+     × does not log thrown formula errors and returns a sanitized unavailable result 0ms
+     × provides explicit mass and length conversion pairs without a clinical analyte factor 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 66 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator engine public API > exports the pinned formula registry and calculation function
+AssertionError: expected undefined to be type of 'function'
+
+Expected: "function"
+Received: "undefined"
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:322:46
+    320| describe('calculator engine public API', () => {
+    321|   it('exports the pinned formula registry and calculation function', (…
+    322|     expect(calculatorEngine.FormulaRegistry).toBeTypeOf('function');
+       |                                              ^
+    323|     expect(calculatorEngine.calculateFormula).toBeTypeOf('function');
+    324|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > computes the declared positive case with provenance
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > computes the declared positive case with provenance
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:183:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > accepts an exact plausible minimum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts an exact plausible minimum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts an exact plausible minimum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > accepts an exact plausible minimum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > accepts an exact plausible minimum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > accepts an exact plausible minimum boundary
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:193:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > accepts an exact plausible maximum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts an exact plausible maximum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts an exact plausible maximum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > accepts an exact plausible maximum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > accepts an exact plausible maximum boundary
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > accepts an exact plausible maximum boundary
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:199:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > rejects negative values without correcting them
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:205:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > reports plausible-range vio…801 tokens truncated…echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > records a declared unit conversion in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > records a declared unit conversion in the input echo
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > records a declared unit conversion in the input echo
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:235:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > rejects an undeclared unit as a unit error
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:249:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > returns population-limit hits without computing outside the limits
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:259:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > accepts an omitted optional input and echoes its absence
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ calculate tests/domain/calculators/describe-formula-contract.ts:163:24
+    161|   describe(`formula contract ${definition.id}@${definition.version}`, …
+    162|     const calculate = (testCase: FormulaContractCase) => {
+    163|       const registry = new calculatorEngine.FormulaRegistry();
+       |                        ^
+    164|       registry.register(definition);
+    165|       return calculatorEngine.calculateFormula(registry, testCase.requ…
+ ❯ tests/domain/calculators/describe-formula-contract.ts:269:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > requires an explicit id and version and never substitutes a registered version
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:351:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > lists registered versions explicitly without selecting one as latest
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:371:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects duplicate id/version registration instead of replacing a formula
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:388:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > resolves a pinned deprecated version and includes its notice in the result
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:394:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds only the display value and retains the unrounded result
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:414:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > makes the unreviewed marker explicit on every result
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:435:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > includes reviewer and date metadata for a test-only reviewed status
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:459:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > contains no patient identifier or unrecognized request metadata in its result
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:474:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > does not log thrown formula errors and returns a sanitized unavailable result
+TypeError: calculatorEngine.FormulaRegistry is not a constructor
+ ❯ createFormulaRegistry tests/domain/calculators/describe-formula-contract.ts:295:10
+    293|
+    294| export function createFormulaRegistry(): TestFormulaRegistry {
+    295|   return new calculatorEngine.FormulaRegistry();
+       |          ^
+    296| }
+    297|
+ ❯ tests/domain/calculators/calculator-engine.test.ts:497:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/66]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > provides explicit mass and length conversion pairs without a clinical analyte factor
+TypeError: Cannot read properties of undefined (reading 'mass')
+ ❯ tests/domain/calculators/calculator-engine.test.ts:521:24
+    519|   it('provides explicit mass and length conversion pairs without a cli…
+    520|     const conversions = calculatorEngine.STANDARD_UNIT_CONVERSIONS;
+    521|     expect(conversions.mass).toEqual(
+       |                        ^
+    522|       expect.arrayContaining([
+    523|         expect.objectContaining({ fromUnit: 'kg', toUnit: 'lb' }),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/66]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  66 failed (66)
+   Start at  16:08:08
+   Duration  1.92s (transform 193ms, setup 0ms, import 283ms, tests 49ms, environment 0ms)
