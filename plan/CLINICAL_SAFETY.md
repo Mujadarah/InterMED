@@ -9,7 +9,7 @@ InterMED may assist a clinician, but high-impact clinical decisions must be grou
 - Resolve commercial products to confirmed active ingredients before interaction analysis; expand all combination components and show unresolved mappings.
 - Use licensed/permitted structured interaction sources, with explicit evaluated coverage. No LLM is the primary authority for whether an interaction exists.
 - Severity comes from source terminology or an explicitly documented, versioned, clinically reviewed normalization. Missing severity stays unknown.
-- No record is not proof of safety. Distinguish source-covered no reported record, incomplete/unknown coverage and unavailable/offline provider.
+- No record is not proof of safety. Distinguish documented interactions, insufficient information (including source-covered no reported record without an explicit evaluation conclusion), source-supported evaluated-without-identified-interaction, conflicting/uncertain evidence, and withdrawn/superseded/outdated records; also distinguish unavailable/offline provider states. Only an explicit source-supported evaluation can establish evaluated-without-identified-interaction within its stated scope; absence of a record never means safe.
 - Show source, regulatory document/reference, dataset version/age, import/retrieval date and evidence level where supplied. Catalogue currency does not imply interaction currency.
 - Doses, contraindications, renal/hepatic adjustments and pregnancy/lactation information must be traceable. AI cannot fill missing official fields or invent citations.
 - Generated explanations cannot silently alter severity, dose, management, uncertainty or clinical meaning. Keep approved source facts accessible.
@@ -121,7 +121,11 @@ The architecture should allow multiple `DrugInteractionProvider` implementations
 
 Every released formula needs a named primary source, explicit version, units, intended population, limitations and boundary/missing-data tests. Do not silently switch formulas or treat a renal estimate as a complete prescribing decision. Initial calculator inputs are ephemeral, without patient profiles.
 
+Rounding and classification rules are calculator-specific and must be documented and tested for each version. Apply classification thresholds to unrounded values; never reuse display-rounded values in calculations. Any formula-prescribed intermediate rounding is a separate, explicitly sourced rule, not display rounding.
+
 ## Clinical content governance
+
+Owner directives (2026-10-12): clinical components are approved only through explicit approval by the owner (the project clinical reviewer) for each component and version, supported by documented references, reproducible tests and version tracking. Clinically relevant behaviour changes require a new version and revalidation; approval does not carry over from a previous version.
 
 Each rule/content change should include:
 
@@ -141,4 +145,3 @@ When identifiers are entered, treat them as highly sensitive. Avoid sending raw 
 ## Intended-use evolution
 
 Define intended use and assess clinical risk/regulatory obligations before any public clinical medication/interaction release. Repeat and extend that formal review as InterMED moves toward calculators or patient-specific diagnosis/treatment recommendations. Do not assume a disclaimer alone removes medical-device obligations.
-

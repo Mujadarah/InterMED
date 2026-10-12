@@ -184,7 +184,25 @@ The clinical limits also remain:
 
 ## Questions prepared for vendors and rights holders
 
-These are drafts for owner-approved outreach. **No messages have been sent.** Request written answers and the controlling licence/order form, not only a sales assurance or product brochure.
+These are drafts for owner-approved outreach. **No messages have been sent. No vendor or rights holder is contacted, and no licence is committed, without explicit owner authorization.** Request written answers and the controlling licence/order form, not only a sales assurance or product brochure.
+
+**Redistribution gate:** publicly accessible or non-commercially licensed data (for example, [DDInter's advertised CC BY-NC-SA data](https://ddinter2.scbdd.com/terms/)) must **not** be assumed redistributable through InterMED without written confirmation covering the actual use. This is the project's rights-approval requirement: confirm the applicable licence/version, rights chain, public clinical use, offline redistribution, transformations/translations and conditions before adoption; a public page or non-commercial label alone does not close it. This statement does not assert that every use under a Creative Commons licence legally requires a separate negotiated grant. DDInter's additional personal-use wording and upstream rights remain unresolved as recorded above.
+
+### Owner priorities for written clarification (2026-10-12)
+
+All existing general and source-specific questions below remain required. Resolve these priorities explicitly before selecting a provider; unanswered priority items keep adoption blocked.
+
+| Priority                                      | Required written answer                                                                                                                                                                                                                                                                                                                    | Existing questions |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| 1. Offline redistribution rights              | Exact grant for public InterMED device copies, full snapshots/deltas, browser/service-worker storage, territories and user/device limits; identify any compulsory connectivity, DRM or deletion conditions.                                                                                                                                | 1–2, 7             |
+| 2. Permitted transformations and translations | Permission and restrictions for extraction, normalization, crosswalks, severity/evidence mapping, Romanian translation, excerpts and derived databases; identify review/attribution obligations and upstream exclusions.                                                                                                                   | 2, 4, 7            |
+| 3. Update availability                        | Confirm actual snapshot/delta access, delivery cadence, urgent corrections, revision/change history, stable IDs, withdrawals, outage/discontinuation arrangements and separately priced maintenance. Editorial surveillance alone does not prove updates are available to InterMED.                                                        | 2, 3, 6, 8         |
+| 4. Provenance                                 | Identify rights holders/upstream sources and record-level citations, evidence terminology, source/revision dates, mapping lineage and reproducible retained versions.                                                                                                                                                                      | 4, 7               |
+| 5. Clinical coverage                          | Document Romanian/EU ingredients and combinations, salts/routes/doses/populations, exclusions, uncertainty and conflicts; provide a rights-cleared representative sample and explicit evaluation/no-record semantics.                                                                                                                      | 4–6                |
+| 6. Continued use after licence termination    | Explicitly state whether already-distributed offline copies and derived/translated data may continue to be used clinically, for how long, by whom and under which restrictions; distinguish this from audit-only retention. Address expiry, termination, provider outage/discontinuation, deletion/recall, rollback and correction access. | 3                  |
+| 7. Total licensing cost                       | Written total for the intended deployment: setup, annual minimum, devices/users/territories, offline rights, updates, transformations/translations, upstream fees, support/audit, renewal/escalation, exit/retention charges, taxes and currency; confirm eligibility for any non-commercial discount.                                     | 8                  |
+
+### Preserved general and source-specific questions
 
 Ask every prospective provider:
 
