@@ -405,6 +405,77 @@ describe('calculator registry and result provenance', () => {
     }
   });
 
+  it('requires an explicit half-away-from-zero output rounding declaration', () => {
+    const declared = {
+      ...makeDefinition({ id: 'synthetic-explicit-rounding', version: '1.0' }),
+      output: {
+        unit: 'imaginary-output-unit',
+        rounding: { mode: 'half-away-from-zero', precision: 2 },
+      },
+    } as unknown as TestFormulaDefinition;
+    const registry = createFormulaRegistry();
+
+    expect(() => registry.register(declared)).not.toThrow();
+  });
+
+  it('rejects output definitions with no declared rounding mode', () => {
+    const legacy = makeDefinition({
+      id: 'synthetic-legacy-rounding',
+      version: '1.0',
+    });
+
+    expect(() => createFormulaRegistry().register(legacy)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+  });
+
+  it('rejects unsupported rounding modes and invalid rounding precision', () => {
+    const definitions = [
+      {
+        ...makeDefinition({ id: 'synthetic-unknown-rounding', version: '1.0' }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'bankers', precision: 2 },
+        },
+      },
+      {
+        ...makeDefinition({
+          id: 'synthetic-negative-precision',
+          version: '1.0',
+        }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'half-away-from-zero', precision: -1 },
+        },
+      },
+      {
+        ...makeDefinition({
+          id: 'synthetic-fractional-precision',
+          version: '1.0',
+        }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'half-away-from-zero', precision: 1.5 },
+        },
+      },
+    ] as unknown as TestFormulaDefinition[];
+
+    for (const definition of definitions) {
+      expect(() => createFormulaRegistry().register(definition)).toThrow(
+        expect.objectContaining({
+          name: 'FormulaRegistrationError',
+          code: 'invalid-definition',
+        }),
+      );
+    }
+  });
+
   it('keeps a registration-time snapshot of plausible input ranges', () => {
     const formula = makeDefinition({
       id: 'synthetic-pinned-range',
@@ -469,7 +540,6 @@ describe('calculator registry and result provenance', () => {
     expect(result.rounding).toEqual({
       mode: 'half-away-from-zero',
       precision: 2,
-      roundingRuleReviewed: false,
     });
   });
 
@@ -488,7 +558,7 @@ describe('calculator registry and result provenance', () => {
     expect(result.reviewMarker).toBe('UNREVIEWED');
   });
 
-  it('includes reviewer and date metadata for a test-only reviewed status', () => {
+  it('rejects a reviewed status without an exact approval record', () => {
     const reviewedFixture = makeDefinition({
       id: 'synthetic-review-metadata',
       version: '1.0',
@@ -499,17 +569,12 @@ describe('calculator registry and result provenance', () => {
       },
     });
     const registry = createFormulaRegistry();
-    registry.register(reviewedFixture);
-    const result = calculateWith(
-      registry,
-      request(reviewedFixture.formulaId, reviewedFixture.formulaVersion, {
-        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
-        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+    expect(() => registry.register(reviewedFixture)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
       }),
     );
-
-    expect(result.reviewStatus).toEqual(reviewedFixture.reviewStatus);
-    expect(result.reviewMarker).toBe('CLINICALLY REVIEWED');
   });
 
   it('does not return patient identifiers or other request metadata', () => {
@@ -704,7 +769,6 @@ describe('calculator registry and result provenance', () => {
       expect(result.rounding).toEqual({
         mode: 'half-away-from-zero',
         precision,
-        roundingRuleReviewed: false,
       });
     }
   });
