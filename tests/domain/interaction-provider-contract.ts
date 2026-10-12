@@ -188,5 +188,27 @@ export function describeProviderContract(
       expect(observed?.context).toEqual(CONTRACT_CONTEXT);
       expect(observed?.online).toBe(true);
     });
+
+    it('exposes explicit coverage completeness on every evaluation', async () => {
+      const evaluated = await evaluateInteractions(
+        CONTRACT_SELECTION,
+        factory(),
+        EVALUATION_OPTIONS,
+      );
+      expect(typeof evaluated.coverageComplete).toBe('boolean');
+      if (evaluated.status === 'no-reported-record')
+        expect(evaluated.coverageComplete).toBe(true);
+      if (
+        evaluated.status === 'unavailable' ||
+        evaluated.status === 'incomplete'
+      )
+        expect(evaluated.coverageComplete).toBe(false);
+      if (evaluated.coverageComplete) {
+        expect(evaluated.incompleteReasons).toEqual([]);
+        expect(evaluated.evaluatedPairCoverage.length).toBeGreaterThan(0);
+        for (const coverage of evaluated.evaluatedPairCoverage)
+          expect(['reported', 'covered-no-record']).toContain(coverage.status);
+      }
+    });
   });
 }

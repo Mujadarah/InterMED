@@ -144,9 +144,183 @@ it('uses no-reported-record only when every requested pair is explicitly covered
   );
   expect(result.status).toBe('no-reported-record');
   expect(result.coverageComplete).toBe(true);
+  expect(result.incompleteReasons).toEqual([]);
   expect(result.evaluatedPairCoverage).toHaveLength(1);
   expect(result.evaluatedPairCoverage[0]?.status).toBe('covered-no-record');
   expect(result.interactions).toEqual([]);
+});
+
+it('marks reported evaluations with full coverage as coverage-complete', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-COMPLETE-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COMPLETE-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-COMPLETE-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COMPLETE-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const result = await evaluateInteractions(
+    selection,
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('reported');
+  expect(result.coverageComplete).toBe(true);
+  expect(result.incompleteReasons).toEqual([]);
+  expect(result.evaluatedPairCoverage).toHaveLength(1);
+  expect(result.evaluatedPairCoverage[0]?.status).toBe('reported');
+});
+
+it('marks reported evaluations with unresolved inputs as coverage-incomplete', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-REPORTED-PARTIAL-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-REPORTED-PARTIAL-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-REPORTED-PARTIAL-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-REPORTED-PARTIAL-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const unknownId = mustId(
+    'ActiveIngredient',
+    SOURCE_KEY,
+    'AI-REPORTED-PARTIAL-UNKNOWN',
+  );
+  const result = await evaluateInteractions(
+    {
+      snapshot: base.snapshot,
+      productIds: [...base.productIds],
+      datasetVersionId: base.datasetVersionId,
+      ingredientIds: [unknownId],
+    },
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('reported');
+  expect(result.interactions.length).toBeGreaterThan(0);
+  expect(result.coverageComplete).toBe(false);
+  expect(result.incompleteReasons).toContain('unresolved-inputs');
+});
+
+it('marks unavailable and incomplete evaluations as coverage-incomplete', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-COVERAGE-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COVERAGE-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-COVERAGE-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COVERAGE-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const rightsProvider = createOfflineSyntheticProvider({
+    rightsStatus: 'unknown',
+  });
+  const rightsResult = await evaluateInteractions(
+    selection,
+    rightsProvider,
+    options(),
+  );
+  expect(rightsResult.status).toBe('unavailable');
+  expect(rightsResult.coverageComplete).toBe(false);
+
+  const throwingResult = await evaluateInteractions(
+    selection,
+    {
+      describe: () => createOfflineSyntheticProvider().describe(),
+      evaluate: () => Promise.reject(new Error('synthetic failure detail')),
+    },
+    options(),
+  );
+  expect(throwingResult.status).toBe('unavailable');
+  expect(throwingResult.coverageComplete).toBe(false);
+
+  const limitSelection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-COVERAGE-LIMIT-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COVERAGE-LIMIT-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-COVERAGE-LIMIT-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COVERAGE-LIMIT-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-COVERAGE-LIMIT-SYNTHETICA',
+      displayName: 'Synthetica',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-COVERAGE-LIMIT-SYNTHETINIX',
+          displayName: 'Synthetinix',
+        },
+      ],
+    },
+  ]);
+  const limitResult = await evaluateInteractions(
+    limitSelection,
+    createOfflineSyntheticProvider(),
+    options({ maxPairs: 2 }),
+  );
+  expect(limitResult.status).toBe('incomplete');
+  expect(limitResult.coverageComplete).toBe(false);
+
+  const noRecordResult = await evaluateInteractions(
+    selection,
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(noRecordResult.status).toBe('no-reported-record');
+  expect(noRecordResult.coverageComplete).toBe(true);
 });
 
 it('marks unresolved ingredients incomplete and does not guess their identity', async () => {
