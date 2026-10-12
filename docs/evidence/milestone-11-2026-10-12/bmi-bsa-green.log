@@ -1,0 +1,17 @@
+Worktree: <worktree>
+Command: npm exec -- vitest run tests/domain/calculators/calculator-engine.test.ts tests/domain/calculators/bmi-bsa.test.ts --reporter=dot
+Node: v24.21.0
+npm: 11.19.0
+INTERMED_NODE22_RUNTIME: v22.23.2
+
+
+ RUN  v4.1.11 <worktree>
+
+·····················································································································································································································
+
+ Test Files  2 passed (2)
+      Tests  213 passed (213)
+   Start at  19:28:28
+   Duration  231ms (transform 147ms, setup 0ms, import 194ms, tests 52ms, environment 0ms)
+
+Focused suite exit code: 0

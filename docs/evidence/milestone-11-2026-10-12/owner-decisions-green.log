@@ -1,0 +1,19 @@
+Node24=v24.21.0
+npm=11.19.0
+Node22=v22.23.2
+Command=npm run test -- --reporter=dot tests/domain/calculators/bmi-bsa.test.ts tests/domain/calculators/calculator-engine.test.ts
+ExitCode=0
+
+
+> intermed@0.0.0 test
+> vitest run --reporter=dot tests/domain/calculators/bmi-bsa.test.ts tests/domain/calculators/calculator-engine.test.ts
+
+
+ RUN  v4.1.11 [WORKTREE]
+
+····················································································································································································································································
+
+ Test Files  2 passed (2)
+      Tests  244 passed (244)
+   Start at  22:07:51
+   Duration  271ms (transform 185ms, setup 0ms, import 249ms, tests 66ms, environment 0ms)

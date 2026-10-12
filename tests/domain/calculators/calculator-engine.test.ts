@@ -4,7 +4,10 @@ import {
   calculateWith,
   createFormulaRegistry,
   describeFormulaContract,
+  formulaVersionId,
   request,
+  type TestCalculationResult,
+  type TestFormulaComponentVersions,
   type TestFormulaDefinition,
   type TestUnitConversion,
 } from './describe-formula-contract';
@@ -14,6 +17,7 @@ import {
   atMostGuarded,
   divergentNarrow,
   divergentWide,
+  confirmationRequired,
   guarded,
   linear,
   makeDefinition,
@@ -26,10 +30,32 @@ import {
 const calculatorEngine = Domain as unknown as {
   readonly FormulaRegistry: new () => object;
   readonly calculateFormula: (registry: object, request: object) => unknown;
+  readonly getFormulaVersionId?: (
+    componentVersions: TestFormulaComponentVersions,
+  ) => string;
   readonly STANDARD_UNIT_CONVERSIONS: Readonly<
     Record<string, readonly TestUnitConversion[]>
   >;
 };
+
+function calculateWithoutThrow(
+  registry: object,
+  untrustedRequest: unknown,
+): TestCalculationResult {
+  let result: unknown;
+  expect(() => {
+    result = calculatorEngine.calculateFormula(
+      registry,
+      untrustedRequest as object,
+    );
+  }).not.toThrow();
+  expect(result).toMatchObject({
+    status: expect.stringMatching(
+      /^(?:ok|invalid-input|out-of-population|unit-error|unavailable|confirmation-required)$/,
+    ),
+  });
+  return result as TestCalculationResult;
+}
 
 describe('calculator engine public API', () => {
   it('exports the pinned formula registry and calculation function', () => {
@@ -94,6 +120,38 @@ describeFormulaContract(divergentWide, {
     inputId: 'synthetic-concentration',
   },
 });
+describeFormulaContract(confirmationRequired, {
+  ...commonCases(confirmationRequired, { expectedPositiveValue: 57 }),
+  confirmation: {
+    request: request(
+      confirmationRequired.formulaId,
+      confirmationRequired.formulaVersion,
+      {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        'synthetic-optional': { value: 91, unit: 'synthetic-unit' },
+      },
+    ),
+    confirmedRequest: request(
+      confirmationRequired.formulaId,
+      confirmationRequired.formulaVersion,
+      {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        'synthetic-optional': { value: 91, unit: 'synthetic-unit' },
+      },
+      ['synthetic-optional-unusual'],
+    ),
+    expectedChecks: [
+      {
+        id: 'synthetic-optional-unusual',
+        inputIds: ['synthetic-optional'],
+        message: 'Confirm the unusual fictional optional value.',
+      },
+    ],
+    expectedValue: 141,
+  },
+});
 
 describe('calculator registry and result provenance', () => {
   it('requires an explicit id and version without substituting a registered version', () => {
@@ -121,12 +179,13 @@ describe('calculator registry and result provenance', () => {
   it('exposes only metadata without compute from get', () => {
     const registry = createFormulaRegistry();
     registry.register(linear);
-    const metadata = registry.get('synthetic-linear', '1.0');
+    const metadata = registry.get('synthetic-linear', linear.formulaVersion);
 
     expect(metadata).toBeDefined();
     expect(metadata).toMatchObject({
       formulaId: 'synthetic-linear',
-      formulaVersion: '1.0',
+      formulaVersion: linear.formulaVersion,
+      componentVersions: linear.componentVersions,
     });
     expect('compute' in (metadata as unknown as Record<string, unknown>)).toBe(
       false,
@@ -139,15 +198,64 @@ describe('calculator registry and result provenance', () => {
     registry.register(olderVersion);
 
     expect(registry.listVersions('synthetic-versioned')).toEqual([
-      { version: '2.0', deprecated: false },
       {
-        version: '1.0',
+        version: newerVersion.formulaVersion,
+        componentVersions: newerVersion.componentVersions,
+        deprecated: false,
+      },
+      {
+        version: olderVersion.formulaVersion,
+        componentVersions: olderVersion.componentVersions,
         deprecated: true,
         deprecationNotice: 'This fictional test version is deprecated.',
       },
     ]);
-    expect(registry.get('synthetic-versioned', '1.0')).toBeDefined();
-    expect(registry.get('synthetic-versioned', '2.0')).toBeDefined();
+    expect(
+      registry.get('synthetic-versioned', olderVersion.formulaVersion),
+    ).toBeDefined();
+    expect(
+      registry.get('synthetic-versioned', newerVersion.formulaVersion),
+    ).toBeDefined();
+  });
+
+  it('identifies a calculator by its independent component-version set', () => {
+    const makeVersionId = calculatorEngine.getFormulaVersionId;
+    expect(makeVersionId).toBeTypeOf('function');
+    if (!makeVersionId) return;
+
+    const original = makeDefinition({
+      id: 'synthetic-component-versioning',
+      version: '1.0',
+    });
+    const presentationVersions: TestFormulaComponentVersions = {
+      ...original.componentVersions,
+      presentation: '2.0',
+    };
+    const presentationOnly = {
+      ...original,
+      formulaVersion: makeVersionId(presentationVersions),
+      componentVersions: presentationVersions,
+    };
+    const registry = createFormulaRegistry();
+    registry.register(original);
+    registry.register(presentationOnly);
+
+    expect(original.componentVersions.formula).toBe(
+      presentationOnly.componentVersions.formula,
+    );
+    expect(original.formulaVersion).not.toBe(presentationOnly.formulaVersion);
+    expect(registry.listVersions(original.formulaId)).toEqual([
+      {
+        version: original.formulaVersion,
+        componentVersions: original.componentVersions,
+        deprecated: false,
+      },
+      {
+        version: presentationOnly.formulaVersion,
+        componentVersions: presentationOnly.componentVersions,
+        deprecated: false,
+      },
+    ]);
   });
 
   it('rejects duplicate id/version registration instead of replacing a formula', () => {
@@ -369,7 +477,7 @@ describe('calculator registry and result provenance', () => {
     internal.definitions.set(key, tampered);
     const result = calculateWith(
       registry,
-      request('synthetic-linear', '1.0', {
+      request('synthetic-linear', linear.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
@@ -405,6 +513,80 @@ describe('calculator registry and result provenance', () => {
     }
   });
 
+  it('requires an explicit half-away-from-zero output rounding declaration', () => {
+    const declared = {
+      ...makeDefinition({ id: 'synthetic-explicit-rounding', version: '1.0' }),
+      output: {
+        unit: 'imaginary-output-unit',
+        rounding: { mode: 'half-away-from-zero', precision: 2 },
+      },
+    } as unknown as TestFormulaDefinition;
+    const registry = createFormulaRegistry();
+
+    expect(() => registry.register(declared)).not.toThrow();
+  });
+
+  it('rejects output definitions with no declared rounding mode', () => {
+    const legacy = {
+      ...makeDefinition({
+        id: 'synthetic-legacy-rounding',
+        version: '1.0',
+      }),
+      output: { unit: 'imaginary-output-unit', precision: 2 },
+    } as unknown as TestFormulaDefinition;
+
+    expect(() => createFormulaRegistry().register(legacy)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+  });
+
+  it('rejects unsupported rounding modes and invalid rounding precision', () => {
+    const definitions = [
+      {
+        ...makeDefinition({ id: 'synthetic-unknown-rounding', version: '1.0' }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'bankers', precision: 2 },
+        },
+      },
+      {
+        ...makeDefinition({
+          id: 'synthetic-negative-precision',
+          version: '1.0',
+        }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'half-away-from-zero', precision: -1 },
+        },
+      },
+      {
+        ...makeDefinition({
+          id: 'synthetic-fractional-precision',
+          version: '1.0',
+        }),
+        output: {
+          unit: 'imaginary-output-unit',
+          precision: 2,
+          rounding: { mode: 'half-away-from-zero', precision: 1.5 },
+        },
+      },
+    ] as unknown as TestFormulaDefinition[];
+
+    for (const definition of definitions) {
+      expect(() => createFormulaRegistry().register(definition)).toThrow(
+        expect.objectContaining({
+          name: 'FormulaRegistrationError',
+          code: 'invalid-definition',
+        }),
+      );
+    }
+  });
+
   it('keeps a registration-time snapshot of plausible input ranges', () => {
     const formula = makeDefinition({
       id: 'synthetic-pinned-range',
@@ -437,14 +619,14 @@ describe('calculator registry and result provenance', () => {
     registry.register(newerVersion);
     const result = calculateWith(
       registry,
-      request('synthetic-versioned', '1.0', {
+      request('synthetic-versioned', olderVersion.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
     );
 
     expect(result.status).toBe('ok');
-    expect(result.formulaVersion).toBe('1.0');
+    expect(result.formulaVersion).toBe(olderVersion.formulaVersion);
     expect(result.deprecationNotice).toBe(
       'This fictional test version is deprecated.',
     );
@@ -456,7 +638,7 @@ describe('calculator registry and result provenance', () => {
     registry.register(linear);
     const result = calculateWith(
       registry,
-      request('synthetic-linear', '1.0', {
+      request('synthetic-linear', linear.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 55, unit: 'mg/dL' },
       }),
@@ -469,7 +651,6 @@ describe('calculator registry and result provenance', () => {
     expect(result.rounding).toEqual({
       mode: 'half-away-from-zero',
       precision: 2,
-      roundingRuleReviewed: false,
     });
   });
 
@@ -478,7 +659,7 @@ describe('calculator registry and result provenance', () => {
     registry.register(linear);
     const result = calculateWith(
       registry,
-      request('synthetic-linear', '1.0', {
+      request('synthetic-linear', linear.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
@@ -488,7 +669,7 @@ describe('calculator registry and result provenance', () => {
     expect(result.reviewMarker).toBe('UNREVIEWED');
   });
 
-  it('includes reviewer and date metadata for a test-only reviewed status', () => {
+  it('rejects a reviewed status without an exact approval record', () => {
     const reviewedFixture = makeDefinition({
       id: 'synthetic-review-metadata',
       version: '1.0',
@@ -499,24 +680,19 @@ describe('calculator registry and result provenance', () => {
       },
     });
     const registry = createFormulaRegistry();
-    registry.register(reviewedFixture);
-    const result = calculateWith(
-      registry,
-      request(reviewedFixture.formulaId, reviewedFixture.formulaVersion, {
-        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
-        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+    expect(() => registry.register(reviewedFixture)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
       }),
     );
-
-    expect(result.reviewStatus).toEqual(reviewedFixture.reviewStatus);
-    expect(result.reviewMarker).toBe('CLINICALLY REVIEWED');
   });
 
   it('does not return patient identifiers or other request metadata', () => {
     const registry = createFormulaRegistry();
     registry.register(linear);
     const untrustedRequest = {
-      ...request('synthetic-linear', '1.0', {
+      ...request('synthetic-linear', linear.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
@@ -546,7 +722,7 @@ describe('calculator registry and result provenance', () => {
     ];
     const result = calculateWith(
       registry,
-      request('synthetic-throwing', '1.0', {
+      request('synthetic-throwing', throwing.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
@@ -670,7 +846,7 @@ describe('calculator registry and result provenance', () => {
           'synthetic-concentration': { value: 60, unit: 'mg/dL' },
         }),
       );
-      expect(result.status).toBe('ok');
+      expect(result.status, JSON.stringify(result)).toBe('ok');
       expect(result.displayValue).toBe(expected);
     }
   });
@@ -699,13 +875,50 @@ describe('calculator registry and result provenance', () => {
           'synthetic-concentration': { value: 60, unit: 'mg/dL' },
         }),
       );
-      expect(result.status).toBe('ok');
+      expect(result.status, JSON.stringify(result)).toBe('ok');
       expect(result.displayValue).toBe(expected);
       expect(result.rounding).toEqual({
         mode: 'half-away-from-zero',
         precision,
-        roundingRuleReviewed: false,
       });
+    }
+  });
+
+  it('rounds half-up from shortest decimal text, including exponent values', () => {
+    const table = [
+      { value: 22.85, precision: 1, expected: 22.9 },
+      { value: 1.005, precision: 2, expected: 1.01 },
+      { value: 2.675, precision: 2, expected: 2.68 },
+      { value: 0.125, precision: 2, expected: 0.13 },
+      { value: 2.5, precision: 0, expected: 3 },
+      { value: -2.5, precision: 0, expected: -3 },
+      { value: -2.675, precision: 2, expected: -2.68 },
+      { value: 1e-7, precision: 2, expected: 0 },
+      { value: 1e21, precision: 2, expected: 1e21 },
+      { value: 12.34, precision: 2, expected: 12.34 },
+      { value: -0, precision: 2, expected: 0 },
+    ] as const;
+    for (const { value, precision, expected } of table) {
+      const formula = makeDefinition({
+        id: 'synthetic-decimal-rounding',
+        version: '1.0',
+        outputPrecision: precision,
+        roundingMode: 'half-up-decimal',
+        compute: () => value,
+      });
+      const registry = createFormulaRegistry();
+      registry.register(formula);
+      const result = calculateWith(
+        registry,
+        request(formula.formulaId, formula.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        }),
+      );
+      expect(result.status, JSON.stringify(result)).toBe('ok');
+      expect(result.displayValue).toBe(expected);
+      expect(Object.is(result.displayValue, -0)).toBe(false);
+      expect(result.rounding).toEqual({ mode: 'half-up-decimal', precision });
     }
   });
 
@@ -755,12 +968,19 @@ describe('calculator registry and result provenance', () => {
         ? { code: 'below-25', label: 'Fictional below category.' }
         : { code: 'at-or-above-25', label: 'Fictional above category.' },
     );
+    const base = makeDefinition({
+      id: 'synthetic-classification',
+      version: '1.0',
+    });
+    const componentVersions: TestFormulaComponentVersions = {
+      ...base.componentVersions,
+      classification: '1.0',
+    };
     const formula: TestFormulaDefinition = {
-      ...makeDefinition({
-        id: 'synthetic-classification',
-        version: '1.0',
-      }),
+      ...base,
       formulaId: 'synthetic-classification',
+      formulaVersion: formulaVersionId(componentVersions),
+      componentVersions,
       compute: () => 24.999999,
       classify,
     };
@@ -768,7 +988,7 @@ describe('calculator registry and result provenance', () => {
     registry.register(formula);
     const result = calculateWith(
       registry,
-      request('synthetic-classification', '1.0', {
+      request('synthetic-classification', formula.formulaVersion, {
         'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
         'synthetic-concentration': { value: 60, unit: 'mg/dL' },
       }),
@@ -777,12 +997,14 @@ describe('calculator registry and result provenance', () => {
     expect(result.status).toBe('ok');
     expect(result.unroundedValue).toBe(24.999999);
     expect(result.displayValue).toBe(25);
-    expect(classify).toHaveBeenCalledTimes(1);
-    expect(classify).toHaveBeenCalledWith(24.999999);
+    expect(classify).toHaveBeenCalledTimes(2);
+    expect(classify).toHaveBeenNthCalledWith(1, 24.999999);
+    expect(classify).toHaveBeenNthCalledWith(2, 25);
     expect(result.classification).toEqual({
       code: 'below-25',
       label: 'Fictional below category.',
     });
+    expect(result.classificationNote).toContain('24.999999');
   });
 
   it('treats the at-least limit as inside and just below as out-of-population', () => {
@@ -840,7 +1062,7 @@ describe('calculator registry and result provenance', () => {
     registry.register(linear);
     const badRequest: Record<string, unknown> = {
       formulaId: 'synthetic-linear',
-      formulaVersion: '1.0',
+      formulaVersion: linear.formulaVersion,
     };
     Object.defineProperty(badRequest, 'inputs', {
       enumerable: true,
@@ -864,10 +1086,14 @@ describe('calculator registry and result provenance', () => {
   it('returns unavailable for a null registry without throwing', () => {
     const registry = createFormulaRegistry();
     registry.register(linear);
-    const calculationRequest = request('synthetic-linear', '1.0', {
-      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
-      'synthetic-concentration': { value: 60, unit: 'mg/dL' },
-    });
+    const calculationRequest = request(
+      'synthetic-linear',
+      linear.formulaVersion,
+      {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+      },
+    );
     let result: unknown;
     expect(() => {
       result = calculateWith(
@@ -879,6 +1105,80 @@ describe('calculator registry and result provenance', () => {
       'unavailable',
     );
   });
+
+  it.each([
+    ['null', null],
+    ['string', 'not a calculation request'],
+    ['number', 42],
+  ] as const)('returns unavailable for a %s request', (_label, badRequest) => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+
+    const result = calculateWithoutThrow(registry, badRequest);
+
+    expect(result.status).toBe('unavailable');
+  });
+
+  it.each([
+    ['null', null],
+    ['array', []],
+    ['string', 'not an inputs object'],
+    ['number', 42],
+  ] as const)('returns invalid-input for %s inputs', (_label, inputs) => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const validRequest = request('synthetic-linear', linear.formulaVersion, {
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+    });
+
+    const result = calculateWithoutThrow(registry, {
+      ...validRequest,
+      inputs,
+    });
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'inputs',
+          code: 'invalid-input-shape',
+        }),
+      ]),
+    );
+  });
+
+  it.each([
+    { label: 'NaN', value: Number.NaN },
+    { label: 'Infinity', value: Number.POSITIVE_INFINITY },
+    { label: 'string', value: 'private compute output' },
+    { label: 'undefined', value: undefined },
+  ])(
+    'returns unavailable with a sanitized reason when compute returns $label',
+    ({ label, value }) => {
+      const formula = makeDefinition({
+        id: `synthetic-invalid-compute-${label.toLowerCase()}`,
+        version: '1.0',
+        compute: (() => value) as unknown as TestFormulaDefinition['compute'],
+      });
+      const registry = createFormulaRegistry();
+      registry.register(formula);
+
+      const result = calculateWithoutThrow(
+        registry,
+        request(formula.formulaId, formula.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        }),
+      );
+
+      expect(result).toMatchObject({
+        status: 'unavailable',
+        reason: 'The pinned formula did not return a finite result.',
+      });
+      expect(JSON.stringify(result)).not.toContain('private compute output');
+    },
+  );
 
   it('does not call compute when a population guard is hit', () => {
     const compute = vi.fn(

@@ -1,11 +1,13 @@
 import type {
   FormulaContractCases,
+  TestFormulaComponentVersions,
   TestCalculationResult,
   TestFormulaDefinition,
   TestInputDefinition,
+  TestFormulaSoftCheck,
   TestUnitConversion,
 } from './describe-formula-contract';
-import { request } from './describe-formula-contract';
+import { formulaVersionId, request } from './describe-formula-contract';
 
 // This invented factor exists only in synthetic tests, not in the domain engine.
 export const SYNTHETIC_CONVERSION_FACTOR = 7.321;
@@ -64,6 +66,8 @@ export function makeDefinition(options: {
   readonly deprecated?: string;
   readonly reviewStatus?: TestFormulaDefinition['reviewStatus'];
   readonly outputPrecision?: number;
+  readonly roundingMode?: 'half-away-from-zero' | 'half-up-decimal';
+  readonly softChecks?: readonly TestFormulaSoftCheck[];
 }): TestFormulaDefinition {
   const canonicalUnit = options.canonicalConcentrationUnit ?? 'mg/dL';
   const concentrationInput = input('synthetic-concentration', {
@@ -82,9 +86,16 @@ export function makeDefinition(options: {
       ? [input('synthetic-optional', { required: false })]
       : []),
   ];
+  const componentVersions: TestFormulaComponentVersions = {
+    formula: options.version,
+    population: '1.0',
+    presentation: '1.0',
+    ...(options.softChecks?.length ? { confirmation: '1.0' } : {}),
+  };
   return {
     formulaId: options.id,
-    formulaVersion: options.version,
+    formulaVersion: formulaVersionId(componentVersions),
+    componentVersions,
     title: `Synthetic-only ${options.id} ${options.version}`,
     primaryReference: {
       citation: `Fictional test reference for ${options.id} ${options.version}`,
@@ -94,7 +105,10 @@ export function makeDefinition(options: {
     unitConversions: syntheticConversions,
     output: {
       unit: 'imaginary-output-unit',
-      precision: options.outputPrecision ?? 2,
+      rounding: {
+        mode: options.roundingMode ?? 'half-away-from-zero',
+        precision: options.outputPrecision ?? 2,
+      },
     },
     populationLimits: {
       text: 'Synthetic test values only; these limits are fictional.',
@@ -111,6 +125,7 @@ export function makeDefinition(options: {
       ],
     },
     limitations: ['Synthetic test fixture only; not for clinical use.'],
+    ...(options.softChecks?.length ? { softChecks: options.softChecks } : {}),
     reviewStatus: options.reviewStatus ?? 'unreviewed',
     ...(options.deprecated
       ? { deprecated: { notice: options.deprecated } }
@@ -451,8 +466,14 @@ function withConcentrationRanges(
     Record<string, { readonly min: number; readonly max: number }>
   >,
 ): TestFormulaDefinition {
+  const componentVersions: TestFormulaComponentVersions = {
+    ...definition.componentVersions,
+    population: '2.0',
+  };
   return {
     ...definition,
+    formulaVersion: formulaVersionId(componentVersions),
+    componentVersions,
     inputs: definition.inputs.map((item) =>
       item.id === 'synthetic-concentration'
         ? { ...item, plausibleRangeByUnit: ranges }
@@ -488,8 +509,14 @@ function withExtraGuard(
   definition: TestFormulaDefinition,
   guard: TestFormulaDefinition['populationLimits']['guards'][number],
 ): TestFormulaDefinition {
+  const componentVersions: TestFormulaComponentVersions = {
+    ...definition.componentVersions,
+    population: '2.0',
+  };
   return {
     ...definition,
+    formulaVersion: formulaVersionId(componentVersions),
+    componentVersions,
     populationLimits: {
       text: definition.populationLimits.text,
       guards: [...definition.populationLimits.guards, guard],
@@ -520,3 +547,29 @@ export const atMostGuarded = withFormulaId(
   }),
   'synthetic-at-most-guard',
 );
+
+export const confirmationRequired = makeDefinition({
+  id: 'synthetic-confirmation-required',
+  version: '1.0',
+  includeOptional: true,
+  compute: (values) => {
+    const axis = values['synthetic-axis'];
+    const concentration = values['synthetic-concentration'];
+    if (axis === undefined || concentration === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    const extra = values['synthetic-optional'];
+    return axis + concentration / 3 + (extra === undefined ? 7 : extra);
+  },
+  softChecks: [
+    {
+      id: 'synthetic-optional-unusual',
+      kind: 'input-range',
+      inputId: 'synthetic-optional',
+      minimum: 10,
+      maximum: 90,
+      unit: 'synthetic-unit',
+      message: 'Confirm the unusual fictional optional value.',
+    },
+  ],
+});

@@ -1,0 +1,33 @@
+# Age scope regression test: red run
+Toolchain: Node 24.21.0 / npm 11.19.0; INTERMED_NODE22_RUNTIME configured
+Command: npm test -- tests/domain/calculators/bmi-bsa.test.ts -t "routes under-18 ages through the adult release-scope guard"
+Working tree: <TEMPO_WORKTREE>
+
+> intermed@0.0.0 test
+> vitest run tests/domain/calculators/bmi-bsa.test.ts -t routes under-18 ages through the adult release-scope guard
+
+
+ RUN  v4.1.11 <TEMPO_WORKTREE>
+
+ ❯ tests/domain/calculators/bmi-bsa.test.ts (60 tests | 1 failed | 59 skipped) 7ms
+     × routes under-18 ages through the adult release-scope guard 6ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > routes under-18 ages through the adult release-scope guard
+AssertionError: bmi age 17.999: expected 'invalid-input' to be 'out-of-population' // Object.is equality
+Expected: "out-of-population"
+Received: "invalid-input"
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:625:13
+    623|             result.status,
+    624|             `${formula.formulaId} age ${age}`,
+    625|           ).toBe(expectedStatus);
+       |             ^
+    626|
+    627|           if (expectedStatus === 'out-of-population') {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 59 skipped (60)
+   Start at  22:44:58
+   Duration  231ms (transform 97ms, setup 0ms, import 124ms, tests 7ms, environment 0ms)
+
+EXIT_CODE=1

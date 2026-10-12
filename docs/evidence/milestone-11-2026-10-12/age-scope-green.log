@@ -1,0 +1,141 @@
+# Age scope regression test: green run
+Toolchain: Node 24.21.0 / npm 11.19.0; INTERMED_NODE22_RUNTIME configured
+Command: npm test -- tests/domain/calculators/bmi-bsa.test.ts -t "routes under-18 ages through the adult release-scope guard"
+Working tree: <TEMPO_WORKTREE>
+
+> intermed@0.0.0 test
+> vitest run tests/domain/calculators/bmi-bsa.test.ts -t routes under-18 ages through the adult release-scope guard
+
+
+ RUN  v4.1.11 <TEMPO_WORKTREE>
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 59 skipped (60)
+   Start at  22:47:47
+   Duration  222ms (transform 94ms, setup 0ms, import 122ms, tests 6ms, environment 0ms)
+
+EXIT_CODE=0
+
+## npm run format:check
+Command: npm run format:check
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+[warn] tests/domain/calculators/bmi-bsa.test.ts
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.
+EXIT_CODE=1
+
+## npm run lint
+Command: npm run lint
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+EXIT_CODE=0
+
+## npm run typecheck
+Command: npm run typecheck
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+EXIT_CODE=0
+
+## npm run test
+Command: npm run test
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <TEMPO_WORKTREE>
+
+
+ Test Files  66 passed (66)
+      Tests  1326 passed (1326)
+   Start at  22:48:36
+   Duration  26.40s (transform 7.07s, setup 0ms, import 21.69s, tests 49.58s, environment 14.96s)
+
+EXIT_CODE=0
+
+## npm run check:boundaries
+Command: npm run check:boundaries
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (119 source files; dependency-free domain; local-store confined to the composition root).
+EXIT_CODE=0
+
+## Formatting correction
+Command: npm exec -- prettier --write tests/domain/calculators/bmi-bsa.test.ts
+tests/domain/calculators/bmi-bsa.test.ts 95ms
+EXIT_CODE=0
+
+## Final gate rerun
+
+### npm run format:check
+Command: npm run format:check
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+EXIT_CODE=0
+
+### npm run lint
+Command: npm run lint
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+EXIT_CODE=0
+
+### npm run typecheck
+Command: npm run typecheck
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+EXIT_CODE=0
+
+### npm run test
+Command: npm run test
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <TEMPO_WORKTREE>
+
+
+ Test Files  66 passed (66)
+      Tests  1326 passed (1326)
+   Start at  22:50:06
+   Duration  29.03s (transform 6.82s, setup 0ms, import 22.39s, tests 50.83s, environment 17.73s)
+
+EXIT_CODE=0
+
+### npm run check:boundaries
+Command: npm run check:boundaries
+
+> intermed@0.0.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Architecture boundaries passed (119 source files; dependency-free domain; local-store confined to the composition root).
+EXIT_CODE=0
+
+## Pinned install and aggregate check summary
+Toolchain: Node 24.21.0 / npm 11.19.0; INTERMED_NODE22_RUNTIME configured
+Command: npm ci
+Result: added 378 packages, audited 384 packages, 0 vulnerabilities.
+EXIT_CODE=0
+
+Command: npm run check
+Result: format:check, lint, typecheck, test (66 files / 1,326 tests), check:boundaries, npm audit (0 vulnerabilities), production build, and scan:dist all passed.
+Browser result: 172 passed, 2 skipped.
+EXIT_CODE=0

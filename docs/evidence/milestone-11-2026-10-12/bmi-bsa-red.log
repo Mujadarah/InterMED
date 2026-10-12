@@ -1,0 +1,148 @@
+Worktree: <worktree>
+Node: v24.21.0
+npm: 11.19.0
+
+
+ RUN  v4.1.11 <worktree>
+
+xx·······································································································································xxx··x·x·····x·······
+
+ Test Files  2 failed (2)
+      Tests  8 failed | 150 passed (158)
+   Start at  19:15:58
+   Duration  316ms (transform 174ms, setup 0ms, import 234ms, tests 54ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > exports the pinned, explicitly unreviewed formula versions
+AssertionError: expected undefined to be defined
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:172:24
+    170| describe('Milestone 11 BMI and BSA candidates', () => {
+    171|   it('exports the pinned, explicitly unreviewed formula versions', () …
+    172|     expect(bmiFormula).toBeDefined();
+       |                        ^
+    173|     expect(bsaFormula).toBeDefined();
+    174|     if (!bmiFormula || !bsaFormula) return;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/domain/calculators/bmi-bsa.test.ts > Milestone 11 BMI and BSA candidates > exports an immutable empty approval register and pendingApprovals
+AssertionError: expected undefined to deeply equal []
+
+- Expected:
+[]
+
++ Received:
+undefined
+
+ ❯ tests/domain/calculators/bmi-bsa.test.ts:197:35
+    195|
+    196|   it('exports an immutable empty approval register and pendingApproval…
+    197|     expect(m11.FORMULA_APPROVALS).toEqual([]);
+       |                                   ^
+    198|     expect(Object.isFrozen(m11.FORMULA_APPROVALS)).toBe(true);
+    199|     expect(m11.pendingApprovals).toBeTypeOf('function');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > requires an explicit half-away-from-zero output rounding declaration
+AssertionError: expected [Function] to not throw an error but 'FormulaRegistrationError: A formula o…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"FormulaRegistrationError: A formula output requires a unit and non-negative integer precision."
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:418:51
+    416|     const registry = createFormulaRegistry();
+    417|
+    418|     expect(() => registry.register(declared)).not.toThrow();
+       |                                                   ^
+    419|   });
+    420|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects output definitions with no declared rounding mode
+AssertionError: expected function to throw an error, but it didn't
+ ❯ tests/domain/calculators/calculator-engine.test.ts:427:60
+    425|     });
+    426|
+    427|     expect(() => createFormulaRegistry().register(legacy)).toThrow(
+       |                                                            ^
+    428|       expect.objectContaining({
+    429|         name: 'FormulaRegistrationError',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects unsupported rounding modes and invalid rounding precision
+AssertionError: expected function to throw an error, but it didn't
+ ❯ tests/domain/calculators/calculator-engine.test.ts:470:66
+    468|
+    469|     for (const definition of definitions) {
+    470|       expect(() => createFormulaRegistry().register(definition)).toThr…
+       |                                                                  ^
+    471|         expect.objectContaining({
+    472|           name: 'FormulaRegistrationError',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds only the display value and retains the unrounded result
+AssertionError: expected { mode: 'half-away-from-zero', …(2) } to deeply equal { mode: 'half-away-from-zero', …(1) }
+
+- Expected
++ Received
+
+  {
+    "mode": "half-away-from-zero",
+    "precision": 2,
++   "roundingRuleReviewed": false,
+  }
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:540:29
+    538|     expect(result.displayValue).toBe(48.33);
+    539|     expect(result.unit).toBe('imaginary-output-unit');
+    540|     expect(result.rounding).toEqual({
+       |                             ^
+    541|       mode: 'half-away-from-zero',
+    542|       precision: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects a reviewed status without an exact approval record
+AssertionError: expected function to throw an error, but it didn't
+ ❯ tests/domain/calculators/calculator-engine.test.ts:572:54
+    570|     });
+    571|     const registry = createFormulaRegistry();
+    572|     expect(() => registry.register(reviewedFixture)).toThrow(
+       |                                                      ^
+    573|       expect.objectContaining({
+    574|         name: 'FormulaRegistrationError',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rounds half away from zero on the exact binary value
+AssertionError: expected { mode: 'half-away-from-zero', …(2) } to deeply equal { mode: 'half-away-from-zero', …(1) }
+
+- Expected
++ Received
+
+  {
+    "mode": "half-away-from-zero",
+    "precision": 0,
++   "roundingRuleReviewed": false,
+  }
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:769:31
+    767|       expect(result.status).toBe('ok');
+    768|       expect(result.displayValue).toBe(expected);
+    769|       expect(result.rounding).toEqual({
+       |                               ^
+    770|         mode: 'half-away-from-zero',
+    771|         precision,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+Vitest exit code: 1
