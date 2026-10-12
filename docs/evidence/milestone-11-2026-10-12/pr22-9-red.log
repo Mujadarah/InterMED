@@ -1,0 +1,6 @@
+
+> intermed@0.0.0 typecheck
+> tsc -p tsconfig.json && tsc -p packages/domain/tsconfig.json && tsc -p packages/importer/tsconfig.json
+
+tests/domain/calculators/calculator-fixtures.ts(471,5): error TS2322: Type '"at-least"' is not assignable to type '"between"'.
+tests/domain/calculators/calculator-fixtures.ts(483,5): error TS2322: Type '"at-most"' is not assignable to type '"between"'.

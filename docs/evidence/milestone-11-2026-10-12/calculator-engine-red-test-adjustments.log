@@ -1,0 +1,316 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: EXPECTED RED (nonzero); exit code 1
+
+Captured test output:
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts (66 tests | 34 failed) 63ms
+     × rejects negative values without correcting them 6ms
+     × reports plausible-range violations at field level 1ms
+     × reports missing required input at field level 1ms
+     × rejects an undeclared unit as a unit error 1ms
+     × returns population-limit hits without computing outside the limits 2ms
+     × computes the declared positive case with provenance 3ms
+     × accepts an exact plausible minimum boundary 1ms
+     × accepts an exact plausible maximum boundary 1ms
+     × rejects negative values without correcting them 1ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 1ms
+     × records a declared unit conversion in the input echo 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 1ms
+     × rejects negative values without correcting them 1ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 1ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 2ms
+     × rejects negative values without correcting them 2ms
+     × reports plausible-range violations at field level 0ms
+     × reports missing required input at field level 0ms
+     × rejects an undeclared unit as a unit error 1ms
+     × returns population-limit hits without computing outside the limits 0ms
+     × rejects negative values without correcting them 0ms
+     × reports plausible-range violations at field level 1ms
+     × reports missing required input at field level 0ms
+     × rejects an undeclared unit as a unit error 0ms
+     × returns population-limit hits without computing outside the limits 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 34 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > rejects negative values without correcting them
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > rejects negative values without correcting them
+AssertionError: expected [ { inputId: 'synthetic-axis', …(2) } ] to deep equally contain { inputId: 'synthetic-axis', …(1) }
+
+- Expected:
+{
+  "code": "negative-not-allowed",
+  "inputId": "synthetic-axis",
+}
+
++ Received:
+[
+  {
+    "code": "negative-not-allowed",
+    "inputId": "synthetic-axis",
+    "message": "Negative values are not allowed for this input.",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:207:29
+    205|       const result = calculate(cases.negative);
+    206|       expect(result.status).toBe('invalid-input');
+    207|       expect(result.errors).toContainEqual({
+       |                             ^
+    208|         inputId: cases.negative.inputId,
+    209|         code: 'negative-not-allowed',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > reports plausible-range violations at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > reports plausible-range violations at field level
+AssertionError: expected [ { inputId: 'synthetic-axis', …(2) } ] to deep equally contain { inputId: 'synthetic-axis', …(1) }
+
+- Expected:
+{
+  "code": "out-of-range",
+  "inputId": "synthetic-axis",
+}
+
++ Received:
+[
+  {
+    "code": "out-of-range",
+    "inputId": "synthetic-axis",
+    "message": "Input value is outside its declared plausible range.",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:217:29
+    215|       const result = calculate(cases.outOfRange);
+    216|       expect(result.status).toBe('invalid-input');
+    217|       expect(result.errors).toContainEqual({
+       |                             ^
+    218|         inputId: cases.outOfRange.inputId,
+    219|         code: 'out-of-range',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > reports missing required input at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > reports missing required input at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > reports missing required input at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > reports missing required input at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > reports missing required input at field level
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > reports missing required input at field level
+AssertionError: expected [ { inputId: 'synthetic-axis', …(2) } ] to deep equally contain { inputId: 'synthetic-axis', …(1) }
+
+- Expected:
+{
+  "code": "missing-required",
+  "inputId": "synthetic-axis",
+}
+
++ Received:
+[
+  {
+    "code": "missing-required",
+    "inputId": "synthetic-axis",
+    "message": "A required value was not supplied.",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:227:29
+    225|       const result = calculate(cases.missingRequired);
+    226|       expect(result.status).toBe('invalid-input');
+    227|       expect(result.errors).toContainEqual({
+       |                             ^
+    228|         inputId: cases.missingRequired.inputId,
+    229|         code: 'missing-required',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > rejects an undeclared unit as a unit error
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > rejects an undeclared unit as a unit error
+AssertionError: expected [ { …(3) } ] to deep equally contain { …(2) }
+
+- Expected:
+{
+  "code": "unit-not-allowed",
+  "inputId": "synthetic-concentration",
+}
+
++ Received:
+[
+  {
+    "code": "unit-not-allowed",
+    "inputId": "synthetic-concentration",
+    "message": "The submitted unit is not allowed for this input.",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:251:33
+    249|       const result = calculate(cases.invalidUnit);
+    250|       expect(result.status).toBe('unit-error');
+    251|       expect(result.unitErrors).toContainEqual({
+       |                                 ^
+    252|         inputId: cases.invalidUnit.inputId,
+    253|         code: 'unit-not-allowed',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-linear@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@1.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-versioned@2.0 > returns population-limit hits without computing outside the limits
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-throwing@1.0 > returns population-limit hits without computing outside the limits
+AssertionError: expected [ { …(8) } ] to deep equally contain { Object (guardId) }
+
+- Expected:
+{
+  "guardId": "synthetic-population-window",
+}
+
++ Received:
+[
+  {
+    "actualValue": 5,
+    "guardId": "synthetic-population-window",
+    "inputId": "synthetic-concentration",
+    "maximum": 190,
+    "message": "Fictional test range only.",
+    "minimum": 10,
+    "operator": "between",
+    "unit": "mg/dL",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:261:32
+    259|       const result = calculate(cases.outOfPopulation);
+    260|       expect(result.status).toBe('out-of-population');
+    261|       expect(result.limitsHit).toContainEqual({
+       |                                ^
+    262|         guardId: cases.outOfPopulation.guardId,
+    263|       });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > computes the declared positive case with provenance
+AssertionError: expected 'out-of-population' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "out-of-population"
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:184:29
+    182|     it('computes the declared positive case with provenance', () => {
+    183|       const result = calculate(cases.positive);
+    184|       expect(result.status).toBe(cases.positive.expectedStatus);
+       |                             ^
+    185|       expectProvenance(result);
+    186|       if (cases.positive.expectedValue !== undefined) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts an exact plausible minimum boundary
+AssertionError: expected 'out-of-population' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "out-of-population"
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:194:29
+    192|     it('accepts an exact plausible minimum boundary', () => {
+    193|       const result = calculate(cases.exactMinimum);
+    194|       expect(result.status).toBe(cases.exactMinimum.expectedStatus);
+       |                             ^
+    195|       expectProvenance(result);
+    196|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > accepts an exact plausible maximum boundary
+AssertionError: expected 'out-of-population' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "out-of-population"
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:200:29
+    198|     it('accepts an exact plausible maximum boundary', () => {
+    199|       const result = calculate(cases.exactMaximum);
+    200|       expect(result.status).toBe(cases.exactMaximum.expectedStatus);
+       |                             ^
+    201|       expectProvenance(result);
+    202|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > records a declared unit conversion in the input echo
+AssertionError: expected 'invalid-input' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "invalid-input"
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:236:29
+    234|     it('records a declared unit conversion in the input echo', () => {
+    235|       const result = calculate(cases.unitConversion);
+    236|       expect(result.status).toBe(cases.unitConversion.expectedStatus);
+       |                             ^
+    237|       const echo = result.inputEcho.find(
+    238|         (item) => item.inputId === cases.unitConversion.inputId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/34]⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-population-guard@1.0 > returns population-limit hits without computing outside the limits
+AssertionError: expected [ { …(8) } ] to deep equally contain { Object (guardId) }
+
+- Expected:
+{
+  "guardId": "synthetic-population-window",
+}
+
++ Received:
+[
+  {
+    "actualValue": 0.6829668078131402,
+    "guardId": "synthetic-population-window",
+    "inputId": "synthetic-concentration",
+    "maximum": 25.95273869689933,
+    "message": "Fictional test range only.",
+    "minimum": 1.3659336156262805,
+    "operator": "between",
+    "unit": "µmol/L",
+  },
+]
+
+ ❯ tests/domain/calculators/describe-formula-contract.ts:261:32
+    259|       const result = calculate(cases.outOfPopulation);
+    260|       expect(result.status).toBe('out-of-population');
+    261|       expect(result.limitsHit).toContainEqual({
+       |                                ^
+    262|         guardId: cases.outOfPopulation.guardId,
+    263|       });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/34]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  34 failed | 32 passed (66)
+   Start at  16:10:54
+   Duration  642ms (transform 148ms, setup 0ms, import 199ms, tests 63ms, environment 0ms)

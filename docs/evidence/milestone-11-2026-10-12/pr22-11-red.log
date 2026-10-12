@@ -1,0 +1,60 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts (153 tests | 2 failed) 35ms
+     ├ù computes the declared positive case with provenance 4ms
+     ├ù omits the optional input from compute values with a distinct result 1ms
+node.exe :
+At line:1 char:1
++ & "<repo-root>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > computes
+the declared positive case with provenance
+AssertionError: expected 50 to be 57 // Object.is equality
+
+- Expected
++ Received
+
+- 57
++ 50
+
+ Γ¥» tests/domain/calculators/describe-formula-contract.ts:233:35
+    231|     if (cases.positive.expectedValue !== undefined) {
+    232|       expect(result.status).toBe('ok');
+    233|       expect(result.displayValue).toBe(cases.positive.expectedValue);
+       |                                   ^
+    234|     }
+    235|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > formula contract synthetic-optional-input@1.0 > omits the
+optional input from compute values with a distinct result
+AssertionError: expected 50 to be 57 // Object.is equality
+
+- Expected
++ Received
+
+- 57
++ 50
+
+ Γ¥» tests/domain/calculators/describe-formula-contract.ts:381:35
+    379|     if (testCase.expectedValue !== undefined) {
+    380|       expect(result.status).toBe('ok');
+    381|       expect(result.displayValue).toBe(testCase.expectedValue);
+       |                                   ^
+    382|       const optionalInput = definition.inputs.find(
+    383|         (item) => item.id === testCase.inputId,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 151 passed (153)
+   Start at  18:03:31
+   Duration  257ms (transform 81ms, setup 0ms, import 109ms, tests 35ms, environment 0ms)

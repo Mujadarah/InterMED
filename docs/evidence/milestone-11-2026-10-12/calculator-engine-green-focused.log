@@ -1,0 +1,14 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: PASS; exit code 0
+
+Captured test output:
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  89 passed (89)
+   Start at  16:27:27
+   Duration  691ms (transform 221ms, setup 0ms, import 291ms, tests 72ms, environment 0ms)

@@ -1,0 +1,42 @@
+M11 calculator engine focused test evidence
+Command: npx vitest run tests/domain/calculators/calculator-engine.test.ts -t 'rejects malformed runtime definitions'
+Toolchain: Node v24.21.0; npm 11.19.0
+Result: EXPECTED RED (nonzero); exit code 1
+
+Captured test output:
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts (89 tests | 1 failed | 88 skipped) 15ms
+     × rejects malformed runtime definitions with structured registration errors 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > rejects malformed runtime definitions with structured registration errors
+AssertionError: expected TypeError: Cannot read properties of null… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "invalid-definition",
+-   "name": "FormulaRegistrationError",
++ TypeError {
++   "message": "Cannot read properties of null (reading 'id')",
+  }
+
+ ❯ tests/domain/calculators/calculator-engine.test.ts:126:21
+    124|         error = caught;
+    125|       }
+    126|       expect(error).toMatchObject({
+       |                     ^
+    127|         name: 'FormulaRegistrationError',
+    128|         code: 'invalid-definition',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 88 skipped (89)
+   Start at  16:27:04
+   Duration  506ms (transform 162ms, setup 0ms, import 216ms, tests 15ms, environment 0ms)
