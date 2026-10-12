@@ -60,6 +60,10 @@ export interface TestFormulaDefinition {
   readonly compute: (
     values: Readonly<Record<string, number | undefined>>,
   ) => number;
+  readonly classify?: (unroundedValue: number) => {
+    readonly code: string;
+    readonly label: string;
+  };
 }
 
 export interface TestCalculationRequest {
@@ -114,6 +118,10 @@ export interface TestCalculationResult {
   }[];
   readonly limitsHit?: readonly { readonly guardId: string }[];
   readonly deprecationNotice?: string;
+  readonly classification?: {
+    readonly code: string;
+    readonly label: string;
+  };
 }
 
 interface TestFormulaRegistry {

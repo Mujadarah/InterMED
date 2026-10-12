@@ -424,6 +424,12 @@ function validateDefinition(definition: FormulaDefinition): void {
     invalidDefinition('A formula requires at least one non-empty limitation.');
   }
   assertReviewStatus(definition.reviewStatus);
+  if (
+    definition.classify !== undefined &&
+    typeof definition.classify !== 'function'
+  ) {
+    invalidDefinition('A formula classify hook must be a function.');
+  }
   if (definition.deprecated && !hasText(definition.deprecated.notice)) {
     invalidDefinition('A deprecation requires a non-empty notice.');
   }

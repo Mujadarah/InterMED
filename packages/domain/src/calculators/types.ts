@@ -79,6 +79,11 @@ export interface FormulaOutputDefinition {
   readonly precision: number;
 }
 
+export interface FormulaClassification {
+  readonly code: string;
+  readonly label: string;
+}
+
 export interface FormulaDefinition {
   readonly formulaId: string;
   readonly formulaVersion: string;
@@ -94,6 +99,11 @@ export interface FormulaDefinition {
   readonly deprecated?: FormulaDeprecation;
   /** Pure, synchronous calculation over values normalized to canonical units. */
   compute(values: Readonly<Record<string, number | undefined>>): number;
+  /**
+   * Optional classification invoked with the unrounded compute output only.
+   * It must not read the display value: cutoff decisions use `unroundedValue`.
+   */
+  classify?: (unroundedValue: number) => FormulaClassification;
 }
 
 export interface FormulaVersionSummary {
@@ -201,6 +211,7 @@ export interface CalculationResultMetadata {
 
 export interface CalculationOkResult extends CalculationResultMetadata {
   readonly status: 'ok';
+  /** Display-only rounded value. Cutoff decisions must use `unroundedValue`. */
   readonly displayValue: number;
   readonly unroundedValue: number;
   readonly unit: string;
@@ -211,6 +222,7 @@ export interface CalculationOkResult extends CalculationResultMetadata {
     /** The tie rule has not had clinical review; see the evidence doc. */
     readonly roundingRuleReviewed: false;
   };
+  readonly classification?: FormulaClassification;
 }
 
 export interface CalculationInvalidInputResult extends CalculationResultMetadata {

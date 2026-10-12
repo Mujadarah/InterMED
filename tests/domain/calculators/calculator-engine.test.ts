@@ -701,6 +701,42 @@ describe('calculator registry and result provenance', () => {
     }
   });
 
+  it('classifies from the unrounded value, not the display value', () => {
+    const classify = vi.fn((unroundedValue: number) =>
+      unroundedValue < 25
+        ? { code: 'below-25', label: 'Fictional below category.' }
+        : { code: 'at-or-above-25', label: 'Fictional above category.' },
+    );
+    const formula: TestFormulaDefinition = {
+      ...makeDefinition({
+        id: 'synthetic-classification',
+        version: '1.0',
+      }),
+      formulaId: 'synthetic-classification',
+      compute: () => 24.999999,
+      classify,
+    };
+    const registry = createFormulaRegistry();
+    registry.register(formula);
+    const result = calculateWith(
+      registry,
+      request('synthetic-classification', '1.0', {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+      }),
+    );
+
+    expect(result.status).toBe('ok');
+    expect(result.unroundedValue).toBe(24.999999);
+    expect(result.displayValue).toBe(25);
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(classify).toHaveBeenCalledWith(24.999999);
+    expect(result.classification).toEqual({
+      code: 'below-25',
+      label: 'Fictional below category.',
+    });
+  });
+
   it('does not call compute when a population guard is hit', () => {
     const compute = vi.fn(
       (values: Readonly<Record<string, number | undefined>>) =>

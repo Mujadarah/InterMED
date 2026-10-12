@@ -13,6 +13,7 @@ export type {
   CalculationUnitError,
   CalculationUnitErrorResult,
   CalculationUnavailableResult,
+  FormulaClassification,
   FormulaDefinition,
   FormulaDeprecation,
   FormulaInputDefinition,

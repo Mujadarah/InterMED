@@ -5,6 +5,7 @@ import type {
   CalculationRequest,
   CalculationResult,
   CalculationResultMetadata,
+  FormulaClassification,
   FormulaDefinition,
   PopulationGuard,
   PopulationLimitHit,
@@ -260,6 +261,33 @@ function calculateKnownFormula(
       reason: 'The pinned formula result could not be rounded safely.',
     };
   }
+  let classification: FormulaClassification | undefined;
+  if (definition.classify) {
+    let rawClassification: unknown;
+    try {
+      rawClassification = definition.classify(unroundedValue);
+    } catch {
+      return {
+        status: 'unavailable',
+        ...metadata,
+        reason: 'The pinned formula classification could not be computed.',
+      };
+    }
+    if (
+      !rawClassification ||
+      typeof rawClassification !== 'object' ||
+      typeof (rawClassification as FormulaClassification).code !== 'string' ||
+      typeof (rawClassification as FormulaClassification).label !== 'string'
+    ) {
+      return {
+        status: 'unavailable',
+        ...metadata,
+        reason: 'The pinned formula classification did not return a category.',
+      };
+    }
+    const valid = rawClassification as FormulaClassification;
+    classification = Object.freeze({ code: valid.code, label: valid.label });
+  }
   return {
     status: 'ok',
     ...metadata,
@@ -272,6 +300,7 @@ function calculateKnownFormula(
       precision: definition.output.precision,
       roundingRuleReviewed: false,
     },
+    ...(classification ? { classification } : {}),
   };
 }
 
