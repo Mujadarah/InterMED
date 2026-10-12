@@ -1,0 +1,49 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/calculators/pr22-8-vacuity.test.ts (2 tests | 1 failed) 6ms
+   ├ù exact checks catch the typo 4ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/calculators/pr22-8-vacuity.test.ts > exact checks catch the typo
+AssertionError: expected [ ΓÇª(2) ] to deeply equal [ ΓÇª(2) ]
+
+- Expected
++ Received
+
+@@ -5,11 +5,11 @@
+      "kind": "mass",
+      "offset": 0,
+      "to": "lb",
+    },
+    {
+-     "factor": 0.45359237,
++     "factor": 0.45,
+      "from": "lb",
+      "kind": "mass",
+      "offset": 0,
+      "to": "kg",
+    },
+
+ Γ¥» tests/domain/calculators/pr22-8-vacuity.test.ts:27:22
+     25|     offset: rule.offset ?? 0,
+     26|   }));
+     27|   expect(normalized).toEqual([
+       |                      ^
+     28|     { kind: 'mass', from: 'kg', to: 'lb', factor: 2.2046226218487757, ΓÇª
+     29|     { kind: 'mass', from: 'lb', to: 'kg', factor: 0.45359237, offset: ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  18:00:45
+   Duration  196ms (transform 64ms, setup 0ms, import 85ms, tests 6ms, environment 0ms)

@@ -532,33 +532,34 @@ describe('calculator registry and result provenance', () => {
     logSpies.forEach((spy) => spy.mockRestore());
   });
 
-  it('provides explicit standard mass and length conversion pairs only', () => {
+  it('pins the exact standard mass and length conversion table', () => {
     const conversions = calculatorEngine.STANDARD_UNIT_CONVERSIONS;
-    expect(conversions.mass).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ fromUnit: 'kg', toUnit: 'lb' }),
-        expect.objectContaining({ fromUnit: 'lb', toUnit: 'kg' }),
-      ]),
+    const normalized = Object.entries(conversions).flatMap(([kind, rules]) =>
+      (rules ?? []).map((rule) => ({
+        kind,
+        from: rule.fromUnit,
+        to: rule.toUnit,
+        factor: rule.factor,
+        offset: rule.offset ?? 0,
+      })),
     );
-    expect(conversions.length).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ fromUnit: 'cm', toUnit: 'm' }),
-        expect.objectContaining({ fromUnit: 'm', toUnit: 'cm' }),
-        expect.objectContaining({ fromUnit: 'cm', toUnit: 'in' }),
-        expect.objectContaining({ fromUnit: 'in', toUnit: 'cm' }),
-        expect.objectContaining({ fromUnit: 'm', toUnit: 'in' }),
-        expect.objectContaining({ fromUnit: 'in', toUnit: 'm' }),
-      ]),
-    );
+    expect(normalized).toEqual([
+      {
+        kind: 'mass',
+        from: 'kg',
+        to: 'lb',
+        factor: 2.2046226218487757,
+        offset: 0,
+      },
+      { kind: 'mass', from: 'lb', to: 'kg', factor: 0.45359237, offset: 0 },
+      { kind: 'length', from: 'cm', to: 'm', factor: 0.01, offset: 0 },
+      { kind: 'length', from: 'm', to: 'cm', factor: 100, offset: 0 },
+      { kind: 'length', from: 'cm', to: 'in', factor: 1 / 2.54, offset: 0 },
+      { kind: 'length', from: 'in', to: 'cm', factor: 2.54, offset: 0 },
+      { kind: 'length', from: 'm', to: 'in', factor: 100 / 2.54, offset: 0 },
+      { kind: 'length', from: 'in', to: 'm', factor: 2.54 / 100, offset: 0 },
+    ]);
     expect(conversions).not.toHaveProperty('synthetic-concentration');
-    expect(
-      conversions.mass?.find((rule) => rule.fromUnit === 'kg')?.factor,
-    ).toBe(2.2046226218487757);
-    expect(
-      conversions.length?.find(
-        (rule) => rule.fromUnit === 'cm' && rule.toUnit === 'in',
-      )?.factor,
-    ).toBe(1 / 2.54);
   });
 
   it('applies a standard conversion only when the formula declares its unit map', () => {
