@@ -128,6 +128,15 @@ M8 was developed on top of `f5382bd`; PR #18 (bundle split, `597d1a5`) landed fi
 - **Full check** at `1bfd02b`, run by the orchestrator: format, lint, typecheck, 968 unit tests in 61 files, boundaries (103 files), audit (0 vulnerabilities), build, the dist secret scan, and Playwright (172 passed, 2 skipped). See [`integration-full-check.log`](evidence/milestone-8-2026-10-09/integration-full-check.log).
 - **After merging main again** (`5c4bee7`, which brings in #19–#21, docs and the domain): format, lint, typecheck, unit tests (1,078 in 63 files) and boundaries pass. The browser suite runs in CI.
 
+### Review fixes (PR #24)
+
+Codacy flagged three issues on PR #24. All are fixed; the second and third were done test-first, with logs in `evidence/milestone-8-2026-10-09/pr24-*`.
+
+- **Unescaped regular expression in a browser test** (`6509378`): `tests/browser/preferences.spec.ts` built a `RegExp` from fixture text. It now matches the result link by its accessible name, non-exact. No other browser spec builds a `RegExp` from text.
+- **Opening a result by keyboard recorded the search twice** (`e397aa1`): Enter on a focused result link also fires a click. The Enter handler now only cancels the pending query-URL write, so navigation still wins, and the click records the search once. A test asserts exactly one recording per Enter and per click.
+- **Focus could escape a pending confirmation dialog** (`5b54c4f`): while the action is pending, no button is enabled. Tab and Shift+Tab now keep focus on the dialog panel (`tabIndex={-1}`), and Escape stays disabled until the action settles.
+- **Verification by the orchestrator:** format, lint, typecheck, unit tests (64 files / 1,082), boundaries, the build, and `tests/browser/preferences.spec.ts` on all three projects (9 passed). The rest of the browser suite runs in CI.
+
 ## Open items
 
 - The implementation carried a Tempo editor helper — `tempo-sdk` as an `apps/web` devDependency plus `defineControls` blocks in the five touched components — which was out of scope. Commit `ead4953` removes it entirely; the post-cleanup check above confirms all gates still pass.
