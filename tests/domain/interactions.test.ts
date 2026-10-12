@@ -1295,6 +1295,98 @@ it('treats a null medication-ingredient entry as malformed input instead of thro
   ).toBe(true);
 });
 
+it('marks direct ingredients with empty crosswalks incomplete without dropping them', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-DIRECT-EMPTY-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-EMPTY-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+          noExternalMappings: true,
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-DIRECT-EMPTY-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-EMPTY-PLACEBEXIUM',
+          displayName: 'Placebexium',
+          noExternalMappings: true,
+        },
+      ],
+    },
+  ]);
+  const directIds = [...base.snapshot.activeIngredients.map((item) => item.id)];
+  const result = await evaluateInteractions(
+    {
+      snapshot: base.snapshot,
+      productIds: [],
+      datasetVersionId: base.datasetVersionId,
+      ingredientIds: directIds,
+    },
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'unreviewed-ingredient-mapping',
+    ),
+  ).toBe(true);
+  expect(result.evaluatedIngredientIds).toHaveLength(2);
+});
+
+it('marks direct ingredients with only unreviewed mappings incomplete without dropping them', async () => {
+  const base = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-DIRECT-UNREVIEWED-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-UNREVIEWED-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+          reviewStatus: 'unreviewed',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-DIRECT-UNREVIEWED-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-DIRECT-UNREVIEWED-PLACEBEXIUM',
+          displayName: 'Placebexium',
+          reviewStatus: 'unreviewed',
+        },
+      ],
+    },
+  ]);
+  const directIds = [...base.snapshot.activeIngredients.map((item) => item.id)];
+  const result = await evaluateInteractions(
+    {
+      snapshot: base.snapshot,
+      productIds: [],
+      datasetVersionId: base.datasetVersionId,
+      ingredientIds: directIds,
+    },
+    createNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.coverageComplete).toBe(false);
+  expect(
+    result.unresolvedInputs.some(
+      (input) => input.reason === 'unreviewed-ingredient-mapping',
+    ),
+  ).toBe(true);
+  expect(result.evaluatedIngredientIds).toHaveLength(2);
+});
+
 it('marks unreviewed ingredient mappings incomplete while still evaluating the pairs', async () => {
   const selection = makeSyntheticSelection([
     {

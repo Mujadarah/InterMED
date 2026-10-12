@@ -77,6 +77,7 @@ export interface SyntheticProductSpec {
     readonly displayName: string;
     readonly mappingStatus?: 'confirmed' | 'unresolved';
     readonly reviewStatus?: 'reviewed' | 'unreviewed' | 'rejected';
+    readonly noExternalMappings?: boolean;
   }[];
 }
 
@@ -97,14 +98,16 @@ export function makeSyntheticSelection(
         mappingStatus === 'confirmed'
           ? (ingredientsByKey.get(part.sourceIngredientId) ??
             ingredient(part.sourceIngredientId, part.displayName, {
-              externalMappings: [
-                {
-                  sourceId,
-                  sourceIngredientId: part.sourceIngredientId,
-                  mappingVersion: 'map-synthetic-1',
-                  reviewStatus,
-                },
-              ],
+              externalMappings: part.noExternalMappings
+                ? []
+                : [
+                    {
+                      sourceId,
+                      sourceIngredientId: part.sourceIngredientId,
+                      mappingVersion: 'map-synthetic-1',
+                      reviewStatus,
+                    },
+                  ],
             }))
           : undefined;
       if (linked) ingredientsByKey.set(part.sourceIngredientId, linked);

@@ -133,6 +133,15 @@ function hasCorruptSnapshotItem(
   );
 }
 
+function hasReviewedExternalMapping(ingredient: unknown): boolean {
+  if (!isRecord(ingredient)) return false;
+  const mappings = ingredient.externalMappings;
+  if (!Array.isArray(mappings)) return false;
+  return mappings.some(
+    (mapping) => isRecord(mapping) && mapping.reviewStatus === 'reviewed',
+  );
+}
+
 function resolveDirectIngredients(
   pinnedSnapshot: MedicationCatalogueSnapshot,
   rawDirectIds: readonly ActiveIngredientId[],
@@ -143,12 +152,22 @@ function resolveDirectIngredients(
     const linked = pinnedSnapshot.activeIngredients.find(
       (item) => isRecord(item) && item.id === ingredientId,
     );
-    if (linked) directIngredientIds.push(ingredientId);
-    else
+    if (!linked) {
       pushUnresolved(unresolvedInputs, {
         ingredientId,
         reason: 'unknown-ingredient',
       });
+      continue;
+    }
+    // A direct ingredient follows the same reviewed-crosswalk rule as a
+    // product ingredient: it stays evaluated so any reported record is
+    // shown, but an empty or unreviewed crosswalk blocks complete coverage.
+    if (!hasReviewedExternalMapping(linked))
+      pushUnresolved(unresolvedInputs, {
+        ingredientId,
+        reason: 'unreviewed-ingredient-mapping',
+      });
+    directIngredientIds.push(ingredientId);
   }
   return stableUnique(directIngredientIds).sort(compareStrings);
 }
