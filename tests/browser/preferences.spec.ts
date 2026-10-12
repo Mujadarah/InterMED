@@ -51,7 +51,8 @@ async function addFavoriteFromSearch(
   await expect(input).toBeEnabled();
   await input.fill(query);
   const result = page.getByRole('link', {
-    name: new RegExp(`Open ${resultName}`),
+    name: `Open ${resultName}`,
+    exact: false,
   });
   await expect(result).toBeVisible();
   await result.click();
