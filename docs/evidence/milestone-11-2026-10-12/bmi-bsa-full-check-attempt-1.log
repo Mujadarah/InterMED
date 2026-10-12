@@ -1,0 +1,27 @@
+Worktree: <worktree>
+Command: npm run check
+Node: v24.21.0
+npm: 11.19.0
+INTERMED_NODE22_RUNTIME: v22.23.2
+
+
+> intermed@0.0.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test && npm run check:boundaries && npm audit --audit-level=low && npm run build && npm run scan:dist && npm run test:browser
+
+
+> intermed@0.0.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> intermed@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+<worktree>\packages\domain\src\calculators\bmi-bsa.ts
+  19:12  error  This number literal will lose precision at runtime  no-loss-of-precision
+
+✖ 1 problem (1 error, 0 warnings)
+
+Full check exit code: 1

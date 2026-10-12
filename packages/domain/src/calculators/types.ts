@@ -13,6 +13,26 @@ export type FormulaReviewStatus =
       readonly reviewedAt: string;
     };
 
+export type FormulaRoundingMode = 'half-away-from-zero';
+
+export interface FormulaOutputRounding {
+  readonly mode: FormulaRoundingMode;
+  readonly precision: number;
+}
+
+export interface FormulaApprovalRecord {
+  readonly formulaId: string;
+  readonly formulaVersion: string;
+  readonly approvedBy: string;
+  readonly approvedOn: string;
+  readonly scope: string;
+}
+
+export interface PendingFormulaApproval {
+  readonly formulaId: string;
+  readonly formulaVersion: string;
+}
+
 export interface FormulaDeprecation {
   readonly notice: string;
 }
@@ -76,7 +96,7 @@ export interface FormulaPopulationLimits {
 
 export interface FormulaOutputDefinition {
   readonly unit: string;
-  readonly precision: number;
+  readonly rounding: FormulaOutputRounding;
 }
 
 export interface FormulaClassification {
@@ -223,12 +243,7 @@ export interface CalculationOkResult extends CalculationResultMetadata {
   readonly unroundedValue: number;
   readonly unit: string;
   readonly precision: number;
-  readonly rounding: {
-    readonly mode: 'half-away-from-zero';
-    readonly precision: number;
-    /** The tie rule has not had clinical review; see the evidence doc. */
-    readonly roundingRuleReviewed: false;
-  };
+  readonly rounding: FormulaOutputRounding;
   readonly classification?: FormulaClassification;
 }
 

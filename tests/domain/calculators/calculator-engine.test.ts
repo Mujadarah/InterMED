@@ -419,10 +419,13 @@ describe('calculator registry and result provenance', () => {
   });
 
   it('rejects output definitions with no declared rounding mode', () => {
-    const legacy = makeDefinition({
-      id: 'synthetic-legacy-rounding',
-      version: '1.0',
-    });
+    const legacy = {
+      ...makeDefinition({
+        id: 'synthetic-legacy-rounding',
+        version: '1.0',
+      }),
+      output: { unit: 'imaginary-output-unit', precision: 2 },
+    } as unknown as TestFormulaDefinition;
 
     expect(() => createFormulaRegistry().register(legacy)).toThrow(
       expect.objectContaining({

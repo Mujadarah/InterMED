@@ -1,5 +1,7 @@
 export { calculateFormula } from './calculate';
 export { FormulaRegistrationError, FormulaRegistry } from './registry';
+export { FORMULA_APPROVALS, pendingApprovals } from './approvals';
+export { BMI_FORMULA, MOSTELLER_BSA_FORMULA } from './bmi-bsa';
 export { STANDARD_UNIT_CONVERSIONS } from './units';
 export type {
   CalculationInput,
@@ -16,15 +18,19 @@ export type {
   FormulaClassification,
   FormulaDefinition,
   FormulaMetadata,
+  FormulaApprovalRecord,
   FormulaDeprecation,
   FormulaInputDefinition,
   FormulaOutputDefinition,
+  FormulaOutputRounding,
   FormulaPopulationLimits,
   FormulaQuantityKind,
   FormulaReference,
   FormulaReviewStatus,
+  FormulaRoundingMode,
   FormulaUnitConversions,
   FormulaVersionSummary,
+  PendingFormulaApproval,
   InputValidationCode,
   InputValidationError,
   PopulationGuard,

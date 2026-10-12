@@ -1,8 +1,10 @@
 import { findConversionPath, STANDARD_UNIT_CONVERSIONS } from './units';
+import { hasFormulaApproval } from './approvals';
 import type {
   FormulaDefinition,
   FormulaInputDefinition,
   FormulaMetadata,
+  PendingFormulaApproval,
   FormulaReviewStatus,
   FormulaUnitConversions,
   FormulaVersionSummary,
@@ -335,7 +337,11 @@ function assertGuard(
   }
 }
 
-function assertReviewStatus(status: FormulaReviewStatus): void {
+function assertReviewStatus(
+  status: FormulaReviewStatus,
+  formulaId: string,
+  formulaVersion: string,
+): void {
   if (status === 'unreviewed') return;
   if (
     !status ||
@@ -347,6 +353,11 @@ function assertReviewStatus(status: FormulaReviewStatus): void {
   ) {
     invalidDefinition(
       'Clinically reviewed formulas require a reviewer and valid review date.',
+    );
+  }
+  if (!hasFormulaApproval(formulaId, formulaVersion, status)) {
+    invalidDefinition(
+      `Clinically reviewed formula ${formulaId}@${formulaVersion} requires an exact approval record.`,
     );
   }
 }
@@ -388,11 +399,14 @@ function validateDefinition(definition: FormulaDefinition): void {
     !definition.output ||
     typeof definition.output !== 'object' ||
     !hasText(definition.output.unit) ||
-    !Number.isSafeInteger(definition.output.precision) ||
-    definition.output.precision < 0
+    !definition.output.rounding ||
+    typeof definition.output.rounding !== 'object' ||
+    definition.output.rounding.mode !== 'half-away-from-zero' ||
+    !Number.isSafeInteger(definition.output.rounding.precision) ||
+    definition.output.rounding.precision < 0
   ) {
     invalidDefinition(
-      'A formula output requires a unit and non-negative integer precision.',
+      'A formula output requires a unit and an explicit supported rounding mode with non-negative integer precision.',
     );
   }
   if (
@@ -424,7 +438,11 @@ function validateDefinition(definition: FormulaDefinition): void {
   ) {
     invalidDefinition('A formula requires at least one non-empty limitation.');
   }
-  assertReviewStatus(definition.reviewStatus);
+  assertReviewStatus(
+    definition.reviewStatus,
+    definition.formulaId,
+    definition.formulaVersion,
+  );
   if (
     definition.classify !== undefined &&
     typeof definition.classify !== 'function'
@@ -468,7 +486,10 @@ function freezeDefinition(definition: FormulaDefinition): FormulaDefinition {
     primaryReference: Object.freeze({ ...definition.primaryReference }),
     inputs: Object.freeze(inputs),
     unitConversions: conversions,
-    output: Object.freeze({ ...definition.output }),
+    output: Object.freeze({
+      ...definition.output,
+      rounding: Object.freeze({ ...definition.output.rounding }),
+    }),
     populationLimits: Object.freeze({
       text: definition.populationLimits.text,
       guards: Object.freeze(
@@ -536,5 +557,22 @@ export class FormulaRegistry {
           : {}),
       }));
     return Object.freeze(versions.map((version) => Object.freeze(version)));
+  }
+
+  listPendingApprovals(): readonly PendingFormulaApproval[] {
+    const pending = [...this.definitions.values()]
+      .filter((definition) => definition.reviewStatus === 'unreviewed')
+      .map((definition) =>
+        Object.freeze({
+          formulaId: definition.formulaId,
+          formulaVersion: definition.formulaVersion,
+        }),
+      )
+      .sort(
+        (first, second) =>
+          first.formulaId.localeCompare(second.formulaId) ||
+          first.formulaVersion.localeCompare(second.formulaVersion),
+      );
+    return Object.freeze(pending);
   }
 }

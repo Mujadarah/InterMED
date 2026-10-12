@@ -94,7 +94,10 @@ export function makeDefinition(options: {
     unitConversions: syntheticConversions,
     output: {
       unit: 'imaginary-output-unit',
-      precision: options.outputPrecision ?? 2,
+      rounding: {
+        mode: 'half-away-from-zero',
+        precision: options.outputPrecision ?? 2,
+      },
     },
     populationLimits: {
       text: 'Synthetic test values only; these limits are fictional.',

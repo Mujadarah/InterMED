@@ -217,9 +217,13 @@ describe('Milestone 11 BMI and BSA candidates', () => {
     it('documents the unreviewed engineering ranges and formula limitations', () => {
       const bmiLimitations = bmiFormula.limitations.join(' ').toLowerCase();
       const bsaLimitations = bsaFormula.limitations.join(' ').toLowerCase();
+      const bmiCitation = bmiFormula.primaryReference.citation.toLowerCase();
       expect(bmiLimitations).toContain(
         'engineering plausibility limits, pending owner review',
       );
+      expect(bmiLimitations).toContain('who technical report series 894, 2000');
+      expect(bmiLimitations).toContain('adults only');
+      expect(bmiCitation).toContain('quetelet a (1835)');
       expect(bsaLimitations).toContain(
         'engineering plausibility limits, pending owner review',
       );
@@ -446,21 +450,25 @@ describe('Milestone 11 BMI and BSA candidates', () => {
     });
 
     it('accepts the declared weight and height plausibility endpoints', () => {
+      const boundaryInputs = [
+        { weight: { value: 1, unit: 'kg' } },
+        { weight: { value: 500, unit: 'kg' } },
+        { weight: { value: 2.2046226218487757, unit: 'lb' } },
+        {
+          weight: { value: 500 * 2.2046226218487757, unit: 'lb' },
+        },
+        { height: { value: 50, unit: 'cm' } },
+        { height: { value: 272, unit: 'cm' } },
+        { height: { value: 0.5, unit: 'm' } },
+        { height: { value: 2.72, unit: 'm' } },
+        { height: { value: 50 / 2.54, unit: 'in' } },
+        { height: { value: 272 / 2.54, unit: 'in' } },
+      ] as const;
+
       for (const formula of [bmiFormula, bsaFormula]) {
-        for (const weight of [1, 500]) {
+        for (const boundary of boundaryInputs) {
           expect(
-            calculate(formula, {
-              ...baseInputs(),
-              weight: { value: weight, unit: 'kg' },
-            }).status,
-          ).toBe('ok');
-        }
-        for (const height of [50, 272]) {
-          expect(
-            calculate(formula, {
-              ...baseInputs(),
-              height: { value: height, unit: 'cm' },
-            }).status,
+            calculate(formula, { ...baseInputs(), ...boundary }).status,
           ).toBe('ok');
         }
       }
@@ -470,8 +478,18 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       const outsideCases = [
         { inputId: 'weight', value: 0.999, unit: 'kg' },
         { inputId: 'weight', value: 500.0001, unit: 'kg' },
+        { inputId: 'weight', value: 2.2045, unit: 'lb' },
+        {
+          inputId: 'weight',
+          value: 500 * 2.2046226218487757 + 0.0001,
+          unit: 'lb',
+        },
         { inputId: 'height', value: 49.999, unit: 'cm' },
         { inputId: 'height', value: 272.0001, unit: 'cm' },
+        { inputId: 'height', value: 0.4999, unit: 'm' },
+        { inputId: 'height', value: 2.7201, unit: 'm' },
+        { inputId: 'height', value: 50 / 2.54 - 0.0001, unit: 'in' },
+        { inputId: 'height', value: 272 / 2.54 + 0.0001, unit: 'in' },
         { inputId: 'age', value: 130.0001, unit: 'years' },
       ];
 

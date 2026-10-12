@@ -60,7 +60,13 @@ export interface TestFormulaDefinition {
   readonly unitConversions: Readonly<
     Record<string, readonly TestUnitConversion[]>
   >;
-  readonly output: { readonly unit: string; readonly precision: number };
+  readonly output: {
+    readonly unit: string;
+    readonly rounding: {
+      readonly mode: 'half-away-from-zero';
+      readonly precision: number;
+    };
+  };
   readonly populationLimits: {
     readonly text: string;
     readonly guards: readonly TestPopulationGuard[];
@@ -231,6 +237,8 @@ function describePositiveAndBoundaries(
     if (cases.positive.expectedValue !== undefined) {
       expect(result.status).toBe('ok');
       expect(result.displayValue).toBe(cases.positive.expectedValue);
+      expect(result.precision).toBe(definition.output.rounding.precision);
+      expect(result.rounding).toEqual(definition.output.rounding);
     }
   });
 

@@ -93,8 +93,12 @@ export { deserializeCatalogue, serializeCatalogue } from './serialize';
 
 export {
   calculateFormula,
+  FORMULA_APPROVALS,
   FormulaRegistrationError,
   FormulaRegistry,
+  BMI_FORMULA,
+  MOSTELLER_BSA_FORMULA,
+  pendingApprovals,
   STANDARD_UNIT_CONVERSIONS,
 } from './calculators';
 export type {
@@ -112,15 +116,19 @@ export type {
   FormulaClassification,
   FormulaDefinition,
   FormulaMetadata,
+  FormulaApprovalRecord,
   FormulaDeprecation,
   FormulaInputDefinition,
   FormulaOutputDefinition,
+  FormulaOutputRounding,
   FormulaPopulationLimits,
   FormulaQuantityKind,
   FormulaReference,
   FormulaReviewStatus,
+  FormulaRoundingMode,
   FormulaUnitConversions,
   FormulaVersionSummary,
+  PendingFormulaApproval,
   InputValidationCode,
   InputValidationError,
   PopulationGuard,

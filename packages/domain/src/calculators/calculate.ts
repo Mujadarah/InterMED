@@ -7,6 +7,7 @@ import type {
   CalculationResultMetadata,
   FormulaClassification,
   FormulaDefinition,
+  FormulaOutputRounding,
   PopulationGuard,
   PopulationLimitHit,
 } from './types';
@@ -139,9 +140,19 @@ function findPopulationLimitHitsGuarded(
   }
 }
 
-function roundForDisplay(value: number, precision: number): number | undefined {
+function roundForDisplay(
+  value: number,
+  rounding: FormulaOutputRounding,
+): number | undefined {
+  const { precision } = rounding;
   if (!Number.isFinite(value)) return undefined;
-  if (!Number.isSafeInteger(precision) || precision < 0) return undefined;
+  if (
+    rounding.mode !== 'half-away-from-zero' ||
+    !Number.isSafeInteger(precision) ||
+    precision < 0
+  ) {
+    return undefined;
+  }
   // Half away from zero decided on the exact stored binary value. Scaling a
   // binary double by a power of ten can itself round: the stored 2.675 sits
   // just below the decimal tie, yet 2.675 * 100 evaluates to exactly 267.5
@@ -150,8 +161,7 @@ function roundForDisplay(value: number, precision: number): number | undefined {
   // instead. Decimal ties stored just below the tie therefore round down
   // (1.005 and 2.675 at precision 2 give 1.00 and 2.67), while exactly
   // representable ties still round away from zero (2.5 gives 3 and -2.5
-  // gives -3 at precision 0). The tie rule itself is pending clinical
-  // review (roundingRuleReviewed is false).
+  // gives -3 at precision 0). The declared mode is echoed in the result.
   const negative = value < 0;
   const bytes = new ArrayBuffer(8);
   const view = new DataView(bytes);
@@ -253,7 +263,7 @@ function calculateKnownFormula(
   }
   const displayValue = roundForDisplay(
     unroundedValue,
-    definition.output.precision,
+    definition.output.rounding,
   );
   if (displayValue === undefined) {
     return {
@@ -295,11 +305,10 @@ function calculateKnownFormula(
     displayValue,
     unroundedValue,
     unit: definition.output.unit,
-    precision: definition.output.precision,
+    precision: definition.output.rounding.precision,
     rounding: {
-      mode: 'half-away-from-zero',
-      precision: definition.output.precision,
-      roundingRuleReviewed: false,
+      mode: definition.output.rounding.mode,
+      precision: definition.output.rounding.precision,
     },
     ...(classification ? { classification } : {}),
   };
