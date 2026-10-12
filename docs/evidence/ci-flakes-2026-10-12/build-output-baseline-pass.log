@@ -1,0 +1,19 @@
+Command: npm run test -- apps/web/pwa/build-output.test.ts
+Node: v24.21.0
+npm: 11.19.0
+Node 22: v22.23.2
+Exit: 0
+Duration: 3.086 s
+
+
+> intermed@0.0.0 test
+> vitest run apps/web/pwa/build-output.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:06:03
+   Duration  1.54s (transform 19ms, setup 0ms, import 41ms, tests 1.18s, environment 0ms)
