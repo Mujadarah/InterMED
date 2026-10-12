@@ -524,6 +524,8 @@ it('keeps stale or partial pair coverage visible alongside reported records', as
     true,
   );
   expect(result.incompleteReasons.length).toBeGreaterThan(0);
+  expect(result.incompleteReasons).toContain('stale-source-data');
+  expect(JSON.stringify(result)).not.toContain('synthetic-partial-coverage');
 });
 
 it('returns unavailable when provider rights are not permitted or online access is required', async () => {
@@ -852,6 +854,50 @@ it('flags severity disagreement only when different providers report different t
       }),
     ]),
   );
+});
+
+it('reports malformed provider results as unusable instead of throwing', async () => {
+  const noRecordResult: ProviderResult =
+    await createNoRecordSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const otherResult: ProviderResult =
+    await createSecondVocabularySyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const malformedCoverage = {
+    ...otherResult,
+    pairCoverage: null,
+  } as unknown as ProviderResult;
+  const malformedRecords = {
+    ...otherResult,
+    records: null,
+  } as unknown as ProviderResult;
+  const malformedEvidence = {
+    ...otherResult,
+    evidence: null,
+  } as unknown as ProviderResult;
+  const unidentifiable = { status: 'available' } as unknown as ProviderResult;
+
+  for (const malformed of [
+    malformedCoverage,
+    malformedRecords,
+    malformedEvidence,
+    unidentifiable,
+  ]) {
+    const merged = mergeProviderResults([malformed, noRecordResult]);
+    expect(merged.providerResults[0]).toBe(malformed);
+    expect(merged.records).toEqual([]);
+    expect(merged.evidence).toEqual([]);
+    expect(merged.sourceVersions).toEqual([
+      {
+        providerId: noRecordResult.providerId,
+        sourceId: noRecordResult.sourceId,
+        sourceVersion: noRecordResult.sourceVersion,
+      },
+    ]);
+    expect(merged.disagreements).toEqual([]);
+  }
+
+  const mixed = mergeProviderResults([malformedCoverage, otherResult]);
+  expect(mixed.records).toHaveLength(otherResult.records.length);
+  expect(mixed.evidence).toHaveLength(otherResult.evidence.length);
 });
 
 it('returns an incomplete evaluation when the configured pair limit is exceeded', async () => {

@@ -10,6 +10,7 @@ import type {
   PairCoverageStatus,
 } from './types';
 import { canonicalPair, compareStrings, pairKey } from './pairs';
+import { isProviderResult, isRecord } from './provider-result';
 
 interface AssessmentRecord {
   readonly record: DrugInteraction;
@@ -52,6 +53,7 @@ interface AssessmentState {
   unresolved: boolean;
   truncated: boolean;
   globalInvalidity: boolean;
+  providerUnavailable: boolean;
   evidenceConflict: boolean;
 }
 
@@ -77,7 +79,6 @@ const KNOWN_REASONS = new Set([
   'record-pair-outside-request',
   'rights-not-permitted',
   'stale-source-data',
-  'synthetic-partial-coverage',
   'timeout-scheduler-unavailable',
   'unresolved-inputs',
   'unreviewed-ingredient-mapping',
@@ -383,12 +384,48 @@ function addEvaluation(
   }
 }
 
+/**
+ * A provider payload that fails structural validation is never partially
+ * trusted. Its source is reported as unavailable with `provider-result-invalid`
+ * and its coverage rows and records are skipped, so a malformed payload can
+ * never throw or be read as safety.
+ */
+function markProviderResultInvalid(
+  state: AssessmentState,
+  result: unknown,
+): void {
+  state.providerUnavailable = true;
+  state.reasons.add('provider-result-invalid');
+  if (!isRecord(result)) return;
+  const sourceId =
+    typeof result.sourceId === 'string' ? result.sourceId : undefined;
+  const sourceVersion =
+    typeof result.sourceVersion === 'string' ? result.sourceVersion : undefined;
+  if (!sourceId || !sourceVersion) return;
+  const providerId =
+    typeof result.providerId === 'string' ? result.providerId : undefined;
+  createSource(state, {
+    sourceId: sourceId as PairSource['sourceId'],
+    sourceVersion,
+    ...(providerId ? { providerId } : {}),
+    hasCoverage: false,
+    available: false,
+    stale: false,
+    invalidCoverage: false,
+    reason: 'provider-result-invalid',
+  });
+}
+
 function addMergedResults(
   state: AssessmentState,
   merged: MergedProviderResults,
   requestedKey: string,
 ): void {
   for (const result of merged.providerResults) {
+    if (!isProviderResult(result)) {
+      markProviderResultInvalid(state, result);
+      continue;
+    }
     const rows = result.pairCoverage.filter((row) =>
       matchesPair(row.pair, requestedKey),
     );
@@ -631,6 +668,7 @@ function assessmentStatus(
 ): PairAssessment['coverage']['status'] {
   if (state.truncated) return 'truncated';
   if (state.unresolved) return 'inputs-unresolved';
+  if (state.providerUnavailable) return 'unavailable';
   if (state.sources.some((source) => !source.available)) return 'unavailable';
   if (state.sources.some((source) => source.status === 'unsupported-context'))
     return 'unsupported-context';
@@ -662,6 +700,7 @@ function createAssessment(
     unresolved: false,
     truncated: false,
     globalInvalidity: false,
+    providerUnavailable: false,
     evidenceConflict: false,
   };
   if (!Array.isArray(input) && 'providerResults' in input)

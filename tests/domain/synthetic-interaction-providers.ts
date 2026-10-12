@@ -329,12 +329,14 @@ function createSyntheticProvider(
 
       const pairCoverage: ProviderPairCoverage[] = request.pairs.map(
         (pair, index) => {
+          // An uncovered pair carries no provider wording: the real limitation
+          // codes (`provider-pair-coverage-incomplete`, `stale-source-data`)
+          // are derived from the status and the stale flag.
           if (options.uncoveredPairIndex === index)
             return {
               pair,
               status: 'not-covered',
               retrievedAt: SYNTHETIC_RETRIEVED_AT,
-              reason: 'synthetic-partial-coverage',
               ...(options.markUncoveredPairStale ? { stale: true } : {}),
             };
           if (reportFirstPair && index === 0)

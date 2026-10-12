@@ -8,6 +8,7 @@ import {
   type InteractionEvaluationOptions,
   type InteractionSelection,
   type MergedProviderResults,
+  type ProviderResult,
 } from '@intermed/domain';
 import {
   CONTRACT_INGREDIENT_A,
@@ -563,6 +564,86 @@ it('scenario 10: repeated assessment is deterministic and deeply frozen', async 
 
   expect(second).toEqual(first);
   expect(isDeeplyFrozen(first)).toBe(true);
+});
+
+it('scenario 11: a malformed provider result makes the pair unavailable instead of throwing', async () => {
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const documented =
+    await createDisagreementSyntheticProvider().evaluate(request);
+  const valid = await createOfflineSyntheticProvider().evaluate(request);
+  const malformed = {
+    ...documented,
+    records: null,
+  } as unknown as ProviderResult;
+  const unidentifiable = { status: 'available' } as unknown as ProviderResult;
+
+  const result = assess(
+    mergeProviderResults([malformed, valid]),
+    CONTRACT_PAIR_AB,
+  );
+
+  expect(result.coverage.status).toBe('unavailable');
+  expect(result.coverage.coverageComplete).toBe(false);
+  expect(result.coverage.reasons).toContain('provider-result-invalid');
+  expect(result.finding.affirmedNoInteraction).toBe(false);
+  expect(result.finding.documentedInteraction).toBe(true);
+  expect(result.evidence.positions).toEqual(
+    expect.arrayContaining([
+      {
+        sourceId: valid.sourceId,
+        sourceVersion: valid.sourceVersion,
+        position: 'documents-interaction',
+      },
+      {
+        sourceId: documented.sourceId,
+        sourceVersion: documented.sourceVersion,
+        position: 'unavailable',
+      },
+    ]),
+  );
+  expect(
+    result.provenance.every((entry) => entry.sourceId !== documented.sourceId),
+  ).toBe(true);
+  expect(isDeeplyFrozen(result)).toBe(true);
+
+  const unidentified = assess(
+    mergeProviderResults([unidentifiable, valid]),
+    CONTRACT_PAIR_AB,
+  );
+  expect(unidentified.coverage.status).toBe('unavailable');
+  expect(unidentified.coverage.reasons).toContain('provider-result-invalid');
+  expect(unidentified.finding.affirmedNoInteraction).toBe(false);
+  expect(unidentified.finding.documentedInteraction).toBe(true);
+  expect(unidentified.evidence.positions).toEqual([
+    {
+      sourceId: valid.sourceId,
+      sourceVersion: valid.sourceVersion,
+      position: 'documents-interaction',
+    },
+  ]);
+});
+
+it('scenario 12: a stale uncovered pair reports only real limitation codes', async () => {
+  const partial = await evaluate(
+    createPartialCoverageSyntheticProvider(),
+    CONTRACT_SELECTION,
+  );
+  const missingPair = partial.evaluatedPairCoverage.find(
+    (coverage) => coverage.status === 'not-covered',
+  )?.pair;
+  if (!missingPair) throw new Error('synthetic uncovered pair is missing');
+
+  expect(JSON.stringify(partial)).not.toContain('synthetic-partial-coverage');
+  const result = assess(partial, missingPair);
+  expect(result.coverage.status).toBe('not-covered');
+  expect(result.coverage.coverageComplete).toBe(false);
+  expect(result.coverage.reasons).toEqual(
+    expect.arrayContaining([
+      'provider-pair-coverage-incomplete',
+      'stale-source-data',
+    ]),
+  );
+  expect(result.coverage.reasons).not.toContain('synthetic-partial-coverage');
 });
 
 it('removes the rejected single-category precedence API', () => {

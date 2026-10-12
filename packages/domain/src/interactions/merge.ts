@@ -18,6 +18,7 @@ import {
   compareStrings,
   pairKey,
 } from './pairs';
+import { isProviderResult } from './provider-result';
 
 interface PairFindings {
   readonly pair: CanonicalIngredientPair;
@@ -222,6 +223,10 @@ function collectMergedSourceVersions(
 /**
  * Merge provider payloads without creating a combined severity or verdict.
  * The tuple type and runtime guard require results from at least two providers.
+ *
+ * A malformed payload is retained in `providerResults` so the assessment can
+ * report that source as unavailable, but it contributes no records, evidence,
+ * source versions or disagreements to the merge.
  */
 export function mergeProviderResults(
   providerResults: readonly [
@@ -233,12 +238,13 @@ export function mergeProviderResults(
   if (providerResults.length < 2)
     throw new RangeError('At least two provider results are required.');
 
-  const findings = collectPairFindings(providerResults);
+  const usableResults = providerResults.filter(isProviderResult);
+  const findings = collectPairFindings(usableResults);
   return {
     providerResults,
-    records: collectMergedRecords(providerResults),
-    evidence: providerResults.flatMap((result) => result.evidence),
-    sourceVersions: collectMergedSourceVersions(providerResults),
+    records: collectMergedRecords(usableResults),
+    evidence: usableResults.flatMap((result) => result.evidence),
+    sourceVersions: collectMergedSourceVersions(usableResults),
     disagreements: deriveDisagreements(findings),
   };
 }
