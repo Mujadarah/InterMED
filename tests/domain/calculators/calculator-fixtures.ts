@@ -63,6 +63,7 @@ export function makeDefinition(options: {
   readonly canonicalConcentrationUnit?: 'mg/dL' | 'µmol/L';
   readonly deprecated?: string;
   readonly reviewStatus?: TestFormulaDefinition['reviewStatus'];
+  readonly outputPrecision?: number;
 }): TestFormulaDefinition {
   const canonicalUnit = options.canonicalConcentrationUnit ?? 'mg/dL';
   const concentrationInput = input('synthetic-concentration', {
@@ -91,7 +92,10 @@ export function makeDefinition(options: {
     },
     inputs,
     unitConversions: syntheticConversions,
-    output: { unit: 'imaginary-output-unit', precision: 2 },
+    output: {
+      unit: 'imaginary-output-unit',
+      precision: options.outputPrecision ?? 2,
+    },
     populationLimits: {
       text: 'Synthetic test values only; these limits are fictional.',
       guards: [

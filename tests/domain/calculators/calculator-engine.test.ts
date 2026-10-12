@@ -428,6 +428,7 @@ describe('calculator registry and result provenance', () => {
     expect(result.rounding).toEqual({
       mode: 'half-away-from-zero',
       precision: 2,
+      roundingRuleReviewed: false,
     });
   });
 
@@ -602,13 +603,87 @@ describe('calculator registry and result provenance', () => {
     });
   });
 
-  it('rounds exact decimal ties away from zero for display', () => {
+  it('rounds decimal ties by their stored binary value', () => {
     for (const [value, expected] of [
-      [1.005, 1.01],
-      [-1.005, -1.01],
+      [1.005, 1],
+      [-1.005, -1],
     ] as const) {
       const formula = makeDefinition({
         id: `synthetic-rounding-${expected < 0 ? 'negative' : 'positive'}`,
+        version: '1.0',
+        compute: () => value,
+      });
+      const registry = createFormulaRegistry();
+      registry.register(formula);
+      const result = calculateWith(
+        registry,
+        request(formula.formulaId, formula.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        }),
+      );
+      expect(result.status).toBe('ok');
+      expect(result.displayValue).toBe(expected);
+    }
+  });
+
+  it('rounds half away from zero on the exact binary value', () => {
+    const table = [
+      { value: 0.49999999999999994, precision: 0, expected: 0 },
+      { value: 2.5, precision: 0, expected: 3 },
+      { value: -2.5, precision: 0, expected: -3 },
+      { value: 2.675, precision: 2, expected: 2.67 },
+      { value: 1.005, precision: 2, expected: 1 },
+    ] as const;
+    for (const { value, precision, expected } of table) {
+      const formula = makeDefinition({
+        id: 'synthetic-binary-rounding',
+        version: '1.0',
+        outputPrecision: precision,
+        compute: () => value,
+      });
+      const registry = createFormulaRegistry();
+      registry.register(formula);
+      const result = calculateWith(
+        registry,
+        request(formula.formulaId, formula.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        }),
+      );
+      expect(result.status).toBe('ok');
+      expect(result.displayValue).toBe(expected);
+      expect(result.rounding).toEqual({
+        mode: 'half-away-from-zero',
+        precision,
+        roundingRuleReviewed: false,
+      });
+    }
+  });
+
+  it('matches exact binary rounding over a rounding table', () => {
+    // Expectations below are half-away-from-zero applied to the exact
+    // stored binary value at precision 2. Note 123.455 gives 123.45: the
+    // stored double sits just below the tie even though 123.455 * 100
+    // evaluates to exactly 12345.5 in floating point.
+    const table = [
+      { value: 0.125, expected: 0.13 },
+      { value: -0.125, expected: -0.13 },
+      { value: 1.005, expected: 1 },
+      { value: -1.005, expected: -1 },
+      { value: 2.675, expected: 2.67 },
+      { value: -2.675, expected: -2.67 },
+      { value: 123.455, expected: 123.45 },
+      { value: 0.335, expected: 0.34 },
+      { value: 999.995, expected: 1000 },
+      { value: 2.5, expected: 2.5 },
+      { value: -2.5, expected: -2.5 },
+      { value: 0.49999999999999994, expected: 0.5 },
+      { value: 48.333333333333336, expected: 48.33 },
+    ];
+    for (const { value, expected } of table) {
+      const formula = makeDefinition({
+        id: 'synthetic-rounding-table',
         version: '1.0',
         compute: () => value,
       });

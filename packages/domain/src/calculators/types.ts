@@ -208,6 +208,8 @@ export interface CalculationOkResult extends CalculationResultMetadata {
   readonly rounding: {
     readonly mode: 'half-away-from-zero';
     readonly precision: number;
+    /** The tie rule has not had clinical review; see the evidence doc. */
+    readonly roundingRuleReviewed: false;
   };
 }
 
