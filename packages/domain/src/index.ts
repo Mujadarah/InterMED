@@ -90,6 +90,52 @@ export type { MedicationDetailEntityKind } from './medication-detail';
 export { MedicationDetailIntegrityError } from './medication-detail';
 export type { DeserializeCatalogueResult } from './serialize';
 export { deserializeCatalogue, serializeCatalogue } from './serialize';
+export type {
+  CanonicalIngredientPair,
+  DrugInteraction,
+  DrugInteractionProvider,
+  DuplicateExposure,
+  EvaluatedPairCoverage,
+  InteractionAbortSignal,
+  InteractionContext,
+  InteractionDisagreement,
+  InteractionDisagreementReason,
+  InteractionDisagreementTerm,
+  InteractionEvaluation,
+  InteractionEvaluationOptions,
+  InteractionEvaluationStatus,
+  InteractionEvidence,
+  InteractionIncompleteReason,
+  InteractionProductIngredientMapping,
+  InteractionSelection,
+  InteractionSourceVersion,
+  InteractionTimer,
+  InteractionProviderDescriptor,
+  NormalizedSeverity,
+  PairCoverageStatus,
+  ProviderAvailability,
+  ProviderCapabilities,
+  ProviderDescriptor,
+  ProviderPairCoverage,
+  ProviderRequest,
+  ProviderResult,
+  ProviderRightsStatus,
+  ProviderStatus,
+  MergedProviderResults,
+  SeverityMapping,
+  TooManyPairsOutcome,
+  UniquePairsComplete,
+  UniquePairsOptions,
+  UniquePairsResult,
+  UnresolvedInteractionInput,
+  UnresolvedInteractionInputReason,
+} from './interactions';
+export {
+  canonicalPair,
+  evaluateInteractions,
+  mergeProviderResults,
+  uniquePairs,
+} from './interactions';
 
 export interface BootstrapInfo {
   readonly label: string;
