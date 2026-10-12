@@ -2,6 +2,7 @@ import { findConversionPath, STANDARD_UNIT_CONVERSIONS } from './units';
 import type {
   FormulaDefinition,
   FormulaInputDefinition,
+  FormulaMetadata,
   FormulaReviewStatus,
   FormulaUnitConversions,
   FormulaVersionSummary,
@@ -504,7 +505,20 @@ export class FormulaRegistry {
     this.definitions.set(key, freezeDefinition(definition));
   }
 
-  get(
+  get(formulaId: string, formulaVersion: string): FormulaMetadata | undefined {
+    const stored = this.resolveForCalculation(formulaId, formulaVersion);
+    if (!stored) return undefined;
+    const view: Record<string, unknown> = { ...stored };
+    delete view.compute;
+    delete view.classify;
+    return Object.freeze(view) as FormulaMetadata;
+  }
+
+  /**
+   * @internal Resolves the executable definition for the calculate module.
+   * `calculateFormula` stays the only public path to a number.
+   */
+  resolveForCalculation(
     formulaId: string,
     formulaVersion: string,
   ): FormulaDefinition | undefined {

@@ -129,7 +129,7 @@ interface TestFormulaRegistry {
   get(
     formulaId: string,
     formulaVersion: string,
-  ): TestFormulaDefinition | undefined;
+  ): Omit<TestFormulaDefinition, 'compute' | 'classify'> | undefined;
   listVersions(formulaId: string): readonly unknown[];
 }
 

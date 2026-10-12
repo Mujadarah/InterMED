@@ -315,7 +315,10 @@ export function calculateFormula(
 ): CalculationResult {
   const formulaId = requestedId(request?.formulaId);
   const formulaVersion = requestedId(request?.formulaVersion);
-  const definition = registry.get(formulaId, formulaVersion);
+  const definition = registry.resolveForCalculation(
+    formulaId,
+    formulaVersion,
+  );
   if (!definition) {
     return unavailableWithoutDefinition(formulaId, formulaVersion);
   }

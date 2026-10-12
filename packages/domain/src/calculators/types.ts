@@ -112,6 +112,13 @@ export interface FormulaVersionSummary {
   readonly deprecationNotice?: string;
 }
 
+/**
+ * Read-only registry view of a formula without its executable hooks.
+ * `compute` (and `classify`) stay inside the registry; `calculateFormula`
+ * is the only path to a number.
+ */
+export type FormulaMetadata = Omit<FormulaDefinition, 'compute' | 'classify'>;
+
 export interface CalculationInput {
   readonly value: number;
   readonly unit: string;

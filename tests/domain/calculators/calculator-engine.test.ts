@@ -104,6 +104,21 @@ describe('calculator registry and result provenance', () => {
     expect(result.inputEcho).toEqual([]);
   });
 
+  it('exposes only metadata without compute from get', () => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const metadata = registry.get('synthetic-linear', '1.0');
+
+    expect(metadata).toBeDefined();
+    expect(metadata).toMatchObject({
+      formulaId: 'synthetic-linear',
+      formulaVersion: '1.0',
+    });
+    expect('compute' in (metadata as unknown as Record<string, unknown>)).toBe(
+      false,
+    );
+  });
+
   it('lists registered versions explicitly without selecting one as latest', () => {
     const registry = createFormulaRegistry();
     registry.register(newerVersion);

@@ -15,6 +15,7 @@ export type {
   CalculationUnavailableResult,
   FormulaClassification,
   FormulaDefinition,
+  FormulaMetadata,
   FormulaDeprecation,
   FormulaInputDefinition,
   FormulaOutputDefinition,
