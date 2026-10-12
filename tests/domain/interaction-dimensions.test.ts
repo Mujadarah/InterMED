@@ -24,9 +24,9 @@ import {
   createPartialCoverageSyntheticProvider,
   createOnlineOnlySyntheticProvider,
   createSourceUncertainSyntheticProvider,
-  createSupersededAndCurrentSyntheticProvider,
   createSupersededOnlySyntheticProvider,
   createThrowingSyntheticProvider,
+  createWithdrawnAndCurrentSyntheticProvider,
   createWithdrawnOnlySyntheticProvider,
   makeSyntheticSelection,
 } from './synthetic-interaction-providers';
@@ -240,12 +240,13 @@ it('scenario 1: a current finding stays visible beside disagreeing source positi
 
 it('scenario 2: a withdrawn record remains history beside a current record', async () => {
   const evaluation = await evaluate(
-    createSupersededAndCurrentSyntheticProvider(),
+    createWithdrawnAndCurrentSyntheticProvider(),
   );
   const currentRecord = evaluation.interactions[0];
   const historicalRecord = evaluation.inactiveRecords[0]?.record;
   if (!currentRecord || !historicalRecord)
     throw new Error('synthetic lifecycle records are missing');
+  expect(historicalRecord.recordStatus).toBe('withdrawn');
 
   const result = assess(evaluation, CONTRACT_PAIR_AB);
 

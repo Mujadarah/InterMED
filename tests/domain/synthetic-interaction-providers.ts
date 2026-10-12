@@ -588,6 +588,46 @@ export function createSupersededAndCurrentSyntheticProvider(): DrugInteractionPr
   };
 }
 
+export function createWithdrawnAndCurrentSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      const [record] = result.records;
+      if (!record) return result;
+      const currentId = record.id + '-current';
+      const recordWithoutEvidence: DrugInteraction = {
+        ...record,
+        evidenceIds: [],
+      };
+      return {
+        ...result,
+        records: [
+          withLifecycle(
+            recordWithoutEvidence,
+            'withdrawn',
+            WITHDRAWN_UPDATE_HISTORY,
+            { statusChangedAt: '2026-10-12T10:30:00.000Z' },
+          ),
+          withLifecycle(
+            { ...recordWithoutEvidence, id: currentId },
+            'current',
+            [
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-12T10:30:00.000Z',
+                change: 'created',
+              },
+            ],
+          ),
+        ],
+        evidence: [],
+      };
+    },
+  };
+}
+
 export function createOutdatedSyntheticProvider(): DrugInteractionProvider {
   const inner = createOfflineSyntheticProvider();
   return {
