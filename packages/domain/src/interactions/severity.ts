@@ -6,6 +6,7 @@ import type {
   ProviderResult,
   SeverityMapping,
 } from './types';
+import type { DatasetVersionId } from '../ids';
 import {
   addIncompleteReason,
   addSourceVersion,
@@ -51,6 +52,7 @@ export function collectValidRecords(
   reasonSet: Set<InteractionIncompleteReason>,
   sourceVersions: InteractionSourceVersion[],
   options: InteractionEvaluationOptions,
+  expectedDatasetVersionId: DatasetVersionId,
 ): {
   readonly validRecords: DrugInteraction[];
   readonly recordsByPair: Map<string, DrugInteraction[]>;
@@ -74,6 +76,10 @@ export function collectValidRecords(
       record.sourceVersion !== result.sourceVersion
     )
       addIncompleteReason(reasonSet, 'provider-version-mismatch');
+    // A record from another dataset generation stays visible with its own
+    // version; it is never silently rewritten, but coverage is incomplete.
+    if (record.datasetVersionId !== expectedDatasetVersionId)
+      addIncompleteReason(reasonSet, 'record-dataset-version-mismatch');
     addSourceVersion(sourceVersions, {
       providerId: result.providerId,
       sourceId: record.sourceId,

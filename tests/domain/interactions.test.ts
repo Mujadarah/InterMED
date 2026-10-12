@@ -1674,3 +1674,52 @@ it('still maps to unavailable when the provider ignores the abort signal', async
   expect(result.status).toBe('unavailable');
   expect(result.unavailableReason).toBe('provider-timeout');
 });
+
+it('flags records from another dataset version without rewriting them', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-VERSION-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-VERSION-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-VERSION-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-VERSION-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const otherDatasetVersionId = mustId(
+    'DatasetVersion',
+    SOURCE_KEY,
+    'synthetic-other-generation',
+  );
+  const base = createOfflineSyntheticProvider();
+  const provider: DrugInteractionProvider = {
+    describe: () => base.describe(),
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) => ({
+          ...record,
+          datasetVersionId: otherDatasetVersionId,
+        })),
+      };
+    },
+  };
+  const result = await evaluateInteractions(selection, provider, options());
+  expect(result.interactions).toHaveLength(1);
+  expect(result.interactions[0]?.datasetVersionId).toBe(otherDatasetVersionId);
+  expect(result.coverageComplete).toBe(false);
+  expect(result.incompleteReasons).toContain('record-dataset-version-mismatch');
+});

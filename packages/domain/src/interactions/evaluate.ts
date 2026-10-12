@@ -375,6 +375,7 @@ function summarizeProviderResult(
     reasonSet,
     sourceVersions,
     options,
+    base.datasetVersionId,
   );
   const coverageByPair = indexCoverageByPair(result, requestedPairs, reasonSet);
   const evaluatedPairCoverage = buildEvaluatedCoverage(

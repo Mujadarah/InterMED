@@ -201,6 +201,7 @@ export type InteractionIncompleteReason =
   | 'provider-pair-coverage-invalid'
   | 'provider-version-mismatch'
   | 'record-pair-outside-request'
+  | 'record-dataset-version-mismatch'
   | 'evidence-link-invalid'
   | 'unsupported-context'
   | 'stale-source-data';
