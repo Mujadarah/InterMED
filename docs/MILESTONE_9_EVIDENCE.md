@@ -11,6 +11,8 @@ Scope: vendor-neutral interaction provider contract in the domain package, with 
 providers and contract tests. All catalogue and interaction fixtures are synthetic; no real
 clinical source was selected or validated in this work.
 
+> Historical scope: sections 1–8 record the original M9a implementation and PR #20 review evidence. The M9b section at the end records lifecycle and independent assessment dimensions at the current branch baseline; earlier file inventories, counts and assessment-availability statements refer to the original snapshot.
+
 ## 1. Scope and status
 
 Milestone 9 in `plan/CODEX_BUILD_PLAN.md` calls for a vendor-neutral
@@ -514,3 +516,118 @@ Node.js `v24.21.0` with npm `11.19.0` and the compiled-artifact runtime Node.js 
   explicit `reviewed` flag and `unmapped` states, but no clinical mapping is provided here.
 - Real-provider validation sets: licensed fixtures and a clinically reviewed validation set
   for the selected provider, required before release.
+
+## Record lifecycle and interaction dimensions (M9b)
+
+Date: 2026-10-12. Branch `codex/m9-lifecycle`, implementation verified at `a3f95f0` after merging main and the severity-conflict fix. The owner **rejected the single five-level outcome precedence on 2026-10-12** and required four independent dimensions: finding, evidence, currency and coverage, with record-level provenance. Commit `72af7f2` adds dimension tests, `2bd76f5` implements assessment, `8105428` adds withdrawn-plus-current history coverage, and `dabf2bb` limits the direct severity-conflict comparison to different sources. **Final owner clinical sign-off is pending.** All fixtures are synthetic; this evidence does not approve a clinical provider, dataset, severity mapping or M10 release.
+
+### Source-supplied lifecycle and inactive records
+
+`packages/domain/src/interactions/types.ts` declares required `recordStatus` as `current`, `superseded` or `withdrawn`, optional `supersededBy` and `statusChangedAt`, and required `updateHistory`. Each history entry carries the source's `sourceVersion`, `changedAt` and `change` (`created`, `updated`, `superseded` or `withdrawn`). Lifecycle status, replacement identifiers, timestamps and history are source-supplied only; the evaluator does not invent a transition, replacement or history from record age or absence. Empty history is permitted and preserved. Optional metadata remains absent when not supplied.
+
+`packages/domain/src/interactions/evaluate.ts` validates lifecycle enums/history shapes and the types of supplied optional metadata; malformed payloads become unavailable rather than being silently assigned a default lifecycle status. This is structural validation, not clinical verification of the source's chronology or replacement relationship.
+
+`collectValidRecords` in `packages/domain/src/interactions/severity.ts` canonicalizes requested pairs and retains current records in `interactions`. Superseded/withdrawn records remain visible in `inactiveRecords` as `{ record, reason }`, with the reason matching the source status. They do not become active interaction findings. A current replacement can be reported while its superseded predecessor remains in `inactiveRecords`, with its original `supersededBy` retained.
+
+`buildEvaluatedCoverage` in `packages/domain/src/interactions/pairs.ts` adds `only-inactive-records` when a pair has inactive records and no current record. Coverage becomes `not-covered` (or retains `unsupported-context`) and carries that reason; missing provider coverage also retains the omitted-coverage incomplete reason. A provider's `covered-no-record` claim cannot erase the inactive record or turn this into a complete no-reported-record evaluation. These cases remain coverage-incomplete.
+
+Record currency is separate from lifecycle status. The evaluator compares a record's `sourceVersion` against the provider descriptor's expected version, derives `isOutdated: true` on a mismatch and adds `outdated-record-source-version`. It preserves the record and its original version, without trusting a provider-supplied `isOutdated` flag or rewriting provenance. A `current` record can therefore remain in `interactions` while being marked outdated and coverage-incomplete. The pair assessment lists it in `outdatedRecordIds` rather than counting it as a current documented finding. This version comparison is not a clinical age/expiry policy.
+
+`sourceStatesUncertainEvidence?: boolean` preserves explicit source-stated uncertainty. Only `true` triggers that uncertainty condition; an absent flag is not inferred from missing fields, an unreviewed ingredient mapping, record age or an evidence label. Such coverage/input limitations remain separately visible.
+
+### Assessment API and independent dimensions
+
+The actual exported API at this baseline is **`assessInteractionPair(input, pair)` (singular)** in `packages/domain/src/interactions/assessment.ts`, re-exported by `packages/domain/src/index.ts`. There is no exported `assessInteractionPairs` function. `PairAssessmentInput` accepts one `InteractionEvaluation`, an array of evaluations, or `MergedProviderResults`; one explicit ingredient pair is assessed per call and canonicalized. `PairAssessment` is declared in `packages/domain/src/interactions/types.ts`. The former `categorizeInteractionOutcomes` export and outcome-category types are removed, and a test asserts the old export is absent.
+
+Each returned assessment contains all four dimensions and `provenance`; no dimension replaces another with a single clinical verdict:
+
+| Dimension  | Fields                                                                       | Meaning                                                                                                                  |
+| ---------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `finding`  | `documentedInteraction`, `affirmedNoInteraction`, `sourceSeverities`         | Current documented findings, a tightly constrained source-affirmed negative finding, and source-specific severity terms. |
+| `evidence` | `evidenceConflict`, `positions`, `sourceStatedUncertainty`, `evidenceLevels` | Conflicting evidence/positions, source statements, explicit uncertainty and source-supplied evidence levels.             |
+| `currency` | `currentRecordIds`, `historicalRecordIds`, `outdatedRecordIds`               | Valid current findings, retained history and source-version-mismatched records.                                          |
+| `coverage` | `status`, `coverageComplete`, `reasons`                                      | Pair-specific evaluation availability/completeness and its limitations.                                                  |
+
+A current finding can coexist with conflicting evidence, historical records, uncertainty or incomplete coverage. A withdrawn record never cancels a current finding. The assessment generates no “safe” or unqualified “no interaction” message; it preserves structured facts without a generated clinical explanation.
+
+### Finding: current documentation and source-specific severities
+
+`finding.documentedInteraction` is true only when the pair has at least one **valid current** record. `recordStatus` must be `current`, the record must not be in historical input, and its source/version must match the expected source/version. For `InteractionEvaluation` input, its dataset version must also match the evaluation's pinned dataset version. A source-version-mismatched record can retain source status `current` while being excluded from this valid-current set. Historical or outdated records alone do not document a current finding. Evidence conflict or coverage limitations do not erase a valid current finding.
+
+`finding.affirmedNoInteraction` is true only if at least one source position is `affirms-none`, **coverage is complete**, and there is **no valid current documenting record**. A complete source's explicit `covered-no-record` coverage with no source records supplies that negative position. Missing records alone, historical-only records, unresolved inputs, omitted coverage, unsupported context, provider unavailability, online-only/offline restrictions, blocked rights or truncated evaluation cannot establish the flag. A source's negative position cannot cancel another source's current documented finding; both source positions remain visible.
+
+`sourceSeverities` preserves entries for all retained pair records, including history/outdated records, with `sourceId`, `sourceVersion`, `recordId` and verbatim `severityTerm` only when supplied. No combined severity or inferred term is produced. For evaluation inputs, `normalizedSeverity` is exposed only when the evaluation mapping is reviewed, the record explicitly carries the reviewed flag and the mapping version matches. A matching unreviewed mapping is marked `severityMappingReviewed: false` without exposing its normalized severity. Merged raw provider input has no evaluation mapping-review context, so the assessment preserves raw terms without inventing reviewed normalization.
+
+### Evidence: conflicts, source positions and uncertainty
+
+`evidence.evidenceConflict` combines three inputs:
+
+- Explicit non-empty disagreements for the pair supplied through `MergedProviderResults`.
+- Coexisting `documents-interaction` and `affirms-none` source positions.
+- Different verbatim severity terms on valid current records from **different `sourceId` values**. The direct comparison requires both terms to be present; provider identity alone is not the source identity check.
+
+The `dabf2bb` regression tests pin the last rule: differing current-record severities within **one source** remain separate terms and do not alone trigger that comparison; differing terms across **different sources** do. Historical/outdated terms are preserved but are not fed to this direct current-record comparison. Explicit merged disagreements remain separate supplied inputs; the assessment does not reclassify their supplied disagreement reasons.
+
+Each `positions` entry includes `sourceId`, `sourceVersion` and one of `documents-interaction`, `affirms-none`, `no-coverage` or `unavailable`. A source with a non-historical `current` record reports `documents-interaction`; a historical-only source reports `no-coverage`; otherwise unavailable sources report `unavailable`, and available, non-stale, structurally valid `covered-no-record` sources report `affirms-none`. Other cases report `no-coverage`. Positions preserve what a source reports and can therefore coexist with a false current-finding flag for an outdated record or with incomplete overall coverage. Identical source/version/position entries are deduplicated and sorted.
+
+`sourceStatedUncertainty` is true when any retained pair record explicitly supplies `sourceStatesUncertainEvidence === true`, including historical/outdated records. It is not inferred from missing fields, source age, unreviewed mappings or a text evidence label. `evidenceLevels` retains each record's `sourceId`, `recordId` and optional verbatim `evidenceLevel`; missing levels remain absent. Uncertainty is independent of `evidenceConflict` and `documentedInteraction`.
+
+### Currency and per-record provenance
+
+`currentRecordIds` contains the valid-current set used for `documentedInteraction`; `historicalRecordIds` contains superseded/withdrawn records and records supplied through `inactiveRecords`; `outdatedRecordIds` contains source-version-mismatched records (or an evaluator-derived outdated flag for evaluation input). These are separately deduplicated and sorted sets, not mutually exclusive lifecycle labels: a historical record may also be outdated. Neither history nor an outdated record overrides a current record. Historical-only assessments keep the history and incomplete coverage without affirming a negative finding.
+
+`provenance` retains `sourceId`, `sourceVersion`, `recordId`, `datasetVersionId` and optional `retrievedAt` per record. Retrieval time comes from matching linked evidence for the same record/source/version, choosing the first sorted supplied timestamp, or an available pair-coverage/provider-result fallback; no current timestamp is invented. Source and dataset versions are never rewritten to make a record appear current. For raw `MergedProviderResults`, the assessment checks each record against its provider-result source/version; there is no evaluation-level pinned dataset comparison on that input path, while each record's dataset version remains in provenance.
+
+### Coverage remains explicit alongside findings
+
+`coverage.status` is one of `covered`, `not-covered`, `unsupported-context`, `inputs-unresolved`, `unavailable` or `truncated`. The status function checks truncation first, then unresolved inputs, source unavailability, unsupported context, missing/incomplete source coverage, and otherwise returns `covered`. This is availability reporting within the coverage dimension, not a clinical outcome hierarchy.
+
+`coverageComplete` additionally requires `covered` status, every source complete, no global structural/evidence-link invalidity and no outdated/source/dataset mismatch among retained records. A complete reported source needs a valid current record and no invalid current record; a complete `covered-no-record` source needs no records. Sources must also be available, covered, non-stale and free of duplicate/invalid coverage. Consequently, `status: covered` alone does not guarantee `coverageComplete: true` when another validity check fails.
+
+`reasons` is a sorted, deduplicated list of recognized limitation codes, including `only-inactive-records`, `outdated-record-source-version`, `record-dataset-version-mismatch`, `provider-version-mismatch`, `provider-pair-coverage-incomplete`, `provider-pair-coverage-invalid`, `evidence-link-invalid`, `unresolved-inputs`, `unsupported-context`, `stale-source-data`, `online-required`, `rights-not-permitted`, provider-error/unavailability and `pair-limit-exceeded` where applicable. Unknown provider reason text is not copied into an unrestricted clinical explanation. The assessment reconstructs pair-specific source coverage rather than treating the whole evaluation's status or incomplete-reason list as a single finding.
+
+### Contract and adversarial fixtures
+
+The existing provider contract still asserts explicit lifecycle metadata/history, source terminology and absent fields, fixed expected pair coverage, evidence links, canonical ordering, errors/timeouts, offline availability, request propagation and coverage completeness. Lifecycle fixtures retain withdrawn-only, superseded-only, superseded-plus-current, withdrawn-with-claimed-covered-no-record, outdated and explicitly uncertain records. The new withdrawn-plus-current fixture confirms that withdrawn history and a current documented record coexist. Existing reversed-pair, outside/self-pair, omitted-coverage, provider-identity and dangling-evidence tests remain in place.
+
+`tests/domain/interaction-dimensions.test.ts` now contains **13 tests**: ten named scenarios, removal of the rejected API, and two severity-conflict regressions. They cover current findings alongside source disagreement; withdrawn-plus-current history; historical-only findings; complete source-affirmed negative coverage; a negative source alongside another current finding; incomplete/unresolved/unsupported/unavailable/offline/rights-blocked/truncated coverage; outdated source versions; explicit uncertainty/evidence levels; neutral structured output; deterministic deeply frozen assessments; and same-source versus cross-source severity differences. The scenarios also verify reviewed versus unreviewed severity mappings. These synthetic tests establish contract behavior, not final clinical acceptance.
+
+### Recorded checks and post-merge verification
+
+Dimension logs are in `docs/evidence/milestone-9-2026-10-12/`:
+
+| Log                             | Recorded result                                                                                                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dimensions-red.log`            | Focused feature-red run, exit 1: 2 files failed; **12 failed / 53 passed**. Covers missing dimension behavior, removal of the rejected API and mapping-review behavior. |
+| `dimensions-green.log`          | Focused dimensions/lifecycle/provider-contract run, exit 0: **3 files / 146 passed**. This predates the later withdrawn-plus-current and severity regression additions. |
+| `dimensions-severity-red.log`   | Focused severity regression: **1 failed / 1 passed / 11 skipped** in 1 file; the same-source case failed while the cross-source case passed.                            |
+| `dimensions-severity-green.log` | Focused severity regression: **2 passed / 11 skipped** in 1 file. The filtered skips are not full-suite acceptance.                                                     |
+
+The orchestrator's rerun after merging main and the severity fix reports **format, lint, typecheck, unit tests (1,273 passed), and architecture boundaries passed** at the supplied baseline `a3f95f0`. This is distinct from the earlier dimension-log counts and supersedes the former M9b snapshot's 1,234-test count. The dimension logs above do not record a full `npm run check`; no post-merge audit/build/browser acceptance is inferred. Earlier `lifecycle-*.log` files remain historical evidence of the prior implementation, not acceptance of the rejected outcome model.
+
+The documentation worker independently reran lint, typecheck, unit tests and architecture boundaries at `a3f95f0` using Node `24.21.0`, npm `11.19.0` and Node `22.23.2` via `INTERMED_NODE22_RUNTIME`: **66 files / 1,273 tests passed**, and boundaries passed for **118 source files**. The rewritten document also passed `npx prettier --write` and `npm run format:check`. Only this evidence document was changed.
+
+### Review follow-up: malformed provider payloads
+
+Commit `9578e0d` (found in an independent read-only review) closes a robustness gap on the raw `MergedProviderResults` path. The structural `isProviderResult` guard moved from `evaluate.ts` into a shared `provider-result.ts`. Evaluation behaviour is unchanged.
+
+- `mergeProviderResults` keeps a malformed payload in `providerResults` but takes no records, evidence, source versions or disagreements from it.
+- `assessInteractionPair` reports that source as unavailable with `provider-result-invalid`, so the pair's coverage status is `unavailable` and `affirmedNoInteraction` stays false. Before this fix, the code threw a `TypeError` and returned no assessment.
+- A valid source's current documented finding remains visible.
+
+The fixture-only reason `synthetic-partial-coverage` is no longer whitelisted in production coverage reasons.
+
+Two new tests failed against the previous source and pass with the fix. With this fix, the non-browser unit suite has 1,275 passing tests; one importer temp-directory test fails only in the orchestrator's local shell, because of its environment, and is unrelated.
+
+Codacy review follow-ups:
+
+- `18ed2d1`: a source position is `documents-interaction` only for a valid current record. Outdated or mismatched records give `no-coverage`, stay in `outdatedRecordIds` and keep coverage incomplete.
+- `02999eb`: an unavailable evaluation reports `unavailable` even with no coverage rows.
+- `cb657a6`: the shared guard also validates coverage-row pairs and statuses and record field types. Malformed data is unavailable on every path.
+- `676111d`: `addEvaluation`, `createAssessment` and scenario 6 are split into helpers or table cases, with no behaviour change.
+
+Four new tests (scenarios 11, 13 and 14, plus a guard test) failed against the previous source and pass with the fixes. The unit suite has 1,284 passing tests, plus the same environment-only importer test that fails locally.
+
+### Pending owner clinical sign-off
+
+The owner's 2026-10-12 decision selects independent finding/evidence/currency/coverage dimensions and record-level provenance; final clinical sign-off of the implemented semantics and presentation is still pending. Review must retain current documented findings alongside conflict, history and coverage limits; keep source-affirmed negatives conditional on complete coverage; preserve verbatim source severity/positions/uncertainty; and avoid an overall clinical verdict. Provider selection, source rights, reviewed ingredient/severity mappings, real-provider clinical validation and M10 presentation remain open as described above and in `docs/INTERACTION_SOURCE_ASSESSMENT.md`.

@@ -12,6 +12,7 @@ import type {
   InteractionEvaluationStatus,
   InteractionEvidence,
   InteractionIncompleteReason,
+  InactiveInteractionRecord,
   InteractionSelection,
   InteractionSourceVersion,
   InteractionTimer,
@@ -33,6 +34,7 @@ import {
 import { expandSelection, type ExpandedSelection } from './selection';
 import { collectValidRecords } from './severity';
 import { collectLinkedEvidence } from './merge';
+import { isProviderResult, isRecord } from './provider-result';
 
 const DEFAULT_PROVIDER_TIMEOUT_MS = 10_000;
 
@@ -53,6 +55,7 @@ function makeEvaluation(
     evaluatedPairCoverage: details.evaluatedPairCoverage ?? [],
     interactionIds: interactions.map((record) => record.id),
     interactions,
+    inactiveRecords: details.inactiveRecords ?? [],
     evidence: details.evidence ?? [],
     coverageComplete: details.coverageComplete ?? false,
     incompleteReasons: details.incompleteReasons ?? [],
@@ -158,10 +161,6 @@ function describeProvider(
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
 function isProviderDescriptor(value: unknown): value is ProviderDescriptor {
   try {
     if (!isRecord(value)) return false;
@@ -182,24 +181,6 @@ function isProviderDescriptor(value: unknown): value is ProviderDescriptor {
     if (!isRecord(value.capabilities)) return false;
     if (!Array.isArray(value.capabilities.evaluableContextLimitations))
       return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function isProviderResult(value: unknown): value is ProviderResult {
-  try {
-    if (!isRecord(value)) return false;
-    if (typeof value.providerId !== 'string') return false;
-    if (typeof value.sourceId !== 'string') return false;
-    if (typeof value.sourceVersion !== 'string') return false;
-    if (value.status !== 'available' && value.status !== 'unavailable')
-      return false;
-    if (!Array.isArray(value.pairCoverage)) return false;
-    if (!Array.isArray(value.records)) return false;
-    if (!Array.isArray(value.evidence)) return false;
-    if (typeof value.retrievedAt !== 'string') return false;
     return true;
   } catch {
     return false;
@@ -259,6 +240,7 @@ function unsupportedLimitations(
 function decideOutcome(
   base: EvaluationBase,
   validRecords: readonly DrugInteraction[],
+  inactiveRecords: readonly InactiveInteractionRecord[],
   evaluatedPairCoverage: readonly EvaluatedPairCoverage[],
   evidence: readonly InteractionEvidence[],
   reasonSet: Set<InteractionIncompleteReason>,
@@ -296,6 +278,7 @@ function decideOutcome(
   return makeEvaluation(base, status, {
     evaluatedPairCoverage,
     interactions: [...validRecords],
+    inactiveRecords: [...inactiveRecords],
     evidence,
     coverageComplete,
     incompleteReasons: [...reasonSet],
@@ -400,28 +383,40 @@ function summarizeProviderResult(
   });
 
   const requestedPairs = new Set(pairs.map(pairKey));
-  const { validRecords, recordsByPair } = collectValidRecords(
+  const {
+    validRecords,
+    recordsByPair,
+    inactiveRecords,
+    inactiveRecordsByPair,
+  } = collectValidRecords(
     result,
     requestedPairs,
     reasonSet,
     sourceVersions,
     options,
     base.datasetVersionId,
+    descriptor.sourceVersion,
   );
   const coverageByPair = indexCoverageByPair(result, requestedPairs, reasonSet);
   const evaluatedPairCoverage = buildEvaluatedCoverage(
     pairs,
     coverageByPair,
     recordsByPair,
+    inactiveRecordsByPair,
     result,
     reasonSet,
   );
-  const evidence = collectLinkedEvidence(result, validRecords, reasonSet);
+  const evidence = collectLinkedEvidence(
+    result,
+    [...validRecords, ...inactiveRecords.map(({ record }) => record)],
+    reasonSet,
+  );
 
   const statusUnavailable = result.status === 'unavailable';
   return decideOutcome(
     base,
     validRecords,
+    inactiveRecords,
     evaluatedPairCoverage,
     evidence,
     reasonSet,

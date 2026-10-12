@@ -1,0 +1,12 @@
+Node: v24.21.0 npm: 11.19.0 Node 22 artifact runtime: v22.23.2
+Command: npm exec -- vitest run tests/domain/interaction-outcomes.test.ts tests/domain/interactions.test.ts tests/domain/interaction-provider-contract.test.ts
+Exit code: 0
+
+
+ RUN  v4.1.11 <WORKSPACE>
+
+
+ Test Files  3 passed (3)
+      Tests  142 passed (142)
+   Start at  19:02:16
+   Duration  330ms (transform 228ms, setup 0ms, import 313ms, tests 191ms, environment 0ms)

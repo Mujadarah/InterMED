@@ -1,0 +1,102 @@
+Node: v24.21.0 npm: 11.19.0 Node 22 artifact runtime: v22.23.2 Command: npm exec -- vitest run tests/domain/interactions.test.ts tests/domain/interaction-provider-contract.test.ts
+
+ RUN  v4.1.11 <WORKSPACE>
+
+ ❯ tests/domain/interactions.test.ts (52 tests | 5 failed) 38ms
+   × keeps a withdrawn-only pair incomplete and retains its source history 3ms
+   × reports a current record while listing its superseded predecessor 0ms
+   × flags records from an older provider source version without dropping them 0ms
+   × preserves uncertainty only when the source states it 0ms
+   × never turns a withdrawn record into covered-no-record coverage 0ms
+ ❯ tests/domain/interaction-provider-contract.test.ts (70 tests | 6 failed) 59ms
+     × supplies explicit lifecycle metadata and exact update history 2ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > supplies explicit lifecycle metadata and exact update history
+AssertionError: expected [ Array(3) ] to include undefined
+ ❯ tests/domain/interaction-provider-contract.ts:131:56
+    129|       const result = await factory().evaluate(CONTRACT_REQUEST);
+    130|       for (const record of result.records) {
+    131|         expect(['current', 'superseded', 'withdrawn']).toContain(
+       |                                                        ^
+    132|           (record as unknown as { recordStatus?: string }).recordStatu…
+    133|         );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > keeps a withdrawn-only pair incomplete and retains its source history
+ReferenceError: CONTRACT_SELECTION is not defined
+ ❯ tests/domain/interactions.test.ts:1999:5
+    1997| it('keeps a withdrawn-only pair incomplete and retains its source hist…
+    1998|   const result = await evaluateInteractions(
+    1999|     CONTRACT_SELECTION,
+       |     ^
+    2000|     createWithdrawnOnlySyntheticProvider(),
+    2001|     options(),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > reports a current record while listing its superseded predecessor
+ReferenceError: CONTRACT_SELECTION is not defined
+ ❯ tests/domain/interactions.test.ts:2041:5
+    2039| it('reports a current record while listing its superseded predecessor'…
+    2040|   const result = await evaluateInteractions(
+    2041|     CONTRACT_SELECTION,
+       |     ^
+    2042|     createSupersededAndCurrentSyntheticProvider(),
+    2043|     options(),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > flags records from an older provider source version without dropping them
+ReferenceError: CONTRACT_SELECTION is not defined
+ ❯ tests/domain/interactions.test.ts:2066:5
+    2064| it('flags records from an older provider source version without droppi…
+    2065|   const result = await evaluateInteractions(
+    2066|     CONTRACT_SELECTION,
+       |     ^
+    2067|     createOutdatedSyntheticProvider(),
+    2068|     options(),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > preserves uncertainty only when the source states it
+ReferenceError: CONTRACT_SELECTION is not defined
+ ❯ tests/domain/interactions.test.ts:2081:5
+    2079| it('preserves uncertainty only when the source states it', async () =>…
+    2080|   const result = await evaluateInteractions(
+    2081|     CONTRACT_SELECTION,
+       |     ^
+    2082|     createSourceUncertainSyntheticProvider(),
+    2083|     options(),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > never turns a withdrawn record into covered-no-record coverage
+ReferenceError: CONTRACT_SELECTION is not defined
+ ❯ tests/domain/interactions.test.ts:2101:5
+    2099| it('never turns a withdrawn record into covered-no-record coverage', a…
+    2100|   const result = await evaluateInteractions(
+    2101|     CONTRACT_SELECTION,
+       |     ^
+    2102|     createWithdrawnCoveredNoRecordSyntheticProvider(),
+    2103|     options(),
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+System.Management.Automation.RemoteException
+
+ Test Files  2 failed (2)
+      Tests  11 failed | 111 passed (122)
+   Start at  18:49:38
+   Duration  689ms (transform 199ms, setup 0ms, import 323ms, tests 97ms, environment 0ms)

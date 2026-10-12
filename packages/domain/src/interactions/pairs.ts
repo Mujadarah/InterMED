@@ -118,6 +118,7 @@ export function buildEvaluatedCoverage(
   pairs: readonly CanonicalIngredientPair[],
   coverageByPair: ReadonlyMap<string, ProviderPairCoverage>,
   recordsByPair: ReadonlyMap<string, DrugInteraction[]>,
+  inactiveRecordsByPair: ReadonlyMap<string, DrugInteraction[]>,
   result: ProviderResult,
   reasonSet: Set<InteractionIncompleteReason>,
 ): EvaluatedPairCoverage[] {
@@ -125,15 +126,44 @@ export function buildEvaluatedCoverage(
     const key = pairKey(pair);
     const coverage = coverageByPair.get(key);
     const pairRecords = recordsByPair.get(key) ?? [];
+    const inactivePairRecords = inactiveRecordsByPair.get(key) ?? [];
+    const onlyInactiveRecords =
+      pairRecords.length === 0 && inactivePairRecords.length > 0;
     if (!coverage) {
       addIncompleteReason(reasonSet, 'provider-pair-coverage-incomplete');
+      if (onlyInactiveRecords)
+        addIncompleteReason(reasonSet, 'only-inactive-records');
       return {
         pair,
         status: 'not-covered',
         providerId: result.providerId,
         sourceId: result.sourceId,
         sourceVersion: result.sourceVersion,
-        reason: 'provider-omitted-pair-coverage',
+        reason: onlyInactiveRecords
+          ? 'only-inactive-records'
+          : 'provider-omitted-pair-coverage',
+      };
+    }
+    if (onlyInactiveRecords) {
+      addIncompleteReason(reasonSet, 'only-inactive-records');
+      if (
+        coverage.status === 'not-covered' ||
+        coverage.status === 'unsupported-context'
+      )
+        addIncompleteReason(reasonSet, 'provider-pair-coverage-incomplete');
+      if (coverage.stale) addIncompleteReason(reasonSet, 'stale-source-data');
+      return {
+        pair,
+        status:
+          coverage.status === 'unsupported-context'
+            ? 'unsupported-context'
+            : 'not-covered',
+        providerId: result.providerId,
+        sourceId: result.sourceId,
+        sourceVersion: result.sourceVersion,
+        retrievedAt: coverage.retrievedAt ?? result.retrievedAt,
+        reason: 'only-inactive-records',
+        ...(coverage.stale ? { stale: true } : {}),
       };
     }
     if (

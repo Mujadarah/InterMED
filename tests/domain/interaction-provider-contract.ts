@@ -125,6 +125,22 @@ export function describeProviderContract(
         expect(Object.hasOwn(result.evidence[0] ?? {}, key)).toBe(false);
     });
 
+    it('supplies explicit lifecycle metadata and exact update history', async () => {
+      const result = await factory().evaluate(CONTRACT_REQUEST);
+      for (const record of result.records) {
+        expect(['current', 'superseded', 'withdrawn']).toContain(
+          (record as unknown as { recordStatus?: string }).recordStatus,
+        );
+        expect(record).toHaveProperty('updateHistory');
+        expect(
+          (record as unknown as { updateHistory?: unknown }).updateHistory,
+        ).toEqual([]);
+        expect(Object.hasOwn(record, 'sourceStatesUncertainEvidence')).toBe(
+          false,
+        );
+      }
+    });
+
     it('links every evidence identifier to its interaction record', async () => {
       const result = await factory().evaluate(CONTRACT_REQUEST);
       const evidenceById = new Map(

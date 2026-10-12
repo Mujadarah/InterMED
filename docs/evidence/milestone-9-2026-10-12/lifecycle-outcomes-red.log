@@ -1,0 +1,149 @@
+Node: v24.21.0 npm: 11.19.0 Node 22 artifact runtime: v22.23.2
+Command: npm exec -- vitest run tests/domain/interaction-outcomes.test.ts
+Exit code: 1
+
+
+ RUN  v4.1.11 <WORKSPACE>
+
+ ❯ tests/domain/interaction-outcomes.test.ts (7 tests | 7 failed) 14ms
+   × returns one category for each evaluated pair and preserves pair-independent notes 5ms
+   × returns all five neutral outcome categories from synthetic evidence 3ms
+   × uses the required neutral wording for a supported evaluated-no outcome 1ms
+   × does not label only inactive records as evaluated-no 1ms
+   × applies every declared precedence collision 1ms
+   × classifies merged provider disagreement as conflicting-or-uncertain 1ms
+   × keeps source-stated uncertainty and unreviewed-input notes pair-independent 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > returns one category for each evaluated pair and preserves pair-independent notes
+AssertionError: Target cannot be null or undefined.
+ ❯ tests/domain/interaction-outcomes.test.ts:203:37
+    201|   const categorized = categorizeCandidate?.(evaluation);
+    202|
+    203|   expect(categorized?.pairOutcomes).toHaveLength(
+       |                                     ^
+    204|     evaluation.evaluatedPairCoverage.length,
+    205|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > returns all five neutral outcome categories from synthetic evidence
+AssertionError: expected undefined to be 'documented-interaction' // Object.is equality
+
+- Expected:
+"documented-interaction"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:256:73
+    254|   };
+    255|
+    256|   expect(outcomeFor(forPair(reportedEvaluation, pair), pair)?.category…
+       |                                                                         ^
+    257|     'documented-interaction',
+    258|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > uses the required neutral wording for a supported evaluated-no outcome
+AssertionError: expected undefined to be 'evaluated-no-interaction-identified' // Object.is equality
+
+- Expected:
+"evaluated-no-interaction-identified"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:289:29
+    287|   const outcome = result?.pairOutcomes[0];
+    288|
+    289|   expect(outcome?.category).toBe('evaluated-no-interaction-identified'…
+       |                             ^
+    290|   expect(outcome?.message).toBe(
+    291|     `No clinically significant interaction identified by ${coverage.so…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > does not label only inactive records as evaluated-no
+AssertionError: expected undefined to be 'inactive-or-outdated' // Object.is equality
+
+- Expected:
+"inactive-or-outdated"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:316:5
+    314|     outcomeFor(withInactiveRecord(noRecord, withdrawn.inactiveRecords[…
+    315|       ?.category,
+    316|   ).toBe('inactive-or-outdated');
+       |     ^
+    317|   expect(outcomeFor(withdrawn, pair)?.category).not.toBe(
+    318|     'evaluated-no-interaction-identified',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > applies every declared precedence collision
+AssertionError: expected undefined to be 'conflicting-or-uncertain' // Object.is equality
+
+- Expected:
+"conflicting-or-uncertain"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:421:72
+    419|
+    420|   for (const collision of collisions)
+    421|     expect(outcomeFor(collision.evaluation, collision.pair)?.category)…
+       |                                                                        ^
+    422|       collision.expected,
+    423|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > classifies merged provider disagreement as conflicting-or-uncertain
+AssertionError: expected undefined to be 'conflicting-or-uncertain' // Object.is equality
+
+- Expected:
+"conflicting-or-uncertain"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:457:5
+    455|       pair,
+    456|     )?.category,
+    457|   ).toBe('conflicting-or-uncertain');
+       |     ^
+    458| });
+    459|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  tests/domain/interaction-outcomes.test.ts > keeps source-stated uncertainty and unreviewed-input notes pair-independent
+AssertionError: expected undefined to be 'conflicting-or-uncertain' // Object.is equality
+
+- Expected:
+"conflicting-or-uncertain"
+
++ Received:
+undefined
+
+ ❯ tests/domain/interaction-outcomes.test.ts:472:65
+    470|
+    471|   expect(record.sourceStatesUncertainEvidence).toBe(true);
+    472|   expect(outcomeFor(forPair(evaluation, pair), pair)?.category).toBe(
+       |                                                                 ^
+    473|     'conflicting-or-uncertain',
+    474|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  18:58:27
+   Duration  285ms (transform 96ms, setup 0ms, import 128ms, tests 14ms, environment 0ms)

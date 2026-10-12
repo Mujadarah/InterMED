@@ -130,6 +130,22 @@ export type {
   UnresolvedInteractionInput,
   UnresolvedInteractionInputReason,
 } from './interactions';
+export type {
+  InactiveInteractionRecord,
+  InactiveInteractionRecordReason,
+  InteractionRecordStatus,
+  InteractionRecordUpdateChange,
+  InteractionRecordUpdateHistoryEntry,
+  PairAssessment,
+  PairAssessmentCoverageStatus,
+  PairAssessmentEvidenceLevel,
+  PairAssessmentInput,
+  PairAssessmentProvenance,
+  PairAssessmentSourcePosition,
+  PairAssessmentSourcePositionEntry,
+  PairAssessmentSourceSeverity,
+} from './interactions/types';
+export { assessInteractionPair } from './interactions/assessment';
 export {
   canonicalPair,
   evaluateInteractions,

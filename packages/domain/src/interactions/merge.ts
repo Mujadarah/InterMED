@@ -18,6 +18,7 @@ import {
   compareStrings,
   pairKey,
 } from './pairs';
+import { isProviderResult } from './provider-result';
 
 interface PairFindings {
   readonly pair: CanonicalIngredientPair;
@@ -82,16 +83,41 @@ function collectPairFindings(
     const result = providerResults[providerIndex];
     if (!result) continue;
     for (const record of result.records) {
+      if (
+        record.recordStatus !== 'current' ||
+        record.sourceVersion !== result.sourceVersion
+      )
+        continue;
       const pair = canonicalPair(record.ingredientAId, record.ingredientBId);
       const finding = getFinding(pair);
       addDisagreementTerm(finding.terms, result, record.severity);
     }
     for (const coverage of result.pairCoverage) {
       const pair = canonicalPair(coverage.pair[0], coverage.pair[1]);
-      getFinding(pair).reports.push({
-        providerIndex,
-        status: coverage.status,
-      });
+      const pairKeyValue = pairKey(pair);
+      const pairRecords = result.records.filter(
+        (record) =>
+          pairKey(canonicalPair(record.ingredientAId, record.ingredientBId)) ===
+          pairKeyValue,
+      );
+      const hasCurrentRecord = pairRecords.some(
+        (record) =>
+          record.recordStatus === 'current' &&
+          record.sourceVersion === result.sourceVersion,
+      );
+      const hasInactiveOrOutdatedRecord = pairRecords.some(
+        (record) =>
+          record.recordStatus !== 'current' ||
+          record.sourceVersion !== result.sourceVersion,
+      );
+      const onlyInactiveOrOutdatedRecords =
+        !hasCurrentRecord && hasInactiveOrOutdatedRecord;
+      const status =
+        onlyInactiveOrOutdatedRecords ||
+        (coverage.status === 'reported' && !hasCurrentRecord)
+          ? 'not-covered'
+          : coverage.status;
+      getFinding(pair).reports.push({ providerIndex, status });
     }
   }
   return findings;
@@ -197,6 +223,10 @@ function collectMergedSourceVersions(
 /**
  * Merge provider payloads without creating a combined severity or verdict.
  * The tuple type and runtime guard require results from at least two providers.
+ *
+ * A malformed payload is retained in `providerResults` so the assessment can
+ * report that source as unavailable, but it contributes no records, evidence,
+ * source versions or disagreements to the merge.
  */
 export function mergeProviderResults(
   providerResults: readonly [
@@ -208,12 +238,13 @@ export function mergeProviderResults(
   if (providerResults.length < 2)
     throw new RangeError('At least two provider results are required.');
 
-  const findings = collectPairFindings(providerResults);
+  const usableResults = providerResults.filter(isProviderResult);
+  const findings = collectPairFindings(usableResults);
   return {
     providerResults,
-    records: collectMergedRecords(providerResults),
-    evidence: providerResults.flatMap((result) => result.evidence),
-    sourceVersions: collectMergedSourceVersions(providerResults),
+    records: collectMergedRecords(usableResults),
+    evidence: usableResults.flatMap((result) => result.evidence),
+    sourceVersions: collectMergedSourceVersions(usableResults),
     disagreements: deriveDisagreements(findings),
   };
 }
