@@ -70,10 +70,14 @@ describeFormulaContract(
 describeFormulaContract(divergentNarrow, {
   ...commonCases(divergentNarrow, { expectedPositiveValue: 50 }),
   submittedInRangeCanonicalOut: {
-    request: request(divergentNarrow.formulaId, divergentNarrow.formulaVersion, {
-      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
-      'synthetic-concentration': { value: 800, unit: 'µmol/L' },
-    }),
+    request: request(
+      divergentNarrow.formulaId,
+      divergentNarrow.formulaVersion,
+      {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-concentration': { value: 800, unit: 'µmol/L' },
+      },
+    ),
     expectedStatus: 'invalid-input',
     inputId: 'synthetic-concentration',
     canonicalUnit: 'mg/dL',
@@ -311,9 +315,21 @@ describe('calculator registry and result provenance', () => {
       unitConversions: {
         ...base.unitConversions,
         'synthetic-chain': [
-          { fromUnit: 'synthetic-unit-a', toUnit: 'synthetic-unit-b', factor: 2 },
-          { fromUnit: 'synthetic-unit-b', toUnit: 'synthetic-unit-c', factor: 3 },
-          { fromUnit: 'synthetic-unit-a', toUnit: 'synthetic-unit-c', factor: 7 },
+          {
+            fromUnit: 'synthetic-unit-a',
+            toUnit: 'synthetic-unit-b',
+            factor: 2,
+          },
+          {
+            fromUnit: 'synthetic-unit-b',
+            toUnit: 'synthetic-unit-c',
+            factor: 3,
+          },
+          {
+            fromUnit: 'synthetic-unit-a',
+            toUnit: 'synthetic-unit-c',
+            factor: 7,
+          },
         ],
       },
     };
@@ -839,9 +855,9 @@ describe('calculator registry and result provenance', () => {
         badRequest as unknown as Parameters<typeof calculateWith>[1],
       );
     }).not.toThrow();
-    expect(
-      (result as unknown as { status: string }).status,
-    ).toBe('unavailable');
+    expect((result as unknown as { status: string }).status).toBe(
+      'unavailable',
+    );
     expect(JSON.stringify(result)).not.toContain('private text');
   });
 
@@ -859,9 +875,9 @@ describe('calculator registry and result provenance', () => {
         calculationRequest,
       );
     }).not.toThrow();
-    expect(
-      (result as unknown as { status: string }).status,
-    ).toBe('unavailable');
+    expect((result as unknown as { status: string }).status).toBe(
+      'unavailable',
+    );
   });
 
   it('does not call compute when a population guard is hit', () => {

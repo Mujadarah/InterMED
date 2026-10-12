@@ -355,12 +355,14 @@ function describeOptionalCase(
     };
     const registry = new calculatorEngine.FormulaRegistry();
     registry.register(spiedDefinition);
-    const result = calculatorEngine.calculateFormula(registry, testCase.request);
+    const result = calculatorEngine.calculateFormula(
+      registry,
+      testCase.request,
+    );
     expect(result.status).toBe(testCase.expectedStatus);
     expect(computeSpy).toHaveBeenCalledTimes(1);
     const seenValues = computeSpy.mock.calls[0]?.[0] as
-      | Record<string, number | undefined>
-      | undefined;
+      Record<string, number | undefined> | undefined;
     expect(seenValues).toBeDefined();
     const seen =
       seenValues && testCase.inputId in seenValues

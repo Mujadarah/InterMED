@@ -182,8 +182,7 @@ function conversionEdge(fromUnit: string, toUnit: string): string {
 
 function relativeDifference(first: number, second: number): number {
   return (
-    Math.abs(first - second) /
-    Math.max(1, Math.abs(first), Math.abs(second))
+    Math.abs(first - second) / Math.max(1, Math.abs(first), Math.abs(second))
   );
 }
 
@@ -253,9 +252,10 @@ function assertInverseConsistency(
   }
 }
 
-function composeConversionPath(
-  path: readonly UnitConversionRule[],
-): { readonly factor: number; readonly offset: number } {
+function composeConversionPath(path: readonly UnitConversionRule[]): {
+  readonly factor: number;
+  readonly offset: number;
+} {
   let factor = 1;
   let offset = 0;
   for (const rule of path) {
