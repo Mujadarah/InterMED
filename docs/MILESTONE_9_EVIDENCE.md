@@ -11,6 +11,8 @@ Scope: vendor-neutral interaction provider contract in the domain package, with 
 providers and contract tests. All catalogue and interaction fixtures are synthetic; no real
 clinical source was selected or validated in this work.
 
+> Historical scope: sections 1–8 record the original M9a implementation and PR #20 review evidence. The M9b section at the end records lifecycle/category additions at the current branch baseline; earlier file inventories, counts and assessment-availability statements refer to the original snapshot.
+
 ## 1. Scope and status
 
 Milestone 9 in `plan/CODEX_BUILD_PLAN.md` calls for a vendor-neutral
@@ -514,3 +516,80 @@ Node.js `v24.21.0` with npm `11.19.0` and the compiled-artifact runtime Node.js 
   explicit `reviewed` flag and `unmapped` states, but no clinical mapping is provided here.
 - Real-provider validation sets: licensed fixtures and a clinically reviewed validation set
   for the selected provider, required before release.
+
+## Record lifecycle and outcome categories (M9b)
+
+Date: 2026-10-12. Branch `codex/m9-lifecycle`, implementation verified at `5cef855` after merging main. This extends the domain contract with source-supplied lifecycle metadata and five owner-requested outcome categories. All providers, records and acceptance fixtures used here are synthetic. This is engineering evidence, not approval of a clinical provider, dataset, severity mapping or M10 release.
+
+### Source-supplied lifecycle and inactive records
+
+`packages/domain/src/interactions/types.ts` declares required `recordStatus` as `current`, `superseded` or `withdrawn`, optional `supersededBy` and `statusChangedAt`, and required `updateHistory`. Each history entry carries the source's `sourceVersion`, `changedAt` and `change` (`created`, `updated`, `superseded` or `withdrawn`). Lifecycle status, replacement identifiers, timestamps and history are source-supplied only; the evaluator does not invent a transition, replacement or history from record age or absence. Empty history is permitted and preserved. Optional metadata remains absent when not supplied.
+
+`packages/domain/src/interactions/evaluate.ts` validates lifecycle enums/history shapes and the types of supplied optional metadata; malformed payloads become unavailable rather than being silently assigned a default lifecycle status. This is structural validation, not clinical verification of the source's chronology or replacement relationship.
+
+`collectValidRecords` in `packages/domain/src/interactions/severity.ts` canonicalizes requested pairs and retains current records in `interactions`. Superseded/withdrawn records remain visible in `inactiveRecords` as `{ record, reason }`, with the reason matching the source status. They do not become active interaction findings. A current replacement can be reported while its superseded predecessor remains in `inactiveRecords`, with its original `supersededBy` retained.
+
+`buildEvaluatedCoverage` in `packages/domain/src/interactions/pairs.ts` adds `only-inactive-records` when a pair has inactive records and no current record. Coverage becomes `not-covered` (or retains `unsupported-context`) and carries that reason; missing provider coverage also retains the omitted-coverage incomplete reason. A provider's `covered-no-record` claim cannot erase the inactive record or turn this into a complete no-reported-record evaluation. These cases remain coverage-incomplete.
+
+Record currency is separate from lifecycle status. The evaluator compares a record's `sourceVersion` against the provider descriptor's expected version, derives `isOutdated: true` on a mismatch and adds `outdated-record-source-version`. It preserves the record and its original version, without trusting a provider-supplied `isOutdated` flag or rewriting provenance. A `current` record can therefore remain in `interactions` while being marked outdated and coverage-incomplete. The outcome categorizer treats it as inactive/outdated unless a higher-precedence finding applies. This version comparison is not a clinical age/expiry policy.
+
+`sourceStatesUncertainEvidence?: boolean` preserves explicit source-stated uncertainty. Only `true` triggers that uncertainty condition; an absent flag is not inferred from missing fields, an unreviewed ingredient mapping, record age or an evidence label. Such coverage/input limitations remain separately visible.
+
+### Five categories and exact precedence
+
+`categorizeInteractionOutcomes` in `packages/domain/src/interactions/outcomes.ts` is re-exported through the domain API. It produces one outcome per canonical evaluated pair, retaining the first coverage entry for a duplicate pair, and returns pair-independent evaluation details in `notes`: evaluation status, coverage completeness, source versions, incomplete reasons, unresolved inputs and supplied unavailable/provider qualifiers. It does not infer or normalize clinical severity.
+
+The first applicable category wins, in this exact code order:
+
+| Order | Category                              | Condition checked by the implementation                                                                                                                                                                                                                                                                                                                                                           |
+| ----- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | `conflicting-or-uncertain`            | Any current or inactive record for the pair has `sourceStatesUncertainEvidence === true`, or the pair has an explicit provider disagreement.                                                                                                                                                                                                                                                      |
+| 2     | `documented-interaction`              | At least one `current` record in `interactions` is not outdated. This precedes inactive/outdated and insufficient-information conditions; coverage/input limitations remain in `notes`.                                                                                                                                                                                                           |
+| 3     | `inactive-or-outdated`                | An inactive record exists for the pair, or a matching record is non-current or outdated, without a higher-precedence finding.                                                                                                                                                                                                                                                                     |
+| 4     | `insufficient-information`            | Provider unavailable or records qualified as from an unavailable provider; incomplete evaluation/coverage/reasons/unresolved inputs; an uncovered or unsupported pair; `reported` coverage without records; or a record accompanying `covered-no-record` without a current finding. Missing source identity/version for an otherwise eligible no-record outcome also falls back to this category. |
+| 5     | `evaluated-no-interaction-identified` | Explicit `covered-no-record`, no matching records, no higher-precedence condition, and a resolvable source id/version from pair coverage or its provider's source-version entry.                                                                                                                                                                                                                  |
+
+Outdated detection uses the evaluator's derived flag or a mismatch between a record and the coverage source version for the same source. Any remaining unmatched case falls back to `insufficient-information`. In particular, a documented current finding can coexist with unresolved-input/coverage warnings; the category does not erase them. The precedence is implemented and tested, but its clinical suitability remains pending owner judgement.
+
+The sole generated message for an eligible evaluated-no outcome is:
+
+> No clinically significant interaction identified by {sourceId} {sourceVersion} for this evaluated pair
+
+The wording limits the statement to a named source/version and evaluated pair. Tests prohibit an unqualified “safe” or “no interaction” verdict. Absence of records outside explicit evaluated coverage, inactive records and unavailable providers cannot establish this category. Other categories carry their category code without a generated clinical explanation.
+
+### Contract and adversarial fixtures
+
+`tests/domain/interaction-provider-contract.ts` now includes the explicit lifecycle/history assertion alongside stable provider identity, fixed expected pair coverage, source-field preservation, evidence links, canonical ordering, errors/timeouts, offline availability, request propagation and coverage completeness. `tests/domain/interaction-provider-contract.test.ts` applies its ten shared assertions to eight synthetic providers (offline licensed, online-only, partial coverage, throwing, timeout, second vocabulary, disagreement and covered-without-record), plus a dedicated outdated-version test. Synthetic default records declare `current`, preserve empty history and omit an unsupplied uncertainty flag.
+
+`tests/domain/synthetic-interaction-providers.ts` supplies withdrawn-only, superseded-only, superseded-plus-current, withdrawn-with-claimed-covered-no-record, outdated and explicitly uncertain fixtures. `tests/domain/interactions.test.ts` verifies:
+
+- Withdrawn-only records retain exact source timestamps/history in `inactiveRecords`, with `only-inactive-records`, incomplete coverage and no active finding.
+- A current replacement is reported while its superseded predecessor and replacement id remain visible.
+- Older source versions stay present with their own version, derived outdated flag and `outdated-record-source-version` reason.
+- Uncertainty is preserved only when the source supplies it.
+- Withdrawn or superseded records cannot masquerade as complete `covered-no-record` results; inactive records do not create cross-provider reported-finding disagreements.
+- Existing adversarial fixtures retain reversed-pair canonicalization, outside/self-pair rejection, omitted coverage, provider identity mismatches and dangling evidence-link checks.
+
+`tests/domain/interaction-outcomes.test.ts` contains seven tests covering all five categories, one outcome per evaluated pair with notes retained, exact neutral wording, inactive-versus-evaluated-no rejection, merged provider disagreement and explicit source uncertainty versus unresolved-input notes. Its precedence test exercises all **ten** pairwise collisions among the five categories, including documented findings with unreviewed-input notes and inactive findings despite incomplete coverage. These are synthetic contract checks, not a validated clinical judgement hierarchy or real-provider acceptance set.
+
+### Recorded checks and post-merge verification
+
+All historical logs below are under `docs/evidence/milestone-9-2026-10-12/`:
+
+| Log                                   | Recorded result                                                                                                                                                                                                           |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lifecycle-records-red.log`           | 2 files failed; 11 failed / 111 passed. Includes missing `CONTRACT_SELECTION` fixture-reference errors, so it is not clean feature-red evidence.                                                                          |
+| `lifecycle-records-red-corrected.log` | Corrected feature-red run: 2 files failed; 10 failed / 112 passed, exposing missing lifecycle/history handling.                                                                                                           |
+| `lifecycle-records-green.log`         | 2 files / 135 passed.                                                                                                                                                                                                     |
+| `lifecycle-outcomes-red.log`          | 1 file / 7 failed before outcome categorization.                                                                                                                                                                          |
+| `lifecycle-outcomes-green.log`        | 3 files / 141 passed.                                                                                                                                                                                                     |
+| `lifecycle-focused-final-green.log`   | Final focused run: 3 files / 142 passed.                                                                                                                                                                                  |
+| `lifecycle-full-check.log`            | Recorded full `npm run check`: format, lint, typecheck, unit 61 files / 1,081 passed, architecture boundaries (104 source files), audit (0 vulnerabilities), build, distribution scan and browser 160 passed / 2 skipped. |
+
+The orchestrator's 2026-10-12 rerun after merging main reports **format, lint, typecheck, unit tests (62 files / 1,234 passed), and architecture boundaries passed** at the supplied implementation baseline `5cef855`. This result is separate from the earlier log totals; no post-merge audit/build/browser rerun is asserted here. Passing automated checks does not select/approve a clinical source, validate the category hierarchy clinically, or close UI, licensed offline-data, real-provider or real-device acceptance gates.
+
+The documentation worker independently reran format, lint, typecheck, unit tests and architecture boundaries at `5cef855` on 2026-10-12 using Node `24.21.0`, npm `11.19.0` and the existing Node `22.23.2` executable via `INTERMED_NODE22_RUNTIME`. The unit rerun confirmed **62 files / 1,234 passed**; boundaries passed for **110 source files**. An initial unit attempt failed to load the compiled-artifact suite because that environment variable was unset (61 files / 1,233 tests passed, 1 suite failed); the configured rerun passed without code changes. Only this evidence document was edited.
+
+### Pending owner clinical judgement: the category precedence order
+
+The owner must judge whether `conflicting-or-uncertain` → `documented-interaction` → `inactive-or-outdated` → `insufficient-information` → `evaluated-no-interaction-identified` is appropriate for the intended clinical use, including the handling of documented findings alongside incomplete inputs/coverage and uncertainty in inactive records. This documentation records the implemented order and tests; it does not grant clinical approval. Provider selection, source rights, reviewed ingredient/severity mappings, real-provider validation and M10 presentation remain open as described above and in `docs/INTERACTION_SOURCE_ASSESSMENT.md`.
