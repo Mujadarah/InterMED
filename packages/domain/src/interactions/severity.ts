@@ -1,5 +1,6 @@
 import type {
   DrugInteraction,
+  InactiveInteractionRecord,
   InteractionEvaluationOptions,
   InteractionIncompleteReason,
   InteractionSourceVersion,
@@ -67,12 +68,17 @@ export function collectValidRecords(
   sourceVersions: InteractionSourceVersion[],
   options: InteractionEvaluationOptions,
   expectedDatasetVersionId: DatasetVersionId,
+  expectedSourceVersion: string,
 ): {
   readonly validRecords: DrugInteraction[];
   readonly recordsByPair: Map<string, DrugInteraction[]>;
+  readonly inactiveRecords: InactiveInteractionRecord[];
+  readonly inactiveRecordsByPair: Map<string, DrugInteraction[]>;
 } {
   const validRecords: DrugInteraction[] = [];
   const recordsByPair = new Map<string, DrugInteraction[]>();
+  const inactiveRecords: InactiveInteractionRecord[] = [];
+  const inactiveRecordsByPair = new Map<string, DrugInteraction[]>();
   for (const record of result.records) {
     const pair = canonicalPair(record.ingredientAId, record.ingredientBId);
     const key = pairKey(pair);
@@ -80,10 +86,16 @@ export function collectValidRecords(
       addIncompleteReason(reasonSet, 'record-pair-outside-request');
       continue;
     }
+    const { isOutdated: _providerOutdatedFlag, ...sourceRecord } = record;
+    void _providerOutdatedFlag;
+    const isOutdated = record.sourceVersion !== expectedSourceVersion;
+    if (isOutdated)
+      addIncompleteReason(reasonSet, 'outdated-record-source-version');
     const canonicalRecord: DrugInteraction = {
-      ...record,
+      ...sourceRecord,
       ingredientAId: pair[0],
       ingredientBId: pair[1],
+      ...(isOutdated ? { isOutdated: true } : {}),
     };
     if (
       record.sourceId !== result.sourceId ||
@@ -100,10 +112,25 @@ export function collectValidRecords(
       sourceVersion: record.sourceVersion,
     });
     const mappedRecord = mapSeverity(canonicalRecord, options.severityMapping);
+    if (mappedRecord.recordStatus !== 'current') {
+      inactiveRecords.push({
+        record: mappedRecord,
+        reason: mappedRecord.recordStatus,
+      });
+      const pairRecords = inactiveRecordsByPair.get(key) ?? [];
+      pairRecords.push(mappedRecord);
+      inactiveRecordsByPair.set(key, pairRecords);
+      continue;
+    }
     validRecords.push(mappedRecord);
     const pairRecords = recordsByPair.get(key) ?? [];
     pairRecords.push(mappedRecord);
     recordsByPair.set(key, pairRecords);
   }
-  return { validRecords, recordsByPair };
+  return {
+    validRecords,
+    recordsByPair,
+    inactiveRecords,
+    inactiveRecordsByPair,
+  };
 }

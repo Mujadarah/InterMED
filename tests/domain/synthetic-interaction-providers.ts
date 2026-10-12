@@ -221,7 +221,35 @@ function makeRecord(
     sourceVersion,
     datasetVersionId,
     lastUpdated: SYNTHETIC_RETRIEVED_AT,
+    recordStatus: 'current',
+    updateHistory: [],
   };
+}
+
+type SyntheticLifecycleRecord = DrugInteraction & {
+  readonly recordStatus: 'current' | 'superseded' | 'withdrawn';
+  readonly supersededBy?: string;
+  readonly statusChangedAt?: string;
+  readonly updateHistory: readonly {
+    readonly sourceVersion: string;
+    readonly changedAt: string;
+    readonly change: 'created' | 'updated' | 'superseded' | 'withdrawn';
+  }[];
+  readonly sourceStatesUncertainEvidence?: boolean;
+};
+
+function withLifecycle(
+  record: DrugInteraction,
+  recordStatus: SyntheticLifecycleRecord['recordStatus'],
+  updateHistory: SyntheticLifecycleRecord['updateHistory'],
+  extra: Partial<SyntheticLifecycleRecord> = {},
+): DrugInteraction {
+  return {
+    ...record,
+    recordStatus,
+    updateHistory,
+    ...extra,
+  } as DrugInteraction;
 }
 
 function createSyntheticProvider(
@@ -390,6 +418,14 @@ export function createSecondVocabularySyntheticProvider(): DrugInteractionProvid
   });
 }
 
+export function createDisagreementSyntheticProvider(): DrugInteractionProvider {
+  return createSyntheticProvider({
+    providerId: 'synthetic-disagreement-provider',
+    sourceVersion: 'synthetic-disagreement-v1',
+    severity: 'source-band-crimson',
+  });
+}
+
 export function createNoRecordSyntheticProvider(): DrugInteractionProvider {
   return createSyntheticProvider({
     providerId: 'synthetic-covered-no-record-provider',
@@ -397,6 +433,186 @@ export function createNoRecordSyntheticProvider(): DrugInteractionProvider {
     severity: 'source-band-unused',
     reportFirstPair: false,
   });
+}
+
+const WITHDRAWN_UPDATE_HISTORY: SyntheticLifecycleRecord['updateHistory'] = [
+  {
+    sourceVersion: 'synthetic-interactions-v1',
+    changedAt: '2026-10-10T08:15:00.000Z',
+    change: 'created',
+  },
+  {
+    sourceVersion: 'synthetic-interactions-v1',
+    changedAt: '2026-10-12T10:30:00.000Z',
+    change: 'withdrawn',
+  },
+];
+
+export function createWithdrawnOnlySyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      const [record] = result.records;
+      if (!record) return result;
+      return {
+        ...result,
+        records: [
+          withLifecycle(record, 'withdrawn', WITHDRAWN_UPDATE_HISTORY, {
+            statusChangedAt: '2026-10-12T10:30:00.000Z',
+          }),
+        ],
+      };
+    },
+  };
+}
+
+export function createSupersededOnlySyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      const [record] = result.records;
+      if (!record) return result;
+      return {
+        ...result,
+        records: [
+          withLifecycle(
+            record,
+            'superseded',
+            [
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-10T08:15:00.000Z',
+                change: 'created',
+              },
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-12T10:30:00.000Z',
+                change: 'superseded',
+              },
+            ],
+            {
+              statusChangedAt: '2026-10-12T10:30:00.000Z',
+            },
+          ),
+        ],
+      };
+    },
+  };
+}
+
+export function createWithdrawnCoveredNoRecordSyntheticProvider(): DrugInteractionProvider {
+  const noRecordProvider = createNoRecordSyntheticProvider();
+  const recordProvider = createOfflineSyntheticProvider();
+  return {
+    describe: () => noRecordProvider.describe(),
+    evaluate: async (request) => {
+      const [result, recordResult] = await Promise.all([
+        noRecordProvider.evaluate(request),
+        recordProvider.evaluate(request),
+      ]);
+      const [record] = recordResult.records;
+      if (!record) return result;
+      return {
+        ...result,
+        records: [
+          withLifecycle(record, 'withdrawn', WITHDRAWN_UPDATE_HISTORY, {
+            statusChangedAt: '2026-10-12T10:30:00.000Z',
+          }),
+        ],
+        evidence: recordResult.evidence,
+      };
+    },
+  };
+}
+
+export function createSupersededAndCurrentSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      const [record] = result.records;
+      if (!record) return result;
+      const currentId = record.id + '-current';
+      return {
+        ...result,
+        records: [
+          withLifecycle(
+            record,
+            'superseded',
+            [
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-10T08:15:00.000Z',
+                change: 'created',
+              },
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-12T10:30:00.000Z',
+                change: 'superseded',
+              },
+            ],
+            {
+              supersededBy: currentId,
+              statusChangedAt: '2026-10-12T10:30:00.000Z',
+            },
+          ),
+          withLifecycle(
+            { ...record, id: currentId, evidenceIds: [] },
+            'current',
+            [
+              {
+                sourceVersion: record.sourceVersion,
+                changedAt: '2026-10-12T10:30:00.000Z',
+                change: 'created',
+              },
+            ],
+          ),
+        ],
+      };
+    },
+  };
+}
+
+export function createOutdatedSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => ({
+      ...inner.describe(),
+      sourceVersion: 'synthetic-interactions-v2',
+    }),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) =>
+          withLifecycle(record, 'current', []),
+        ),
+      };
+    },
+  };
+}
+
+export function createSourceUncertainSyntheticProvider(): DrugInteractionProvider {
+  const inner = createOfflineSyntheticProvider();
+  return {
+    describe: () => inner.describe(),
+    evaluate: async (request) => {
+      const result = await inner.evaluate(request);
+      return {
+        ...result,
+        records: result.records.map((record) =>
+          withLifecycle(record, 'current', [], {
+            sourceStatesUncertainEvidence: true,
+          }),
+        ),
+      };
+    },
+  };
 }
 
 function reversedPair(pair: CanonicalIngredientPair): CanonicalIngredientPair {

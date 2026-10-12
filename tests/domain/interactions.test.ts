@@ -15,19 +15,26 @@ import {
   CONTRACT_INGREDIENT_B,
   CONTRACT_INGREDIENT_C,
   CONTRACT_REQUEST,
+  CONTRACT_SELECTION,
   SYNTHETIC_RETRIEVED_AT,
   createDanglingEvidenceSyntheticProvider,
   createNoRecordSyntheticProvider,
   createOfflineSyntheticProvider,
+  createOutdatedSyntheticProvider,
   createOmittedCoverageSyntheticProvider,
   createOnlineOnlySyntheticProvider,
   createOutsidePairSyntheticProvider,
   createPartialCoverageSyntheticProvider,
   createReversedOrderSyntheticProvider,
   createSecondVocabularySyntheticProvider,
+  createSourceUncertainSyntheticProvider,
+  createSupersededAndCurrentSyntheticProvider,
+  createSupersededOnlySyntheticProvider,
   createThrowingSyntheticProvider,
   createTimeoutSyntheticProvider,
   createVersionMismatchSyntheticProvider,
+  createWithdrawnCoveredNoRecordSyntheticProvider,
+  createWithdrawnOnlySyntheticProvider,
   makeSyntheticSelection,
 } from './synthetic-interaction-providers';
 import { mustId, SOURCE_KEY } from './builders';
@@ -778,6 +785,18 @@ it('merges provider records and flags source-term and reported-versus-covered di
     ]),
   );
   expect(coverageMerge.records).toHaveLength(firstResult.records.length);
+});
+
+it('does not report inactive records as cross-provider findings', async () => {
+  const inactiveResult =
+    await createWithdrawnOnlySyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const noRecordResult =
+    await createNoRecordSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const merged = mergeProviderResults([inactiveResult, noRecordResult]);
+
+  expect(merged.records).toHaveLength(1);
+  expect(merged.records[0]?.recordStatus).toBe('withdrawn');
+  expect(merged.disagreements).toEqual([]);
 });
 
 it('flags severity disagreement only when different providers report different terms', async () => {
@@ -1987,4 +2006,142 @@ it('flags records from another dataset version without rewriting them', async ()
   expect(result.interactions[0]?.datasetVersionId).toBe(otherDatasetVersionId);
   expect(result.coverageComplete).toBe(false);
   expect(result.incompleteReasons).toContain('record-dataset-version-mismatch');
+});
+
+it('keeps a withdrawn-only pair incomplete and retains its source history', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createWithdrawnOnlySyntheticProvider(),
+    options(),
+  );
+  const lifecycle = result as unknown as {
+    readonly inactiveRecords: readonly {
+      readonly reason: string;
+      readonly record: Record<string, unknown>;
+    }[];
+  };
+  expect(result.status).toBe('incomplete');
+  expect(result.incompleteReasons).toContain('only-inactive-records');
+  expect(result.coverageComplete).toBe(false);
+  expect(result.interactions).toEqual([]);
+  expect(lifecycle.inactiveRecords).toHaveLength(1);
+  expect(lifecycle.inactiveRecords[0]).toMatchObject({
+    reason: 'withdrawn',
+    record: {
+      recordStatus: 'withdrawn',
+      statusChangedAt: '2026-10-12T10:30:00.000Z',
+      updateHistory: [
+        {
+          sourceVersion: 'synthetic-interactions-v1',
+          changedAt: '2026-10-10T08:15:00.000Z',
+          change: 'created',
+        },
+        {
+          sourceVersion: 'synthetic-interactions-v1',
+          changedAt: '2026-10-12T10:30:00.000Z',
+          change: 'withdrawn',
+        },
+      ],
+    },
+  });
+  expect(lifecycle.inactiveRecords[0]?.record.updateHistory).toEqual([
+    {
+      sourceVersion: 'synthetic-interactions-v1',
+      changedAt: '2026-10-10T08:15:00.000Z',
+      change: 'created',
+    },
+    {
+      sourceVersion: 'synthetic-interactions-v1',
+      changedAt: '2026-10-12T10:30:00.000Z',
+      change: 'withdrawn',
+    },
+  ]);
+  expect(result.evaluatedPairCoverage[0]).toMatchObject({
+    status: 'not-covered',
+    reason: 'only-inactive-records',
+  });
+});
+
+it('reports a current record while listing its superseded predecessor', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createSupersededAndCurrentSyntheticProvider(),
+    options(),
+  );
+  const lifecycle = result as unknown as {
+    readonly inactiveRecords: readonly {
+      readonly reason: string;
+      readonly record: Record<string, unknown>;
+    }[];
+  };
+  expect(result.status).toBe('reported');
+  expect(result.interactions).toHaveLength(1);
+  expect(result.interactions[0]).toHaveProperty('recordStatus', 'current');
+  expect(lifecycle.inactiveRecords).toHaveLength(1);
+  expect(lifecycle.inactiveRecords[0]).toMatchObject({
+    reason: 'superseded',
+    record: {
+      recordStatus: 'superseded',
+      supersededBy: result.interactions[0]?.id,
+    },
+  });
+});
+
+it('flags records from an older provider source version without dropping them', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createOutdatedSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('reported');
+  expect(result.interactions).toHaveLength(1);
+  expect(result.interactions[0]).toHaveProperty('isOutdated', true);
+  expect(result.incompleteReasons).toContain('outdated-record-source-version');
+  expect(result.coverageComplete).toBe(false);
+});
+
+it('preserves uncertainty only when the source states it', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createSourceUncertainSyntheticProvider(),
+    options(),
+  );
+  expect(result.interactions[0]).toHaveProperty(
+    'sourceStatesUncertainEvidence',
+    true,
+  );
+  const ordinary = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createOfflineSyntheticProvider(),
+    options(),
+  );
+  expect(ordinary.interactions[0]).not.toHaveProperty(
+    'sourceStatesUncertainEvidence',
+  );
+});
+
+it('never turns a withdrawn record into covered-no-record coverage', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createWithdrawnCoveredNoRecordSyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.status).not.toBe('no-reported-record');
+  expect(result.incompleteReasons).toContain('only-inactive-records');
+  expect(result.evaluatedPairCoverage[0]?.status).toBe('not-covered');
+});
+
+it('keeps a superseded-only pair incomplete instead of covered-no-record', async () => {
+  const result = await evaluateInteractions(
+    CONTRACT_SELECTION,
+    createSupersededOnlySyntheticProvider(),
+    options(),
+  );
+  expect(result.status).toBe('incomplete');
+  expect(result.incompleteReasons).toContain('only-inactive-records');
+  expect(result.interactions).toEqual([]);
+  expect(result.inactiveRecords).toHaveLength(1);
+  expect(result.inactiveRecords[0]?.reason).toBe('superseded');
+  expect(result.evaluatedPairCoverage[0]?.status).toBe('not-covered');
 });

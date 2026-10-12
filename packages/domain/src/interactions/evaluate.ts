@@ -12,6 +12,7 @@ import type {
   InteractionEvaluationStatus,
   InteractionEvidence,
   InteractionIncompleteReason,
+  InactiveInteractionRecord,
   InteractionSelection,
   InteractionSourceVersion,
   InteractionTimer,
@@ -53,6 +54,7 @@ function makeEvaluation(
     evaluatedPairCoverage: details.evaluatedPairCoverage ?? [],
     interactionIds: interactions.map((record) => record.id),
     interactions,
+    inactiveRecords: details.inactiveRecords ?? [],
     evidence: details.evidence ?? [],
     coverageComplete: details.coverageComplete ?? false,
     incompleteReasons: details.incompleteReasons ?? [],
@@ -198,6 +200,43 @@ function isProviderResult(value: unknown): value is ProviderResult {
       return false;
     if (!Array.isArray(value.pairCoverage)) return false;
     if (!Array.isArray(value.records)) return false;
+    for (const record of value.records) {
+      if (!isRecord(record)) return false;
+      if (
+        record.recordStatus !== 'current' &&
+        record.recordStatus !== 'superseded' &&
+        record.recordStatus !== 'withdrawn'
+      )
+        return false;
+      if (!Array.isArray(record.updateHistory)) return false;
+      for (const entry of record.updateHistory) {
+        if (!isRecord(entry)) return false;
+        if (typeof entry.sourceVersion !== 'string') return false;
+        if (typeof entry.changedAt !== 'string') return false;
+        if (
+          entry.change !== 'created' &&
+          entry.change !== 'updated' &&
+          entry.change !== 'superseded' &&
+          entry.change !== 'withdrawn'
+        )
+          return false;
+      }
+      if (
+        Object.hasOwn(record, 'supersededBy') &&
+        typeof record.supersededBy !== 'string'
+      )
+        return false;
+      if (
+        Object.hasOwn(record, 'statusChangedAt') &&
+        typeof record.statusChangedAt !== 'string'
+      )
+        return false;
+      if (
+        Object.hasOwn(record, 'sourceStatesUncertainEvidence') &&
+        typeof record.sourceStatesUncertainEvidence !== 'boolean'
+      )
+        return false;
+    }
     if (!Array.isArray(value.evidence)) return false;
     if (typeof value.retrievedAt !== 'string') return false;
     return true;
@@ -259,6 +298,7 @@ function unsupportedLimitations(
 function decideOutcome(
   base: EvaluationBase,
   validRecords: readonly DrugInteraction[],
+  inactiveRecords: readonly InactiveInteractionRecord[],
   evaluatedPairCoverage: readonly EvaluatedPairCoverage[],
   evidence: readonly InteractionEvidence[],
   reasonSet: Set<InteractionIncompleteReason>,
@@ -296,6 +336,7 @@ function decideOutcome(
   return makeEvaluation(base, status, {
     evaluatedPairCoverage,
     interactions: [...validRecords],
+    inactiveRecords: [...inactiveRecords],
     evidence,
     coverageComplete,
     incompleteReasons: [...reasonSet],
@@ -400,28 +441,40 @@ function summarizeProviderResult(
   });
 
   const requestedPairs = new Set(pairs.map(pairKey));
-  const { validRecords, recordsByPair } = collectValidRecords(
+  const {
+    validRecords,
+    recordsByPair,
+    inactiveRecords,
+    inactiveRecordsByPair,
+  } = collectValidRecords(
     result,
     requestedPairs,
     reasonSet,
     sourceVersions,
     options,
     base.datasetVersionId,
+    descriptor.sourceVersion,
   );
   const coverageByPair = indexCoverageByPair(result, requestedPairs, reasonSet);
   const evaluatedPairCoverage = buildEvaluatedCoverage(
     pairs,
     coverageByPair,
     recordsByPair,
+    inactiveRecordsByPair,
     result,
     reasonSet,
   );
-  const evidence = collectLinkedEvidence(result, validRecords, reasonSet);
+  const evidence = collectLinkedEvidence(
+    result,
+    [...validRecords, ...inactiveRecords.map(({ record }) => record)],
+    reasonSet,
+  );
 
   const statusUnavailable = result.status === 'unavailable';
   return decideOutcome(
     base,
     validRecords,
+    inactiveRecords,
     evaluatedPairCoverage,
     evidence,
     reasonSet,

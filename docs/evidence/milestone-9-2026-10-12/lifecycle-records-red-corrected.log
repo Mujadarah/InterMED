@@ -1,0 +1,111 @@
+Node: v24.21.0 npm: 11.19.0 Node 22 artifact runtime: v22.23.2 Command: npm exec -- vitest run tests/domain/interactions.test.ts tests/domain/interaction-provider-contract.test.ts RED run corrected after fixing CONTRACT_SELECTION import; initial harness-error run preserved in lifecycle-records-red.log
+
+ RUN  v4.1.11 <WORKSPACE>
+
+ ❯ tests/domain/interactions.test.ts (52 tests | 4 failed) 47ms
+   × keeps a withdrawn-only pair incomplete and retains its source history 4ms
+   × reports a current record while listing its superseded predecessor 3ms
+   × flags records from an older provider source version without dropping them 1ms
+   × never turns a withdrawn record into covered-no-record coverage 0ms
+ ❯ tests/domain/interaction-provider-contract.test.ts (70 tests | 6 failed) 64ms
+     × supplies explicit lifecycle metadata and exact update history 3ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+     × supplies explicit lifecycle metadata and exact update history 0ms
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: offline licensed > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: online only > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: partial coverage > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider errors > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: provider timeouts > supplies explicit lifecycle metadata and exact update history
+ FAIL  tests/domain/interaction-provider-contract.test.ts > provider contract: second source severity vocabulary > supplies explicit lifecycle metadata and exact update history
+AssertionError: expected [ Array(3) ] to include undefined
+ ❯ tests/domain/interaction-provider-contract.ts:131:56
+    129|       const result = await factory().evaluate(CONTRACT_REQUEST);
+    130|       for (const record of result.records) {
+    131|         expect(['current', 'superseded', 'withdrawn']).toContain(
+       |                                                        ^
+    132|           (record as unknown as { recordStatus?: string }).recordStatu…
+    133|         );
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > keeps a withdrawn-only pair incomplete and retains its source history
+AssertionError: expected 'reported' to be 'incomplete' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "incomplete"
+Received: "reported"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/interactions.test.ts:2010:25
+    2008|     }[];
+    2009|   };
+    2010|   expect(result.status).toBe('incomplete');
+       |                         ^
+    2011|   expect(result.incompleteReasons).toContain('only-inactive-records');
+    2012|   expect(result.coverageComplete).toBe(false);
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > reports a current record while listing its superseded predecessor
+AssertionError: expected [ { …(14) }, { …(12) } ] to have a length of 1 but got 2
+System.Management.Automation.RemoteException
+- Expected
++ Received
+System.Management.Automation.RemoteException
+- 1
++ 2
+System.Management.Automation.RemoteException
+ ❯ tests/domain/interactions.test.ts:2053:31
+    2051|   };
+    2052|   expect(result.status).toBe('reported');
+    2053|   expect(result.interactions).toHaveLength(1);
+       |                               ^
+    2054|   expect(result.interactions[0]).toHaveProperty('recordStatus', 'curre…
+    2055|   expect(lifecycle.inactiveRecords).toHaveLength(1);
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > flags records from an older provider source version without dropping them
+AssertionError: expected { …(12) } to have property "isOutdated" with value true
+System.Management.Automation.RemoteException
+- Expected:
+true
+System.Management.Automation.RemoteException
++ Received:
+undefined
+System.Management.Automation.RemoteException
+ ❯ tests/domain/interactions.test.ts:2073:34
+    2071|   expect(result.status).toBe('reported');
+    2072|   expect(result.interactions).toHaveLength(1);
+    2073|   expect(result.interactions[0]).toHaveProperty('isOutdated', true);
+       |                                  ^
+    2074|   expect(result.incompleteReasons).toContain(
+    2075|     'outdated-record-source-version',
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+System.Management.Automation.RemoteException
+ FAIL  tests/domain/interactions.test.ts > never turns a withdrawn record into covered-no-record coverage
+AssertionError: expected 'reported' to be 'incomplete' // Object.is equality
+System.Management.Automation.RemoteException
+Expected: "incomplete"
+Received: "reported"
+System.Management.Automation.RemoteException
+ ❯ tests/domain/interactions.test.ts:2106:25
+    2104|     options(),
+    2105|   );
+    2106|   expect(result.status).toBe('incomplete');
+       |                         ^
+    2107|   expect(result.status).not.toBe('no-reported-record');
+    2108|   expect(result.incompleteReasons).toContain('only-inactive-records');
+System.Management.Automation.RemoteException
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+System.Management.Automation.RemoteException
+
+ Test Files  2 failed (2)
+      Tests  10 failed | 112 passed (122)
+   Start at  18:50:00
+   Duration  293ms (transform 175ms, setup 0ms, import 230ms, tests 111ms, environment 0ms)

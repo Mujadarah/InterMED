@@ -28,6 +28,16 @@ export type CanonicalIngredientPair = readonly [
   ActiveIngredientId,
 ];
 
+export type InteractionRecordStatus = 'current' | 'superseded' | 'withdrawn';
+export type InteractionRecordUpdateChange =
+  'created' | 'updated' | 'superseded' | 'withdrawn';
+
+export interface InteractionRecordUpdateHistoryEntry {
+  readonly sourceVersion: string;
+  readonly changedAt: string;
+  readonly change: InteractionRecordUpdateChange;
+}
+
 /** Source terminology remains unchanged; normalized severity is opt-in. */
 export interface DrugInteraction {
   readonly id: string;
@@ -51,6 +61,21 @@ export interface DrugInteraction {
   readonly datasetVersionId: DatasetVersionId;
   readonly lastUpdated: string;
   readonly upstreamUpdatedAt?: string;
+  /** Lifecycle status is supplied by the source; it is never inferred. */
+  readonly recordStatus: InteractionRecordStatus;
+  readonly supersededBy?: string;
+  readonly statusChangedAt?: string;
+  readonly updateHistory: readonly InteractionRecordUpdateHistoryEntry[];
+  readonly sourceStatesUncertainEvidence?: boolean;
+  /** Set by evaluation when sourceVersion differs from the provider descriptor. */
+  readonly isOutdated?: boolean;
+}
+
+export type InactiveInteractionRecordReason = 'superseded' | 'withdrawn';
+
+export interface InactiveInteractionRecord {
+  readonly record: DrugInteraction;
+  readonly reason: InactiveInteractionRecordReason;
 }
 
 export interface InteractionEvidence {
@@ -197,6 +222,8 @@ export type InteractionIncompleteReason =
   | 'provider-version-mismatch'
   | 'record-pair-outside-request'
   | 'record-dataset-version-mismatch'
+  | 'outdated-record-source-version'
+  | 'only-inactive-records'
   | 'evidence-link-invalid'
   | 'unsupported-context'
   | 'stale-source-data';
@@ -250,16 +277,46 @@ export interface InteractionEvaluation {
   readonly status: InteractionEvaluationStatus;
   readonly interactionIds: readonly string[];
   readonly interactions: readonly DrugInteraction[];
+  readonly inactiveRecords: readonly InactiveInteractionRecord[];
   readonly evidence: readonly InteractionEvidence[];
   readonly coverageComplete: boolean;
   readonly incompleteReasons: readonly InteractionIncompleteReason[];
   readonly pairLimit?: TooManyPairsOutcome;
   readonly unavailableReason?: string;
   readonly recordsFromUnavailableProvider?: boolean;
+  readonly disagreements?: readonly InteractionDisagreement[];
   readonly severityMappingReview?: {
     readonly mappingVersion: string;
     readonly reviewed: boolean;
   };
+}
+
+export type InteractionOutcomeCategory =
+  | 'conflicting-or-uncertain'
+  | 'documented-interaction'
+  | 'inactive-or-outdated'
+  | 'insufficient-information'
+  | 'evaluated-no-interaction-identified';
+
+export interface InteractionPairOutcome {
+  readonly pair: CanonicalIngredientPair;
+  readonly category: InteractionOutcomeCategory;
+  readonly message?: string;
+}
+
+export interface InteractionOutcomeNotes {
+  readonly evaluationStatus: InteractionEvaluationStatus;
+  readonly coverageComplete: boolean;
+  readonly sourceVersions: readonly InteractionSourceVersion[];
+  readonly incompleteReasons: readonly InteractionIncompleteReason[];
+  readonly unresolvedInputs: readonly UnresolvedInteractionInput[];
+  readonly unavailableReason?: string;
+  readonly recordsFromUnavailableProvider?: boolean;
+}
+
+export interface CategorizedInteractionOutcomes {
+  readonly pairOutcomes: readonly InteractionPairOutcome[];
+  readonly notes: InteractionOutcomeNotes;
 }
 
 export type InteractionDisagreementReason =
@@ -304,6 +361,7 @@ export interface EvaluationBase {
 export interface EvaluationDetails {
   readonly evaluatedPairCoverage?: readonly EvaluatedPairCoverage[];
   readonly interactions?: readonly DrugInteraction[];
+  readonly inactiveRecords?: readonly InactiveInteractionRecord[];
   readonly evidence?: readonly InteractionEvidence[];
   readonly coverageComplete?: boolean;
   readonly incompleteReasons?: readonly InteractionIncompleteReason[];

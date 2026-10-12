@@ -82,16 +82,41 @@ function collectPairFindings(
     const result = providerResults[providerIndex];
     if (!result) continue;
     for (const record of result.records) {
+      if (
+        record.recordStatus !== 'current' ||
+        record.sourceVersion !== result.sourceVersion
+      )
+        continue;
       const pair = canonicalPair(record.ingredientAId, record.ingredientBId);
       const finding = getFinding(pair);
       addDisagreementTerm(finding.terms, result, record.severity);
     }
     for (const coverage of result.pairCoverage) {
       const pair = canonicalPair(coverage.pair[0], coverage.pair[1]);
-      getFinding(pair).reports.push({
-        providerIndex,
-        status: coverage.status,
-      });
+      const pairKeyValue = pairKey(pair);
+      const pairRecords = result.records.filter(
+        (record) =>
+          pairKey(canonicalPair(record.ingredientAId, record.ingredientBId)) ===
+          pairKeyValue,
+      );
+      const hasCurrentRecord = pairRecords.some(
+        (record) =>
+          record.recordStatus === 'current' &&
+          record.sourceVersion === result.sourceVersion,
+      );
+      const hasInactiveOrOutdatedRecord = pairRecords.some(
+        (record) =>
+          record.recordStatus !== 'current' ||
+          record.sourceVersion !== result.sourceVersion,
+      );
+      const onlyInactiveOrOutdatedRecords =
+        !hasCurrentRecord && hasInactiveOrOutdatedRecord;
+      const status =
+        onlyInactiveOrOutdatedRecords ||
+        (coverage.status === 'reported' && !hasCurrentRecord)
+          ? 'not-covered'
+          : coverage.status;
+      getFinding(pair).reports.push({ providerIndex, status });
     }
   }
   return findings;
