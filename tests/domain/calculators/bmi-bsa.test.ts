@@ -4,13 +4,16 @@ import {
   describeFormulaContract,
   request,
   type FormulaContractCases,
+  type TestFormulaComponent,
+  type TestFormulaComponentVersions,
   type TestCalculationResult,
   type TestFormulaDefinition,
 } from './describe-formula-contract';
 
 interface FormulaApprovalRecord {
   readonly formulaId: string;
-  readonly formulaVersion: string;
+  readonly component: TestFormulaComponent;
+  readonly componentVersion: string;
   readonly approvedBy: string;
   readonly approvedOn: string;
   readonly scope: string;
@@ -19,12 +22,17 @@ interface FormulaApprovalRecord {
 interface PendingApproval {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly component: TestFormulaComponent;
+  readonly componentVersion: string;
 }
 
 interface M11Api {
   readonly BMI_FORMULA?: TestFormulaDefinition;
   readonly MOSTELLER_BSA_FORMULA?: TestFormulaDefinition;
   readonly FORMULA_APPROVALS?: readonly FormulaApprovalRecord[];
+  readonly getFormulaVersionId?: (
+    componentVersions: TestFormulaComponentVersions,
+  ) => string;
   readonly pendingApprovals?: (registry: object) => readonly PendingApproval[];
 }
 
@@ -38,20 +46,27 @@ type SubmittedInputs = Readonly<Record<string, SubmittedInput | undefined>>;
 function calculate(
   definition: TestFormulaDefinition,
   inputs: SubmittedInputs,
+  confirmedChecks?: readonly string[],
 ): TestCalculationResult {
   const registry = new Domain.FormulaRegistry();
   registry.register(definition);
   return Domain.calculateFormula(
     registry,
-    request(definition.formulaId, definition.formulaVersion, inputs),
+    request(
+      definition.formulaId,
+      definition.formulaVersion,
+      inputs,
+      confirmedChecks,
+    ),
   );
 }
 
 function calculateOk(
   definition: TestFormulaDefinition,
   inputs: SubmittedInputs,
+  confirmedChecks?: readonly string[],
 ): TestCalculationResult {
-  const result = calculate(definition, inputs);
+  const result = calculate(definition, inputs, confirmedChecks);
   expect(result.status).toBe('ok');
   return result;
 }
@@ -62,6 +77,19 @@ function baseInputs(age = 30): Record<string, SubmittedInput> {
     height: { value: 175, unit: 'cm' },
     age: { value: age, unit: 'years' },
   };
+}
+
+function expectedPendingComponents(
+  definition: TestFormulaDefinition,
+): PendingApproval[] {
+  return Object.entries(definition.componentVersions)
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+    .map(([component, componentVersion]) => ({
+      formulaId: definition.formulaId,
+      formulaVersion: definition.formulaVersion,
+      component: component as TestFormulaComponent,
+      componentVersion,
+    }));
 }
 
 function formulaContractCases(
@@ -110,17 +138,27 @@ function formulaContractCases(
       },
     ],
     exactMinimum: {
-      request: request(definition.formulaId, definition.formulaVersion, {
-        ...base,
-        weight: { value: 1, unit: 'kg' },
-      }),
+      request: request(
+        definition.formulaId,
+        definition.formulaVersion,
+        {
+          ...base,
+          weight: { value: 1, unit: 'kg' },
+        },
+        (definition.softChecks ?? []).map((check) => check.id),
+      ),
       expectedStatus: 'ok',
     },
     exactMaximum: {
-      request: request(definition.formulaId, definition.formulaVersion, {
-        ...base,
-        weight: { value: 500, unit: 'kg' },
-      }),
+      request: request(
+        definition.formulaId,
+        definition.formulaVersion,
+        {
+          ...base,
+          weight: { value: 500, unit: 'kg' },
+        },
+        (definition.softChecks ?? []).map((check) => check.id),
+      ),
       expectedStatus: 'ok',
     },
     outOfRange: {
@@ -156,14 +194,6 @@ function formulaContractCases(
       expectedStatus: 'unit-error',
       inputId: 'weight',
     },
-    outOfPopulation: {
-      request: request(definition.formulaId, definition.formulaVersion, {
-        ...base,
-        age: { value: 17.999, unit: 'years' },
-      }),
-      expectedStatus: 'out-of-population',
-      guardId: 'adult-age',
-    },
   };
 }
 
@@ -175,20 +205,31 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
     expect(bmiFormula).toMatchObject({
       formulaId: 'bmi',
-      formulaVersion: '1.0.0',
+      componentVersions: {
+        formula: '1.0.0',
+        population: '2.0.0',
+        classification: '2.0.0',
+        presentation: '2.0.0',
+        confirmation: '1.0.0',
+      },
       reviewStatus: 'unreviewed',
       output: {
         unit: 'kg/m²',
-        rounding: { mode: 'half-away-from-zero', precision: 1 },
+        rounding: { mode: 'half-up-decimal', precision: 1 },
       },
     });
     expect(bsaFormula).toMatchObject({
       formulaId: 'bsa-mosteller',
-      formulaVersion: '1.0.0',
+      componentVersions: {
+        formula: '1.0.0',
+        population: '2.0.0',
+        presentation: '2.0.0',
+        confirmation: '1.0.0',
+      },
       reviewStatus: 'unreviewed',
       output: {
         unit: 'm²',
-        rounding: { mode: 'half-away-from-zero', precision: 2 },
+        rounding: { mode: 'half-up-decimal', precision: 2 },
       },
     });
   });
@@ -209,8 +250,8 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       registry.register(bsaFormula);
 
       expect(m11.pendingApprovals(registry)).toEqual([
-        { formulaId: 'bmi', formulaVersion: '1.0.0' },
-        { formulaId: 'bsa-mosteller', formulaVersion: '1.0.0' },
+        ...expectedPendingComponents(bmiFormula),
+        ...expectedPendingComponents(bsaFormula),
       ]);
     });
 
@@ -219,13 +260,29 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       const bsaLimitations = bsaFormula.limitations.join(' ').toLowerCase();
       const bmiCitation = bmiFormula.primaryReference.citation.toLowerCase();
       expect(bmiLimitations).toContain(
-        'engineering plausibility limits, pending owner review',
+        'technical bounds, not clinically validated plausibility thresholds',
       );
-      expect(bmiLimitations).toContain('who technical report series 894, 2000');
+      expect(bmiLimitations).toContain(
+        'who technical report series 894 (2000)',
+      );
+      expect(bmiLimitations).toContain(
+        'who international adult classification',
+      );
       expect(bmiLimitations).toContain('adults only');
+      expect(bmiLimitations).toContain(
+        'cardiometabolic risk may occur at lower bmi values in certain populations',
+      );
+      expect(bmiLimitations).toContain('population-specific assessment');
+      expect(bmiLimitations).toContain(
+        'may be added separately in a future version',
+      );
+      expect(bmiLimitations).toContain('adolescents up to 19 years');
+      expect(bmiLimitations).toContain(
+        'does not implement pediatric bmi classification',
+      );
       expect(bmiCitation).toContain('quetelet a (1835)');
       expect(bsaLimitations).toContain(
-        'engineering plausibility limits, pending owner review',
+        'technical bounds, not clinically validated plausibility thresholds',
       );
       expect(bmiLimitations).toContain('muscle mass');
       expect(bmiLimitations).toContain('pregnancy');
@@ -236,6 +293,12 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       expect(bsaLimitations).toContain('no dosing advice');
       expect(bsaLimitations).toContain('du bois');
       expect(bsaLimitations).toContain('source populations');
+      expect(bsaLimitations).toContain("outside this release's adult scope");
+      expect(bsaLimitations).toContain(
+        'displayed rounded value is not to be used as an implicit input for medication-dose calculations',
+      );
+      expect(bsaLimitations).toContain('proposed, pending owner sign-off');
+      expect(bmiLimitations).toContain('proposed, pending owner sign-off');
       expect(bmiFormula.inputs.map((input) => input.id)).toEqual([
         'weight',
         'height',
@@ -257,11 +320,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bmi',
-        formulaVersion: '1.0.0',
+        formulaVersion: bmiFormula.formulaVersion,
         unroundedValue: 22.857142857142858,
         displayValue: 22.9,
         reviewStatus: 'unreviewed',
-        rounding: { mode: 'half-away-from-zero', precision: 1 },
+        rounding: { mode: 'half-up-decimal', precision: 1 },
       });
     });
 
@@ -274,10 +337,10 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bmi',
-        formulaVersion: '1.0.0',
+        formulaVersion: bmiFormula.formulaVersion,
         unroundedValue: 25,
         displayValue: 25,
-        classification: { code: 'pre-obese' },
+        classification: { code: 'who-international-adult-pre-obese' },
       });
     });
 
@@ -290,10 +353,10 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bmi',
-        formulaVersion: '1.0.0',
+        formulaVersion: bmiFormula.formulaVersion,
         unroundedValue: 18.5,
         displayValue: 18.5,
-        classification: { code: 'normal' },
+        classification: { code: 'who-international-adult-normal' },
       });
     });
 
@@ -306,11 +369,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bsa-mosteller',
-        formulaVersion: '1.0.0',
+        formulaVersion: bsaFormula.formulaVersion,
         unroundedValue: 1.8446619684315546,
         displayValue: 1.84,
         reviewStatus: 'unreviewed',
-        rounding: { mode: 'half-away-from-zero', precision: 2 },
+        rounding: { mode: 'half-up-decimal', precision: 2 },
       });
       expect(result.classification).toBeUndefined();
     });
@@ -324,7 +387,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bsa-mosteller',
-        formulaVersion: '1.0.0',
+        formulaVersion: bsaFormula.formulaVersion,
         unroundedValue: 2,
         displayValue: 2,
       });
@@ -340,10 +403,78 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result).toMatchObject({
         formulaId: 'bsa-mosteller',
-        formulaVersion: '1.0.0',
+        formulaVersion: bsaFormula.formulaVersion,
         unroundedValue: 1.4907119849998598,
         displayValue: 1.49,
       });
+    });
+
+    it('uses decimal half-up presentation for the BMI 22.85 vector', () => {
+      const result = calculateOk(bmiFormula, {
+        weight: { value: 91.4, unit: 'kg' },
+        height: { value: 200, unit: 'cm' },
+        age: { value: 30, unit: 'years' },
+      });
+
+      expect(result.unroundedValue).toBe(22.85);
+      expect(result.displayValue).toBe(22.9);
+      expect(result.rounding).toEqual({
+        mode: 'half-up-decimal',
+        precision: 1,
+      });
+      expect(result.classificationNote).toBeUndefined();
+    });
+
+    it('uses decimal half-up presentation for the BSA 1.005, 2.675 and 0.125 vectors', () => {
+      const vectors = [
+        {
+          weight: 20.2005,
+          height: 180,
+          expected: 1.005,
+          display: 1.01,
+          confirmedChecks: ['weight-unusual', 'implied-bmi-outside-range'],
+        },
+        {
+          weight: 143.1125,
+          height: 180,
+          expected: 2.675,
+          display: 2.68,
+          confirmedChecks: [],
+        },
+        {
+          weight: 1.125,
+          height: 50,
+          expected: 0.125,
+          display: 0.13,
+          confirmedChecks: [
+            'weight-unusual',
+            'height-unusual',
+            'implied-bmi-outside-range',
+          ],
+        },
+      ] as const;
+
+      for (const vector of vectors) {
+        const result = calculateOk(
+          bsaFormula,
+          {
+            weight: { value: vector.weight, unit: 'kg' },
+            height: { value: vector.height, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          vector.confirmedChecks,
+        );
+
+        expect(result.unroundedValue).toBeCloseTo(vector.expected, 12);
+        expect(result.displayValue).toBe(vector.display);
+        expect(result.confirmedChecks?.map((check) => check.id)).toEqual(
+          vector.confirmedChecks,
+        );
+        expect(result.rounding).toEqual({
+          mode: 'half-up-decimal',
+          precision: 2,
+        });
+      }
     });
 
     for (const formula of [bmiFormula, bsaFormula]) {
@@ -370,7 +501,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
             expect(result.unroundedValue).toBeCloseTo(expectedUnrounded, 12);
             expect(result.displayValue).toBe(expectedDisplay);
-            expect(result.formulaVersion).toBe('1.0.0');
+            expect(result.formulaVersion).toBe(formula.formulaVersion);
           });
         }
       }
@@ -378,11 +509,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
     it('classifies exact BMI cutoffs from the unrounded value', () => {
       const exactCases = [
-        { value: 18.5, code: 'normal' },
-        { value: 25, code: 'pre-obese' },
-        { value: 30, code: 'obese-class-i' },
-        { value: 35, code: 'obese-class-ii' },
-        { value: 40, code: 'obese-class-iii' },
+        { value: 18.5, code: 'who-international-adult-normal' },
+        { value: 25, code: 'who-international-adult-pre-obese' },
+        { value: 30, code: 'who-international-adult-obese-class-i' },
+        { value: 35, code: 'who-international-adult-obese-class-ii' },
+        { value: 40, code: 'who-international-adult-obese-class-iii' },
       ];
 
       for (const testCase of exactCases) {
@@ -394,16 +525,44 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
         expect(result.unroundedValue).toBe(testCase.value);
         expect(result.classification?.code).toBe(testCase.code);
+        expect(result.displayValue).toBe(testCase.value);
+        expect(result.classificationNote).toBeUndefined();
+        expect(result.classification?.label).toContain(
+          'WHO international adult classification',
+        );
+        expect(result.classification?.label).toContain(
+          'WHO Technical Report Series 894 (2000)',
+        );
       }
     });
 
     it('classifies just below each BMI cutoff using the unrounded value', () => {
       const belowCases = [
-        { value: 18.4999999, code: 'underweight', displayValue: 18.5 },
-        { value: 24.9999999, code: 'normal', displayValue: 25 },
-        { value: 29.9999999, code: 'pre-obese', displayValue: 30 },
-        { value: 34.9999999, code: 'obese-class-i', displayValue: 35 },
-        { value: 39.9999999, code: 'obese-class-ii', displayValue: 40 },
+        {
+          value: 18.4999999,
+          code: 'who-international-adult-underweight',
+          displayValue: 18.5,
+        },
+        {
+          value: 24.9999999,
+          code: 'who-international-adult-normal',
+          displayValue: 25,
+        },
+        {
+          value: 29.9999999,
+          code: 'who-international-adult-pre-obese',
+          displayValue: 30,
+        },
+        {
+          value: 34.9999999,
+          code: 'who-international-adult-obese-class-i',
+          displayValue: 35,
+        },
+        {
+          value: 39.9999999,
+          code: 'who-international-adult-obese-class-ii',
+          displayValue: 40,
+        },
       ];
 
       for (const testCase of belowCases) {
@@ -416,6 +575,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         expect(result.unroundedValue).toBe(testCase.value);
         expect(result.displayValue).toBe(testCase.displayValue);
         expect(result.classification?.code).toBe(testCase.code);
+        expect(result.classificationNote).toContain(String(testCase.value));
       }
     });
 
@@ -428,24 +588,192 @@ describe('Milestone 11 BMI and BSA candidates', () => {
 
       expect(result.unroundedValue).toBe(24.96);
       expect(result.displayValue).toBe(25);
-      expect(result.classification?.code).toBe('normal');
+      expect(result.classification?.code).toBe(
+        'who-international-adult-normal',
+      );
+      expect(result.classificationNote).toContain(
+        'WHO international adult classification',
+      );
+      expect(result.classificationNote).toContain('24.96');
     });
 
-    it('accepts age 18 and 130, while age 17.999 is outside the adult population', () => {
-      for (const age of [18, 130]) {
-        expect(calculate(bmiFormula, { ...baseInputs(age) }).status).toBe('ok');
-        expect(calculate(bsaFormula, { ...baseInputs(age) }).status).toBe('ok');
+    it('accepts the adult technical age bounds and rejects ages below 18', () => {
+      for (const formula of [bmiFormula, bsaFormula]) {
+        const confirmations = (formula.softChecks ?? []).map(
+          (check) => check.id,
+        );
+        for (const age of [18, 130]) {
+          expect(
+            calculate(formula, { ...baseInputs(age) }, confirmations).status,
+          ).toBe('ok');
+        }
       }
       for (const formula of [bmiFormula, bsaFormula]) {
         const result = calculate(formula, {
           ...baseInputs(17.999),
         });
-        expect(result.status).toBe('out-of-population');
-        expect(result.limitsHit).toEqual(
+        expect(result.status).toBe('invalid-input');
+        expect(result.errors).toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ guardId: 'adult-age' }),
+            expect.objectContaining({ inputId: 'age', code: 'out-of-range' }),
           ]),
         );
+      }
+    });
+
+    it('requires explicit confirmation for proposed unusual input and BMI ranges', () => {
+      const vectors = [
+        {
+          label: 'weight below 30 kg',
+          inputs: {
+            weight: { value: 29.99, unit: 'kg' },
+            height: { value: 130, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['weight-unusual'],
+        },
+        {
+          label: 'weight above 250 kg',
+          inputs: {
+            weight: { value: 250.01, unit: 'kg' },
+            height: { value: 200, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['weight-unusual'],
+        },
+        {
+          label: 'height below 130 cm',
+          inputs: {
+            weight: { value: 70, unit: 'kg' },
+            height: { value: 129.99, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['height-unusual'],
+        },
+        {
+          label: 'height above 220 cm',
+          inputs: {
+            weight: { value: 70, unit: 'kg' },
+            height: { value: 220.01, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['height-unusual'],
+        },
+        {
+          label: 'age above 110 years',
+          inputs: {
+            ...baseInputs(111),
+          },
+          checkIds: ['age-over-110'],
+        },
+        {
+          label: 'implied BMI below 12',
+          inputs: {
+            weight: { value: 47.96, unit: 'kg' },
+            height: { value: 200, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['implied-bmi-outside-range'],
+        },
+        {
+          label: 'implied BMI above 70',
+          inputs: {
+            weight: { value: 280.04, unit: 'kg' },
+            height: { value: 200, unit: 'cm' },
+            age: { value: 30, unit: 'years' },
+          },
+          checkIds: ['weight-unusual', 'implied-bmi-outside-range'],
+        },
+      ] as const;
+
+      for (const formula of [bmiFormula, bsaFormula]) {
+        for (const vector of vectors) {
+          const result = calculate(formula, vector.inputs);
+          expect(result.status, `${formula.formulaId}: ${vector.label}`).toBe(
+            'confirmation-required',
+          );
+          expect(result.checks?.map((check) => check.id)).toEqual(
+            vector.checkIds,
+          );
+          expect(
+            result.checks?.every((check) => check.message.length > 0),
+          ).toBe(true);
+          expect(result).not.toHaveProperty('unroundedValue');
+          expect(result).not.toHaveProperty('displayValue');
+        }
+      }
+    });
+
+    it('treats proposed soft-check endpoints as inclusive', () => {
+      const endpointVectors = [
+        { weight: 30, height: 130, age: 30, checkIds: [] },
+        { weight: 250, height: 200, age: 30, checkIds: [] },
+        { weight: 70, height: 130, age: 30, checkIds: [] },
+        { weight: 70, height: 220, age: 30, checkIds: [] },
+        { weight: 70, height: 175, age: 110, checkIds: [] },
+        { weight: 48, height: 200, age: 30, checkIds: [] },
+        {
+          weight: 280,
+          height: 200,
+          age: 30,
+          checkIds: ['weight-unusual'],
+        },
+      ] as const;
+
+      for (const formula of [bmiFormula, bsaFormula]) {
+        for (const vector of endpointVectors) {
+          const inputs = {
+            weight: { value: vector.weight, unit: 'kg' },
+            height: { value: vector.height, unit: 'cm' },
+            age: { value: vector.age, unit: 'years' },
+          };
+          const result = calculate(formula, inputs, vector.checkIds);
+          expect(
+            result.status,
+            `${formula.formulaId} ${vector.weight}/${vector.height}/${vector.age}: ${JSON.stringify(result)}`,
+          ).toBe('ok');
+          expect(result.confirmedChecks?.map((check) => check.id)).toEqual(
+            vector.checkIds,
+          );
+          if (vector.weight === 280) {
+            expect(
+              result.confirmedChecks?.map((check) => check.id),
+            ).not.toContain('implied-bmi-outside-range');
+          }
+        }
+      }
+    });
+
+    it('returns values only after every triggered check is confirmed', () => {
+      const inputs = {
+        weight: { value: 20, unit: 'kg' },
+        height: { value: 175, unit: 'cm' },
+        age: { value: 30, unit: 'years' },
+      };
+      for (const formula of [bmiFormula, bsaFormula]) {
+        const required = calculate(formula, inputs);
+        expect(required.status).toBe('confirmation-required');
+        expect(required.checks?.map((check) => check.id)).toEqual([
+          'weight-unusual',
+          'implied-bmi-outside-range',
+        ]);
+
+        const partial = calculate(formula, inputs, ['weight-unusual']);
+        expect(partial.status).toBe('confirmation-required');
+        expect(partial.checks?.map((check) => check.id)).toEqual([
+          'weight-unusual',
+          'implied-bmi-outside-range',
+        ]);
+        expect(partial).not.toHaveProperty('unroundedValue');
+
+        const confirmed = calculateOk(formula, inputs, [
+          'weight-unusual',
+          'implied-bmi-outside-range',
+        ]);
+        expect(confirmed.confirmedChecks?.map((check) => check.id)).toEqual([
+          'weight-unusual',
+          'implied-bmi-outside-range',
+        ]);
       }
     });
 
@@ -466,9 +794,13 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       ] as const;
 
       for (const formula of [bmiFormula, bsaFormula]) {
+        const confirmations = (formula.softChecks ?? []).map(
+          (check) => check.id,
+        );
         for (const boundary of boundaryInputs) {
           expect(
-            calculate(formula, { ...baseInputs(), ...boundary }).status,
+            calculate(formula, { ...baseInputs(), ...boundary }, confirmations)
+              .status,
           ).toBe('ok');
         }
       }

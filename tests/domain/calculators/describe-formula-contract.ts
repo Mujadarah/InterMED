@@ -14,6 +14,43 @@ export interface TestInputDefinition {
   readonly allowNegative?: boolean;
 }
 
+export type TestFormulaComponent =
+  'formula' | 'population' | 'classification' | 'presentation' | 'confirmation';
+
+export interface TestFormulaComponentVersions {
+  readonly formula: string;
+  readonly population: string;
+  readonly classification?: string;
+  readonly presentation: string;
+  readonly confirmation?: string;
+}
+
+export type TestFormulaSoftCheck =
+  | {
+      readonly id: string;
+      readonly kind: 'input-range';
+      readonly inputId: string;
+      readonly minimum?: number;
+      readonly maximum?: number;
+      readonly unit: string;
+      readonly message: string;
+    }
+  | {
+      readonly id: string;
+      readonly kind: 'implied-bmi-range';
+      readonly weightInputId: string;
+      readonly heightInputId: string;
+      readonly minimum: number;
+      readonly maximum: number;
+      readonly message: string;
+    };
+
+export interface TestSoftCheckHit {
+  readonly id: string;
+  readonly inputIds: readonly string[];
+  readonly message: string;
+}
+
 export interface TestUnitConversion {
   readonly fromUnit: string;
   readonly toUnit: string;
@@ -51,6 +88,7 @@ export type TestPopulationGuard =
 export interface TestFormulaDefinition {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly componentVersions: TestFormulaComponentVersions;
   readonly title: string;
   readonly primaryReference: {
     readonly citation: string;
@@ -63,7 +101,7 @@ export interface TestFormulaDefinition {
   readonly output: {
     readonly unit: string;
     readonly rounding: {
-      readonly mode: 'half-away-from-zero';
+      readonly mode: 'half-away-from-zero' | 'half-up-decimal';
       readonly precision: number;
     };
   };
@@ -72,6 +110,7 @@ export interface TestFormulaDefinition {
     readonly guards: readonly TestPopulationGuard[];
   };
   readonly limitations: readonly string[];
+  readonly softChecks?: readonly TestFormulaSoftCheck[];
   readonly reviewStatus:
     | 'unreviewed'
     | {
@@ -92,6 +131,7 @@ export interface TestFormulaDefinition {
 export interface TestCalculationRequest {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly confirmedChecks?: readonly string[];
   readonly inputs: Readonly<
     Record<
       string,
@@ -117,9 +157,15 @@ interface TestInputEcho {
 
 export interface TestCalculationResult {
   readonly status:
-    'ok' | 'invalid-input' | 'out-of-population' | 'unit-error' | 'unavailable';
+    | 'ok'
+    | 'invalid-input'
+    | 'out-of-population'
+    | 'unit-error'
+    | 'unavailable'
+    | 'confirmation-required';
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly componentVersions?: TestFormulaComponentVersions | null;
   readonly primaryReference: TestFormulaDefinition['primaryReference'] | null;
   readonly limitations: readonly string[];
   readonly reviewStatus: TestFormulaDefinition['reviewStatus'] | null;
@@ -145,6 +191,9 @@ export interface TestCalculationResult {
     readonly code: string;
     readonly label: string;
   };
+  readonly classificationNote?: string;
+  readonly checks?: readonly TestSoftCheckHit[];
+  readonly confirmedChecks?: readonly TestSoftCheckHit[];
 }
 
 interface TestFormulaRegistry {
@@ -189,7 +238,13 @@ export interface FormulaContractCases {
     readonly expectedNormalizedValue: number;
   };
   readonly invalidUnit: FormulaContractCase & { readonly inputId: string };
-  readonly outOfPopulation: FormulaContractCase & { readonly guardId: string };
+  readonly outOfPopulation?: FormulaContractCase & { readonly guardId: string };
+  readonly confirmation?: {
+    readonly request: TestCalculationRequest;
+    readonly confirmedRequest: TestCalculationRequest;
+    readonly expectedChecks: readonly TestSoftCheckHit[];
+    readonly expectedValue: number;
+  };
   readonly optionalMissing?: FormulaContractCase & { readonly inputId: string };
   readonly submittedInRangeCanonicalOut?: FormulaContractCase & {
     readonly inputId: string;
@@ -215,6 +270,7 @@ function expectProvenance(
 ): void {
   expect(result.formulaId).toBe(definition.formulaId);
   expect(result.formulaVersion).toBe(definition.formulaVersion);
+  expect(result.componentVersions).toEqual(definition.componentVersions);
   expect(result.primaryReference).toEqual(definition.primaryReference);
   expect(result.limitations).toEqual(definition.limitations);
   expect(result.reviewStatus).toEqual(definition.reviewStatus);
@@ -333,7 +389,7 @@ function describeUnitCases(
 
 function describePopulationCase(
   definition: TestFormulaDefinition,
-  testCase: FormulaContractCases['outOfPopulation'],
+  testCase: NonNullable<FormulaContractCases['outOfPopulation']>,
 ): void {
   it('reports structured population-limit hits', () => {
     const result = calculateForDefinition(definition, testCase);
@@ -343,6 +399,34 @@ function describePopulationCase(
         expect.objectContaining({ guardId: testCase.guardId }),
       ]),
     );
+    expectProvenance(definition, result);
+  });
+}
+
+function describeConfirmationCases(
+  definition: TestFormulaDefinition,
+  cases: NonNullable<FormulaContractCases['confirmation']>,
+): void {
+  it('requires confirmation for triggered soft checks and returns no value', () => {
+    const result = calculateForDefinition(definition, {
+      request: cases.request,
+      expectedStatus: 'confirmation-required',
+    });
+    expect(result.status).toBe('confirmation-required');
+    expect(result.checks).toEqual(cases.expectedChecks);
+    expect(result).not.toHaveProperty('displayValue');
+    expect(result).not.toHaveProperty('unroundedValue');
+    expectProvenance(definition, result);
+  });
+
+  it('lists confirmed soft checks on the successful result', () => {
+    const result = calculateForDefinition(definition, {
+      request: cases.confirmedRequest,
+      expectedStatus: 'ok',
+    });
+    expect(result.status).toBe('ok');
+    expect(result.displayValue).toBe(cases.expectedValue);
+    expect(result.confirmedChecks).toEqual(cases.expectedChecks);
     expectProvenance(definition, result);
   });
 }
@@ -396,6 +480,9 @@ function describeOptionalCase(
       if (unit) {
         const zeroFilled = calculatorEngine.calculateFormula(registry, {
           ...testCase.request,
+          confirmedChecks: (definition.softChecks ?? []).map(
+            (check) => check.id,
+          ),
           inputs: {
             ...testCase.request.inputs,
             [testCase.inputId]: { value: 0, unit },
@@ -458,7 +545,12 @@ export function describeFormulaContract(
     describePositiveAndBoundaries(definition, cases);
     describeInputValidation(definition, cases);
     describeUnitCases(definition, cases);
-    describePopulationCase(definition, cases.outOfPopulation);
+    if (cases.outOfPopulation) {
+      describePopulationCase(definition, cases.outOfPopulation);
+    }
+    if (cases.confirmation) {
+      describeConfirmationCases(definition, cases.confirmation);
+    }
     describeCanonicalRangeCases(definition, cases);
     if (cases.optionalMissing) {
       describeOptionalCase(definition, cases.optionalMissing);
@@ -470,8 +562,30 @@ export function request(
   formulaId: string,
   formulaVersion: string,
   inputs: TestCalculationRequest['inputs'],
+  confirmedChecks?: readonly string[],
 ): TestCalculationRequest {
-  return { formulaId, formulaVersion, inputs };
+  return {
+    formulaId,
+    formulaVersion,
+    inputs,
+    ...(confirmedChecks !== undefined ? { confirmedChecks } : {}),
+  };
+}
+
+export function formulaVersionId(
+  componentVersions: TestFormulaComponentVersions,
+): string {
+  const order: readonly TestFormulaComponent[] = [
+    'formula',
+    'population',
+    'classification',
+    'presentation',
+    'confirmation',
+  ];
+  return order
+    .filter((component) => componentVersions[component] !== undefined)
+    .map((component) => `${component}=${componentVersions[component]}`)
+    .join('|');
 }
 
 export function createFormulaRegistry(): TestFormulaRegistry {

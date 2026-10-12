@@ -1,11 +1,19 @@
-import { findConversionPath, STANDARD_UNIT_CONVERSIONS } from './units';
-import { hasFormulaApproval } from './approvals';
+import {
+  applyConversionPath,
+  findConversionPath,
+  STANDARD_UNIT_CONVERSIONS,
+} from './units';
+import { hasComponentApproval, hasFormulaApproval } from './approvals';
+import { FORMULA_COMPONENT_ORDER, getFormulaVersionId } from './types';
 import type {
+  FormulaComponent,
+  FormulaComponentVersions,
   FormulaDefinition,
   FormulaInputDefinition,
   FormulaMetadata,
   PendingFormulaApproval,
   FormulaReviewStatus,
+  FormulaSoftCheck,
   FormulaUnitConversions,
   FormulaVersionSummary,
   PopulationGuard,
@@ -337,10 +345,178 @@ function assertGuard(
   }
 }
 
+function assertComponentVersions(definition: FormulaDefinition): void {
+  const versions = definition.componentVersions as
+    FormulaComponentVersions | undefined;
+  if (!versions || typeof versions !== 'object' || Array.isArray(versions)) {
+    invalidDefinition('A formula requires component versions.');
+  }
+  const keys = Object.keys(versions);
+  if (
+    keys.some(
+      (key) => !FORMULA_COMPONENT_ORDER.includes(key as FormulaComponent),
+    )
+  ) {
+    invalidDefinition(
+      'Formula component versions contain an unknown component.',
+    );
+  }
+  for (const component of FORMULA_COMPONENT_ORDER) {
+    const version = versions[component];
+    const required =
+      component === 'formula' ||
+      component === 'population' ||
+      component === 'presentation';
+    if (required && version === undefined) {
+      invalidDefinition(`Formula component ${component} requires a version.`);
+    }
+    if (
+      version !== undefined &&
+      (!hasText(version) ||
+        version !== version.trim() ||
+        version.includes('|') ||
+        version.includes('='))
+    ) {
+      invalidDefinition(
+        `Formula component ${component} has an invalid version.`,
+      );
+    }
+  }
+  const hasClassification = versions.classification !== undefined;
+  const hasConfirmation = versions.confirmation !== undefined;
+  const hasClassifier = typeof definition.classify === 'function';
+  const hasSoftChecks =
+    Array.isArray(definition.softChecks) && definition.softChecks.length > 0;
+  if (hasClassification !== hasClassifier) {
+    invalidDefinition(
+      'Classification component versioning must match the declared classifier.',
+    );
+  }
+  if (hasConfirmation !== hasSoftChecks) {
+    invalidDefinition(
+      'Confirmation component versioning must match the declared soft checks.',
+    );
+  }
+  if (definition.formulaVersion !== getFormulaVersionId(versions)) {
+    invalidDefinition(
+      'Formula version must identify the exact declared component-version set.',
+    );
+  }
+}
+
+function assertSoftCheck(
+  check: FormulaSoftCheck,
+  inputsById: ReadonlyMap<string, FormulaInputDefinition>,
+  conversions: FormulaUnitConversions,
+): void {
+  if (
+    !check ||
+    typeof check !== 'object' ||
+    !hasText(check.id) ||
+    !hasText(check.message)
+  ) {
+    invalidDefinition('Soft checks require an id and a confirmation message.');
+  }
+  if (check.kind === 'input-range') {
+    const input = inputsById.get(check.inputId);
+    const hasMinimum = check.minimum !== undefined;
+    const hasMaximum = check.maximum !== undefined;
+    const unitToCanonicalPath =
+      input && hasText(check.unit)
+        ? findConversionPath(
+            conversions,
+            input.quantityKind,
+            check.unit,
+            input.canonicalUnit,
+          )
+        : undefined;
+    const hasSupportedUnit =
+      input !== undefined &&
+      hasText(check.unit) &&
+      input.allowedUnits.includes(check.unit) &&
+      unitToCanonicalPath !== undefined;
+    const canonicalMinimum =
+      hasMinimum && unitToCanonicalPath
+        ? applyConversionPath(check.minimum as number, unitToCanonicalPath)
+            ?.value
+        : undefined;
+    const canonicalMaximum =
+      hasMaximum && unitToCanonicalPath
+        ? applyConversionPath(check.maximum as number, unitToCanonicalPath)
+            ?.value
+        : undefined;
+    if (
+      !input ||
+      !hasSupportedUnit ||
+      (!hasMinimum && !hasMaximum) ||
+      (hasMinimum && !Number.isFinite(check.minimum)) ||
+      (hasMaximum && !Number.isFinite(check.maximum)) ||
+      (hasMinimum && !Number.isFinite(canonicalMinimum)) ||
+      (hasMaximum && !Number.isFinite(canonicalMaximum)) ||
+      (hasMinimum && hasMaximum && check.minimum > check.maximum)
+    ) {
+      invalidDefinition(
+        `Soft check ${check.id} has invalid input-range bounds.`,
+      );
+    }
+    return;
+  }
+  if (check.kind === 'implied-bmi-range') {
+    const weight = inputsById.get(check.weightInputId);
+    const height = inputsById.get(check.heightInputId);
+    if (
+      !weight ||
+      !height ||
+      weight === height ||
+      weight.quantityKind !== 'mass' ||
+      height.quantityKind !== 'length' ||
+      !Number.isFinite(check.minimum) ||
+      !Number.isFinite(check.maximum) ||
+      check.minimum > check.maximum ||
+      !findConversionPath(
+        conversions,
+        weight.quantityKind,
+        weight.canonicalUnit,
+        'kg',
+      ) ||
+      !findConversionPath(
+        conversions,
+        height.quantityKind,
+        height.canonicalUnit,
+        'm',
+      )
+    ) {
+      invalidDefinition(
+        `Soft check ${check.id} has invalid implied-BMI bounds.`,
+      );
+    }
+    return;
+  }
+  invalidDefinition('Formula soft checks contain an unknown kind.');
+}
+
+function assertSoftChecks(
+  definition: FormulaDefinition,
+  inputsById: ReadonlyMap<string, FormulaInputDefinition>,
+): void {
+  if (definition.softChecks === undefined) return;
+  if (!Array.isArray(definition.softChecks)) {
+    invalidDefinition('Formula soft checks must be an array.');
+  }
+  const checkIds = new Set<string>();
+  for (const check of definition.softChecks) {
+    assertSoftCheck(check, inputsById, definition.unitConversions);
+    if (checkIds.has(check.id)) {
+      invalidDefinition(`Formula soft check ids must be unique: ${check.id}.`);
+    }
+    checkIds.add(check.id);
+  }
+}
+
 function assertReviewStatus(
   status: FormulaReviewStatus,
   formulaId: string,
-  formulaVersion: string,
+  componentVersions: FormulaComponentVersions,
 ): void {
   if (status === 'unreviewed') return;
   if (
@@ -355,9 +531,9 @@ function assertReviewStatus(
       'Clinically reviewed formulas require a reviewer and valid review date.',
     );
   }
-  if (!hasFormulaApproval(formulaId, formulaVersion, status)) {
+  if (!hasFormulaApproval(formulaId, componentVersions)) {
     invalidDefinition(
-      `Clinically reviewed formula ${formulaId}@${formulaVersion} requires an exact approval record.`,
+      `Clinically reviewed formula ${formulaId} requires approval for every current component version.`,
     );
   }
 }
@@ -374,6 +550,7 @@ function validateDefinition(definition: FormulaDefinition): void {
       'A formula requires a pinned id and version, title, and compute function.',
     );
   }
+  assertComponentVersions(definition);
   assertReference(definition);
   if (!Array.isArray(definition.inputs) || definition.inputs.length === 0) {
     invalidDefinition('A formula requires at least one input definition.');
@@ -401,7 +578,8 @@ function validateDefinition(definition: FormulaDefinition): void {
     !hasText(definition.output.unit) ||
     !definition.output.rounding ||
     typeof definition.output.rounding !== 'object' ||
-    definition.output.rounding.mode !== 'half-away-from-zero' ||
+    (definition.output.rounding.mode !== 'half-away-from-zero' &&
+      definition.output.rounding.mode !== 'half-up-decimal') ||
     !Number.isSafeInteger(definition.output.rounding.precision) ||
     definition.output.rounding.precision < 0
   ) {
@@ -431,6 +609,7 @@ function validateDefinition(definition: FormulaDefinition): void {
     }
     guardIds.add(guard.id);
   }
+  assertSoftChecks(definition, inputsById);
   if (
     !Array.isArray(definition.limitations) ||
     definition.limitations.length === 0 ||
@@ -441,7 +620,7 @@ function validateDefinition(definition: FormulaDefinition): void {
   assertReviewStatus(
     definition.reviewStatus,
     definition.formulaId,
-    definition.formulaVersion,
+    definition.componentVersions,
   );
   if (
     definition.classify !== undefined &&
@@ -484,6 +663,7 @@ function freezeDefinition(definition: FormulaDefinition): FormulaDefinition {
   return Object.freeze({
     ...definition,
     primaryReference: Object.freeze({ ...definition.primaryReference }),
+    componentVersions: Object.freeze({ ...definition.componentVersions }),
     inputs: Object.freeze(inputs),
     unitConversions: conversions,
     output: Object.freeze({
@@ -499,6 +679,13 @@ function freezeDefinition(definition: FormulaDefinition): FormulaDefinition {
       ),
     }),
     limitations: Object.freeze([...definition.limitations]),
+    ...(definition.softChecks
+      ? {
+          softChecks: Object.freeze(
+            definition.softChecks.map((check) => Object.freeze({ ...check })),
+          ),
+        }
+      : {}),
     reviewStatus,
     ...(definition.deprecated
       ? { deprecated: Object.freeze({ ...definition.deprecated }) }
@@ -551,6 +738,7 @@ export class FormulaRegistry {
       .filter((definition) => definition.formulaId === formulaId)
       .map((definition) => ({
         version: definition.formulaVersion,
+        componentVersions: definition.componentVersions,
         deprecated: definition.deprecated !== undefined,
         ...(definition.deprecated
           ? { deprecationNotice: definition.deprecated.notice }
@@ -561,17 +749,35 @@ export class FormulaRegistry {
 
   listPendingApprovals(): readonly PendingFormulaApproval[] {
     const pending = [...this.definitions.values()]
-      .filter((definition) => definition.reviewStatus === 'unreviewed')
-      .map((definition) =>
-        Object.freeze({
-          formulaId: definition.formulaId,
-          formulaVersion: definition.formulaVersion,
+      .flatMap((definition) =>
+        FORMULA_COMPONENT_ORDER.flatMap((component) => {
+          const componentVersion = definition.componentVersions[component];
+          if (
+            componentVersion === undefined ||
+            hasComponentApproval(
+              definition.formulaId,
+              component,
+              componentVersion,
+            )
+          ) {
+            return [];
+          }
+          return [
+            Object.freeze({
+              formulaId: definition.formulaId,
+              formulaVersion: definition.formulaVersion,
+              component,
+              componentVersion,
+            }),
+          ];
         }),
       )
       .sort(
         (first, second) =>
           first.formulaId.localeCompare(second.formulaId) ||
-          first.formulaVersion.localeCompare(second.formulaVersion),
+          first.formulaVersion.localeCompare(second.formulaVersion) ||
+          FORMULA_COMPONENT_ORDER.indexOf(first.component) -
+            FORMULA_COMPONENT_ORDER.indexOf(second.component),
       );
     return Object.freeze(pending);
   }

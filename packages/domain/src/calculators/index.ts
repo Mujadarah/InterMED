@@ -3,7 +3,9 @@ export { FormulaRegistrationError, FormulaRegistry } from './registry';
 export { FORMULA_APPROVALS, pendingApprovals } from './approvals';
 export { BMI_FORMULA, MOSTELLER_BSA_FORMULA } from './bmi-bsa';
 export { STANDARD_UNIT_CONVERSIONS } from './units';
+export { getFormulaVersionId } from './types';
 export type {
+  CalculationConfirmationRequiredResult,
   CalculationInput,
   CalculationInputEcho,
   CalculationInvalidInputResult,
@@ -16,6 +18,8 @@ export type {
   CalculationUnitErrorResult,
   CalculationUnavailableResult,
   FormulaClassification,
+  FormulaComponent,
+  FormulaComponentVersions,
   FormulaDefinition,
   FormulaMetadata,
   FormulaApprovalRecord,
@@ -27,6 +31,8 @@ export type {
   FormulaQuantityKind,
   FormulaReference,
   FormulaReviewStatus,
+  FormulaSoftCheck,
+  FormulaSoftCheckHit,
   FormulaRoundingMode,
   FormulaUnitConversions,
   FormulaVersionSummary,

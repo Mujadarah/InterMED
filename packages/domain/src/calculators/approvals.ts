@@ -1,33 +1,47 @@
 import type { FormulaRegistry } from './registry';
 import type {
   FormulaApprovalRecord,
-  FormulaReviewStatus,
+  FormulaComponent,
+  FormulaComponentVersions,
   PendingFormulaApproval,
 } from './types';
 
-type ClinicallyReviewedStatus = Extract<
-  FormulaReviewStatus,
-  { readonly status: 'clinically-reviewed' }
->;
-
 /**
  * Clinical approvals are owner-managed evidence. Keep this list empty until
- * an owner adds a scoped record for an exact formula id and version.
+ * an owner adds scoped records for the exact component versions.
  */
 export const FORMULA_APPROVALS: readonly FormulaApprovalRecord[] =
   Object.freeze([]);
 
 export function hasFormulaApproval(
   formulaId: string,
-  formulaVersion: string,
-  reviewStatus: ClinicallyReviewedStatus,
+  componentVersions: FormulaComponentVersions,
+): boolean {
+  return Object.entries(componentVersions).every(
+    ([component, componentVersion]) =>
+      typeof componentVersion === 'string' &&
+      hasComponentApproval(
+        formulaId,
+        component as FormulaComponent,
+        componentVersion,
+      ),
+  );
+}
+
+export function hasComponentApproval(
+  formulaId: string,
+  component: FormulaComponent,
+  componentVersion: string,
 ): boolean {
   return FORMULA_APPROVALS.some(
     (record) =>
       record.formulaId === formulaId &&
-      record.formulaVersion === formulaVersion &&
-      record.approvedBy === reviewStatus.reviewer &&
-      record.approvedOn === reviewStatus.reviewedAt &&
+      record.component === component &&
+      record.componentVersion === componentVersion &&
+      typeof record.approvedBy === 'string' &&
+      record.approvedBy.trim().length > 0 &&
+      typeof record.approvedOn === 'string' &&
+      Number.isFinite(Date.parse(record.approvedOn)) &&
       typeof record.scope === 'string' &&
       record.scope.trim().length > 0,
   );

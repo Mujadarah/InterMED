@@ -140,6 +140,7 @@ export {
 export {
   calculateFormula,
   FORMULA_APPROVALS,
+  getFormulaVersionId,
   FormulaRegistrationError,
   FormulaRegistry,
   BMI_FORMULA,
@@ -150,6 +151,7 @@ export {
 export type {
   CalculationInput,
   CalculationInputEcho,
+  CalculationConfirmationRequiredResult,
   CalculationInvalidInputResult,
   CalculationOkResult,
   CalculationOutOfPopulationResult,
@@ -160,6 +162,8 @@ export type {
   CalculationUnitErrorResult,
   CalculationUnavailableResult,
   FormulaClassification,
+  FormulaComponent,
+  FormulaComponentVersions,
   FormulaDefinition,
   FormulaMetadata,
   FormulaApprovalRecord,
@@ -171,6 +175,8 @@ export type {
   FormulaQuantityKind,
   FormulaReference,
   FormulaReviewStatus,
+  FormulaSoftCheck,
+  FormulaSoftCheckHit,
   FormulaRoundingMode,
   FormulaUnitConversions,
   FormulaVersionSummary,

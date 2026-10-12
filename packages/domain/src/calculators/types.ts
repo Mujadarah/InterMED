@@ -13,7 +13,38 @@ export type FormulaReviewStatus =
       readonly reviewedAt: string;
     };
 
-export type FormulaRoundingMode = 'half-away-from-zero';
+export type FormulaComponent =
+  'formula' | 'population' | 'classification' | 'presentation' | 'confirmation';
+
+export interface FormulaComponentVersions {
+  readonly formula: string;
+  readonly population: string;
+  readonly classification?: string;
+  readonly presentation: string;
+  readonly confirmation?: string;
+}
+
+export const FORMULA_COMPONENT_ORDER: readonly FormulaComponent[] =
+  Object.freeze([
+    'formula',
+    'population',
+    'classification',
+    'presentation',
+    'confirmation',
+  ]);
+
+/** A stable composite id for the exact set of components used by a formula. */
+export function getFormulaVersionId(
+  componentVersions: FormulaComponentVersions,
+): string {
+  return FORMULA_COMPONENT_ORDER.filter(
+    (component) => componentVersions[component] !== undefined,
+  )
+    .map((component) => `${component}=${componentVersions[component]}`)
+    .join('|');
+}
+
+export type FormulaRoundingMode = 'half-away-from-zero' | 'half-up-decimal';
 
 export interface FormulaOutputRounding {
   readonly mode: FormulaRoundingMode;
@@ -22,7 +53,8 @@ export interface FormulaOutputRounding {
 
 export interface FormulaApprovalRecord {
   readonly formulaId: string;
-  readonly formulaVersion: string;
+  readonly component: FormulaComponent;
+  readonly componentVersion: string;
   readonly approvedBy: string;
   readonly approvedOn: string;
   readonly scope: string;
@@ -31,6 +63,8 @@ export interface FormulaApprovalRecord {
 export interface PendingFormulaApproval {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly component: FormulaComponent;
+  readonly componentVersion: string;
 }
 
 export interface FormulaDeprecation {
@@ -89,6 +123,32 @@ export type PopulationGuard =
       readonly message: string;
     };
 
+export type FormulaSoftCheck =
+  | {
+      readonly id: string;
+      readonly kind: 'input-range';
+      readonly inputId: string;
+      readonly minimum?: number;
+      readonly maximum?: number;
+      readonly unit: string;
+      readonly message: string;
+    }
+  | {
+      readonly id: string;
+      readonly kind: 'implied-bmi-range';
+      readonly weightInputId: string;
+      readonly heightInputId: string;
+      readonly minimum: number;
+      readonly maximum: number;
+      readonly message: string;
+    };
+
+export interface FormulaSoftCheckHit {
+  readonly id: string;
+  readonly inputIds: readonly string[];
+  readonly message: string;
+}
+
 export interface FormulaPopulationLimits {
   readonly text: string;
   readonly guards: readonly PopulationGuard[];
@@ -107,6 +167,7 @@ export interface FormulaClassification {
 export interface FormulaDefinition {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly componentVersions: FormulaComponentVersions;
   readonly title: string;
   readonly primaryReference: FormulaReference;
   readonly inputs: readonly FormulaInputDefinition[];
@@ -115,19 +176,23 @@ export interface FormulaDefinition {
   readonly output: FormulaOutputDefinition;
   readonly populationLimits: FormulaPopulationLimits;
   readonly limitations: readonly string[];
+  /** Optional confirmation prompts for values inside the technical bounds. */
+  readonly softChecks?: readonly FormulaSoftCheck[];
   readonly reviewStatus: FormulaReviewStatus;
   readonly deprecated?: FormulaDeprecation;
   /** Pure, synchronous calculation over values normalized to canonical units. */
   compute(values: Readonly<Record<string, number | undefined>>): number;
   /**
-   * Optional classification invoked with the unrounded compute output only.
-   * It must not read the display value: cutoff decisions use `unroundedValue`.
+   * Optional pure classification hook. The returned classification uses the
+   * unrounded compute output; the rounded display value may also be classified
+   * to explain a presentation-boundary crossing without changing that result.
    */
   classify?: (unroundedValue: number) => FormulaClassification;
 }
 
 export interface FormulaVersionSummary {
   readonly version: string;
+  readonly componentVersions: FormulaComponentVersions;
   readonly deprecated: boolean;
   readonly deprecationNotice?: string;
 }
@@ -148,6 +213,7 @@ export interface CalculationRequest {
   readonly formulaId: string;
   readonly formulaVersion: string;
   readonly inputs: Readonly<Record<string, CalculationInput | undefined>>;
+  readonly confirmedChecks?: readonly string[];
 }
 
 export interface UnitConversionRecord {
@@ -227,6 +293,7 @@ export type PopulationLimitHit =
 export interface CalculationResultMetadata {
   readonly formulaId: string;
   readonly formulaVersion: string;
+  readonly componentVersions: FormulaComponentVersions | null;
   readonly formulaTitle: string | null;
   readonly primaryReference: FormulaReference | null;
   readonly limitations: readonly string[];
@@ -245,6 +312,13 @@ export interface CalculationOkResult extends CalculationResultMetadata {
   readonly precision: number;
   readonly rounding: FormulaOutputRounding;
   readonly classification?: FormulaClassification;
+  readonly classificationNote?: string;
+  readonly confirmedChecks: readonly FormulaSoftCheckHit[];
+}
+
+export interface CalculationConfirmationRequiredResult extends CalculationResultMetadata {
+  readonly status: 'confirmation-required';
+  readonly checks: readonly FormulaSoftCheckHit[];
 }
 
 export interface CalculationInvalidInputResult extends CalculationResultMetadata {
@@ -269,6 +343,7 @@ export interface CalculationUnavailableResult extends CalculationResultMetadata 
 
 export type CalculationResult =
   | CalculationOkResult
+  | CalculationConfirmationRequiredResult
   | CalculationInvalidInputResult
   | CalculationOutOfPopulationResult
   | CalculationUnitErrorResult

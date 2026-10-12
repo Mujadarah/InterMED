@@ -13,6 +13,7 @@ export interface CalculationInputValidationOutcome {
   readonly inputEcho: readonly CalculationInputEcho[];
   readonly errors: readonly InputValidationError[];
   readonly unitErrors: readonly CalculationUnitError[];
+  readonly confirmedCheckIds: readonly string[];
 }
 
 interface OneInputOutcome {
@@ -309,6 +310,51 @@ export function validateCalculationInputs(
   const inputEcho: CalculationInputEcho[] = [];
   const errors: InputValidationError[] = [];
   const unitErrors: CalculationUnitError[] = [];
+  const confirmedCheckIds: string[] = [];
+
+  const submittedConfirmedChecks = (
+    request as CalculationRequest & { readonly confirmedChecks?: unknown }
+  ).confirmedChecks;
+  if (submittedConfirmedChecks !== undefined) {
+    if (!Array.isArray(submittedConfirmedChecks)) {
+      errors.push(
+        inputError(
+          'confirmedChecks',
+          'invalid-input-shape',
+          'Confirmed checks must be an array of declared check ids.',
+        ),
+      );
+    } else {
+      const declaredCheckIds = new Set(
+        (definition.softChecks ?? []).map((check) => check.id),
+      );
+      const seenCheckIds = new Set<string>();
+      for (const checkId of submittedConfirmedChecks) {
+        if (typeof checkId !== 'string' || seenCheckIds.has(checkId)) {
+          errors.push(
+            inputError(
+              'confirmedChecks',
+              'invalid-input-shape',
+              'Confirmed checks must contain unique string ids.',
+            ),
+          );
+          continue;
+        }
+        seenCheckIds.add(checkId);
+        if (!declaredCheckIds.has(checkId)) {
+          errors.push(
+            inputError(
+              'confirmedChecks',
+              'unexpected-input',
+              'Confirmation id is not declared by the pinned formula version.',
+            ),
+          );
+          continue;
+        }
+        confirmedCheckIds.push(checkId);
+      }
+    }
+  }
 
   if (!rawInputs) {
     errors.push(
@@ -355,5 +401,6 @@ export function validateCalculationInputs(
     inputEcho: Object.freeze(inputEcho),
     errors: Object.freeze(errors),
     unitErrors: Object.freeze(unitErrors),
+    confirmedCheckIds: Object.freeze(confirmedCheckIds),
   };
 }

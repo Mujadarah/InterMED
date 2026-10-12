@@ -1,8 +1,11 @@
 import { STANDARD_UNIT_CONVERSIONS } from './units';
+import { getFormulaVersionId } from './types';
 import type {
   FormulaClassification,
+  FormulaComponentVersions,
   FormulaDefinition,
   FormulaInputDefinition,
+  FormulaSoftCheck,
   FormulaUnitConversions,
 } from './types';
 
@@ -33,10 +36,10 @@ const HEIGHT_RANGES: FormulaInputDefinition['plausibleRangeByUnit'] =
     in: Object.freeze({ min: 50 / 2.54, max: 272 / 2.54 }),
   });
 
-// Allow subadult ages through value validation so the population guard can
-// return the structured out-of-population result.
+// Age 18–130 years is the initial adult-release input range; lower or higher
+// values fail the technical input bounds before calculation.
 const AGE_RANGE: FormulaInputDefinition['plausibleRangeByUnit'] = Object.freeze(
-  { years: Object.freeze({ min: 0, max: 130 }) },
+  { years: Object.freeze({ min: 18, max: 130 }) },
 );
 
 function weightInput(): FormulaInputDefinition {
@@ -77,25 +80,49 @@ function ageInput(): FormulaInputDefinition {
 
 function classifyBmi(bmi: number): FormulaClassification {
   if (bmi < 18.5) {
-    return { code: 'underweight', label: 'Underweight' };
+    return {
+      code: 'who-international-adult-underweight',
+      label:
+        'WHO international adult classification, WHO Technical Report Series 894 (2000): Underweight',
+    };
   }
   if (bmi < 25) {
-    return { code: 'normal', label: 'Normal range' };
+    return {
+      code: 'who-international-adult-normal',
+      label:
+        'WHO international adult classification, WHO Technical Report Series 894 (2000): Normal range',
+    };
   }
   if (bmi < 30) {
-    return { code: 'pre-obese', label: 'Pre-obese (overweight)' };
+    return {
+      code: 'who-international-adult-pre-obese',
+      label:
+        'WHO international adult classification, WHO Technical Report Series 894 (2000): Pre-obese (overweight)',
+    };
   }
   if (bmi < 35) {
-    return { code: 'obese-class-i', label: 'Obese class I' };
+    return {
+      code: 'who-international-adult-obese-class-i',
+      label:
+        'WHO international adult classification, WHO Technical Report Series 894 (2000): Obese class I',
+    };
   }
   if (bmi < 40) {
-    return { code: 'obese-class-ii', label: 'Obese class II' };
+    return {
+      code: 'who-international-adult-obese-class-ii',
+      label:
+        'WHO international adult classification, WHO Technical Report Series 894 (2000): Obese class II',
+    };
   }
-  return { code: 'obese-class-iii', label: 'Obese class III' };
+  return {
+    code: 'who-international-adult-obese-class-iii',
+    label:
+      'WHO international adult classification, WHO Technical Report Series 894 (2000): Obese class III',
+  };
 }
 
 const ADULT_POPULATION = Object.freeze({
-  text: 'Adult-only scope: age at least 18 years. No pediatric calculation.',
+  text: 'Adult-only release scope: ages 18 through 130 years. BMI-for-age classification for adolescents up to 19 years is not implemented.',
   guards: Object.freeze([
     Object.freeze({
       id: 'adult-age',
@@ -110,33 +137,101 @@ const ADULT_POPULATION = Object.freeze({
 });
 
 const ENGINEERING_LIMITATION =
-  'Engineering plausibility limits, pending owner review: weight 1–500 kg, height 50–272 cm, and adult age 18–130 years. Values outside these limits are not calculated.';
+  'Technical bounds, not clinically validated plausibility thresholds: weight 1–500 kg, height 50–272 cm, and adult age 18–130 years. Values outside these technical bounds return invalid-input.';
+
+const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
+  Object.freeze({
+    id: 'weight-unusual',
+    kind: 'input-range',
+    inputId: 'weight',
+    minimum: 30,
+    maximum: 250,
+    unit: 'kg',
+    message:
+      'Confirm the entered weight; it is outside the proposed 30–250 kg check range.',
+  }),
+  Object.freeze({
+    id: 'height-unusual',
+    kind: 'input-range',
+    inputId: 'height',
+    minimum: 130,
+    maximum: 220,
+    unit: 'cm',
+    message:
+      'Confirm the entered height; it is outside the proposed 130–220 cm check range.',
+  }),
+  Object.freeze({
+    id: 'age-over-110',
+    kind: 'input-range',
+    inputId: 'age',
+    maximum: 110,
+    unit: 'years',
+    message:
+      'Confirm the entered age; it is above the proposed 110-year check point.',
+  }),
+  Object.freeze({
+    id: 'implied-bmi-outside-range',
+    kind: 'implied-bmi-range',
+    weightInputId: 'weight',
+    heightInputId: 'height',
+    minimum: 12,
+    maximum: 70,
+    message:
+      'Confirm the entered weight and height; their implied BMI is outside the proposed 12–70 check range.',
+  }),
+]);
+
+const SOFT_CHECK_LIMITATION =
+  'Soft-check values are proposed, pending owner sign-off: weight below 30 kg or above 250 kg; height below 130 cm or above 220 cm; age above 110 years; implied BMI below 12 or above 70 kg/m².';
+
+const BMI_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
+  formula: '1.0.0',
+  population: '2.0.0',
+  classification: '2.0.0',
+  presentation: '2.0.0',
+  confirmation: '1.0.0',
+});
+
+const BSA_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
+  formula: '1.0.0',
+  population: '2.0.0',
+  presentation: '2.0.0',
+  confirmation: '1.0.0',
+});
+
+const WHO_ADULT_BMI_CITATION =
+  'WHO. Obesity: Preventing and Managing the Global Epidemic. WHO Technical Report Series 894 (2000).';
 
 export const BMI_FORMULA: FormulaDefinition = {
   formulaId: 'bmi',
-  formulaVersion: '1.0.0',
+  formulaVersion: getFormulaVersionId(BMI_COMPONENT_VERSIONS),
+  componentVersions: BMI_COMPONENT_VERSIONS,
   title: 'Body mass index (adult candidate)',
   primaryReference: {
     citation:
-      'Keys A, Fidanza F, Karvonen MJ, Kimura N, Taylor HL. Indices of relative weight and obesity. J Chronic Dis. 1972;25:329–343. Historical attribution: Quetelet A (1835).',
-    urlOrDoi: 'https://doi.org/10.1016/0021-9681(72)90027-6',
+      'BMI formula: Keys A, Fidanza F, Karvonen MJ, Kimura N, Taylor HL. Indices of relative weight and obesity. J Chronic Dis. 1972;25:329–343. Historical attribution: Quetelet A (1835). Adult classification: ' +
+      WHO_ADULT_BMI_CITATION,
+    urlOrDoi: 'https://iris.who.int/handle/10665/42330',
   },
   inputs: [weightInput(), heightInput('m'), ageInput()],
   unitConversions: FORMULA_UNIT_CONVERSIONS,
   output: {
     unit: 'kg/m²',
-    rounding: { mode: 'half-away-from-zero', precision: 1 },
+    rounding: { mode: 'half-up-decimal', precision: 1 },
   },
   populationLimits: ADULT_POPULATION,
   limitations: [
-    'Candidate WHO adult BMI categories (WHO Technical Report Series 894, 2000) are included for engineering review only; their thresholds and application to ages 18–19 are pending owner clinical approval.',
-    'For adults only; values below age 18 return an out-of-population result.',
+    'WHO international adult classification uses thresholds from WHO Technical Report Series 894 (2000); this behavior is proposed, pending owner sign-off, and applies categories to the unrounded BMI value.',
+    'Adults only: this release accepts ages 18 years and older and does not implement pediatric BMI classification. WHO BMI-for-age references include adolescents up to 19 years; future population-specific assessment requires separate evidence and review.',
+    'Cardiometabolic risk may occur at lower BMI values in certain populations. This international adult classification does not implement population-specific thresholds or assessment; population-specific assessment may be added separately in a future version after separate evidence and review.',
     'BMI is a screening index, not a direct body-fat measure and not a diagnosis.',
     'Interpretation may be affected by muscle mass, pregnancy, amputation, edema (oedema), and body-composition extremes.',
     'No ethnicity-specific thresholds, dose, diagnosis, or treatment advice are provided.',
+    SOFT_CHECK_LIMITATION,
     ENGINEERING_LIMITATION,
     'Original-paper rounding and instrument-specific reuse rights have not been verified.',
   ],
+  softChecks: PROPOSED_SOFT_CHECKS,
   reviewStatus: 'unreviewed',
   compute: (values) => {
     const weightKg = values['weight'];
@@ -149,7 +244,8 @@ export const BMI_FORMULA: FormulaDefinition = {
 
 export const MOSTELLER_BSA_FORMULA: FormulaDefinition = {
   formulaId: 'bsa-mosteller',
-  formulaVersion: '1.0.0',
+  formulaVersion: getFormulaVersionId(BSA_COMPONENT_VERSIONS),
+  componentVersions: BSA_COMPONENT_VERSIONS,
   title: 'Body surface area (Mosteller adult estimate)',
   primaryReference: {
     citation:
@@ -160,16 +256,20 @@ export const MOSTELLER_BSA_FORMULA: FormulaDefinition = {
   unitConversions: FORMULA_UNIT_CONVERSIONS,
   output: {
     unit: 'm²',
-    rounding: { mode: 'half-away-from-zero', precision: 2 },
+    rounding: { mode: 'half-up-decimal', precision: 2 },
   },
   populationLimits: ADULT_POPULATION,
   limitations: [
     'Mosteller BSA is an estimate; no dosing advice is provided.',
     'It differs from Du Bois; no superiority claim or automatic substitution is made.',
-    'Applicability has not been validated beyond the source populations; obesity, pregnancy, amputation, edema (oedema), and pediatrics require review.',
+    "Applicability has not been validated beyond the source populations. Use outside this release's adult scope has not been reviewed; this does not mean the Mosteller formula is inherently invalid for children.",
+    'This is a display-only estimate; the displayed rounded value is not to be used as an implicit input for medication-dose calculations.',
+    'Behavior is proposed, pending owner sign-off.',
+    SOFT_CHECK_LIMITATION,
     ENGINEERING_LIMITATION,
     'Original derivation and instrument-specific reuse rights have not been verified.',
   ],
+  softChecks: PROPOSED_SOFT_CHECKS,
   reviewStatus: 'unreviewed',
   compute: (values) => {
     const weightKg = values['weight'];
