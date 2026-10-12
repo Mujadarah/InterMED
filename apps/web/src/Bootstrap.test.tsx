@@ -100,6 +100,9 @@ it('reuses the search service and in-memory index across Bootstrap renders', asy
   const localStore = {
     getState: vi.fn(() => state),
     subscribe: vi.fn(() => () => {}),
+    preferences: {
+      listRecentSearches: vi.fn(async () => []),
+    },
     openReader: vi.fn(async () => ({
       generationId: generation.generationId,
       searchRecords,

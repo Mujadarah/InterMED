@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import type { PublishedBundleLoader } from '@intermed/domain';
 import {
   bundle,
@@ -173,6 +173,138 @@ it('orders recent searches by recency and can clear them', async () => {
   ).toEqual(['placebex', 'fictivol']);
   await store.preferences.clearRecentSearches();
   expect(await store.preferences.listRecentSearches()).toEqual([]);
+});
+
+it('trims a repeated search and moves its single entry to the top', async () => {
+  const clock = testClock();
+  const store = testStore({ now: clock.now });
+  await store.preferences.addRecentSearch({
+    query: '  fictivol  ',
+    lastKnownDatasetVersionId: null,
+  });
+  clock.tick(1000);
+  await store.preferences.addRecentSearch({
+    query: 'placebex',
+    lastKnownDatasetVersionId: null,
+  });
+  clock.tick(1000);
+  await store.preferences.addRecentSearch({
+    query: ' fictivol ',
+    lastKnownDatasetVersionId: null,
+  });
+
+  const entries = await store.preferences.listRecentSearches();
+  expect(entries.map((entry) => entry.query)).toEqual(['fictivol', 'placebex']);
+  expect(entries[0]?.occurredAt).toBe('2026-06-01T00:00:02.000Z');
+});
+
+it('keeps ten recent searches on write and drops searches older than thirty days', async () => {
+  const clock = testClock();
+  const store = testStore({ now: clock.now });
+  for (let index = 1; index <= 11; index += 1) {
+    await store.preferences.addRecentSearch({
+      query: `query-${index}`,
+      lastKnownDatasetVersionId: null,
+    });
+    clock.tick(1000);
+  }
+
+  expect(
+    (await store.preferences.listRecentSearches()).map((entry) => entry.query),
+  ).toEqual([
+    'query-11',
+    'query-10',
+    'query-9',
+    'query-8',
+    'query-7',
+    'query-6',
+    'query-5',
+    'query-4',
+    'query-3',
+    'query-2',
+  ]);
+
+  clock.tick(30 * 24 * 60 * 60 * 1000 + 1);
+  await store.preferences.addRecentSearch({
+    query: 'fresh-query',
+    lastKnownDatasetVersionId: null,
+  });
+  expect(await store.preferences.listRecentSearches()).toMatchObject([
+    { query: 'fresh-query' },
+  ]);
+});
+
+it('prunes expired and excess legacy rows when recent searches are read', async () => {
+  const name = uniqueName();
+  const clock = testClock();
+  const store = testStore({ name, now: clock.now });
+  const db = await testDatabase(name);
+  const start = clock.now();
+  await db.recentSearches.bulkPut([
+    ...Array.from({ length: 12 }, (_, index) => {
+      const number = index + 1;
+      return {
+        id: `legacy-${number}`,
+        query: `legacy-${number}`,
+        occurredAt: new Date(start + number * 1000).toISOString(),
+        lastKnownDatasetVersionId: null,
+      };
+    }),
+    {
+      id: 'legacy-expired',
+      query: 'expired-query',
+      occurredAt: new Date(start - 30 * 24 * 60 * 60 * 1000 - 1).toISOString(),
+      lastKnownDatasetVersionId: null,
+    },
+  ]);
+  db.close();
+
+  expect(
+    (await store.preferences.listRecentSearches()).map((entry) => entry.query),
+  ).toEqual([
+    'legacy-12',
+    'legacy-11',
+    'legacy-10',
+    'legacy-9',
+    'legacy-8',
+    'legacy-7',
+    'legacy-6',
+    'legacy-5',
+    'legacy-4',
+    'legacy-3',
+  ]);
+  const checked = await testDatabase(name);
+  expect(await checked.recentSearches.count()).toBe(10);
+  checked.close();
+});
+
+it('does not log favorite names, ids, or recent search queries', async () => {
+  const store = testStore();
+  const methods = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
+  const spies = methods.map((method) =>
+    vi.spyOn(console, method).mockImplementation(() => undefined),
+  );
+
+  try {
+    const alpha = await bundle('alpha');
+    await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+    await store.preferences.addFavorite({
+      productId: alpha.productIds['SP-FICTIVOL']!,
+      lastKnownDisplayName: 'Fictivol alpha',
+      lastKnownDatasetVersionId: alpha.generationId,
+    });
+    await store.preferences.listFavorites();
+    await store.preferences.addRecentSearch({
+      query: 'synthetic private query',
+      lastKnownDatasetVersionId: alpha.generationId,
+    });
+    await store.preferences.listRecentSearches();
+
+    expect(spies.every((spy) => spy.mock.calls.length === 0)).toBe(true);
+  } finally {
+    store.close();
+    vi.restoreAllMocks();
+  }
 });
 
 it('refuses clear-all while another tab is staging instead of racing it', async () => {

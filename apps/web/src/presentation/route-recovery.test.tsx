@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import type { DatasetStateSource, DatasetUpdateState } from '@intermed/domain';
+import { unavailablePreferencesService } from '../application/preferences';
 import { App, RouteErrorBoundary } from './App';
 
 // The detail route chunk fails to load; every other route stays real, so the
@@ -44,6 +45,7 @@ const services = {
   medicationDetail: {
     productDetail: async () => null,
   },
+  preferences: unavailablePreferencesService,
 };
 
 it('recovers accessibly and keeps the shell usable when a route chunk fails to load', async () => {

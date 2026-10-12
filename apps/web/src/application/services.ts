@@ -12,12 +12,17 @@ import {
   unavailableMedicationDetail,
   type MedicationDetailService,
 } from './medication-detail';
+import {
+  unavailablePreferencesService,
+  type PreferencesService,
+} from './preferences';
 
 export interface AppServices {
   readonly info: BootstrapInfo;
   readonly dataset: DatasetStateSource;
   readonly medicationSearch: MedicationSearchService;
   readonly medicationDetail: MedicationDetailService;
+  readonly preferences: PreferencesService;
 }
 
 /**
@@ -31,6 +36,7 @@ export function createServices(
   dataset: DatasetStateSource,
   medicationSearch: MedicationSearchService = unavailableMedicationSearch,
   medicationDetail: MedicationDetailService = unavailableMedicationDetail,
+  preferences: PreferencesService = unavailablePreferencesService,
 ): AppServices {
   if (config.mode !== 'mock') throw new Error('Only mock mode is supported');
   return {
@@ -38,5 +44,6 @@ export function createServices(
     dataset,
     medicationSearch,
     medicationDetail,
+    preferences,
   };
 }

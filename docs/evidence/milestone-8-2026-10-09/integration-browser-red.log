@@ -1,0 +1,119 @@
+[WebServer] (node:21168) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20692) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 3 workers
+
+(node:47124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:24624) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39880) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (730ms)
+(node:46004) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (1.5s)
+  ok 3 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (1.5s)
+(node:12108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27420) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  6 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (2.4s)
+(node:22072) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 4 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (4.1s)
+  ok 5 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (3.7s)
+(node:36876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:45336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  9 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (2.4s)
+  ok 7 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (3.8s)
+  ok 8 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (3.9s)
+
+
+  1) [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+
+    Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://127.0.0.1:58554/favorites
+    Call log:
+      - navigating to "http://127.0.0.1:58554/favorites", waiting until "load"
+
+
+      179 |     // A cold deep link to the favorites route, never visited in this session.
+      180 |     const favoritesTab = await context.newPage();
+    > 181 |     await favoritesTab.goto(`${server.url}/favorites`);
+          |                        ^
+      182 |     await expect(
+      183 |       favoritesTab.getByRole('heading', { name: 'Favorites', level: 1 }),
+      184 |     ).toBeVisible();
+        at <repo>tests\browser\offline-deeplinks.spec.ts:181:24
+
+    Error Context: test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-chromium-desktop\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-chromium-desktop\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-chromium-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+
+    Error: page.goto: Server returned nothing (no headers, no data)
+    Call log:
+      - navigating to "http://127.0.0.1:57667/favorites", waiting until "load"
+
+
+      179 |     // A cold deep link to the favorites route, never visited in this session.
+      180 |     const favoritesTab = await context.newPage();
+    > 181 |     await favoritesTab.goto(`${server.url}/favorites`);
+          |                        ^
+      182 |     await expect(
+      183 |       favoritesTab.getByRole('heading', { name: 'Favorites', level: 1 }),
+      184 |     ).toBeVisible();
+        at <repo>tests\browser\offline-deeplinks.spec.ts:181:24
+
+    Error Context: test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-phone\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-phone\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+
+    Error: page.goto: Server returned nothing (no headers, no data)
+    Call log:
+      - navigating to "http://127.0.0.1:57692/favorites", waiting until "load"
+
+
+      179 |     // A cold deep link to the favorites route, never visited in this session.
+      180 |     const favoritesTab = await context.newPage();
+    > 181 |     await favoritesTab.goto(`${server.url}/favorites`);
+          |                        ^
+      182 |     await expect(
+      183 |       favoritesTab.getByRole('heading', { name: 'Favorites', level: 1 }),
+      184 |     ).toBeVisible();
+        at <repo>tests\browser\offline-deeplinks.spec.ts:181:24
+
+    Error Context: test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-tablet\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-tablet\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--a8080-favorites-from-the-precache-webkit-tablet\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+    [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+    [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache
+  6 passed (14.1s)
