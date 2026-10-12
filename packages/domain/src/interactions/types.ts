@@ -261,6 +261,7 @@ export interface InteractionEvaluation {
   readonly incompleteReasons: readonly InteractionIncompleteReason[];
   readonly pairLimit?: TooManyPairsOutcome;
   readonly unavailableReason?: string;
+  readonly recordsFromUnavailableProvider?: boolean;
   readonly severityMappingReview?: {
     readonly mappingVersion: string;
     readonly reviewed: boolean;
@@ -314,4 +315,5 @@ export interface EvaluationDetails {
   readonly incompleteReasons?: readonly InteractionIncompleteReason[];
   readonly pairLimit?: TooManyPairsOutcome;
   readonly unavailableReason?: string;
+  readonly recordsFromUnavailableProvider?: boolean;
 }

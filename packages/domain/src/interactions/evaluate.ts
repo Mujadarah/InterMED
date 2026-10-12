@@ -54,6 +54,9 @@ function makeEvaluation(
     ...(details.unavailableReason
       ? { unavailableReason: details.unavailableReason }
       : {}),
+    ...(details.recordsFromUnavailableProvider
+      ? { recordsFromUnavailableProvider: true as const }
+      : {}),
   };
 }
 
@@ -280,6 +283,10 @@ function decideOutcome(
   if (statusUnavailable)
     addIncompleteReason(reasonSet, 'provider-pair-coverage-incomplete');
 
+  // Records from an unavailable provider are kept but qualified, so a UI can
+  // show them as provisional instead of silently showing or dropping them.
+  const recordsFromUnavailableProvider =
+    statusUnavailable && validRecords.length > 0;
   return makeEvaluation(base, status, {
     evaluatedPairCoverage,
     interactions: [...validRecords],
@@ -287,6 +294,9 @@ function decideOutcome(
     coverageComplete,
     incompleteReasons: [...reasonSet],
     ...(unavailableReason ? { unavailableReason } : {}),
+    ...(recordsFromUnavailableProvider
+      ? { recordsFromUnavailableProvider: true as const }
+      : {}),
   });
 }
 

@@ -1678,6 +1678,48 @@ it('still maps to unavailable when the provider ignores the abort signal', async
   expect(result.unavailableReason).toBe('provider-timeout');
 });
 
+it('keeps records from an unavailable provider qualified with an explicit flag', async () => {
+  const selection = makeSyntheticSelection([
+    {
+      sourceProductId: 'SP-UNAVAIL-FICTIVOL',
+      displayName: 'Fictivol',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNAVAIL-FICTIVOLINUM',
+          displayName: 'Fictivolinum',
+        },
+      ],
+    },
+    {
+      sourceProductId: 'SP-UNAVAIL-PLACEBEX',
+      displayName: 'Placebex',
+      ingredients: [
+        {
+          sourceIngredientId: 'AI-UNAVAIL-PLACEBEXIUM',
+          displayName: 'Placebexium',
+        },
+      ],
+    },
+  ]);
+  const base = createOfflineSyntheticProvider();
+  const provider: DrugInteractionProvider = {
+    describe: () => base.describe(),
+    evaluate: async (request) => {
+      const result = await base.evaluate(request);
+      return {
+        ...result,
+        status: 'unavailable',
+        reason: 'synthetic-license-suspended',
+      };
+    },
+  };
+  const result = await evaluateInteractions(selection, provider, options());
+  expect(result.status).toBe('unavailable');
+  expect(result.unavailableReason).toBe('synthetic-license-suspended');
+  expect(result.interactions).toHaveLength(1);
+  expect(result.recordsFromUnavailableProvider).toBe(true);
+});
+
 it('keeps unresolved inputs visible when the provider call times out', async () => {
   const base = makeSyntheticSelection([
     {
