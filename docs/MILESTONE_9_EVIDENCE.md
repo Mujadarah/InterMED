@@ -435,6 +435,12 @@ Node.js `v24.21.0` with npm `11.19.0` and the compiled-artifact runtime Node.js 
   path assertion unrelated to the domain; it fails identically with the review changes
   stashed). Format, lint, typecheck and the architecture boundary check passed; the run is
   captured in `pr20-r2-full-unit.log`.
+- Orchestrator re-run at `6b5dca5` from PowerShell (Node 24.21.0, Node 22.23.2 runtime
+  under `.tools`): format, lint, typecheck, unit tests (60 files, **1,049 of 1,049 passed**,
+  including `tests/importer/artifact.test.ts`) and the boundary check all passed. The
+  implementer's single importer failure is specific to its shell environment (Windows
+  variable names exported in upper case break the `os.tmpdir()` fallback in worker
+  threads), not to the code. The browser suite runs in CI.
 - The earlier `non-web-gates.log` and `aggregate-check-partial.log` record the pre-R51
   baseline of 60 test files with 1,010 tests passed; the orchestrator's re-run confirmed
   that baseline under Node 24.21.0 and Node 22.23.2.
