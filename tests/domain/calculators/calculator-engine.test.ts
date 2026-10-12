@@ -813,6 +813,51 @@ describe('calculator registry and result provenance', () => {
     }
   });
 
+  it('returns unavailable when reading inputs throws', () => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const badRequest: Record<string, unknown> = {
+      formulaId: 'synthetic-linear',
+      formulaVersion: '1.0',
+    };
+    Object.defineProperty(badRequest, 'inputs', {
+      enumerable: true,
+      get() {
+        throw new Error('synthetic getter failure with private text');
+      },
+    });
+    let result: unknown;
+    expect(() => {
+      result = calculateWith(
+        registry,
+        badRequest as unknown as Parameters<typeof calculateWith>[1],
+      );
+    }).not.toThrow();
+    expect(
+      (result as unknown as { status: string }).status,
+    ).toBe('unavailable');
+    expect(JSON.stringify(result)).not.toContain('private text');
+  });
+
+  it('returns unavailable for a null registry without throwing', () => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const calculationRequest = request('synthetic-linear', '1.0', {
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+    });
+    let result: unknown;
+    expect(() => {
+      result = calculateWith(
+        null as unknown as Parameters<typeof calculateWith>[0],
+        calculationRequest,
+      );
+    }).not.toThrow();
+    expect(
+      (result as unknown as { status: string }).status,
+    ).toBe('unavailable');
+  });
+
   it('does not call compute when a population guard is hit', () => {
     const compute = vi.fn(
       (values: Readonly<Record<string, number | undefined>>) =>

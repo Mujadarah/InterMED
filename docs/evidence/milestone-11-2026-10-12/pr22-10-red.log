@@ -1,0 +1,60 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts (153 tests | 2 failed) 108ms
+     ├ù returns unavailable when reading inputs throws 12ms
+     ├ù returns unavailable for a null registry without throwing 1ms
+node.exe :
+At line:1 char:1
++ & "D:\Proiecte AI\InterMED\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > returns
+unavailable when reading inputs throws
+AssertionError: expected [Function] to not throw an error but 'Error: synthetic getter failure with ΓÇª' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: synthetic getter failure with private text"
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts:835:12
+    833|         badRequest as unknown as Parameters<typeof calculateWith>[1],
+    834|       );
+    835|     }).not.toThrow();
+       |            ^
+    836|     expect(
+    837|       (result as unknown as { status: string }).status,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  tests/domain/calculators/calculator-engine.test.ts > calculator registry and result provenance > returns
+unavailable for a null registry without throwing
+AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of ΓÇª' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"TypeError: Cannot read properties of null (reading 'resolveForCalculation')"
+
+ Γ¥» tests/domain/calculators/calculator-engine.test.ts:855:12
+    853|         calculationRequest,
+    854|       );
+    855|     }).not.toThrow();
+       |            ^
+    856|     expect(
+    857|       (result as unknown as { status: string }).status,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 151 passed (153)
+   Start at  18:02:14
+   Duration  1.00s (transform 475ms, setup 0ms, import 697ms, tests 108ms, environment 0ms)

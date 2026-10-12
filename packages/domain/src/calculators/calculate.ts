@@ -41,6 +41,7 @@ function resultMetadata(
 function unavailableWithoutDefinition(
   formulaId: string,
   formulaVersion: string,
+  reason = 'The requested formula id and version are not registered.',
 ): CalculationResult {
   return {
     status: 'unavailable',
@@ -54,7 +55,7 @@ function unavailableWithoutDefinition(
     reviewStatus: null,
     reviewMarker: 'UNAVAILABLE',
     inputEcho: Object.freeze([]),
-    reason: 'The requested formula id and version are not registered.',
+    reason,
   };
 }
 
@@ -313,14 +314,43 @@ export function calculateFormula(
   registry: FormulaRegistry,
   request: CalculationRequest,
 ): CalculationResult {
-  const formulaId = requestedId(request?.formulaId);
-  const formulaVersion = requestedId(request?.formulaVersion);
-  const definition = registry.resolveForCalculation(
-    formulaId,
-    formulaVersion,
-  );
-  if (!definition) {
-    return unavailableWithoutDefinition(formulaId, formulaVersion);
+  try {
+    if (
+      !registry ||
+      !request ||
+      typeof registry.resolveForCalculation !== 'function'
+    ) {
+      return unavailableWithoutDefinition(
+        requestedId(request?.formulaId),
+        requestedId(request?.formulaVersion),
+        'The pinned formula request could not be processed.',
+      );
+    }
+    const formulaId = requestedId(request.formulaId);
+    const formulaVersion = requestedId(request.formulaVersion);
+    const definition = registry.resolveForCalculation(
+      formulaId,
+      formulaVersion,
+    );
+    if (!definition) {
+      return unavailableWithoutDefinition(formulaId, formulaVersion);
+    }
+    return calculateKnownFormula(definition, request);
+  } catch {
+    // Registry lookup, input validation, guard evaluation, and rounding all
+    // resolve here with a sanitized reason instead of throwing.
+    let formulaId = '';
+    let formulaVersion = '';
+    try {
+      formulaId = requestedId(request?.formulaId);
+      formulaVersion = requestedId(request?.formulaVersion);
+    } catch {
+      // Keep the redacted fallback ids.
+    }
+    return unavailableWithoutDefinition(
+      formulaId,
+      formulaVersion,
+      'The pinned formula request could not be processed.',
+    );
   }
-  return calculateKnownFormula(definition, request);
 }
