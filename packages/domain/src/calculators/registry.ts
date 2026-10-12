@@ -403,6 +403,11 @@ function validateDefinition(definition: FormulaDefinition): void {
       'A formula requires population-limit text and structured guards.',
     );
   }
+  if (definition.populationLimits.guards.length === 0) {
+    invalidDefinition(
+      'A formula requires at least one population guard; adult-only v1 carries at least an age guard.',
+    );
+  }
   const guardIds = new Set<string>();
   for (const guard of definition.populationLimits.guards) {
     assertGuard(guard, inputsById);

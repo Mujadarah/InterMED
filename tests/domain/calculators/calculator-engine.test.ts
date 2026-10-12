@@ -127,6 +127,28 @@ describe('calculator registry and result provenance', () => {
     expect(() => registry.register(olderVersion)).toThrow();
   });
 
+  it('rejects registration with an empty population guard list', () => {
+    const definition: TestFormulaDefinition = {
+      ...linear,
+      formulaId: 'synthetic-no-guards',
+      populationLimits: {
+        text: linear.populationLimits.text,
+        guards: [],
+      },
+    };
+    const registry = createFormulaRegistry();
+    let error: unknown;
+    try {
+      registry.register(definition);
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toMatchObject({
+      name: 'FormulaRegistrationError',
+      code: 'invalid-definition',
+    });
+  });
+
   it('rejects a guard with an unknown operator at registration', () => {
     const unknownGuard = {
       id: 'synthetic-unknown-guard',
