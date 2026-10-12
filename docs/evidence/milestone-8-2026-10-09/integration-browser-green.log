@@ -1,0 +1,36 @@
+[WebServer] (node:21584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:41460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 3 workers
+
+(node:9836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28880) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 3 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (478ms)
+(node:24936) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (1.2s)
+  ok 2 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (1.2s)
+(node:45132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6764) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 6 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (2.9s)
+  ok 4 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (3.7s)
+(node:24676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 5 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (3.8s)
+(node:44844) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 7 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (3.9s)
+  ok 9 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:146:1 › renders an offline deep link to /favorites from the precache (2.9s)
+  ok 8 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (4.0s)
+
+  9 passed (13.2s)

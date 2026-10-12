@@ -12,6 +12,8 @@ import type { ReactNode } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
+import { FavoritesPage } from './FavoritesPage';
+import { LocalPreferencesSettings } from './LocalPreferencesSettings';
 import { RouteFocusContext, useRouteFocus } from './route-focus';
 import { ShellStatus } from './ShellStatus';
 
@@ -28,6 +30,10 @@ const MedicationDetailPage = lazy(() =>
     default: module.MedicationDetailPage,
   })),
 );
+// The favorites page and the local preferences settings stay eager imports.
+// The precached shell is one asset below its sixteen-asset cap, so one more
+// lazy chunk would take the last slot and leave no headroom; both pages are
+// small, so they ride along in the entry chunk instead.
 
 /**
  * Calm placeholder while a lazily loaded route chunk arrives.
@@ -50,6 +56,7 @@ function MedicationDetailRoute({ services }: { services: AppServices }) {
       productId={productId ?? ''}
       dataset={services.dataset}
       detail={services.medicationDetail}
+      preferences={services.preferences}
     />
   );
 }
@@ -193,6 +200,9 @@ export function App({
           <NavLink to="/search" tabIndex={0}>
             Medication search
           </NavLink>
+          <NavLink to="/favorites" tabIndex={0}>
+            Favorites
+          </NavLink>
           <NavLink to="/status" tabIndex={0}>
             Development status
           </NavLink>
@@ -299,6 +309,9 @@ export function App({
                         Temporary development artwork: original I monogram, not
                         approved final branding.
                       </p>
+                      <LocalPreferencesSettings
+                        preferences={services.preferences}
+                      />
                     </section>
                   }
                 />
@@ -308,6 +321,16 @@ export function App({
                     <MedicationSearchPage
                       dataset={services.dataset}
                       search={services.medicationSearch}
+                      preferences={services.preferences}
+                    />
+                  }
+                />
+                <Route
+                  path="/favorites"
+                  element={
+                    <FavoritesPage
+                      dataset={services.dataset}
+                      preferences={services.preferences}
                     />
                   }
                 />

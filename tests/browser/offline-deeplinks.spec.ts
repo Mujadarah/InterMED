@@ -142,3 +142,65 @@ test('renders offline deep links that carry a search query from the precache', a
     await server.close();
   }
 });
+
+test('renders an offline deep link to /favorites from the precache', async ({
+  page,
+  context,
+}, testInfo) => {
+  const server = await productionServer();
+  server.revision('harness');
+  try {
+    await page.goto(server.url);
+    await expect(
+      page.getByText('Shell available offline', { exact: true }),
+    ).toBeVisible();
+    await page.waitForFunction(
+      () => navigator.serviceWorker.controller !== null,
+    );
+    await harnessReady(page);
+    // Favorite one synthetic product through the local-store harness, so the
+    // deep link is the first time this session opens the favorites route.
+    const favoriteId = await page.evaluate(async () => {
+      const harness = (window as unknown as HarnessWindow)
+        .__intermedLocalStoreHarness;
+      const staged = await harness.stageAndActivate('alpha');
+      const productId = staged.productIds['SP-FICTIVOL'] ?? '';
+      await harness.addFavorite(productId);
+      return productId;
+    });
+    expect(favoriteId).not.toBe('');
+
+    // Disconnect the origin in every engine; also disable networking in Chromium.
+    server.failure('offline');
+    if (testInfo.project.name === 'chromium-desktop')
+      await context.setOffline(true);
+    const requestsAfterOffline = server.requests.length;
+
+    // A cold deep link to the favorites route, never visited in this session.
+    const favoritesTab = await context.newPage();
+    await favoritesTab.goto(`${server.url}/favorites`);
+    await expect(
+      favoritesTab.getByRole('heading', { name: 'Favorites', level: 1 }),
+    ).toBeVisible();
+    // Reconciliation against the active dataset refreshed the favorite's
+    // display name to the product's current commercial name.
+    const favoriteLink = favoritesTab.getByRole('link', {
+      name: 'Fictivol alpha',
+    });
+    await expect(favoriteLink).toBeVisible();
+    await expect(favoriteLink).toHaveAttribute(
+      'href',
+      `/medication/${encodeURIComponent(favoriteId)}`,
+    );
+
+    // Neither the deep link, nor its scripts or styles, reached the origin.
+    expect(
+      server.requests
+        .slice(requestsAfterOffline)
+        .filter((path) => path !== '/sw.js'),
+    ).toEqual([]);
+    await favoritesTab.close();
+  } finally {
+    await server.close();
+  }
+});

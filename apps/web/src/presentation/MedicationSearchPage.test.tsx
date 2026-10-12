@@ -7,6 +7,7 @@ import {
   render,
   screen,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter, MemoryRouter, useLocation } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type {
@@ -14,6 +15,7 @@ import type {
   DatasetUpdateState,
   LocalDatasetGeneration,
   MedicationSearchMatch,
+  RecentSearchEntry,
 } from '@intermed/domain';
 import { presentField } from '@intermed/domain';
 import { product as makeProduct } from '../../../../tests/domain/builders';
@@ -21,6 +23,7 @@ import type {
   MedicationSearchResponse,
   MedicationSearchService,
 } from '../application/medication-search';
+import type { PreferencesService } from '../application/preferences';
 import { MedicationSearchPage } from './MedicationSearchPage';
 import { getSearchStatusMessage } from './search-status';
 
@@ -124,13 +127,230 @@ function renderPage(
   service: MedicationSearchService = {
     search: async () => response([]),
   },
+  preferences: PreferencesService = emptyPreferences(),
 ) {
   return render(
     <MemoryRouter initialEntries={['/search']}>
-      <MedicationSearchPage dataset={dataset(state)} search={service} />
+      <MedicationSearchPage
+        dataset={dataset(state)}
+        search={service}
+        preferences={preferences}
+      />
     </MemoryRouter>,
   );
 }
+
+function emptyPreferences(
+  overrides: Partial<PreferencesService> = {},
+): PreferencesService {
+  return {
+    listFavorites: async () => [],
+    isFavorite: async () => false,
+    addFavorite: async (input) => ({
+      ...input,
+      createdAt: '2026-10-09T00:00:00.000Z',
+      status: 'available',
+    }),
+    removeFavorite: async () => undefined,
+    listRecentSearches: async () => [],
+    recordOpenedSearch: async () => {
+      throw new Error('Unexpected recent search');
+    },
+    clearRecentSearches: async () => undefined,
+    exportPreferences: async (exportedAt) => ({
+      format: 'intermed-preferences',
+      version: 1,
+      exportedAt,
+      favorites: [],
+      recentSearches: [],
+    }),
+    clearAllLocalData: async () => ({ status: 'cleared' }),
+    ...overrides,
+  };
+}
+
+const recentFictivol: RecentSearchEntry = {
+  id: '2026-10-08T12:00:00.000Z#fictivol',
+  query: 'fictivol',
+  occurredAt: '2026-10-08T12:00:00.000Z',
+  lastKnownDatasetVersionId: null,
+};
+
+it('offers recent searches only for an empty search with an active dataset', async () => {
+  const user = userEvent.setup();
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-RECENT-FICTIVOL')])),
+  };
+  const preferences = emptyPreferences({
+    listRecentSearches: async () => [recentFictivol],
+  });
+  renderPage({ status: 'ready', generation }, search, preferences);
+
+  expect(
+    await screen.findByRole('heading', { name: 'Recent searches' }),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole('button', { name: 'Search again for fictivol' }),
+  );
+
+  expect(
+    await screen.findByRole('list', { name: 'Medication search results' }),
+  ).toBeVisible();
+  expect(screen.getByRole('searchbox')).toHaveValue('fictivol');
+  expect(
+    screen.getByRole('heading', { name: 'Local medication search' }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('heading', { name: 'Fictivol' }),
+  ).not.toBeInTheDocument();
+  expect(search.search).toHaveBeenCalledWith(
+    'fictivol',
+    expect.any(AbortSignal),
+  );
+});
+
+it('confirms clearing recent searches and shows the empty history', async () => {
+  const user = userEvent.setup();
+  let entries: readonly RecentSearchEntry[] = [recentFictivol];
+  const clearRecentSearches = vi.fn(async () => {
+    entries = [];
+  });
+  renderPage(
+    { status: 'ready', generation },
+    undefined,
+    emptyPreferences({
+      listRecentSearches: async () => entries,
+      clearRecentSearches,
+    }),
+  );
+
+  await screen.findByRole('button', { name: 'Search again for fictivol' });
+  await user.click(
+    screen.getByRole('button', { name: 'Clear recent searches' }),
+  );
+  const dialog = screen.getByRole('alertdialog', {
+    name: 'Clear recent searches?',
+  });
+  expect(dialog).toHaveTextContent(
+    'This removes recent searches from this browser.',
+  );
+  expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  await user.click(screen.getByRole('button', { name: 'Clear searches' }));
+
+  expect(clearRecentSearches).toHaveBeenCalledOnce();
+  expect(await screen.findByText('No recent searches yet.')).toBeVisible();
+  expect(
+    screen.getByRole('heading', { name: 'Local medication search' }),
+  ).toHaveFocus();
+});
+
+it('records a recent query only when a result is opened', async () => {
+  vi.useFakeTimers();
+  const match = candidate('SP-OPENED-RECENT');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  const preferences = emptyPreferences({ recordOpenedSearch });
+  renderPage(
+    { status: 'ready', generation },
+    { search: vi.fn(async () => response([match])) },
+    preferences,
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: '  fictivol  ' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  expect(recordOpenedSearch).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+});
+
+it('records an opened search exactly once for a mouse click', async () => {
+  vi.useFakeTimers();
+  const match = candidate('SP-OPENED-ONCE-CLICK');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  renderPage(
+    { status: 'ready', generation },
+    { search: vi.fn(async () => response([match])) },
+    emptyPreferences({ recordOpenedSearch }),
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(recordOpenedSearch).toHaveBeenCalledTimes(1);
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+});
+
+it('records an opened search exactly once when Enter activates a result', async () => {
+  vi.useFakeTimers();
+  window.history.replaceState({}, '', '/search');
+  const replaceState = vi.spyOn(window.history, 'replaceState');
+  const match = candidate('SP-OPENED-ONCE-ENTER');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  render(
+    <BrowserRouter>
+      <PathnameProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={{ search: vi.fn(async () => response([match])) }}
+        preferences={emptyPreferences({ recordOpenedSearch })}
+      />
+    </BrowserRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(screen.getByRole('link', { name: /Open Fictivol/ })).toBeVisible();
+  const writesBeforeActivate = replaceState.mock.calls.length;
+
+  const link = screen.getByRole('link', { name: /Open Fictivol/ });
+  // A focused link fires click after Enter: simulate both events in order.
+  fireEvent.keyDown(link, { key: 'Enter' });
+  fireEvent.click(link);
+
+  expect(recordOpenedSearch).toHaveBeenCalledTimes(1);
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+  expect(locationPath()).toMatch(/^\/medication\//);
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationPath()).toMatch(/^\/medication\//);
+  expect(replaceState).toHaveBeenCalledTimes(writesBeforeActivate);
+});
+
+it('does not read or show recents when no active dataset is ready', () => {
+  const listRecentSearches = vi.fn(async () => [recentFictivol]);
+  renderPage(
+    { status: 'never-downloaded' },
+    undefined,
+    emptyPreferences({ listRecentSearches }),
+  );
+
+  expect(
+    screen.queryByRole('heading', { name: 'Recent searches' }),
+  ).not.toBeInTheDocument();
+  expect(listRecentSearches).not.toHaveBeenCalled();
+});
 
 it('shows local provenance and keeps duplicate names distinct with complete source fields', async () => {
   vi.useFakeTimers();
@@ -194,6 +414,7 @@ it('keeps the settled query in the URL for browser back', async () => {
       <MedicationSearchPage
         dataset={dataset({ status: 'ready', generation })}
         search={search}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );
@@ -208,6 +429,45 @@ it('keeps the settled query in the URL for browser back', async () => {
   });
 
   expect(locationSearch()).toBe('?q=fictivol');
+});
+
+it('does not let a pending query URL update undo opening a result', async () => {
+  vi.useFakeTimers();
+  window.history.replaceState({}, '', '/search');
+  const replaceState = vi.spyOn(window.history, 'replaceState');
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-PENDING-URL')])),
+  };
+  render(
+    <BrowserRouter>
+      <PathnameProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={search}
+        preferences={emptyPreferences({
+          recordOpenedSearch: async () => recentFictivol,
+        })}
+      />
+    </BrowserRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(screen.getByRole('link', { name: /Open Fictivol/ })).toBeVisible();
+  const searchUrlWrites = replaceState.mock.calls.length;
+
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(locationPath()).toMatch(/^\/medication\//);
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationPath()).toMatch(/^\/medication\//);
+  expect(replaceState).toHaveBeenCalledTimes(searchUrlWrites);
 });
 
 it('drops a pending query URL write when a result is opened', async () => {
@@ -225,6 +485,7 @@ it('drops a pending query URL write when a result is opened', async () => {
       <MedicationSearchPage
         dataset={dataset({ status: 'ready', generation })}
         search={search}
+        preferences={emptyPreferences()}
       />
     </BrowserRouter>,
   );
@@ -260,6 +521,7 @@ it('removes the query from the URL when the input is cleared', async () => {
       <MedicationSearchPage
         dataset={dataset({ status: 'ready', generation })}
         search={search}
+        preferences={emptyPreferences()}
       />
     </MemoryRouter>,
   );

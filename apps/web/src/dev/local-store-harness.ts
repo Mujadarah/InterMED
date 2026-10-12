@@ -9,6 +9,7 @@ import {
   LOCAL_DATASET_DB_NAME,
   openSchemaUpgradeProbe,
   SYNTHETIC_DATASET,
+  SYNTHETIC_DEFAULT_PRODUCTS,
 } from '@intermed/local-store';
 
 /**
@@ -42,7 +43,10 @@ export interface HarnessUpgradeResult {
 
 export interface LocalStoreHarness {
   state(): Promise<DatasetUpdateState>;
-  stageAndActivate(label: string): Promise<{
+  stageAndActivate(
+    label: string,
+    options?: { readonly omitProductKeys?: readonly string[] },
+  ): Promise<{
     readonly generationId: string;
     readonly productIds: Readonly<Record<string, string>>;
   }>;
@@ -81,8 +85,15 @@ function installLocalStoreHarness(): LocalStoreHarness {
   let evaluation: Evaluation | null = null;
   const harness: LocalStoreHarness = {
     state: () => store.open(),
-    stageAndActivate: async (label) => {
-      const synthetic = await buildSyntheticCatalogueBundle({ label });
+    stageAndActivate: async (label, options = {}) => {
+      const omitted = new Set(options.omitProductKeys ?? []);
+      const products = SYNTHETIC_DEFAULT_PRODUCTS.filter(
+        (product) => !omitted.has(product.key),
+      );
+      const synthetic = await buildSyntheticCatalogueBundle({
+        label,
+        products,
+      });
       await store.updates.stageAndActivate(synthetic.manifest, synthetic.text);
       return {
         generationId: synthetic.generationId,

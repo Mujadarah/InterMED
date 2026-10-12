@@ -93,7 +93,9 @@ test('does not apply the production CSP to the Vite development server', async (
         );
     });
   });
-  await page.goto('http://127.0.0.1:5174/');
+  await page.goto(
+    process.env['INTERMED_VITE_DEV_URL'] ?? 'http://127.0.0.1:5174/',
+  );
   await expect(
     page.getByRole('heading', { name: 'A foundation for InterMED' }),
   ).toBeVisible();

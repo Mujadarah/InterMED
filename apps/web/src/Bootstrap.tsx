@@ -14,6 +14,11 @@ import {
   type MedicationDetailService,
   unavailableMedicationDetail,
 } from './application/medication-detail';
+import {
+  createPreferencesService,
+  type PreferencesService,
+  unavailablePreferencesService,
+} from './application/preferences';
 import { createServices } from './application/services';
 import { App } from './presentation/App';
 import { parseConfig } from './config';
@@ -34,6 +39,10 @@ const medicationSearchServices = new WeakMap<
 const medicationDetailServices = new WeakMap<
   LocalDatasetStore,
   MedicationDetailService
+>();
+const preferencesServices = new WeakMap<
+  LocalDatasetStore,
+  PreferencesService
 >();
 
 function browserDatasetStore(): LocalDatasetStore {
@@ -72,6 +81,15 @@ function medicationDetailFor(
   if (!service) {
     service = createMedicationDetailService(readerDependencies(store));
     medicationDetailServices.set(store, service);
+  }
+  return service;
+}
+
+function preferencesFor(store: LocalDatasetStore): PreferencesService {
+  let service = preferencesServices.get(store);
+  if (!service) {
+    service = createPreferencesService(store.preferences, store);
+    preferencesServices.set(store, service);
   }
   return service;
 }
@@ -128,6 +146,9 @@ export function Bootstrap({
     (localStore
       ? medicationDetailFor(localStore)
       : unavailableMedicationDetail);
+  const preferencesService = localStore
+    ? preferencesFor(localStore)
+    : unavailablePreferencesService;
   return (
     <App
       services={createServices(
@@ -136,6 +157,7 @@ export function Bootstrap({
         datasetSource,
         searchService,
         detailService,
+        preferencesService,
       )}
       shell={shell}
     />

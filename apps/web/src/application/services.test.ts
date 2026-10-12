@@ -1,6 +1,7 @@
 import type { DatasetStateSource, DatasetUpdateState } from '@intermed/domain';
 import { expect, it } from 'vitest';
 import { mockBootstrapProvider } from '@intermed/data-access';
+import { unavailablePreferencesService } from './preferences';
 import { createServices } from './services';
 
 const neverDownloaded: DatasetUpdateState = { status: 'never-downloaded' };
@@ -38,4 +39,16 @@ it('exposes the injected local dataset state source unchanged', () => {
   );
   expect(services.dataset).toBe(dataset);
   expect(services.dataset.getState()).toEqual({ status: 'never-downloaded' });
+});
+
+it('exposes the injected local preferences service unchanged', () => {
+  const services = createServices(
+    { mode: 'mock' },
+    mockBootstrapProvider,
+    dataset,
+    undefined,
+    undefined,
+    unavailablePreferencesService,
+  );
+  expect(services.preferences).toBe(unavailablePreferencesService);
 });

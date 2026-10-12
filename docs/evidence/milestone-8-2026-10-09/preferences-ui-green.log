@@ -1,0 +1,8 @@
+Milestone 8 UI focused green evidence
+Date: 2026-10-09
+Command: npm run test -- packages/local-store/src/preferences.test.ts apps/web/src/application/preferences.test.ts apps/web/src/application/services.test.ts apps/web/src/Bootstrap.test.tsx apps/web/src/presentation/MedicationDetailPage.test.tsx apps/web/src/presentation/MedicationSearchPage.test.tsx apps/web/src/presentation/FavoritesPage.test.tsx apps/web/src/presentation/LocalPreferencesSettings.test.tsx apps/web/src/presentation/App.test.tsx --reporter=dot
+Runtime: Node v24.21.0, npm 11.19.0, Vitest v4.1.11
+Result: exit 0
+Test files: 9 passed
+Tests: 114 passed
+Duration: 6.28s

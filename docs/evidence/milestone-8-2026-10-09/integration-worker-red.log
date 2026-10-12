@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 <repo>
+
+ ❯ apps/web/pwa/worker.test.ts (70 tests | 1 failed) 78ms
+   × serves verified index HTML for offline navigation to /favorites 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/pwa/worker.test.ts > serves verified index HTML for offline navigation to /favorites
+AssertionError: expected undefined to be '<html>synthetic shell</html>' // Object.is equality
+
+- Expected:
+"<html>synthetic shell</html>"
+
++ Received:
+undefined
+
+ ❯ apps/web/pwa/worker.test.ts:483:34
+    481|     request: request(path, { mode: 'navigate' }),
+    482|   });
+    483|   expect(await response?.text()).toBe(bodies.get('/index.html'));
+       |                                  ^
+    484|   expect(env.fetch).not.toHaveBeenCalled();
+    485| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 69 passed (70)
+   Start at  14:00:31
+   Duration  606ms (transform 32ms, setup 0ms, import 67ms, tests 78ms, environment 0ms)
