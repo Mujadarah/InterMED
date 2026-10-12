@@ -269,6 +269,75 @@ it('records a recent query only when a result is opened', async () => {
   );
 });
 
+it('records an opened search exactly once for a mouse click', async () => {
+  vi.useFakeTimers();
+  const match = candidate('SP-OPENED-ONCE-CLICK');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  renderPage(
+    { status: 'ready', generation },
+    { search: vi.fn(async () => response([match])) },
+    emptyPreferences({ recordOpenedSearch }),
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(recordOpenedSearch).toHaveBeenCalledTimes(1);
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+});
+
+it('records an opened search exactly once when Enter activates a result', async () => {
+  vi.useFakeTimers();
+  window.history.replaceState({}, '', '/search');
+  const replaceState = vi.spyOn(window.history, 'replaceState');
+  const match = candidate('SP-OPENED-ONCE-ENTER');
+  const recordOpenedSearch = vi.fn(async () => recentFictivol);
+  render(
+    <BrowserRouter>
+      <PathnameProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={{ search: vi.fn(async () => response([match])) }}
+        preferences={emptyPreferences({ recordOpenedSearch })}
+      />
+    </BrowserRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(screen.getByRole('link', { name: /Open Fictivol/ })).toBeVisible();
+  const writesBeforeActivate = replaceState.mock.calls.length;
+
+  const link = screen.getByRole('link', { name: /Open Fictivol/ });
+  // A focused link fires click after Enter: simulate both events in order.
+  fireEvent.keyDown(link, { key: 'Enter' });
+  fireEvent.click(link);
+
+  expect(recordOpenedSearch).toHaveBeenCalledTimes(1);
+  expect(recordOpenedSearch).toHaveBeenCalledWith(
+    'fictivol',
+    match.record.product.datasetVersionId,
+  );
+  expect(locationPath()).toMatch(/^\/medication\//);
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationPath()).toMatch(/^\/medication\//);
+  expect(replaceState).toHaveBeenCalledTimes(writesBeforeActivate);
+});
+
 it('does not read or show recents when no active dataset is ready', () => {
   const listRecentSearches = vi.fn(async () => [recentFictivol]);
   renderPage(

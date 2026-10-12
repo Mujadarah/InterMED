@@ -111,10 +111,12 @@ function SearchResult({
   row,
   query,
   onActivate,
+  onCancelPendingWrite,
 }: {
   row: DisambiguatedSearchResult;
   query: string;
   onActivate: () => void;
+  onCancelPendingWrite: () => void;
 }) {
   const product = row.match.record.product;
   const path = `/medication/${encodeURIComponent(product.id)}`;
@@ -139,8 +141,10 @@ function SearchResult({
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
         onClick={onActivate}
         onKeyDown={(event) => {
-          // Enter on a focused link also fires a click, so both paths land here.
-          if (event.key === 'Enter') onActivate();
+          // Enter on a focused link also fires a click, which records the
+          // search. Cancel the pending URL write here so navigation still
+          // wins on the keyboard path, without recording twice.
+          if (event.key === 'Enter') onCancelPendingWrite();
         }}
       >
         <span className="search-result-name">{product.commercialName}</span>
@@ -545,6 +549,7 @@ export function MedicationSearchPage({
               onActivate={() =>
                 recordOpenedSearch(row.match.record.product.datasetVersionId)
               }
+              onCancelPendingWrite={cancelQueryUrlSync}
             />
           ))}
         </ol>
