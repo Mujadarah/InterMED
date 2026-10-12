@@ -112,8 +112,22 @@ After the cleanup commit removed the Tempo editor helper, the full check was rep
 
 These are automated browser checks. Manual screen-reader and real-device confirmation remains part of the later acceptance work (Milestone 12).
 
+## Integration with the bundle split
+
+M8 was developed on top of `f5382bd`; PR #18 (bundle split, `597d1a5`) landed first, so `origin/main` was merged into this branch in `a6985e1`. Git reported six content conflicts. Every resolution kept both branches' behaviour; the per-file notes are in [`integration-merge-resolution.log`](evidence/milestone-8-2026-10-09/integration-merge-resolution.log).
+
+- **`App.tsx`**: main's structure is kept (lazy search and detail routes behind one `Suspense`, the pathname-keyed `RouteErrorBoundary`, the `RouteFocusContext` provider, focusable static headings), with M8's `preferences` props, the `/favorites` route and nav link, and `LocalPreferencesSettings` on `/status` added into it.
+- **Eager imports**: `FavoritesPage` and `LocalPreferencesSettings` are imported eagerly. The precache was one asset below its 16-asset cap, and another lazy chunk would have taken the last slot. After the merge the entry chunk is 89.41 kB, the largest chunk is `framework-vendor` at 258.58 kB, there are 15 precached assets, and the build prints no chunk-size warning.
+- **`MedicationSearchPage.tsx`**: both branches had fixed the same stale debounced URL write. One implementation is kept, using main's naming. Activating a result, by click or Enter, cancels the pending URL write **and** records the recent search. Both branches' regression tests are kept.
+- **`MedicationDetailPage.tsx`**: M8's favorite toggle and main's `useRouteHeadingFocus()` are both present.
+- **Offline `/favorites`** (`75a42f6`): the service worker serves the cached shell for cold offline navigations to `/favorites`, test-first.
+  - The worker unit test failed before the fix (1 of 70) and passed after (70 of 70).
+  - The offline deep-link browser test failed before the fix (3 failed) and passed after (9 passed).
+  - Logs: [`integration-worker-red.log`](evidence/milestone-8-2026-10-09/integration-worker-red.log), [`-green`](evidence/milestone-8-2026-10-09/integration-worker-green.log), [`integration-browser-red.log`](evidence/milestone-8-2026-10-09/integration-browser-red.log), [`-green`](evidence/milestone-8-2026-10-09/integration-browser-green.log).
+- **Favorites heading focus**: the merged `App.test.tsx` already asserts that navigating to `/favorites` focuses the Favorites heading, so no further change was needed.
+- **Full check** at `1bfd02b`, run by the orchestrator: format, lint, typecheck, 968 unit tests in 61 files, boundaries (103 files), audit (0 vulnerabilities), build, the dist secret scan, and Playwright (172 passed, 2 skipped). See [`integration-full-check.log`](evidence/milestone-8-2026-10-09/integration-full-check.log).
+- **After merging main again** (`5c4bee7`, which brings in #19–#21, docs and the domain): format, lint, typecheck, unit tests (1,078 in 63 files) and boundaries pass. The browser suite runs in CI.
+
 ## Open items
 
-- The main JavaScript chunk is 560.29 kB (169.42 kB gzip), above the build tool's non-fatal 500 kB advisory. PR #18 (bundle split) resolves this once merged.
-- The service worker must serve `/favorites` for offline cold loads once PR #18 lands; `production-server.ts` already maps the route for the test server, and the integration pass must cover the cached shell.
 - The implementation carried a Tempo editor helper — `tempo-sdk` as an `apps/web` devDependency plus `defineControls` blocks in the five touched components — which was out of scope. Commit `ead4953` removes it entirely; the post-cleanup check above confirms all gates still pass.
