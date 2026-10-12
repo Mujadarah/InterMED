@@ -221,7 +221,12 @@ function addEvaluation(
     for (const input of evaluation.unresolvedInputs)
       addReason(state, input.reason);
   }
-  if (!available) addUnavailableReason(state, evaluation.unavailableReason);
+  if (!available) {
+    // An unavailable evaluation is unavailable for every pair, including when
+    // it carries no coverage rows and no source version to attribute them to.
+    state.providerUnavailable = true;
+    addUnavailableReason(state, evaluation.unavailableReason);
+  }
 
   if (rows.length > 0) {
     for (const row of rows) {

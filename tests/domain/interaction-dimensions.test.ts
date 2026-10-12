@@ -721,6 +721,41 @@ it('scenario 13: only a valid current record reports a documenting position', as
   expect(mismatchedResult.coverage.coverageComplete).toBe(false);
 });
 
+it('scenario 14: an unavailable evaluation without coverage rows reports unavailable', async () => {
+  const throwingDescribe: DrugInteractionProvider = {
+    describe: () => {
+      throw new Error('synthetic description failure');
+    },
+    evaluate: () => new Promise(() => {}),
+  };
+  const invalidDescriptor: DrugInteractionProvider = {
+    describe: () =>
+      ({ providerId: 'synthetic-descriptor' }) as unknown as ReturnType<
+        DrugInteractionProvider['describe']
+      >,
+    evaluate: () => new Promise(() => {}),
+  };
+
+  const cases = [
+    [throwingDescribe, 'provider-description-error'],
+    [invalidDescriptor, 'provider-descriptor-invalid'],
+  ] as const;
+
+  for (const [provider, reason] of cases) {
+    const evaluation = await evaluate(provider);
+    expect(evaluation.status).toBe('unavailable');
+    expect(evaluation.evaluatedPairCoverage).toEqual([]);
+    expect(evaluation.sourceVersions).toEqual([]);
+
+    const result = assess(evaluation, CONTRACT_PAIR_AB);
+    expect(result.coverage.status).toBe('unavailable');
+    expect(result.coverage.coverageComplete).toBe(false);
+    expect(result.coverage.reasons).toContain(reason);
+    expect(result.finding.documentedInteraction).toBe(false);
+    expect(result.finding.affirmedNoInteraction).toBe(false);
+  }
+});
+
 it('removes the rejected single-category precedence API', () => {
   expect(
     Reflect.get(interactionDomain, 'categorizeInteractionOutcomes'),
