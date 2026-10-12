@@ -63,7 +63,13 @@ export function ConfirmationDialog({
       );
       const first = buttons[0];
       const last = buttons.at(-1);
-      if (!first || !last) return;
+      if (!first || !last) {
+        // While pending, no enabled button exists: keep focus on the panel
+        // instead of letting it escape the modal.
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -86,6 +92,7 @@ export function ConfirmationDialog({
         aria-labelledby={titleId}
         aria-describedby={messageId}
         aria-busy={pending}
+        tabIndex={-1}
       >
         <h2 id={titleId}>{title}</h2>
         <p id={messageId}>{message}</p>

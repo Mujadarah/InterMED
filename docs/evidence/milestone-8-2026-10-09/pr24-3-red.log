@@ -1,0 +1,12 @@
+Command: npm run test -- apps/web/src/presentation/ConfirmationDialog.test.tsx
+Runtime: Node v24.21.0, npm 11.19.0
+Vitest: v4.1.11
+Result: exit 1 (expected RED before implementation)
+
+ RUN  v4.1.11 <worktree>
+ ❯ apps/web/src/presentation/ConfirmationDialog.test.tsx (2 tests | 1 failed)
+   × keeps Tab and Shift+Tab on the panel while pending
+     Expected the element to have attribute tabindex="-1", received null
+
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
