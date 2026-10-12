@@ -1,0 +1,44 @@
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <worktree>
+
+ Γ¥» tests/importer/artifact.test.ts (14 tests | 1 failed) 92100ms
+     ├ù builds under the OS temp directory when no output parent is supplied 3967ms
+node.exe : 
+At line:1 char:1
++ & "<project>\.tools\node-v24.21.0-win-x64/node.exe" "D: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/importer/artifact.test.ts > importer function artifact > builds under the OS temp directory when no 
+output parent is supplied
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» tests/importer/artifact.test.ts:462:9
+    460|           .toLowerCase()
+    461|           .startsWith(`${resolve(process.cwd()).toLowerCase()}${sep}`),
+    462|       ).toBe(false);
+       |         ^
+    463|       expect(existsSync(join(artifact, 'src/main.js'))).toBe(true);
+    464|     } finally {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed | 59 passed (60)
+      Tests  1 failed | 1048 passed (1049)
+   Start at  16:33:31
+   Duration  95.09s (transform 32.25s, setup 0ms, import 82.37s, tests 153.47s, environment 28.49s)
+
