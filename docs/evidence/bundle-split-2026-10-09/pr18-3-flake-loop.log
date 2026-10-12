@@ -1,0 +1,29 @@
+App.test.tsx focus flake loop - 20 consecutive runs
+
+Command: npx vitest run apps/web/src/presentation/App.test.tsx
+Repeat: 20 iterations, each a fresh vitest process; exit codes all 0
+Command: npm run build && npx playwright test tests/browser/shell.spec.ts tests/browser/medication-search.spec.ts
+Browser confirmation of the same mechanism: 19 passed on chromium-desktop, webkit-phone and webkit-tablet
+
+run  1  exit=0  Tests  7 passed (7)
+run  2  exit=0  Tests  7 passed (7)
+run  3  exit=0  Tests  7 passed (7)
+run  4  exit=0  Tests  7 passed (7)
+run  5  exit=0  Tests  7 passed (7)
+run  6  exit=0  Tests  7 passed (7)
+run  7  exit=0  Tests  7 passed (7)
+run  8  exit=0  Tests  7 passed (7)
+run  9  exit=0  Tests  7 passed (7)
+run 10  exit=0  Tests  7 passed (7)
+run 11  exit=0  Tests  7 passed (7)
+run 12  exit=0  Tests  7 passed (7)
+run 13  exit=0  Tests  7 passed (7)
+run 14  exit=0  Tests  7 passed (7)
+run 15  exit=0  Tests  7 passed (7)
+run 16  exit=0  Tests  7 passed (7)
+run 17  exit=0  Tests  7 passed (7)
+run 18  exit=0  Tests  7 passed (7)
+run 19  exit=0  Tests  7 passed (7)
+run 20  exit=0  Tests  7 passed (7)
+
+20 of 20 runs exited 0 with identical results: 7 tests passed (7).

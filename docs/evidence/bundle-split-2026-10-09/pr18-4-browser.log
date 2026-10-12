@@ -1,0 +1,16 @@
+medication-search.spec.ts - "searches and opens a local candidate by keyboard after going offline"
+Command: npx playwright test tests/browser/medication-search.spec.ts --repeat-each=10 --project=chromium-desktop -g "keyboard after going offline"
+Repeat: 10 iterations on chromium-desktop
+
+ok  3 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (2.8s)
+ok  2 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (2.9s)
+ok  1 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.4s)
+ok  4 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (2.8s)
+ok  5 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.3s)
+ok  6 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.2s)
+ok  7 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.3s)
+ok  8 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.2s)
+ok  9 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (3.1s)
+ok 10 [chromium-desktop] ΓÇ║ tests\browser\medication-search.spec.ts:249:3 ΓÇ║ medication search browser coverage ΓÇ║ searches and opens a local candidate by keyboard after going offline (2.5s)
+
+10 passed (23.2s)

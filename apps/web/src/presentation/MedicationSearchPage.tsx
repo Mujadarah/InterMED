@@ -15,6 +15,7 @@ import { getSearchStatusMessage } from './search-status';
 import type { SearchStatus } from './search-status';
 import type { PreferencesService } from '../application/preferences';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { useRouteHeadingFocus } from './route-focus';
 import {
   createDisambiguatedSearchResults,
   type DisambiguatedSearchResult,
@@ -109,11 +110,11 @@ function SearchResultDetails({ row }: { row: DisambiguatedSearchResult }) {
 function SearchResult({
   row,
   query,
-  onOpen,
+  onActivate,
 }: {
   row: DisambiguatedSearchResult;
   query: string;
-  onOpen: () => void;
+  onActivate: () => void;
 }) {
   const product = row.match.record.product;
   const path = `/medication/${encodeURIComponent(product.id)}`;
@@ -135,8 +136,12 @@ function SearchResult({
       <Link
         to={href}
         tabIndex={0}
-        onClick={onOpen}
         aria-label={`Open ${product.commercialName}. Active ingredient(s): ${row.ingredients}. Strength: ${row.strength}. Dosage form: ${row.dosageForm}. Route: ${row.route}. Authorization status: ${row.authorization}. Manufacturer: ${row.manufacturer}. Pack/presentation: ${row.pack}. CIM: ${row.cim}. Catalogue record status: ${row.catalogueStatus}${sourceProductId}${productId}.`}
+        onClick={onActivate}
+        onKeyDown={(event) => {
+          // Enter on a focused link also fires a click, so both paths land here.
+          if (event.key === 'Enter') onActivate();
+        }}
       >
         <span className="search-result-name">{product.commercialName}</span>
         <SearchResultDetails row={row} />
@@ -184,6 +189,13 @@ export function MedicationSearchPage({
     generationId && !hasQuery && !currentRecentLoad,
   );
 
+  // This route's chunk resolves after the App's pathname effect, so the heading
+  // takes the pending route focus once it is in the document.
+  useRouteHeadingFocus();
+
+  // React Router hands out a new setSearchParams identity on every location
+  // change, so the latest one is kept here instead of being a dependency of the
+  // debounced URL write below.
   useEffect(() => {
     setSearchParamsRef.current = setSearchParams;
   }, [setSearchParams]);
@@ -196,8 +208,15 @@ export function MedicationSearchPage({
   }
 
   // Keep the settled query in the URL so the browser Back button restores it.
-  // A route change before the debounce fires means the search page no longer
-  // owns the URL update, and must not redirect away from the new route.
+  // The write is debounced like the search itself and replaces the current
+  // history entry, so typing never creates history entries.
+  //
+  // The effect depends on the query alone. Route pages load lazily, so while a
+  // detail chunk arrives React keeps this page mounted and the changing
+  // location gives setSearchParams a new identity: depending on it would
+  // reschedule this write, which would then navigate back to /search from the
+  // page the user just opened. The pathname recorded when the debounce is
+  // scheduled drops such a write, and opening a result cancels it outright.
   useEffect(() => {
     const pathnameAtSchedule = window.location.pathname;
     const timeout = window.setTimeout(() => {
@@ -523,7 +542,7 @@ export function MedicationSearchPage({
               key={row.match.record.product.id}
               row={row}
               query={query}
-              onOpen={() =>
+              onActivate={() =>
                 recordOpenedSearch(row.match.record.product.datasetVersionId)
               }
             />

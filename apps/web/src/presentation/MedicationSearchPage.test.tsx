@@ -57,6 +57,7 @@ function LocationProbe() {
   return <div data-testid="location-search-probe">{useLocation().search}</div>;
 }
 
+/** Renders the current router pathname so tests can assert the route. */
 function PathnameProbe() {
   return <div data-testid="location-path-probe">{useLocation().pathname}</div>;
 }
@@ -398,6 +399,46 @@ it('does not let a pending query URL update undo opening a result', async () => 
   });
   expect(locationPath()).toMatch(/^\/medication\//);
   expect(replaceState).toHaveBeenCalledTimes(searchUrlWrites);
+});
+
+it('drops a pending query URL write when a result is opened', async () => {
+  vi.useFakeTimers();
+  // A real router: the search page stays mounted across the navigation, the
+  // way it does while a lazily loaded route chunk is still arriving.
+  window.history.replaceState({}, '', '/search');
+  const replaceState = vi.spyOn(window.history, 'replaceState');
+  const search: MedicationSearchService = {
+    search: vi.fn(async () => response([candidate('SP-PENDING-URL')])),
+  };
+  render(
+    <BrowserRouter>
+      <PathnameProbe />
+      <MedicationSearchPage
+        dataset={dataset({ status: 'ready', generation })}
+        search={search}
+        preferences={emptyPreferences()}
+      />
+    </BrowserRouter>,
+  );
+
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'fictivol' },
+  });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(screen.getByRole('link', { name: /Open Fictivol/ })).toBeVisible();
+  // The settled write has already happened; nothing more may replace history.
+  const settledWrites = replaceState.mock.calls.length;
+
+  fireEvent.click(screen.getByRole('link', { name: /Open Fictivol/ }));
+  expect(locationPath()).toMatch(/^\/medication\//);
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(locationPath()).toMatch(/^\/medication\//);
+  expect(replaceState).toHaveBeenCalledTimes(settledWrites);
 });
 
 it('removes the query from the URL when the input is cleared', async () => {

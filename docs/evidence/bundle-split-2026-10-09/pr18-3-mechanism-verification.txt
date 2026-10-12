@@ -1,0 +1,28 @@
+Independent verification of the item-3 fix (route heading focus)
+
+Question: is the shared useRouteHeadingFocus mechanism load-bearing, or do the
+component tests pass without it?
+
+Method: an out-of-tree copy of HEAD was made with git archive, node_modules was
+junctioned in, and useRouteHeadingFocus was replaced with a no-op body. Nothing
+in the repository was modified.
+
+Result: npx vitest run App.test.tsx -> Test Files 1 passed (1), Tests 7 passed
+(7), exit 0.
+
+What this means: on Windows the App pathname effect finds the route heading
+itself, because every route heading that the tests assert on now carries
+tabIndex={-1} (item 3 added it to the three static headings and the search
+heading). The heading is already in the document when the effect runs, so the
+pending-focus claim path is not exercised on Windows.
+
+The mechanism remains the piece that covers the other ordering, where the App
+effect runs while the route chunk is still loading and the heading does not
+exist yet - the ordering the Ubuntu CI failure came from. That ordering could
+not be reproduced on this Windows machine, so the claim path is unproven here
+rather than proven unnecessary. The red evidence for item 3
+(pr18-3-red.log) was produced on this machine before tabIndex={-1} existed,
+which is why it is red.
+
+The CI-failing detail test additionally waits for the focus itself rather than
+for the heading, so it still fails if focus never arrives.

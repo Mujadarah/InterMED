@@ -1,0 +1,110 @@
+[WebServer] (node:46416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:45108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 3 workers
+
+(node:45660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (1.1s)
+  x  3 [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (398ms)
+(node:23204) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6984) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 2 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (3.7s)
+(node:39448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  5 [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (2.1s)
+  x  6 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache (2.0s)
+  ok 4 [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:21:1 › renders offline deep links to /search and /medication/:id from the precache (3.9s)
+
+
+  1) [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+
+    Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://127.0.0.1:62220/search?q=fictivol
+    Call log:
+      - navigating to "http://127.0.0.1:62220/search?q=fictivol", waiting until "load"
+
+
+      114 |     // A cold deep link to a query the search page itself writes into the URL.
+      115 |     const searchTab = await context.newPage();
+    > 116 |     await searchTab.goto(`${server.url}/search?q=fictivol`);
+          |                     ^
+      117 |     await expect(
+      118 |       searchTab.getByRole('heading', { name: 'Local medication search' }),
+      119 |     ).toBeVisible();
+        at <repo>\tests\browser\offline-deeplinks.spec.ts:116:21
+
+    Error Context: test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-chromium-desktop\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-chromium-desktop\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-chromium-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+
+    Error: page.goto: Server returned nothing (no headers, no data)
+    Call log:
+      - navigating to "http://127.0.0.1:54843/search?q=fictivol", waiting until "load"
+
+
+      114 |     // A cold deep link to a query the search page itself writes into the URL.
+      115 |     const searchTab = await context.newPage();
+    > 116 |     await searchTab.goto(`${server.url}/search?q=fictivol`);
+          |                     ^
+      117 |     await expect(
+      118 |       searchTab.getByRole('heading', { name: 'Local medication search' }),
+      119 |     ).toBeVisible();
+        at <repo>\tests\browser\offline-deeplinks.spec.ts:116:21
+
+    Error Context: test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-phone\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-phone\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+
+    Error: page.goto: Server returned nothing (no headers, no data)
+    Call log:
+      - navigating to "http://127.0.0.1:54862/search?q=fictivol", waiting until "load"
+
+
+      114 |     // A cold deep link to a query the search page itself writes into the URL.
+      115 |     const searchTab = await context.newPage();
+    > 116 |     await searchTab.goto(`${server.url}/search?q=fictivol`);
+          |                     ^
+      117 |     await expect(
+      118 |       searchTab.getByRole('heading', { name: 'Local medication search' }),
+      119 |     ).toBeVisible();
+        at <repo>\tests\browser\offline-deeplinks.spec.ts:116:21
+
+    Error Context: test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-tablet\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-tablet\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-deeplinks-renders--3371c-rch-query-from-the-precache-webkit-tablet\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium-desktop] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+    [webkit-phone] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+    [webkit-tablet] › tests\browser\offline-deeplinks.spec.ts:85:1 › renders offline deep links that carry a search query from the precache 
+  3 passed (10.9s)

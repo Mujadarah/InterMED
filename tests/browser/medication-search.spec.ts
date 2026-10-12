@@ -301,6 +301,8 @@ test.describe.serial('medication search browser coverage', () => {
       await expect(
         page.getByRole('heading', { name: 'Local medication search' }),
       ).toBeVisible();
+      // The route heading is focusable, so navigation focus lands on it
+      // instead of on the main region.
       await expect(
         page.getByRole('heading', { name: 'Local medication search' }),
       ).toBeFocused();

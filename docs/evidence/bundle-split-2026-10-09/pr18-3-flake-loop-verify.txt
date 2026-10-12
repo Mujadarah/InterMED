@@ -1,0 +1,26 @@
+App.test.tsx flake loop - 20 consecutive runs (independent verification)
+Command: npx vitest run apps/web/src/presentation/App.test.tsx
+Each iteration is a fresh vitest process.
+
+run  1  Tests 7 passed (7)
+run  2  Tests 7 passed (7)
+run  3  Tests 7 passed (7)
+run  4  Tests 7 passed (7)
+run  5  Tests 7 passed (7)
+run  6  Tests 7 passed (7)
+run  7  Tests 7 passed (7)
+run  8  Tests 7 passed (7)
+run  9  Tests 7 passed (7)
+run 10  Tests 7 passed (7)
+run 11  Tests 7 passed (7)
+run 12  Tests 7 passed (7)
+run 13  Tests 7 passed (7)
+run 14  Tests 7 passed (7)
+run 15  Tests 7 passed (7)
+run 16  Tests 7 passed (7)
+run 17  Tests 7 passed (7)
+run 18  Tests 7 passed (7)
+run 19  Tests 7 passed (7)
+run 20  Tests 7 passed (7)
+
+20 of 20 runs exited 0; 0 failed.
