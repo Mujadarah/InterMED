@@ -37,10 +37,9 @@ const HEIGHT_RANGES: FormulaInputDefinition['plausibleRangeByUnit'] =
     in: Object.freeze({ min: 50 / 2.54, max: 272 / 2.54 }),
   });
 
-// Age 18–130 years is the initial adult-release input range; lower or higher
-// values fail the technical input bounds before calculation.
+// The technical minimum lets under-18 ages reach the adult release-scope guard.
 const AGE_RANGE: FormulaInputDefinition['plausibleRangeByUnit'] = Object.freeze(
-  { years: Object.freeze({ min: 18, max: 130 }) },
+  { years: Object.freeze({ min: 0, max: 130 }) },
 );
 
 function weightInput(): FormulaInputDefinition {
@@ -123,7 +122,7 @@ function classifyBmi(bmi: number): FormulaClassification {
 }
 
 const ADULT_POPULATION = Object.freeze({
-  text: 'Adult-only release scope: ages 18 through 130 years. BMI-for-age classification for adolescents up to 19 years is not implemented.',
+  text: 'Adult-only release scope: ages 18 years and older. BMI-for-age classification for adolescents up to 19 years is not implemented.',
   guards: Object.freeze([
     Object.freeze({
       id: 'adult-age',
@@ -138,7 +137,7 @@ const ADULT_POPULATION = Object.freeze({
 });
 
 const ENGINEERING_LIMITATION =
-  'Technical bounds, not clinically validated plausibility thresholds: weight 1–500 kg, height 50–272 cm, and adult age 18–130 years. Values outside these technical bounds return invalid-input.';
+  'Technical bounds, not clinically validated plausibility thresholds: weight 1-500 kg, height 50-272 cm, age 0-130 years. Values outside these technical bounds return invalid-input.';
 
 const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
   Object.freeze({
@@ -187,7 +186,7 @@ const SOFT_CHECK_LIMITATION =
 
 const BMI_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
   formula: '1.0.0',
-  population: '2.0.0',
+  population: '2.1.0',
   classification: '2.0.0',
   presentation: '2.0.0',
   confirmation: '1.0.0',
@@ -195,7 +194,7 @@ const BMI_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
 
 const BSA_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
   formula: '1.0.0',
-  population: '2.0.0',
+  population: '2.1.0',
   presentation: '2.0.0',
   confirmation: '1.0.0',
 });
