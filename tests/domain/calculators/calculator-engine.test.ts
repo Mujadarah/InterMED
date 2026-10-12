@@ -5,6 +5,7 @@ import {
   createFormulaRegistry,
   describeFormulaContract,
   request,
+  type TestCalculationResult,
   type TestFormulaDefinition,
   type TestUnitConversion,
 } from './describe-formula-contract';
@@ -30,6 +31,25 @@ const calculatorEngine = Domain as unknown as {
     Record<string, readonly TestUnitConversion[]>
   >;
 };
+
+function calculateWithoutThrow(
+  registry: object,
+  untrustedRequest: unknown,
+): TestCalculationResult {
+  let result: unknown;
+  expect(() => {
+    result = calculatorEngine.calculateFormula(
+      registry,
+      untrustedRequest as object,
+    );
+  }).not.toThrow();
+  expect(result).toMatchObject({
+    status: expect.stringMatching(
+      /^(?:ok|invalid-input|out-of-population|unit-error|unavailable)$/,
+    ),
+  });
+  return result as TestCalculationResult;
+}
 
 describe('calculator engine public API', () => {
   it('exports the pinned formula registry and calculation function', () => {
@@ -946,6 +966,80 @@ describe('calculator registry and result provenance', () => {
       'unavailable',
     );
   });
+
+  it.each([
+    ['null', null],
+    ['string', 'not a calculation request'],
+    ['number', 42],
+  ] as const)('returns unavailable for a %s request', (_label, badRequest) => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+
+    const result = calculateWithoutThrow(registry, badRequest);
+
+    expect(result.status).toBe('unavailable');
+  });
+
+  it.each([
+    ['null', null],
+    ['array', []],
+    ['string', 'not an inputs object'],
+    ['number', 42],
+  ] as const)('returns invalid-input for %s inputs', (_label, inputs) => {
+    const registry = createFormulaRegistry();
+    registry.register(linear);
+    const validRequest = request('synthetic-linear', '1.0', {
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+    });
+
+    const result = calculateWithoutThrow(registry, {
+      ...validRequest,
+      inputs,
+    });
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'inputs',
+          code: 'invalid-input-shape',
+        }),
+      ]),
+    );
+  });
+
+  it.each([
+    { label: 'NaN', value: Number.NaN },
+    { label: 'Infinity', value: Number.POSITIVE_INFINITY },
+    { label: 'string', value: 'private compute output' },
+    { label: 'undefined', value: undefined },
+  ])(
+    'returns unavailable with a sanitized reason when compute returns $label',
+    ({ label, value }) => {
+      const formula = makeDefinition({
+        id: `synthetic-invalid-compute-${label.toLowerCase()}`,
+        version: '1.0',
+        compute: (() => value) as unknown as TestFormulaDefinition['compute'],
+      });
+      const registry = createFormulaRegistry();
+      registry.register(formula);
+
+      const result = calculateWithoutThrow(
+        registry,
+        request(formula.formulaId, formula.formulaVersion, {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-concentration': { value: 60, unit: 'mg/dL' },
+        }),
+      );
+
+      expect(result).toMatchObject({
+        status: 'unavailable',
+        reason: 'The pinned formula did not return a finite result.',
+      });
+      expect(JSON.stringify(result)).not.toContain('private compute output');
+    },
+  );
 
   it('does not call compute when a population guard is hit', () => {
     const compute = vi.fn(
