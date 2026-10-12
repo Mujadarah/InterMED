@@ -6,6 +6,7 @@ import {
   uniquePairs,
   type DrugInteractionProvider,
   type InteractionEvaluationOptions,
+  type MedicationCatalogueSnapshot,
   type ProviderResult,
 } from '@intermed/domain';
 import {
@@ -35,6 +36,15 @@ function options(
     now: () => SYNTHETIC_RETRIEVED_AT,
     ...overrides,
   };
+}
+
+function findIngredientByRecord(
+  snapshot: MedicationCatalogueSnapshot,
+  recordId: string,
+) {
+  return snapshot.activeIngredients.find(
+    (item) => item.sourceRecordKey === recordId,
+  );
 }
 
 it('canonicalizes pairs and returns the full unique pair set without self-pairs', () => {
@@ -965,8 +975,10 @@ it('includes direct ingredients alongside product ingredients in pair building',
       ],
     },
   ]);
-  const directId = base.snapshot.activeIngredients.find(
-    (item) => item.sourceRecordKey === 'AI-MIXED-PLACEBEXIUM',
+  const mixedPlacebexRecord = 'AI-MIXED-PLACEBEXIUM';
+  const directId = findIngredientByRecord(
+    base.snapshot,
+    mixedPlacebexRecord,
   )?.id;
   if (!directId) throw new Error('synthetic direct fixture missing');
   const selection = {
@@ -1053,8 +1065,10 @@ it('records direct duplicate of a product ingredient with both origins and no se
       ],
     },
   ]);
-  const duplicateId = base.snapshot.activeIngredients.find(
-    (item) => item.sourceRecordKey === 'AI-DUP-DIRECT-FICTIVOLINUM',
+  const duplicateFictivolRecord = 'AI-DUP-DIRECT-FICTIVOLINUM';
+  const duplicateId = findIngredientByRecord(
+    base.snapshot,
+    duplicateFictivolRecord,
   )?.id;
   if (!duplicateId) throw new Error('synthetic duplicate fixture missing');
   const selection = {
@@ -1106,12 +1120,12 @@ it('counts direct ingredients toward the too-many-pairs limit', async () => {
       ],
     },
   ]);
+  const limitDirectRecords = [
+    'AI-LIMIT-DIRECT-PLACEBEXIUM',
+    'AI-LIMIT-DIRECT-SYNTHETINIX',
+  ];
   const directIds = base.snapshot.activeIngredients
-    .filter((item) =>
-      ['AI-LIMIT-DIRECT-PLACEBEXIUM', 'AI-LIMIT-DIRECT-SYNTHETINIX'].includes(
-        item.sourceRecordKey,
-      ),
-    )
+    .filter((item) => limitDirectRecords.includes(item.sourceRecordKey))
     .map((item) => item.id);
   expect(directIds).toHaveLength(2);
   let called = false;
