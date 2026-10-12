@@ -760,6 +760,48 @@ it('merges provider records and flags source-term and reported-versus-covered di
   expect(coverageMerge.records).toHaveLength(firstResult.records.length);
 });
 
+it('flags severity disagreement only when different providers report different terms', async () => {
+  const offline = createOfflineSyntheticProvider();
+  const offlineResult = await offline.evaluate(CONTRACT_REQUEST);
+  const firstRecord = offlineResult.records[0];
+  if (!firstRecord?.severity) throw new Error('synthetic record missing');
+  const sameProviderVariant = {
+    ...offlineResult,
+    records: [
+      ...offlineResult.records,
+      { ...firstRecord, id: `${firstRecord.id}-context-variant` },
+    ],
+  };
+  const variedSeverity = {
+    ...sameProviderVariant,
+    records: sameProviderVariant.records.map((record, index) =>
+      index === 1 ? { ...record, severity: 'source-band-crimson' } : record,
+    ),
+  };
+  const noRecordResult: ProviderResult =
+    await createNoRecordSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const sameProviderMerge = mergeProviderResults([
+    variedSeverity,
+    noRecordResult,
+  ]);
+  for (const disagreement of sameProviderMerge.disagreements)
+    expect(disagreement.reasons).not.toContain('severity-terms-differ');
+
+  const secondResult =
+    await createSecondVocabularySyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const crossProviderMerge = mergeProviderResults([
+    offlineResult,
+    secondResult,
+  ]);
+  expect(crossProviderMerge.disagreements).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        reasons: expect.arrayContaining(['severity-terms-differ']),
+      }),
+    ]),
+  );
+});
+
 it('returns an incomplete evaluation when the configured pair limit is exceeded', async () => {
   const selection = makeSyntheticSelection([
     {

@@ -1082,6 +1082,25 @@ function addDisagreementTerm(
   });
 }
 
+function severityTermsDifferAcrossProviders(
+  terms: readonly InteractionDisagreementTerm[],
+): boolean {
+  for (let left = 0; left < terms.length; left += 1) {
+    const leftTerm = terms[left];
+    if (!leftTerm) continue;
+    for (let right = left + 1; right < terms.length; right += 1) {
+      const rightTerm = terms[right];
+      if (!rightTerm) continue;
+      if (
+        leftTerm.providerId !== rightTerm.providerId &&
+        leftTerm.severity !== rightTerm.severity
+      )
+        return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Merge provider payloads without creating a combined severity or verdict.
  * The tuple type and runtime guard require results from at least two providers.
@@ -1139,7 +1158,7 @@ export function mergeProviderResults(
   const disagreements: InteractionDisagreement[] = [];
   for (const finding of findings.values()) {
     const reasons: InteractionDisagreementReason[] = [];
-    if (new Set(finding.terms.map((term) => term.severity)).size > 1)
+    if (severityTermsDifferAcrossProviders(finding.terms))
       reasons.push('severity-terms-differ');
     const reportedProviderIndexes = new Set(
       finding.reports
