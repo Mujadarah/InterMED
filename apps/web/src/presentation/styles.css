@@ -430,6 +430,168 @@ button {
   margin: 0.4rem 0;
 }
 
+.favorite-toggle {
+  min-height: 44px;
+  margin: 0 0 1rem;
+}
+
+.favorites-list,
+.recent-search-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1.25rem 0;
+  list-style: none;
+}
+
+.favorite-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+
+.favorite-entry-copy {
+  min-width: 0;
+}
+
+.favorite-entry-copy > a,
+.favorite-name {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.favorite-entry-copy p {
+  margin: 0.25rem 0;
+  color: var(--muted);
+}
+
+.favorite-remove {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+.favorite-empty-state {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+
+.favorite-empty-state a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.recent-search-panel,
+.local-preferences-settings {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+
+.recent-search-panel h2,
+.local-preferences-settings h2 {
+  margin-bottom: 0.75rem;
+}
+
+.recent-search-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-search-item {
+  min-height: 44px;
+  margin: 0;
+  color: var(--accent);
+  background: transparent;
+  padding: 0.35rem 0.25rem;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.recent-search-list time {
+  color: var(--muted);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.preferences-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.preferences-actions button {
+  min-height: 44px;
+  margin: 0;
+}
+
+.preferences-status:empty {
+  display: none;
+}
+
+.confirmation-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  background: rgb(12 28 34 / 55%);
+}
+
+.confirmation-dialog {
+  width: min(100%, 34rem);
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 0.65rem;
+  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 25%);
+}
+
+.confirmation-dialog h2 {
+  margin-bottom: 0.75rem;
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.confirmation-actions button {
+  min-height: 44px;
+  margin: 0;
+}
+
 @media (max-width: 42rem) {
   .search-dataset-meta {
     grid-template-columns: 1fr;
@@ -449,5 +611,9 @@ button {
   }
   .detail-card {
     padding: 0.85rem;
+  }
+  .favorite-entry {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

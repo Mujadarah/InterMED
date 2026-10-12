@@ -1,0 +1,133 @@
+M8 x main integration, 2026-10-12: merge resolution notes
+==========================================================
+
+Merge commit a6985e1: origin/main 597d1a5 (PR #18, bundle split) into
+codex/m8-favorites b0de846 (M8 favorites and recent searches). Merge
+base f5382bd. Git reported six content conflicts; the resolution kept
+both branches' behaviour everywhere, as required.
+
+Conflicts and resolutions
+-------------------------
+
+1. apps/web/src/presentation/App.tsx
+   Kept main's structure: lazy MedicationSearchPage and
+   MedicationDetailPage behind one Suspense with the calm RouteLoading
+   placeholder, the pathname-keyed RouteErrorBoundary, the
+   RouteFocusContext provider with the pending-focus effect, and the
+   focusable static headings (overview, status, route error, "Page
+   unavailable"). Added M8's pieces into that structure: the
+   preferences prop on the search and detail routes, the /favorites
+   route and its nav link, and LocalPreferencesSettings at the end of
+   /status. FavoritesPage and LocalPreferencesSettings import EAGERLY,
+   with a comment stating why: the precache is one asset below its
+   sixteen-asset cap, and one more lazy chunk would take the last slot,
+   so both small pages ride in the entry chunk. Verified after the
+   merge by npm run build: 174 modules, entry chunk 89.41 kB (up from
+   main's 78.07 kB), largest chunk framework-vendor 258.58 kB, 9 JS
+   chunks + 1 stylesheet, 15 precached assets (cap 16), and
+   apps/web/pwa/build-output.test.ts passes (every chunk under 500,000
+   bytes, every JS/CSS asset precached, at most 16 assets).
+
+2. apps/web/src/presentation/MedicationSearchPage.tsx
+   Both branches fixed the same stale debounced URL write. Kept ONE
+   implementation, main's naming, with both branches' guarantees:
+   setSearchParamsRef + [query]-only dependencies + the pathname guard
+   (identical on both sides; main's fuller comment retained), main's
+   onActivate prop firing on click AND on Enter, and M8's handler
+   recordOpenedSearch, which calls cancelQueryUrlSync() before
+   recording the recent search - so activating a result cancels the
+   pending URL write AND records the recent search, from both the
+   mouse and the keyboard path. The page calls useRouteHeadingFocus()
+   (main) and keeps M8's preferences prop, recent-searches panel,
+   queryRevision bookkeeping and the ConfirmationDialog with its
+   headingRef fallback focus.
+
+3. apps/web/src/presentation/MedicationDetailPage.tsx
+   Kept M8's favorite toggle (FavoriteViewState keyed by product id,
+   aria-pressed toggle, per-write notices) and the preferences prop,
+   plus main's useRouteHeadingFocus() and the route-loading placeholder
+   check inside focusWasMoved (auto-merged from main).
+
+4. apps/web/src/presentation/App.test.tsx
+   Union: M8's preferences mock and services field, M8's
+   "registers favorites as a route in navigation" (which also asserts
+   the favorites heading receives focus after the nav click - section 3
+   of the brief), and main's findByRole rewrites for lazy routes plus
+   its two focus tests ("focuses the search heading once the lazy
+   route chunk renders", "keeps focus where a user moved it while a
+   lazy route was loading") and the waitFor hardening of the detail
+   focus assertion. No assertion was dropped.
+
+5. apps/web/src/presentation/MedicationSearchPage.test.tsx
+   Union. Both branches wrote the same PathnameProbe/locationPath
+   helpers and vi.restoreAllMocks - identical, merged once. Both
+   branches' regression tests for the stale URL write are KEPT BOTH
+   (the brief allows duplicates that do not conflict): M8's "does not
+   let a pending query URL update undo opening a result" (records the
+   recent search through the override) and main's "drops a pending
+   query URL write when a result is opened"; main's variant gained
+   preferences={emptyPreferences()} because the merged page requires
+   the preferences prop. All M8 recent-search tests and the URL-sync
+   pair survive.
+
+6. tests/browser/medication-search.spec.ts
+   Both branches had made the same change (assert the search heading
+   holds focus instead of main); the conflict was only main's added
+   comment. Kept main's side verbatim.
+
+Auto-merged without conflict (verified, both sides kept)
+--------------------------------------------------------
+
+- apps/web/src/Bootstrap.test.tsx: M8's preferences service mock +
+  main's findByRole wait for the lazy search page.
+- apps/web/src/presentation/styles.css: main's .route-loading and
+  .route-error + M8's favorites, recent-searches, settings and
+  dialog styles.
+- docs/MILESTONE_7_EVIDENCE.md: main's bundle-split follow-up section;
+  M8 never touched it.
+- Evidence folders are disjoint per branch
+  (bundle-split-2026-10-09 vs milestone-8-2026-10-09); both kept.
+- apps/web/pwa/worker.ts, worker.test.ts, vite.config.ts, build-output
+  .test.ts, route-focus.ts, route-recovery.test.tsx: from main only.
+
+Fix-ups required by the union
+-----------------------------
+
+- apps/web/src/presentation/route-recovery.test.tsx (main's new file):
+  its AppServices literal lacked preferences, which M8's AppServices
+  requires. Added preferences: unavailablePreferencesService - the
+  documented seam for isolated view tests; the recovery route's chunk
+  fails before any preferences call, so no behaviour changed.
+
+- The favorites heading focus (brief section 3) needed NO extra work:
+  the page is eager, so the App pathname effect finds its
+  h1[tabindex="-1"] in the same commit and focuses it directly.
+  M8's existing App.test.tsx case asserts exactly this and passes on
+  the merged tree, so the optional useRouteHeadingFocus() fallback in
+  FavoritesPage was not needed and the optional commit
+  "fix(web): focus the favorites heading on navigation" was not
+  created.
+
+Verification on the merged tree (before the /favorites PWA work)
+----------------------------------------------------------------
+
+npm run typecheck exit 0; npm run lint exit 0; prettier --check exit 0
+after wrapping one JSX attribute; vitest run: 61 files, 967 tests,
+0 failures; npm run build exit 0 with no chunk-size warning;
+apps/web/pwa/build-output.test.ts 3 passed.
+
+Toolchain caveat (recording environment): the worker shell exports
+uppercase env names (SYSTEMROOT/WINDIR), and Node worker threads read
+their env copy case-sensitively, so os.tmpdir()'s Windows-directory
+fallback resolved relative to the repo and
+tests/importer/artifact.test.ts "builds under the OS temp directory"
+failed spuriously. Re-exporting canonical-case SystemRoot/windir (and
+unsetting the uppercase duplicates) restored the canonical
+Windows temporary-directory behavior and the test passes; no test was changed.
+Playwright 1.63.0 browsers (chromium-1243, webkit-2359) were
+reinstalled after the host session restart wiped the browser cache.
+
+Offline /favorites (brief section 2) red/green evidence lives in
+integration-worker-red.log, integration-worker-green.log,
+integration-browser-red.log and integration-browser-green.log in this
+folder; the full-check log is integration-full-check.log.
