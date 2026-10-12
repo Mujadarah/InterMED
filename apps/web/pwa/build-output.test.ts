@@ -3,7 +3,7 @@ import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
-import { afterAll, expect, it } from 'vitest';
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { ShellRelease } from './shell-build';
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..');
@@ -60,6 +60,10 @@ async function buildShell(): Promise<BuildOutput> {
   })();
   return cached;
 }
+
+beforeAll(async () => {
+  await buildShell();
+}, 180_000);
 
 it('emits every JavaScript chunk below the 500 kB advisory limit', async () => {
   const { assets } = await buildShell();

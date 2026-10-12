@@ -1,0 +1,15 @@
+Command: npx vitest run apps/web/pwa/build-output.test.ts
+Node: v24.21.0
+npm: 11.19.0
+Node 22: v22.23.2
+Exit: 0
+Duration: 1.396 s
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:15:16
+   Duration  567ms (transform 13ms, setup 0ms, import 25ms, tests 441ms, environment 0ms)

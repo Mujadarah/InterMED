@@ -26,18 +26,20 @@ test('offline origin outage preserves launch, reload and deep links', async ({
 }) => {
   const server = await productionServer();
   try {
-    await page.goto(server.url);
+    await page.goto(server.url, { waitUntil: 'domcontentloaded' });
     await cached(page);
     server.failure('offline');
     const before = server.requests.length;
-    await page.goto(server.url + '/status');
+    await page.goto(server.url + '/status', {
+      waitUntil: 'domcontentloaded',
+    });
     await expect(
       page.getByRole('heading', { name: 'Development status' }),
     ).toBeVisible();
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await cached(page);
     const next = await context.newPage();
-    await next.goto(server.url);
+    await next.goto(server.url, { waitUntil: 'domcontentloaded' });
     await cached(next);
     // A new page can trigger the browser's SW-script update check even offline.
     // Document that attempted check; shell navigations/assets must not hit origin.
