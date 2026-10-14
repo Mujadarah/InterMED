@@ -98,6 +98,8 @@ export type {
   EvaluatedPairCoverage,
   InteractionAbortSignal,
   InteractionContext,
+  InteractionCoverageDiscrepancy,
+  InteractionCoverageDiscrepancySource,
   InteractionDisagreement,
   InteractionDisagreementReason,
   InteractionDisagreementTerm,

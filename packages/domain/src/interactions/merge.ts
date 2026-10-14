@@ -1,6 +1,8 @@
 import type {
   CanonicalIngredientPair,
   DrugInteraction,
+  InteractionCoverageDiscrepancy,
+  InteractionCoverageDiscrepancySource,
   InteractionDisagreement,
   InteractionDisagreementReason,
   InteractionDisagreementTerm,
@@ -123,22 +125,6 @@ function collectPairFindings(
   return findings;
 }
 
-function hasReportedVsCoveredDisagreement(finding: PairFindings): boolean {
-  const reportedProviderIndexes = new Set(
-    finding.reports
-      .filter((report) => report.status === 'reported')
-      .map((report) => report.providerIndex),
-  );
-  const noRecordProviderIndexes = new Set(
-    finding.reports
-      .filter((report) => report.status === 'covered-no-record')
-      .map((report) => report.providerIndex),
-  );
-  return [...reportedProviderIndexes].some((index) =>
-    [...noRecordProviderIndexes].some((otherIndex) => otherIndex !== index),
-  );
-}
-
 function deriveDisagreements(
   findings: ReadonlyMap<string, PairFindings>,
 ): InteractionDisagreement[] {
@@ -147,8 +133,6 @@ function deriveDisagreements(
     const reasons: InteractionDisagreementReason[] = [];
     if (severityTermsDifferAcrossProviders(finding.terms))
       reasons.push('severity-terms-differ');
-    if (hasReportedVsCoveredDisagreement(finding))
-      reasons.push('reported-vs-covered-no-record');
     if (reasons.length > 0)
       disagreements.push({
         pair: finding.pair,
@@ -157,6 +141,83 @@ function deriveDisagreements(
       });
   }
   return disagreements.sort((left, right) =>
+    compareStrings(pairKey(left.pair), pairKey(right.pair)),
+  );
+}
+
+function toCoverageSource(
+  providerResults: readonly ProviderResult[],
+  providerIndex: number,
+): InteractionCoverageDiscrepancySource | undefined {
+  const result = providerResults[providerIndex];
+  if (!result) return undefined;
+  return {
+    providerId: result.providerId,
+    sourceId: result.sourceId,
+    sourceVersion: result.sourceVersion,
+  };
+}
+
+function compareCoverageSources(
+  left: InteractionCoverageDiscrepancySource,
+  right: InteractionCoverageDiscrepancySource,
+): number {
+  return (
+    compareStrings(left.providerId, right.providerId) ||
+    compareStrings(left.sourceId, right.sourceId) ||
+    compareStrings(left.sourceVersion, right.sourceVersion)
+  );
+}
+
+/**
+ * A coverage discrepancy records that one source documents an interaction
+ * while another source covers the same pair with no record. Absence of a
+ * record is a neutral observation about that source's coverage, never
+ * clinical evidence against the documented finding, so it is kept separate
+ * from `disagreements`, which hold only clinical evidence disagreements
+ * (today `severity-terms-differ`).
+ */
+function deriveCoverageDiscrepancies(
+  findings: ReadonlyMap<string, PairFindings>,
+  providerResults: readonly ProviderResult[],
+): InteractionCoverageDiscrepancy[] {
+  const discrepancies: InteractionCoverageDiscrepancy[] = [];
+  for (const finding of findings.values()) {
+    const documentingIndexes = [
+      ...new Set(
+        finding.reports
+          .filter((report) => report.status === 'reported')
+          .map((report) => report.providerIndex),
+      ),
+    ];
+    const noRecordIndexes = [
+      ...new Set(
+        finding.reports
+          .filter((report) => report.status === 'covered-no-record')
+          .map((report) => report.providerIndex),
+      ),
+    ];
+    const hasCrossProviderPair = documentingIndexes.some((index) =>
+      noRecordIndexes.some((otherIndex) => otherIndex !== index),
+    );
+    if (!hasCrossProviderPair) continue;
+    const documentingSources = documentingIndexes
+      .map((index) => toCoverageSource(providerResults, index))
+      .filter((entry) => entry !== undefined)
+      .sort(compareCoverageSources);
+    const noRecordSources = noRecordIndexes
+      .map((index) => toCoverageSource(providerResults, index))
+      .filter((entry) => entry !== undefined)
+      .sort(compareCoverageSources);
+    if (documentingSources.length === 0 || noRecordSources.length === 0)
+      continue;
+    discrepancies.push({
+      pair: finding.pair,
+      documentingSources,
+      noRecordSources,
+    });
+  }
+  return discrepancies.sort((left, right) =>
     compareStrings(pairKey(left.pair), pairKey(right.pair)),
   );
 }
@@ -220,13 +281,20 @@ function collectMergedSourceVersions(
   return sourceVersions;
 }
 
+function freezeMerged<T>(value: T): T {
+  if (typeof value !== 'object' || value === null || Object.isFrozen(value))
+    return value;
+  for (const child of Object.values(value)) freezeMerged(child);
+  return Object.freeze(value);
+}
+
 /**
  * Merge provider payloads without creating a combined severity or verdict.
  * The tuple type and runtime guard require results from at least two providers.
  *
  * A malformed payload is retained in `providerResults` so the assessment can
  * report that source as unavailable, but it contributes no records, evidence,
- * source versions or disagreements to the merge.
+ * source versions, disagreements or coverage discrepancies to the merge.
  */
 export function mergeProviderResults(
   providerResults: readonly [
@@ -240,11 +308,12 @@ export function mergeProviderResults(
 
   const usableResults = providerResults.filter(isProviderResult);
   const findings = collectPairFindings(usableResults);
-  return {
+  return freezeMerged({
     providerResults,
     records: collectMergedRecords(usableResults),
     evidence: usableResults.flatMap((result) => result.evidence),
     sourceVersions: collectMergedSourceVersions(usableResults),
     disagreements: deriveDisagreements(findings),
-  };
+    coverageDiscrepancies: deriveCoverageDiscrepancies(findings, usableResults),
+  });
 }
