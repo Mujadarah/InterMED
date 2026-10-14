@@ -268,9 +268,9 @@ BMI remains a screening index, not a direct body-fat measure or diagnosis; muscl
 
 Mosteller BSA remains an estimate with no dosing advice, no Du Bois superiority claim and no automatic substitution. Applicability beyond source populations is unvalidated. Its explicit presentation limitation is: **the displayed rounded value must not be used as an implicit input for medication-dose calculations**. Original-paper rounding/derivation and instrument-specific reuse rights remain unverified as stated by the definitions. This change adds no calculator UI, patient persistence or auto-population.
 
-### Approved confirmation checks — confirmation@1.0.0 values approved
+### Confirmation checks (values approved by the owner as confirmation@1.0.0, 2026-10-14)
 
-Both formulas declare the following soft checks inside the technical input bounds. These are proposed confirmation prompts, **not clinically validated thresholds**:
+Both formulas declare the following soft checks inside the technical input bounds. The owner approved these values as confirmation prompts on 2026-10-14 (see "Owner approval" below); they remain confirmation prompts, **not clinically validated plausibility thresholds**:
 
 | Check id                    | Trigger                                                                    |
 | --------------------------- | -------------------------------------------------------------------------- |
