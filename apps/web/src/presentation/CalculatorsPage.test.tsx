@@ -96,6 +96,27 @@ it('calculates BSA on the Mosteller calculator', async () => {
   expect(screen.getByText('Result: 1.84 m²')).toBeVisible();
 });
 
+it('keeps an entered height in its unit when switching calculators', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await user.type(screen.getByLabelText('Weight'), '70');
+  await user.type(screen.getByLabelText('Height'), '1.75');
+  await user.type(screen.getByLabelText('Age in years'), '30');
+  expect(screen.getByLabelText('Height unit')).toHaveValue('m');
+  await user.click(
+    screen.getByRole('radio', {
+      name: 'Body surface area, Mosteller (adult estimate)',
+    }),
+  );
+
+  // 1.75 stays metres; it is not reinterpreted as 1.75 cm.
+  expect(screen.getByLabelText('Height')).toHaveValue('1.75');
+  expect(screen.getByLabelText('Height unit')).toHaveValue('m');
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+  expect(screen.getByText('Result: 1.84 m²')).toBeVisible();
+});
+
 it('renders BSA to two decimal places for a whole-number result', async () => {
   const user = userEvent.setup();
   renderPage();

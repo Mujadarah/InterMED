@@ -122,10 +122,24 @@ export function CalculatorsPage() {
   function selectCalculator(next: CalculatorId) {
     if (next === calculatorId) return;
     setCalculatorId(next);
-    // Height normalizes to metres for BMI and centimetres for BSA; reset to
-    // the newly selected calculator's canonical unit so a kept value is read
-    // as entered. The previous result belonged to the other calculator.
-    setHeightUnit(inputDefinition(DEFINITIONS[next], 'height').canonicalUnit);
+    // Never reinterpret an entered value under a different unit. An empty
+    // field takes the next calculator's canonical unit; an entered value keeps
+    // its unit when the next calculator accepts it and is cleared otherwise.
+    // The previous result belonged to the other calculator.
+    const nextHeight = inputDefinition(DEFINITIONS[next], 'height');
+    if (height.trim() === '') {
+      setHeightUnit(nextHeight.canonicalUnit);
+    } else if (!nextHeight.allowedUnits.includes(heightUnit)) {
+      setHeight('');
+      setHeightUnit(nextHeight.canonicalUnit);
+    }
+    const nextWeight = inputDefinition(DEFINITIONS[next], 'weight');
+    if (weight.trim() === '') {
+      setWeightUnit(nextWeight.canonicalUnit);
+    } else if (!nextWeight.allowedUnits.includes(weightUnit)) {
+      setWeight('');
+      setWeightUnit(nextWeight.canonicalUnit);
+    }
     setResult(null);
   }
 
