@@ -40,9 +40,9 @@ const m11 = Domain as unknown as M11Api;
 const bmiFormula = m11.BMI_FORMULA;
 const bsaFormula = m11.MOSTELLER_BSA_FORMULA;
 const BMI_FORMULA_VERSION =
-  'formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.0|confirmation=1.0.0';
+  'formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.1|confirmation=1.0.1';
 const BSA_FORMULA_VERSION =
-  'formula=1.0.0|population=2.1.0|presentation=2.0.0|confirmation=1.0.0';
+  'formula=1.0.0|population=2.1.0|presentation=2.0.1|confirmation=1.0.1';
 
 type SubmittedInput = { readonly value: number; readonly unit: string };
 type SubmittedInputs = Readonly<Record<string, SubmittedInput | undefined>>;
@@ -81,19 +81,6 @@ function baseInputs(age = 30): Record<string, SubmittedInput> {
     height: { value: 175, unit: 'cm' },
     age: { value: age, unit: 'years' },
   };
-}
-
-function expectedPendingComponents(
-  definition: TestFormulaDefinition,
-): PendingApproval[] {
-  return Object.entries(definition.componentVersions)
-    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
-    .map(([component, componentVersion]) => ({
-      formulaId: definition.formulaId,
-      formulaVersion: definition.formulaVersion,
-      component: component as TestFormulaComponent,
-      componentVersion,
-    }));
 }
 
 function formulaContractCases(
@@ -213,8 +200,8 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         formula: '1.0.0',
         population: '2.1.0',
         classification: '2.0.0',
-        presentation: '2.0.0',
-        confirmation: '1.0.0',
+        presentation: '2.0.1',
+        confirmation: '1.0.1',
       },
       reviewStatus: 'unreviewed',
       output: {
@@ -228,8 +215,8 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       componentVersions: {
         formula: '1.0.0',
         population: '2.1.0',
-        presentation: '2.0.0',
-        confirmation: '1.0.0',
+        presentation: '2.0.1',
+        confirmation: '1.0.1',
       },
       reviewStatus: 'unreviewed',
       output: {
@@ -260,14 +247,79 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       }).toThrow(TypeError);
     }
   });
-  it('exports an immutable empty approval register and pendingApprovals', () => {
-    expect(m11.FORMULA_APPROVALS).toEqual([]);
-    expect(Object.isFrozen(m11.FORMULA_APPROVALS)).toBe(true);
+  it('exports an immutable approval register with the nine owner-approved component versions', () => {
+    const approvals = m11.FORMULA_APPROVALS;
+    expect(approvals).toBeDefined();
+    if (!approvals) return;
+    expect(approvals).toHaveLength(9);
+    expect(Object.isFrozen(approvals)).toBe(true);
+    const expected: readonly FormulaApprovalRecord[] = (
+      [
+        { formulaId: 'bmi', component: 'formula', componentVersion: '1.0.0' },
+        {
+          formulaId: 'bmi',
+          component: 'population',
+          componentVersion: '2.1.0',
+        },
+        {
+          formulaId: 'bmi',
+          component: 'classification',
+          componentVersion: '2.0.0',
+        },
+        {
+          formulaId: 'bmi',
+          component: 'presentation',
+          componentVersion: '2.0.0',
+        },
+        {
+          formulaId: 'bmi',
+          component: 'confirmation',
+          componentVersion: '1.0.0',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          component: 'formula',
+          componentVersion: '1.0.0',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          component: 'population',
+          componentVersion: '2.1.0',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          component: 'presentation',
+          componentVersion: '2.0.0',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          component: 'confirmation',
+          componentVersion: '1.0.0',
+        },
+      ] as readonly {
+        readonly formulaId: string;
+        readonly component: TestFormulaComponent;
+        readonly componentVersion: string;
+      }[]
+    ).map((entry) => ({
+      ...entry,
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }));
+    expect([...approvals]).toEqual([...expected]);
+    for (const record of approvals) {
+      expect(Object.isFrozen(record)).toBe(true);
+      expect(record.approvedBy.trim().length).toBeGreaterThan(0);
+      expect(record.scope.trim().length).toBeGreaterThan(0);
+      expect(Number.isFinite(Date.parse(record.approvedOn))).toBe(true);
+    }
     expect(m11.pendingApprovals).toBeTypeOf('function');
   });
 
   if (bmiFormula && bsaFormula) {
-    it('keeps both exact formula versions in the pending-approval list', () => {
+    it('lists only the unapproved wording-bump components as pending', () => {
       if (!m11.pendingApprovals) {
         throw new Error('pendingApprovals export is missing.');
       }
@@ -276,9 +328,44 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       registry.register(bsaFormula);
 
       expect(m11.pendingApprovals(registry)).toEqual([
-        ...expectedPendingComponents(bmiFormula),
-        ...expectedPendingComponents(bsaFormula),
+        {
+          formulaId: 'bmi',
+          formulaVersion: bmiFormula.formulaVersion,
+          component: 'presentation',
+          componentVersion: '2.0.1',
+        },
+        {
+          formulaId: 'bmi',
+          formulaVersion: bmiFormula.formulaVersion,
+          component: 'confirmation',
+          componentVersion: '1.0.1',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          formulaVersion: bsaFormula.formulaVersion,
+          component: 'presentation',
+          componentVersion: '2.0.1',
+        },
+        {
+          formulaId: 'bsa-mosteller',
+          formulaVersion: bsaFormula.formulaVersion,
+          component: 'confirmation',
+          componentVersion: '1.0.1',
+        },
       ]);
+    });
+
+    it('rejects a clinically-reviewed BMI copy while presentation 2.0.1 is unapproved', () => {
+      const reviewedBmi = {
+        ...bmiFormula,
+        reviewStatus: {
+          status: 'clinically-reviewed',
+          reviewer: 'x',
+          reviewedAt: '2026-10-14',
+        },
+      } as unknown as Parameters<Domain.FormulaRegistry['register']>[0];
+      const registry = new Domain.FormulaRegistry();
+      expect(() => registry.register(reviewedBmi)).toThrow();
     });
 
     it('documents the unreviewed engineering ranges and formula limitations', () => {
@@ -337,8 +424,14 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       expect(bsaLimitations).toContain(
         'displayed rounded value is not to be used as an implicit input for medication-dose calculations',
       );
-      expect(bsaLimitations).toContain('proposed, pending owner sign-off');
-      expect(bmiLimitations).toContain('proposed, pending owner sign-off');
+      expect(bsaLimitations).not.toContain('proposed, pending owner sign-off');
+      expect(bmiLimitations).not.toContain('proposed, pending owner sign-off');
+      expect(
+        bmiFormula.softChecks?.map((check) => check.message).join(' '),
+      ).not.toContain('proposed');
+      expect(
+        bsaFormula.softChecks?.map((check) => check.message).join(' '),
+      ).not.toContain('proposed');
       expect(bmiFormula.inputs.map((input) => input.id)).toEqual([
         'weight',
         'height',
@@ -577,31 +670,43 @@ describe('Milestone 11 BMI and BSA candidates', () => {
     });
 
     it('classifies just below each BMI cutoff using the unrounded value', () => {
+      const scheme =
+        'WHO international adult classification, WHO Technical Report Series 894 (2000)';
       const belowCases = [
         {
           value: 18.4999999,
           code: 'who-international-adult-underweight',
           displayValue: 18.5,
+          category: 'Underweight',
+          displayCategory: 'Normal range',
         },
         {
           value: 24.9999999,
           code: 'who-international-adult-normal',
           displayValue: 25,
+          category: 'Normal range',
+          displayCategory: 'Pre-obese (overweight)',
         },
         {
           value: 29.9999999,
           code: 'who-international-adult-pre-obese',
           displayValue: 30,
+          category: 'Pre-obese (overweight)',
+          displayCategory: 'Obese class I',
         },
         {
           value: 34.9999999,
           code: 'who-international-adult-obese-class-i',
           displayValue: 35,
+          category: 'Obese class I',
+          displayCategory: 'Obese class II',
         },
         {
           value: 39.9999999,
           code: 'who-international-adult-obese-class-ii',
           displayValue: 40,
+          category: 'Obese class II',
+          displayCategory: 'Obese class III',
         },
       ];
 
@@ -616,6 +721,12 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         expect(result.displayValue).toBe(testCase.displayValue);
         expect(result.classification?.code).toBe(testCase.code);
         expect(result.classificationNote).toContain(String(testCase.value));
+        expect(result.classificationNote).toContain(testCase.category);
+        expect(result.classificationNote).toContain(testCase.displayCategory);
+        expect(
+          result.classificationNote?.split(scheme).length,
+          `scheme occurs once for ${testCase.value}`,
+        ).toBe(2);
       }
     });
 
@@ -631,10 +742,9 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       expect(result.classification?.code).toBe(
         'who-international-adult-normal',
       );
-      expect(result.classificationNote).toContain(
-        'WHO international adult classification',
+      expect(result.classificationNote).toBe(
+        'Classified as Normal range from the unrounded value 24.96 kg/m² (WHO international adult classification, WHO Technical Report Series 894 (2000)). The displayed value 25.0 kg/m² would fall in Pre-obese (overweight); the classification uses the unrounded value.',
       );
-      expect(result.classificationNote).toContain('24.96');
     });
 
     it('routes under-18 ages through the adult release-scope guard', () => {
@@ -709,7 +819,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       }
     });
 
-    it('requires explicit confirmation for proposed unusual input and BMI ranges', () => {
+    it('requires explicit confirmation for unusual input and BMI ranges', () => {
       const vectors = [
         {
           label: 'weight below 30 kg',
@@ -792,7 +902,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       }
     });
 
-    it('treats proposed soft-check endpoints as inclusive', () => {
+    it('treats soft-check endpoints as inclusive', () => {
       const endpointVectors = [
         { weight: 30, height: 130, age: 30, checkIds: [] },
         { weight: 250, height: 200, age: 30, checkIds: [] },
