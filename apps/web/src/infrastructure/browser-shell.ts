@@ -32,6 +32,7 @@ export function createBrowserShell(production: boolean): ShellController {
   let hadController =
     'serviceWorker' in navigator && navigator.serviceWorker.controller !== null;
   let installPrompt: InstallPrompt | undefined;
+  let probeGeneration = 0;
   /**
    * Refresh readiness from the controlling or active worker, if one exists.
    * A failed request or a 3-second timeout marks offline use unavailable.
@@ -40,6 +41,9 @@ export function createBrowserShell(production: boolean): ShellController {
   const probe = async () => {
     const worker = navigator.serviceWorker.controller ?? registration?.active;
     if (!worker) return;
+    // Cache verification can overlap focus, activation and repair probes.
+    // Only the newest observation may update the visible shell status.
+    const generation = ++probeGeneration;
     try {
       const result = await new Promise<{
         ready: boolean;
@@ -58,6 +62,7 @@ export function createBrowserShell(production: boolean): ShellController {
         };
         worker.postMessage({ type: 'SHELL_STATUS' }, [channel.port2]);
       });
+      if (generation !== probeGeneration) return;
       emit({
         availability: result.ready ? 'ready' : 'unavailable',
         version: result.version,
@@ -67,7 +72,7 @@ export function createBrowserShell(production: boolean): ShellController {
           : {}),
       });
     } catch {
-      emit({ availability: 'unavailable' });
+      if (generation === probeGeneration) emit({ availability: 'unavailable' });
     }
   };
   /**

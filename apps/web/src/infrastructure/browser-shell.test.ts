@@ -164,6 +164,46 @@ describe('registration and readiness', () => {
     expect(shell.getSnapshot().availability).toBe('ready');
   });
 
+  it.each([
+    { ready: true, version: 'before-eviction', fallback: true },
+    { ready: false, version: 'before-repair' },
+  ])('ignores superseded status replies: %j', async (stale) => {
+    env.active.postMessage.mockImplementation(() => {});
+    const shell = createBrowserShell(true);
+    await settle();
+    const older = TestChannel.instances[0]!;
+    env.window.dispatchEvent(new Event('focus'));
+    const latest = TestChannel.instances[1]!;
+    latest.port2.postMessage({ ready: !stale.ready, version: 'current' });
+    await settle();
+    const current = shell.getSnapshot();
+    expect(current).toMatchObject({
+      availability: stale.ready ? 'unavailable' : 'ready',
+      version: 'current',
+      usingPrior: false,
+      update: 'none',
+    });
+    older.port2.postMessage(stale);
+    await settle();
+    expect(shell.getSnapshot()).toBe(current);
+    expect(older.port1.close).toHaveBeenCalledOnce();
+    expect(latest.port1.close).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('ignores a superseded timeout after a newer readiness reply', async () => {
+    env.active.postMessage.mockImplementationOnce(() => {});
+    const shell = createBrowserShell(true);
+    await settle();
+    env.window.dispatchEvent(new Event('focus'));
+    await settle();
+    const ready = shell.getSnapshot();
+    expect(ready.availability).toBe('ready');
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(shell.getSnapshot()).toBe(ready);
+    expect(TestChannel.instances[0]?.port1.close).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('reports confirmed missing caches without losing the reported version', async () => {
     env.active.postMessage.mockImplementation((_message, ports) => {
       ports?.[0]?.postMessage({ ready: false, version: 'evicted-release' });
