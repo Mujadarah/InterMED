@@ -5,7 +5,7 @@ Date: 2026-10-14 (Europe/Bucharest). Nonclinical synthetic development scope onl
 ## Scope and commits
 
 Executed the local worker brief (artifacts/handoffs/M12_DIAGNOSTICS_PRIVACY_BRIEF.md)
-in D:/Proiecte AI/InterMED-wt/m12-diagnostics, branch claude/m12-diagnostics,
+in the dedicated `m12-diagnostics` worktree, branch claude/m12-diagnostics,
 from base c4c48ee85f20b75c370f34ef6dc0e7e0d8e35d86. The brief is an ignored local
 handoff; its scope is restated here so this evidence is usable from Git.
 
