@@ -84,7 +84,14 @@ function installLocalStoreHarness(): LocalStoreHarness {
   });
   let evaluation: Evaluation | null = null;
   const harness: LocalStoreHarness = {
-    state: () => store.open(),
+    // `open()` memoizes the state of the initial open by design (live updates
+    // flow through `getState()` and subscriptions), so awaiting it alone would
+    // report a stale state after this harness stages a generation. Ensure the
+    // store is open, then report the live state.
+    state: async () => {
+      await store.open();
+      return store.getState();
+    },
     stageAndActivate: async (label, options = {}) => {
       const omitted = new Set(options.omitProductKeys ?? []);
       const products = SYNTHETIC_DEFAULT_PRODUCTS.filter(
