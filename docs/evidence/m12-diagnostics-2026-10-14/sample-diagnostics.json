@@ -1,0 +1,54 @@
+{
+  "format": "intermed-diagnostics",
+  "version": 1,
+  "generatedAt": "2026-10-14T00:00:00.000Z",
+  "app": {
+    "shellRevision": "synthetic-revision",
+    "runtimeMode": "mock"
+  },
+  "shell": {
+    "availability": "ready",
+    "version": "synthetic-shell",
+    "update": "none",
+    "usingPrior": false
+  },
+  "localStore": {
+    "schemaVersion": 1,
+    "updateState": "ready",
+    "failureReason": null,
+    "activeDataset": {
+      "versionId": "synthetic-dataset-version-id",
+      "version": "synthetic-alpha",
+      "schemaVersion": "medication-catalogue-1",
+      "sourceIds": ["source.synthetic"],
+      "publishedAt": "2026-10-01T00:00:00.000Z",
+      "downloadedAt": "2026-10-12T00:00:00.000Z",
+      "ageDays": 2,
+      "synthetic": true
+    }
+  },
+  "calculators": {
+    "formulas": [
+      {
+        "formulaId": "bmi",
+        "formulaVersion": "formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.0|confirmation=1.0.0",
+        "reviewStatus": "unreviewed",
+        "pendingApprovalCount": 5
+      },
+      {
+        "formulaId": "bsa-mosteller",
+        "formulaVersion": "formula=1.0.0|population=2.1.0|presentation=2.0.0|confirmation=1.0.0",
+        "reviewStatus": "unreviewed",
+        "pendingApprovalCount": 4
+      }
+    ],
+    "pendingApprovalCount": 9
+  },
+  "interactionProvider": "no approved provider",
+  "storage": {
+    "usageBytes": 1024,
+    "quotaBytes": 4096,
+    "persisted": false
+  },
+  "userAgent": "SyntheticBrowser/1.0"
+}

@@ -1,0 +1,27 @@
+InterMED diagnostics format version: 1
+Generated at: 2026-10-14T00:00:00.000Z
+App shell revision: synthetic-revision
+Runtime mode: mock
+Shell availability: ready
+Shell version: synthetic-shell
+Shell update state: none
+Shell using prior: false
+Local-store supported schema version: 1
+Dataset update state: ready
+Dataset failure reason: unavailable
+Active dataset version id: synthetic-dataset-version-id
+Active dataset version: synthetic-alpha
+Dataset schema version: medication-catalogue-1
+Dataset source ids: ["source.synthetic"]
+Dataset published at: 2026-10-01T00:00:00.000Z
+Dataset downloaded at: 2026-10-12T00:00:00.000Z
+Dataset age (days since download): 2
+Synthetic dataset (not for clinical use): true
+Calculator pending component approvals: 9
+Calculator bmi: {"formulaVersion":"formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.0|confirmation=1.0.0","reviewStatus":"unreviewed","pendingApprovalCount":5}
+Calculator bsa-mosteller: {"formulaVersion":"formula=1.0.0|population=2.1.0|presentation=2.0.0|confirmation=1.0.0","reviewStatus":"unreviewed","pendingApprovalCount":4}
+Interaction provider: no approved provider
+Storage usage (bytes, origin estimate): 1024
+Storage quota (bytes, origin estimate): 4096
+Storage persisted: false
+User agent: SyntheticBrowser/1.0
