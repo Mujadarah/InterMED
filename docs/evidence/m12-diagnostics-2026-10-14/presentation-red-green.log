@@ -1,0 +1,120 @@
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/DiagnosticsSection.test.tsx apps/web/src/infrastructure/browser-diagnostics.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/src/infrastructure/browser-diagnostics.test.ts (4 tests | 4 failed) 5ms
+   × reads estimate and persisted independently without requesting persistence 4ms
+   × keeps persisted status when estimate rejects without exposing the error 0ms
+   × keeps the estimate when persisted status rejects 0ms
+   × reports unknown values when the browser omits the APIs or fields 0ms
+ ❯ apps/web/src/presentation/DiagnosticsSection.test.tsx (8 tests | 8 failed) 25ms
+   × shows versions and review status while treating unavailable storage capabilities honestly 14ms
+   × copies the displayed plain text by keyboard and announces a polite confirmation 3ms
+   × offers manual copy or JSON download when clipboard is missing 2ms
+   × offers manual copy or JSON download when clipboard is rejected 1ms
+   × downloads the displayed snapshot as JSON and releases the object URL 2ms
+   × retains the visible snapshot and reports download failures without error details 1ms
+   × updates the report when the existing dataset and shell subscriptions change 1ms
+   × shows storage estimate and persisted status from browser APIs 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/infrastructure/browser-diagnostics.test.ts > reads estimate and persisted independently without requesting persistence
+Error: Storage diagnostics not implemented
+ ❯ readBrowserStorageDiagnostics apps/web/src/infrastructure/browser-diagnostics.ts:2:9
+      1| export async function readBrowserStorageDiagnostics(_storage?: unknown…
+      2|   throw new Error('Storage diagnostics not implemented');
+       |         ^
+      3| }
+      4|
+ ❯ apps/web/src/infrastructure/browser-diagnostics.test.ts:9:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  apps/web/src/infrastructure/browser-diagnostics.test.ts > keeps persisted status when estimate rejects without exposing the error
+Error: Storage diagnostics not implemented
+ ❯ readBrowserStorageDiagnostics apps/web/src/infrastructure/browser-diagnostics.ts:2:9
+      1| export async function readBrowserStorageDiagnostics(_storage?: unknown…
+      2|   throw new Error('Storage diagnostics not implemented');
+       |         ^
+      3| }
+      4|
+ ❯ apps/web/src/infrastructure/browser-diagnostics.test.ts:19:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  apps/web/src/infrastructure/browser-diagnostics.test.ts > keeps the estimate when persisted status rejects
+Error: Storage diagnostics not implemented
+ ❯ readBrowserStorageDiagnostics apps/web/src/infrastructure/browser-diagnostics.ts:2:9
+      1| export async function readBrowserStorageDiagnostics(_storage?: unknown…
+      2|   throw new Error('Storage diagnostics not implemented');
+       |         ^
+      3| }
+      4|
+ ❯ apps/web/src/infrastructure/browser-diagnostics.test.ts:26:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  apps/web/src/infrastructure/browser-diagnostics.test.ts > reports unknown values when the browser omits the APIs or fields
+Error: Storage diagnostics not implemented
+ ❯ readBrowserStorageDiagnostics apps/web/src/infrastructure/browser-diagnostics.ts:2:9
+      1| export async function readBrowserStorageDiagnostics(_storage?: unknown…
+      2|   throw new Error('Storage diagnostics not implemented');
+       |         ^
+      3| }
+      4|
+ ❯ apps/web/src/infrastructure/browser-diagnostics.test.ts:33:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > shows versions and review status while treating unavailable storage capabilities honestly
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > copies the displayed plain text by keyboard and announces a polite confirmation
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > offers manual copy or JSON download when clipboard is missing
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > offers manual copy or JSON download when clipboard is rejected
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > downloads the displayed snapshot as JSON and releases the object URL
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > retains the visible snapshot and reports download failures without error details
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > updates the report when the existing dataset and shell subscriptions change
+ FAIL  apps/web/src/presentation/DiagnosticsSection.test.tsx > shows storage estimate and persisted status from browser APIs
+Error: Diagnostics section not implemented
+ ❯ DiagnosticsSection apps/web/src/presentation/DiagnosticsSection.tsx:2:9
+      1| export function DiagnosticsSection(): never {
+      2|   throw new Error('Diagnostics section not implemented');
+       |         ^
+      3| }
+      4|
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:28571:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:8030:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10569:19
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:12205:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:19004:41
+ ❯ renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:18985:11
+ ❯ performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:18094:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  12 failed (12)
+   Start at  14:37:54
+   Duration  17.29s (transform 109ms, setup 0ms, import 3.88s, tests 30ms, environment 26.04s)
+
+
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/presentation/DiagnosticsSection.test.tsx apps/web/src/infrastructure/browser-diagnostics.test.ts
+
+
+ RUN  v4.1.11 <worktree>
+
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  14:39:47
+   Duration  1.61s (transform 167ms, setup 0ms, import 439ms, tests 308ms, environment 1.52s)
+
+

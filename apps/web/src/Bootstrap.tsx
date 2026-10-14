@@ -2,6 +2,7 @@ import { mockBootstrapProvider } from '@intermed/data-access';
 import type { DatasetStateSource } from '@intermed/domain';
 import {
   createLocalDatasetStore,
+  LOCAL_DATASET_SCHEMA_GENERATION,
   type LocalDatasetStore,
 } from '@intermed/local-store';
 import {
@@ -158,6 +159,7 @@ export function Bootstrap({
         searchService,
         detailService,
         preferencesService,
+        localStore ? LOCAL_DATASET_SCHEMA_GENERATION : null,
       )}
       shell={shell}
     />

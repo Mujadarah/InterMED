@@ -28,6 +28,8 @@ Calculators follow the medication/interaction core. Later phases retain clinicia
 
 For the credential-free contributor shell, use Node 24.21.0/npm 11.19.0, then `npm ci --no-fund`, `npx playwright install --with-deps chromium webkit` and `npm run check`. Start the local app with `npm run dev`. See [development commands and environment](docs/DEVELOPMENT.md) and [Milestone 1 acceptance evidence](docs/MILESTONE_1_EVIDENCE.md).
 
+See [privacy, local storage and diagnostics](docs/PRIVACY.md) for the current browser data and export/delete behavior.
+
 Start with the [planning index](plan/README.md). [Requirements](plan/REQUIREMENTS.md) control product scope, [architecture](plan/ARCHITECTURE.md) controls boundaries, [clinical safety](plan/CLINICAL_SAFETY.md) is non-negotiable, and the [build plan](plan/CODEX_BUILD_PLAN.md) orders future implementation.
 
 Contributions through issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Native application development is cancelled; iPhone/iPad support is through Safari/PWA. Documentation-only changes need no proprietary dataset or cloud credentials. See the [source/tool guide](plan/InterMED_SOURCES_AND_SDKS.md) for future implementation references.
