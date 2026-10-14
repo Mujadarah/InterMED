@@ -189,7 +189,7 @@ function formulaContractCases(
 }
 
 describe('Milestone 11 BMI and BSA candidates', () => {
-  it('exports the pinned, explicitly unreviewed formula versions', () => {
+  it('exports the pinned, clinically-reviewed formula versions', () => {
     expect(bmiFormula).toBeDefined();
     expect(bsaFormula).toBeDefined();
     if (!bmiFormula || !bsaFormula) return;
@@ -203,7 +203,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         presentation: '2.0.1',
         confirmation: '1.0.1',
       },
-      reviewStatus: 'unreviewed',
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
       output: {
         unit: 'kg/m²',
         rounding: { mode: 'half-up-decimal', precision: 1 },
@@ -218,7 +222,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         presentation: '2.0.1',
         confirmation: '1.0.1',
       },
-      reviewStatus: 'unreviewed',
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
       output: {
         unit: 'm²',
         rounding: { mode: 'half-up-decimal', precision: 2 },
@@ -248,67 +256,152 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       }).toThrow(TypeError);
     }
   });
-  it('exports an immutable approval register with the nine owner-approved component versions', () => {
+  it('exports an immutable approval register with the sixteen owner-approved component versions', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(9);
+    expect(approvals).toHaveLength(16);
     expect(Object.isFrozen(approvals)).toBe(true);
-    const expected: readonly FormulaApprovalRecord[] = (
-      [
-        { formulaId: 'bmi', component: 'formula', componentVersion: '1.0.0' },
-        {
-          formulaId: 'bmi',
-          component: 'population',
-          componentVersion: '2.1.0',
-        },
-        {
-          formulaId: 'bmi',
-          component: 'classification',
-          componentVersion: '2.0.0',
-        },
-        {
-          formulaId: 'bmi',
-          component: 'presentation',
-          componentVersion: '2.0.0',
-        },
-        {
-          formulaId: 'bmi',
-          component: 'confirmation',
-          componentVersion: '1.0.0',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          component: 'formula',
-          componentVersion: '1.0.0',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          component: 'population',
-          componentVersion: '2.1.0',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          component: 'presentation',
-          componentVersion: '2.0.0',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          component: 'confirmation',
-          componentVersion: '1.0.0',
-        },
-      ] as readonly {
-        readonly formulaId: string;
-        readonly component: TestFormulaComponent;
-        readonly componentVersion: string;
-      }[]
-    ).map((entry) => ({
-      ...entry,
-      approvedBy: 'Project owner (surgeon, clinical reviewer)',
-      approvedOn: '2026-10-14',
-      scope:
-        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
-    }));
+    const pr26Scope =
+      'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only';
+    const wordingPresentationScope =
+      'Adult (18+) wording-only revision of presentation 2.0.0; synthetic-data development build only; not a public clinical release';
+    const wordingConfirmationScope =
+      'Adult (18+) wording-only revision of confirmation 1.0.0; synthetic-data development build only; not a public clinical release';
+    const ckdEpiScope =
+      'Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing';
+    const cgPopulationScope =
+      'Adult (18+) scope with technical age guards; development and review scope only; not a default dosing method';
+    const expected: readonly FormulaApprovalRecord[] = [
+      {
+        formulaId: 'bmi',
+        component: 'formula',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'population',
+        componentVersion: '2.1.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'classification',
+        componentVersion: '2.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'presentation',
+        componentVersion: '2.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'confirmation',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'formula',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'population',
+        componentVersion: '2.1.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'presentation',
+        componentVersion: '2.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'confirmation',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: pr26Scope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'presentation',
+        componentVersion: '2.0.1',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: wordingPresentationScope,
+      },
+      {
+        formulaId: 'bmi',
+        component: 'confirmation',
+        componentVersion: '1.0.1',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: wordingConfirmationScope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'presentation',
+        componentVersion: '2.0.1',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: wordingPresentationScope,
+      },
+      {
+        formulaId: 'bsa-mosteller',
+        component: 'confirmation',
+        componentVersion: '1.0.1',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: wordingConfirmationScope,
+      },
+      {
+        formulaId: 'egfr-ckd-epi-2021-cr',
+        component: 'formula',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: ckdEpiScope,
+      },
+      {
+        formulaId: 'egfr-ckd-epi-2021-cr',
+        component: 'population',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: ckdEpiScope,
+      },
+      {
+        formulaId: 'crcl-cockcroft-gault',
+        component: 'population',
+        componentVersion: '1.0.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: cgPopulationScope,
+      },
+    ];
     expect([...approvals]).toEqual([...expected]);
     for (const record of approvals) {
       expect(Object.isFrozen(record)).toBe(true);
@@ -320,7 +413,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
   });
 
   if (bmiFormula && bsaFormula) {
-    it('lists only the unapproved wording-bump components as pending', () => {
+    it('lists no pending approvals for the fully approved BMI and BSA versions', () => {
       if (!m11.pendingApprovals) {
         throw new Error('pendingApprovals export is missing.');
       }
@@ -328,45 +421,17 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       registry.register(bmiFormula);
       registry.register(bsaFormula);
 
-      expect(m11.pendingApprovals(registry)).toEqual([
-        {
-          formulaId: 'bmi',
-          formulaVersion: bmiFormula.formulaVersion,
-          component: 'presentation',
-          componentVersion: '2.0.1',
-        },
-        {
-          formulaId: 'bmi',
-          formulaVersion: bmiFormula.formulaVersion,
-          component: 'confirmation',
-          componentVersion: '1.0.1',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          formulaVersion: bsaFormula.formulaVersion,
-          component: 'presentation',
-          componentVersion: '2.0.1',
-        },
-        {
-          formulaId: 'bsa-mosteller',
-          formulaVersion: bsaFormula.formulaVersion,
-          component: 'confirmation',
-          componentVersion: '1.0.1',
-        },
-      ]);
+      expect(m11.pendingApprovals(registry)).toEqual([]);
     });
 
-    it('rejects a clinically-reviewed BMI copy while presentation 2.0.1 is unapproved', () => {
-      const reviewedBmi = {
-        ...bmiFormula,
-        reviewStatus: {
-          status: 'clinically-reviewed',
-          reviewer: 'x',
-          reviewedAt: '2026-10-14',
-        },
-      } as unknown as Parameters<Domain.FormulaRegistry['register']>[0];
+    it('registers the clinically-reviewed BMI and BSA definitions with their approvals', () => {
       const registry = new Domain.FormulaRegistry();
-      expect(() => registry.register(reviewedBmi)).toThrow();
+      expect(() => registry.register(bmiFormula)).not.toThrow();
+      expect(() => registry.register(bsaFormula)).not.toThrow();
+      if (!m11.pendingApprovals) {
+        throw new Error('pendingApprovals export is missing.');
+      }
+      expect(m11.pendingApprovals(registry)).toEqual([]);
     });
 
     it('documents the unreviewed engineering ranges and formula limitations', () => {
@@ -457,7 +522,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         formulaVersion: BMI_FORMULA_VERSION,
         unroundedValue: 22.857142857142858,
         displayValue: 22.9,
-        reviewStatus: 'unreviewed',
+        reviewStatus: {
+          status: 'clinically-reviewed',
+          reviewer: 'Project owner (surgeon, clinical reviewer)',
+          reviewedAt: '2026-10-14',
+        },
         rounding: { mode: 'half-up-decimal', precision: 1 },
       });
     });
@@ -506,7 +575,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         formulaVersion: BSA_FORMULA_VERSION,
         unroundedValue: 1.8446619684315546,
         displayValue: 1.84,
-        reviewStatus: 'unreviewed',
+        reviewStatus: {
+          status: 'clinically-reviewed',
+          reviewer: 'Project owner (surgeon, clinical reviewer)',
+          reviewedAt: '2026-10-14',
+        },
         rounding: { mode: 'half-up-decimal', precision: 2 },
       });
       expect(result.classification).toBeUndefined();

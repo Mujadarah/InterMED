@@ -179,7 +179,7 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
       componentVersions: {
         formula: '1.0.0',
         population: '1.0.0',
-        presentation: '1.0.0',
+        presentation: '1.1.0',
       },
       reviewStatus: 'unreviewed',
       output: {
@@ -188,7 +188,7 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
       },
     });
     expect(ckdEpi.formulaVersion).toBe(
-      'formula=1.0.0|population=1.0.0|presentation=1.0.0',
+      'formula=1.0.0|population=1.0.0|presentation=1.1.0',
     );
     expect(ckdEpi.componentVersions.classification).toBeUndefined();
     expect(ckdEpi.componentVersions.confirmation).toBeUndefined();
@@ -202,13 +202,15 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
     const sexInput = ckdEpi.inputs.find((input) => input.id === 'sex');
     expect(sexInput).toMatchObject({
       kind: 'category',
-      label: 'Sex used by the equation (female/male coefficients)',
+      label: 'Sex coefficient used by the equation (female/male)',
       required: true,
       options: [
         { id: 'female', label: 'Female' },
         { id: 'male', label: 'Male' },
       ],
     });
+    expect(sexInput).not.toHaveProperty('default');
+    expect(sexInput).not.toHaveProperty('defaultOption');
     expect(ckdEpi.primaryReference.urlOrDoi).toContain('10.1056/NEJMoa2102953');
   });
 
@@ -390,44 +392,44 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
   it('carries every required limitation as visible text', () => {
     const text = ckdEpi.limitations.join(' ').toLowerCase();
     for (const fragment of [
-      'stable adult kidney function only',
-      'not for acute kidney injury, dialysis or pregnancy',
-      'extremes of muscle mass, amputation, malnutrition or obesity',
+      'candidate equation for stable adult kidney function only',
+      'not for acute kidney injury, unstable creatinine, dialysis or pregnancy',
+      'extreme muscle mass',
+      'malnutrition',
+      'other conditions impairing accuracy',
       'idms-traceable creatinine assay',
       'cystatin c equations are separate and not implemented',
       'not cockcroft',
       'not for dosing',
       'de-indexing by bsa does not authorise dosing',
       'no ckd diagnosis or staging from a single value',
-      'romanian population suitability',
-      'sex-coefficient selection need clinical review',
-      'display precision (integer) is proposed, pending owner sign-off',
+      'not validated specifically for the romanian population',
+      'no population-specific precision is claimed',
+      'published female/male coefficients are used without an ethnicity adjustment',
+      'accuracy may be limited when creatinine generation differs substantially',
+      'hormonal or muscle-mass changes',
+      'displayed as a whole number; the unrounded value is kept internally and is never used for later calculations or threshold decisions',
       'technical bounds, not clinically validated',
       'creatinine 0.1-20 mg/dl (8.84-1768 µmol/l)',
     ]) {
       expect(text, fragment).toContain(fragment);
     }
+    expect(text).not.toContain('proposed');
+    expect(text).not.toContain('pending owner sign-off');
   });
 
-  it('lists every CKD-EPI component as pending without touching approvals', () => {
+  it('lists only presentation 1.1.0 as pending after the formula and population approvals', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(9);
+    expect(approvals).toHaveLength(16);
     expect(
-      approvals.every(
-        (record) =>
-          (record as { formulaId: string }).formulaId === 'bmi' ||
-          (record as { formulaId: string }).formulaId === 'bsa-mosteller',
-      ),
-    ).toBe(true);
-    expect(
-      approvals.some(
+      approvals.filter(
         (record) =>
           (record as { formulaId: string }).formulaId ===
           'egfr-ckd-epi-2021-cr',
       ),
-    ).toBe(false);
+    ).toHaveLength(2);
     if (!m11.pendingApprovals) {
       throw new Error('pendingApprovals export is missing.');
     }
@@ -437,20 +439,8 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
       {
         formulaId: 'egfr-ckd-epi-2021-cr',
         formulaVersion: ckdEpi.formulaVersion,
-        component: 'formula',
-        componentVersion: '1.0.0',
-      },
-      {
-        formulaId: 'egfr-ckd-epi-2021-cr',
-        formulaVersion: ckdEpi.formulaVersion,
-        component: 'population',
-        componentVersion: '1.0.0',
-      },
-      {
-        formulaId: 'egfr-ckd-epi-2021-cr',
-        formulaVersion: ckdEpi.formulaVersion,
         component: 'presentation',
-        componentVersion: '1.0.0',
+        componentVersion: '1.1.0',
       },
     ]);
   });

@@ -17,5 +17,7 @@ test('calculates BMI on the development calculators page', async ({ page }) => {
 
   await expect(page.getByText('Result: 22.9 kg/m²')).toBeVisible();
   await expect(page.getByText(/Normal range/)).toBeVisible();
-  await expect(page.getByText('Review status: UNREVIEWED')).toBeVisible();
+  await expect(
+    page.getByText('Review status: CLINICALLY REVIEWED'),
+  ).toBeVisible();
 });
