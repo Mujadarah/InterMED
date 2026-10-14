@@ -241,6 +241,12 @@ function readRootLock(): Lockfile {
   ) as Lockfile;
 }
 
+// This integration test independently compiles twice to prove deterministic
+// locks, seeds an isolated tarball cache, runs offline npm ci and executes the
+// handler. Keep both builds: sharing a fixture would erase that proof. The
+// Windows CI log reached 60.2 s under suite contention, so budget one minute
+// per build/install leg rather than the single-build 60 s used by nearby tests.
+const handlerArtifactTimeout = 120_000;
 describe('importer function artifact', () => {
   it('builds a disjoint isolated runtime artifact and rejects safely', async () => {
     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-test-'));
@@ -765,148 +771,152 @@ describe('importer function artifact', () => {
     }
   }, 60_000);
 
-  it('pins the exact handler runtime root dependencies without registry metadata', async () => {
-    const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-handler-'));
-    const functionSourceDir = join(parent, 'function-src');
-    mkdirSync(functionSourceDir, { recursive: true });
-    // The deployed handler surface: @intermed/domain + @intermed/importer
-    // directly (zod enters transitively through the derived runtime closure).
-    writeFileSync(
-      join(functionSourceDir, 'main.js'),
-      [
-        "import { deserializeCatalogue, serializeCatalogue } from '@intermed/domain';",
-        "import { publish, stage } from '@intermed/importer';",
-        "import { readTrustedRuntime } from './runtime-config.js';",
-        '',
-        'export default async ({ req, res, log }) => {',
-        '  if (req.method !== "POST") {',
-        '    return res.json({ error: "Method not allowed" }, 405);',
-        '  }',
-        '  const parsed = deserializeCatalogue(req.body);',
-        '  if (!parsed.ok) {',
-        '    return res.json({ error: "Rejected" }, 400);',
-        '  }',
-        '  const runtime = readTrustedRuntime(process.env);',
-        '  log(`handler ${typeof stage}/${typeof publish}`);',
-        '  return res.json(',
-        '    {',
-        '      runtime,',
-        '      coreReady: typeof stage === "function" && typeof publish === "function",',
-        '      roundtripOk: !!deserializeCatalogue(serializeCatalogue(parsed.snapshot)).ok,',
-        '    },',
-        '    200,',
-        '  );',
-        '};',
-        '',
-      ].join('\n'),
-    );
-    writeFileSync(
-      join(functionSourceDir, 'runtime-config.js'),
-      [
-        "import crypto from 'node:crypto';",
-        '',
-        'export function readTrustedRuntime(env) {',
-        '  return {',
-        '    project: env.APPWRITE_FUNCTION_PROJECT_ID || "intermed-dev",',
-        '    digest: crypto',
-        '      .createHash("sha256")',
-        '      .update("synthetic-runtime")',
-        '      .digest("hex")',
-        '      .slice(0, 8),',
-        '  };',
-        '}',
-        '',
-      ].join('\n'),
-    );
-
-    const emptyCache = join(parent, 'empty-npm-cache');
-    mkdirSync(emptyCache, { recursive: true });
-    const previousCache = process.env.npm_config_cache;
-    const previousOffline = process.env.npm_config_offline;
-    const previousRegistry = process.env.npm_config_registry;
-    // Lock generation reads the committed root lockfile only. An empty npm
-    // cache plus offline mode leaves no registry metadata to resolve against.
-    process.env.npm_config_cache = emptyCache;
-    process.env.npm_config_offline = 'true';
-    process.env.npm_config_registry = 'http://127.0.0.1:9/unreachable';
-
-    let artifact = '';
-    let secondArtifact = '';
-    try {
-      artifact = buildImporterFunctionArtifact({
-        outputParent: parent,
-        functionSourceDir,
-      });
-      secondArtifact = buildImporterFunctionArtifact({
-        outputParent: parent,
-        functionSourceDir,
-      });
-    } finally {
-      const restore = (key: string, value: string | undefined) => {
-        if (value === undefined) delete process.env[key];
-        else process.env[key] = value;
-      };
-      restore('npm_config_cache', previousCache);
-      restore('npm_config_offline', previousOffline);
-      restore('npm_config_registry', previousRegistry);
-    }
-
-    try {
-      const packageJson = JSON.parse(
-        readFileSync(join(artifact, 'package.json'), 'utf8'),
-      ) as { main: string; dependencies: Record<string, string> };
-      expect(packageJson.main).toBe('./src/main.js');
-      expect(packageJson.dependencies).toEqual({
-        '@intermed/domain': 'file:vendor/@intermed/domain',
-        '@intermed/importer': 'file:vendor/@intermed/importer',
-        zod: '4.6.5',
-      });
-
-      const lockText = readFileSync(
-        join(artifact, 'package-lock.json'),
-        'utf8',
-      );
-      expect(
-        readFileSync(join(secondArtifact, 'package-lock.json'), 'utf8'),
-      ).toBe(lockText);
-      const lock = JSON.parse(lockText) as Lockfile;
-      expect(lock.lockfileVersion).toBe(3);
-      expect(lock.packages['']?.dependencies).toEqual(packageJson.dependencies);
-      const rootLock = readRootLock();
-      const rootZod = rootLock.packages['node_modules/zod'];
-      expect(rootZod?.integrity).toBeTruthy();
-      expect(lock.packages['node_modules/zod']).toEqual({
-        version: rootZod?.version,
-        resolved: rootZod?.resolved,
-        integrity: rootZod?.integrity,
-      });
-      for (const name of ['domain', 'data-access', 'importer']) {
-        expect(lock.packages[`node_modules/@intermed/${name}`]).toEqual({
-          resolved: `vendor/@intermed/${name}`,
-          link: true,
-        });
-        expect(lock.packages[`vendor/@intermed/${name}`]?.name).toBe(
-          `@intermed/${name}`,
-        );
-      }
-      expect(lockText).not.toContain('typescript');
-
-      // Install network boundary: exactly one pinned tarball, nothing else.
-      const provenance = await installArtifactOffline(artifact);
-      expect(provenance).toHaveLength(1);
-      expect(provenance.join('\n')).toContain(String(rootZod?.resolved));
-
-      const artifactFiles = listFiles(artifact).filter(
-        (file) => !file.startsWith('node_modules/'),
-      );
-      expect(artifactFiles).toContain('src/main.js');
-      expect(artifactFiles).toContain('src/runtime-config.js');
-      assertClosedModuleGraph(artifact, artifactFiles);
-
-      const runner = join(artifact, '.handler-surface-runner.mjs');
+  it(
+    'pins the exact handler runtime root dependencies without registry metadata',
+    async () => {
+      const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-handler-'));
+      const functionSourceDir = join(parent, 'function-src');
+      mkdirSync(functionSourceDir, { recursive: true });
+      // The deployed handler surface: @intermed/domain + @intermed/importer
+      // directly (zod enters transitively through the derived runtime closure).
       writeFileSync(
-        runner,
-        `
+        join(functionSourceDir, 'main.js'),
+        [
+          "import { deserializeCatalogue, serializeCatalogue } from '@intermed/domain';",
+          "import { publish, stage } from '@intermed/importer';",
+          "import { readTrustedRuntime } from './runtime-config.js';",
+          '',
+          'export default async ({ req, res, log }) => {',
+          '  if (req.method !== "POST") {',
+          '    return res.json({ error: "Method not allowed" }, 405);',
+          '  }',
+          '  const parsed = deserializeCatalogue(req.body);',
+          '  if (!parsed.ok) {',
+          '    return res.json({ error: "Rejected" }, 400);',
+          '  }',
+          '  const runtime = readTrustedRuntime(process.env);',
+          '  log(`handler ${typeof stage}/${typeof publish}`);',
+          '  return res.json(',
+          '    {',
+          '      runtime,',
+          '      coreReady: typeof stage === "function" && typeof publish === "function",',
+          '      roundtripOk: !!deserializeCatalogue(serializeCatalogue(parsed.snapshot)).ok,',
+          '    },',
+          '    200,',
+          '  );',
+          '};',
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(
+        join(functionSourceDir, 'runtime-config.js'),
+        [
+          "import crypto from 'node:crypto';",
+          '',
+          'export function readTrustedRuntime(env) {',
+          '  return {',
+          '    project: env.APPWRITE_FUNCTION_PROJECT_ID || "intermed-dev",',
+          '    digest: crypto',
+          '      .createHash("sha256")',
+          '      .update("synthetic-runtime")',
+          '      .digest("hex")',
+          '      .slice(0, 8),',
+          '  };',
+          '}',
+          '',
+        ].join('\n'),
+      );
+
+      const emptyCache = join(parent, 'empty-npm-cache');
+      mkdirSync(emptyCache, { recursive: true });
+      const previousCache = process.env.npm_config_cache;
+      const previousOffline = process.env.npm_config_offline;
+      const previousRegistry = process.env.npm_config_registry;
+      // Lock generation reads the committed root lockfile only. An empty npm
+      // cache plus offline mode leaves no registry metadata to resolve against.
+      process.env.npm_config_cache = emptyCache;
+      process.env.npm_config_offline = 'true';
+      process.env.npm_config_registry = 'http://127.0.0.1:9/unreachable';
+
+      let artifact = '';
+      let secondArtifact = '';
+      try {
+        artifact = buildImporterFunctionArtifact({
+          outputParent: parent,
+          functionSourceDir,
+        });
+        secondArtifact = buildImporterFunctionArtifact({
+          outputParent: parent,
+          functionSourceDir,
+        });
+      } finally {
+        const restore = (key: string, value: string | undefined) => {
+          if (value === undefined) delete process.env[key];
+          else process.env[key] = value;
+        };
+        restore('npm_config_cache', previousCache);
+        restore('npm_config_offline', previousOffline);
+        restore('npm_config_registry', previousRegistry);
+      }
+
+      try {
+        const packageJson = JSON.parse(
+          readFileSync(join(artifact, 'package.json'), 'utf8'),
+        ) as { main: string; dependencies: Record<string, string> };
+        expect(packageJson.main).toBe('./src/main.js');
+        expect(packageJson.dependencies).toEqual({
+          '@intermed/domain': 'file:vendor/@intermed/domain',
+          '@intermed/importer': 'file:vendor/@intermed/importer',
+          zod: '4.6.5',
+        });
+
+        const lockText = readFileSync(
+          join(artifact, 'package-lock.json'),
+          'utf8',
+        );
+        expect(
+          readFileSync(join(secondArtifact, 'package-lock.json'), 'utf8'),
+        ).toBe(lockText);
+        const lock = JSON.parse(lockText) as Lockfile;
+        expect(lock.lockfileVersion).toBe(3);
+        expect(lock.packages['']?.dependencies).toEqual(
+          packageJson.dependencies,
+        );
+        const rootLock = readRootLock();
+        const rootZod = rootLock.packages['node_modules/zod'];
+        expect(rootZod?.integrity).toBeTruthy();
+        expect(lock.packages['node_modules/zod']).toEqual({
+          version: rootZod?.version,
+          resolved: rootZod?.resolved,
+          integrity: rootZod?.integrity,
+        });
+        for (const name of ['domain', 'data-access', 'importer']) {
+          expect(lock.packages[`node_modules/@intermed/${name}`]).toEqual({
+            resolved: `vendor/@intermed/${name}`,
+            link: true,
+          });
+          expect(lock.packages[`vendor/@intermed/${name}`]?.name).toBe(
+            `@intermed/${name}`,
+          );
+        }
+        expect(lockText).not.toContain('typescript');
+
+        // Install network boundary: exactly one pinned tarball, nothing else.
+        const provenance = await installArtifactOffline(artifact);
+        expect(provenance).toHaveLength(1);
+        expect(provenance.join('\n')).toContain(String(rootZod?.resolved));
+
+        const artifactFiles = listFiles(artifact).filter(
+          (file) => !file.startsWith('node_modules/'),
+        );
+        expect(artifactFiles).toContain('src/main.js');
+        expect(artifactFiles).toContain('src/runtime-config.js');
+        assertClosedModuleGraph(artifact, artifactFiles);
+
+        const runner = join(artifact, '.handler-surface-runner.mjs');
+        writeFileSync(
+          runner,
+          `
           const { default: handler } = await import('./src/main.js');
           const { serializeCatalogue } = await import('@intermed/domain');
           const { z } = await import('zod');
@@ -945,21 +955,26 @@ describe('importer function artifact', () => {
           if (networkCalls !== 0) throw new Error('unexpected network call');
           console.log(JSON.stringify(last));
         `,
-      );
-      try {
-        const output = execFileSync(process.execPath, [runner], {
-          cwd: artifact,
-          encoding: 'utf8',
-          env: { ...process.env, APPWRITE_FUNCTION_PROJECT_ID: 'intermed-dev' },
-        });
-        expect(output).toContain('"coreReady":true');
+        );
+        try {
+          const output = execFileSync(process.execPath, [runner], {
+            cwd: artifact,
+            encoding: 'utf8',
+            env: {
+              ...process.env,
+              APPWRITE_FUNCTION_PROJECT_ID: 'intermed-dev',
+            },
+          });
+          expect(output).toContain('"coreReady":true');
+        } finally {
+          rmSync(runner, { force: true });
+        }
       } finally {
-        rmSync(runner, { force: true });
+        rmSync(parent, { recursive: true, force: true });
       }
-    } finally {
-      rmSync(parent, { recursive: true, force: true });
-    }
-  }, 60_000);
+    },
+    handlerArtifactTimeout,
+  );
 });
 
 describe('derived runtime lock', () => {
