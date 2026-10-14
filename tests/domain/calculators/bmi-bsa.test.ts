@@ -670,31 +670,43 @@ describe('Milestone 11 BMI and BSA candidates', () => {
     });
 
     it('classifies just below each BMI cutoff using the unrounded value', () => {
+      const scheme =
+        'WHO international adult classification, WHO Technical Report Series 894 (2000)';
       const belowCases = [
         {
           value: 18.4999999,
           code: 'who-international-adult-underweight',
           displayValue: 18.5,
+          category: 'Underweight',
+          displayCategory: 'Normal range',
         },
         {
           value: 24.9999999,
           code: 'who-international-adult-normal',
           displayValue: 25,
+          category: 'Normal range',
+          displayCategory: 'Pre-obese (overweight)',
         },
         {
           value: 29.9999999,
           code: 'who-international-adult-pre-obese',
           displayValue: 30,
+          category: 'Pre-obese (overweight)',
+          displayCategory: 'Obese class I',
         },
         {
           value: 34.9999999,
           code: 'who-international-adult-obese-class-i',
           displayValue: 35,
+          category: 'Obese class I',
+          displayCategory: 'Obese class II',
         },
         {
           value: 39.9999999,
           code: 'who-international-adult-obese-class-ii',
           displayValue: 40,
+          category: 'Obese class II',
+          displayCategory: 'Obese class III',
         },
       ];
 
@@ -709,6 +721,12 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         expect(result.displayValue).toBe(testCase.displayValue);
         expect(result.classification?.code).toBe(testCase.code);
         expect(result.classificationNote).toContain(String(testCase.value));
+        expect(result.classificationNote).toContain(testCase.category);
+        expect(result.classificationNote).toContain(testCase.displayCategory);
+        expect(
+          result.classificationNote?.split(scheme).length,
+          `scheme occurs once for ${testCase.value}`,
+        ).toBe(2);
       }
     });
 
@@ -724,10 +742,9 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       expect(result.classification?.code).toBe(
         'who-international-adult-normal',
       );
-      expect(result.classificationNote).toContain(
-        'WHO international adult classification',
+      expect(result.classificationNote).toBe(
+        'Classified as Normal range from the unrounded value 24.96 kg/m² (WHO international adult classification, WHO Technical Report Series 894 (2000)). The displayed value 25.0 kg/m² would fall in Pre-obese (overweight); the classification uses the unrounded value.',
       );
-      expect(result.classificationNote).toContain('24.96');
     });
 
     it('routes under-18 ages through the adult release-scope guard', () => {
