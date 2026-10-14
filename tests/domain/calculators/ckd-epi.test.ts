@@ -410,7 +410,24 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
   });
 
   it('lists every CKD-EPI component as pending without touching approvals', () => {
-    expect(m11.FORMULA_APPROVALS).toEqual([]);
+    const approvals = m11.FORMULA_APPROVALS;
+    expect(approvals).toBeDefined();
+    if (!approvals) return;
+    expect(approvals).toHaveLength(9);
+    expect(
+      approvals.every(
+        (record) =>
+          (record as { formulaId: string }).formulaId === 'bmi' ||
+          (record as { formulaId: string }).formulaId === 'bsa-mosteller',
+      ),
+    ).toBe(true);
+    expect(
+      approvals.some(
+        (record) =>
+          (record as { formulaId: string }).formulaId ===
+          'egfr-ckd-epi-2021-cr',
+      ),
+    ).toBe(false);
     if (!m11.pendingApprovals) {
       throw new Error('pendingApprovals export is missing.');
     }

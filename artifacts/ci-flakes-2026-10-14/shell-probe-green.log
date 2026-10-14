@@ -1,0 +1,15 @@
+Command: npm test -- apps/web/src/infrastructure/browser-shell.test.ts
+Exit code: 0
+
+
+> intermed@0.0.0 test
+> vitest run apps/web/src/infrastructure/browser-shell.test.ts
+
+
+ RUN  v4.1.11 <WORKTREE>
+
+
+ Test Files  1 passed (1)
+      Tests  35 passed (35)
+   Start at  14:11:39
+   Duration  170ms (transform 21ms, setup 0ms, import 35ms, tests 28ms, environment 0ms)

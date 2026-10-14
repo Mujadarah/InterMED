@@ -195,7 +195,7 @@ test('caches only the shell and launches/reloads existing deep links offline', a
 }, testInfo) => {
   const server = await productionServer();
   try {
-    await page.goto(server.url);
+    await page.goto(server.url, { waitUntil: 'domcontentloaded' });
     await expect(
       page.getByText('Shell available offline', { exact: true }),
     ).toBeVisible();
@@ -210,13 +210,19 @@ test('caches only the shell and launches/reloads existing deep links offline', a
     // WebKit's Windows offline emulator errors before cached navigation.
     // Disconnect the origin in every engine; also disable networking in Chromium.
     server.failure('offline');
+    const before = server.requests.length;
     if (testInfo.project.name === 'chromium-desktop')
       await context.setOffline(true);
-    await page.goto(server.url + '/status');
+    // The origin deliberately destroys sockets. As in pwa-lifecycle, wait for
+    // cached DOM readiness, then prove the rendered app instead of waiting for
+    // WebKit's load bookkeeping during a background worker update check.
+    await page.goto(server.url + '/status', {
+      waitUntil: 'domcontentloaded',
+    });
     await expect(
       page.getByRole('heading', { name: 'Development status' }),
     ).toBeVisible();
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(
       page.getByText('Shell available offline', { exact: true }),
     ).toBeVisible();
@@ -226,10 +232,17 @@ test('caches only the shell and launches/reloads existing deep links offline', a
         .getByText(/No cloud medication service is enabled/),
     ).toBeVisible();
     const freshPage = await context.newPage();
-    await freshPage.goto(server.url);
+    await freshPage.goto(server.url, { waitUntil: 'domcontentloaded' });
     await expect(
       freshPage.getByRole('heading', { name: 'A foundation for InterMED' }),
     ).toBeVisible();
+    await expect(
+      freshPage.getByText('Shell available offline', { exact: true }),
+    ).toBeVisible();
+    // Only the browser's worker-script update check may contact the dead origin.
+    expect(
+      server.requests.slice(before).filter((path) => path !== '/sw.js'),
+    ).toEqual([]);
   } finally {
     await server.close();
   }

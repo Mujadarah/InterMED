@@ -151,7 +151,7 @@ const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
     maximum: 250,
     unit: 'kg',
     message:
-      'Confirm the entered weight; it is outside the proposed 30–250 kg check range.',
+      'Confirm the entered weight; it is outside the 30–250 kg check range.',
   }),
   Object.freeze({
     id: 'height-unusual',
@@ -161,7 +161,7 @@ const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
     maximum: 220,
     unit: 'cm',
     message:
-      'Confirm the entered height; it is outside the proposed 130–220 cm check range.',
+      'Confirm the entered height; it is outside the 130–220 cm check range.',
   }),
   Object.freeze({
     id: 'age-over-110',
@@ -169,8 +169,7 @@ const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
     inputId: 'age',
     maximum: 110,
     unit: 'years',
-    message:
-      'Confirm the entered age; it is above the proposed 110-year check point.',
+    message: 'Confirm the entered age; it is above the 110-year check point.',
   }),
   Object.freeze({
     id: 'implied-bmi-outside-range',
@@ -180,26 +179,26 @@ const PROPOSED_SOFT_CHECKS: readonly FormulaSoftCheck[] = Object.freeze([
     minimum: 12,
     maximum: 70,
     message:
-      'Confirm the entered weight and height; their implied BMI is outside the proposed 12–70 check range.',
+      'Confirm the entered weight and height; their implied BMI is outside the 12–70 check range.',
   }),
 ]);
 
 const SOFT_CHECK_LIMITATION =
-  'Soft-check values are proposed, pending owner sign-off: weight below 30 kg or above 250 kg; height below 130 cm or above 220 cm; age above 110 years; implied BMI below 12 or above 70 kg/m².';
+  'Confirmation is required for: weight below 30 kg or above 250 kg; height below 130 cm or above 220 cm; age above 110 years; implied BMI below 12 or above 70 kg/m².';
 
 const BMI_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
   formula: '1.0.0',
   population: '2.1.0',
   classification: '2.0.0',
-  presentation: '2.0.0',
-  confirmation: '1.0.0',
+  presentation: '2.0.1',
+  confirmation: '1.0.1',
 });
 
 const BSA_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
   formula: '1.0.0',
   population: '2.1.0',
-  presentation: '2.0.0',
-  confirmation: '1.0.0',
+  presentation: '2.0.1',
+  confirmation: '1.0.1',
 });
 
 const WHO_ADULT_BMI_CITATION =
@@ -224,7 +223,7 @@ export const BMI_FORMULA: FormulaDefinition = freezeDefinition({
   },
   populationLimits: ADULT_POPULATION,
   limitations: [
-    'WHO international adult classification uses thresholds from WHO Technical Report Series 894 (2000); this behavior is proposed, pending owner sign-off, and applies categories to the unrounded BMI value.',
+    'WHO international adult classification uses thresholds from WHO Technical Report Series 894 (2000) and applies categories to the unrounded BMI value.',
     'Adults only: this release accepts ages 18 years and older and does not implement pediatric BMI classification. WHO BMI-for-age references include adolescents up to 19 years; future population-specific assessment requires separate evidence and review.',
     'Cardiometabolic risk may occur at lower BMI values in certain populations. This international adult classification does not implement population-specific thresholds or assessment; population-specific assessment may be added separately in a future version after separate evidence and review.',
     'BMI is a screening index, not a direct body-fat measure and not a diagnosis.',
@@ -267,7 +266,6 @@ export const MOSTELLER_BSA_FORMULA: FormulaDefinition = freezeDefinition({
     'It differs from Du Bois; no superiority claim or automatic substitution is made.',
     "Applicability has not been validated beyond the source populations. Use outside this release's adult scope has not been reviewed; this does not mean the Mosteller formula is inherently invalid for children.",
     'This is a display-only estimate; the displayed rounded value is not to be used as an implicit input for medication-dose calculations.',
-    'Behavior is proposed, pending owner sign-off.',
     SOFT_CHECK_LIMITATION,
     ENGINEERING_LIMITATION,
     'Original derivation and instrument-specific reuse rights have not been verified.',

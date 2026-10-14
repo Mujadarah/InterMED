@@ -1009,6 +1009,9 @@ describe('calculator registry and result provenance', () => {
       label: 'Fictional below category.',
     });
     expect(result.classificationNote).toContain('24.999999');
+    expect(result.classificationNote).toBe(
+      'Classified as Fictional below category. from the unrounded value 24.999999 imaginary-output-unit. The displayed value 25.00 imaginary-output-unit would fall in Fictional above category.; the classification uses the unrounded value.',
+    );
   });
 
   it('treats the at-least limit as inside and just below as out-of-population', () => {

@@ -432,6 +432,20 @@ function formatDisplayValue(value: number, precision: number): string {
   return value.toFixed(precision);
 }
 
+function splitClassificationLabel(label: string): {
+  readonly scheme: string | undefined;
+  readonly category: string;
+} {
+  const separatorIndex = label.lastIndexOf(': ');
+  if (separatorIndex < 0) {
+    return { scheme: undefined, category: label };
+  }
+  return {
+    scheme: label.slice(0, separatorIndex),
+    category: label.slice(separatorIndex + 2),
+  };
+}
+
 function calculateKnownFormula(
   definition: FormulaDefinition,
   request: CalculationRequest,
@@ -540,9 +554,22 @@ function calculateKnownFormula(
       };
     }
     if (classification.code !== displayClassification.code) {
-      const classificationLabel =
-        classification.label.split(':')[0] ?? classification.label;
-      classificationNote = `${classificationLabel} uses the unrounded exact value ${String(unroundedValue)} ${definition.output.unit}; the displayed value ${formatDisplayValue(displayValue, definition.output.rounding.precision)} ${definition.output.unit} would be classified as ${displayClassification.label}.`;
+      const { scheme, category } = splitClassificationLabel(
+        classification.label,
+      );
+      const { category: displayCategory } = splitClassificationLabel(
+        displayClassification.label,
+      );
+      const unrounded = String(unroundedValue);
+      const display = formatDisplayValue(
+        displayValue,
+        definition.output.rounding.precision,
+      );
+      const unit = definition.output.unit;
+      classificationNote =
+        scheme === undefined
+          ? `Classified as ${category} from the unrounded value ${unrounded} ${unit}. The displayed value ${display} ${unit} would fall in ${displayCategory}; the classification uses the unrounded value.`
+          : `Classified as ${category} from the unrounded value ${unrounded} ${unit} (${scheme}). The displayed value ${display} ${unit} would fall in ${displayCategory}; the classification uses the unrounded value.`;
     }
   }
   return {
