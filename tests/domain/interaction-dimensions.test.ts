@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import * as interactionDomain from '@intermed/domain';
 import {
   evaluateInteractions,
+  INTERACTION_ASSESSMENT_LOGIC_VERSION,
   mergeProviderResults,
   type CanonicalIngredientPair,
   type DrugInteractionProvider,
@@ -41,9 +42,9 @@ type AssessmentInput =
 
 interface PairAssessment {
   readonly pair: CanonicalIngredientPair;
+  readonly logicVersion: string;
   readonly finding: {
     readonly documentedInteraction: boolean;
-    readonly affirmedNoInteraction: boolean;
     readonly sourceSeverities: readonly {
       readonly sourceId: string;
       readonly sourceVersion: string;
@@ -60,7 +61,7 @@ interface PairAssessment {
       readonly sourceVersion: string;
       readonly position:
         | 'documents-interaction'
-        | 'affirms-none'
+        | 'no-record-in-coverage'
         | 'no-coverage'
         | 'unavailable';
     }[];
@@ -235,8 +236,8 @@ it('scenario 1: a current finding stays visible beside disagreeing source positi
 
   expect(result.finding).toMatchObject({
     documentedInteraction: true,
-    affirmedNoInteraction: false,
   });
+  expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(result.evidence.evidenceConflict).toBe(true);
   expect(result.evidence.positions).toEqual(
     expect.arrayContaining([
@@ -343,7 +344,7 @@ it('scenario 3: withdrawn and superseded records alone are history, not findings
     const result = assess(evaluation, CONTRACT_PAIR_AB);
 
     expect(result.finding.documentedInteraction).toBe(false);
-    expect(result.finding.affirmedNoInteraction).toBe(false);
+    expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
     expect(result.currency.currentRecordIds).toEqual([]);
     expect(result.currency.historicalRecordIds).toContain(historicalRecord.id);
     expect(result.coverage.status).toBe('not-covered');
@@ -351,21 +352,21 @@ it('scenario 3: withdrawn and superseded records alone are history, not findings
   }
 });
 
-it('scenario 4: complete covered-no-record evidence supports a source-attributed negative position', async () => {
+it("scenario 4: complete covered-no-record coverage is reported as no record in that source's evaluated coverage, never as a negative finding", async () => {
   const evaluation = await evaluate(createNoRecordSyntheticProvider());
   const result = assess(evaluation, CONTRACT_PAIR_AB);
 
-  expect(result.finding.affirmedNoInteraction).toBe(true);
   expect(result.finding.documentedInteraction).toBe(false);
+  expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(result.coverage).toMatchObject({
     status: 'covered',
     coverageComplete: true,
   });
   expect(result.evidence.positions).toHaveLength(1);
-  expect(result.evidence.positions[0]?.position).toBe('affirms-none');
+  expect(result.evidence.positions[0]?.position).toBe('no-record-in-coverage');
 });
 
-it('scenario 5: a source negative position never cancels another source current finding', async () => {
+it('scenario 5: a no-record source position never cancels another source current finding', async () => {
   const request = requestForPair(CONTRACT_PAIR_AB);
   const noRecordResult =
     await createNoRecordSyntheticProvider().evaluate(request);
@@ -375,15 +376,15 @@ it('scenario 5: a source negative position never cancels another source current 
   const result = assess(merged, CONTRACT_PAIR_AB);
 
   expect(result.finding).toMatchObject({
-    affirmedNoInteraction: false,
     documentedInteraction: true,
   });
+  expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(result.evidence.evidenceConflict).toBe(true);
   expect(result.evidence.positions).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         sourceId: noRecordResult.sourceId,
-        position: 'affirms-none',
+        position: 'no-record-in-coverage',
       }),
       expect.objectContaining({
         sourceId: documentedResult.sourceId,
@@ -539,7 +540,7 @@ it.each(SCENARIO_6_CASES)(
     const { evaluation, pair } = await load();
     const result = assess(evaluation, pair);
 
-    expect(result.finding.affirmedNoInteraction).toBe(false);
+    expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
     expect(result.coverage.status).toBe(status);
     expect(result.coverage.coverageComplete).toBe(false);
     if (reason) expect(result.coverage.reasons).toContain(reason);
@@ -556,7 +557,7 @@ it('scenario 7: source-version-mismatched records are flagged outdated and not c
   expect(result.finding.documentedInteraction).toBe(false);
   expect(result.currency.currentRecordIds).not.toContain(outdatedRecord.id);
   expect(result.currency.outdatedRecordIds).toContain(outdatedRecord.id);
-  expect(result.finding.affirmedNoInteraction).toBe(false);
+  expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
 });
 
 it('scenario 8: source-stated uncertainty and evidence levels are preserved without inference', async () => {
@@ -577,11 +578,77 @@ it('scenario 8: source-stated uncertainty and evidence levels are preserved with
   ).toBe(false);
 });
 
-it('scenario 9: the assessment has no safety or no-interaction wording', async () => {
-  const evaluation = await evaluate(createNoRecordSyntheticProvider());
-  const result = assess(evaluation, CONTRACT_PAIR_AB);
+it('scenario 9: the assessment has no safety, no-interaction, or affirmative-negative wording', async () => {
+  const noRecordEvaluation = await evaluate(createNoRecordSyntheticProvider());
+  const documentedEvaluation = await evaluate(createOfflineSyntheticProvider());
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const noRecordResult =
+    await createNoRecordSyntheticProvider().evaluate(request);
+  const documentedResult =
+    await createDisagreementSyntheticProvider().evaluate(request);
+  const conflicting = assess(
+    mergeProviderResults([noRecordResult, documentedResult]),
+    CONTRACT_PAIR_AB,
+  );
+  const historicalEvaluation = await evaluate(
+    createWithdrawnOnlySyntheticProvider(),
+  );
+  const unavailableEvaluation = await evaluate(
+    createThrowingSyntheticProvider(),
+    THROW_TRIGGER_SELECTION,
+  );
 
-  expect(JSON.stringify(result)).not.toMatch(/\bsafe\b|\bno interaction\b/i);
+  const assessments = [
+    assess(noRecordEvaluation, CONTRACT_PAIR_AB),
+    assess(documentedEvaluation, CONTRACT_PAIR_AB),
+    conflicting,
+    assess(historicalEvaluation, CONTRACT_PAIR_AB),
+    assess(
+      unavailableEvaluation,
+      unavailableEvaluation.evaluatedPairCoverage[0]?.pair ?? CONTRACT_PAIR_AB,
+    ),
+  ];
+
+  for (const assessment of assessments) {
+    expect(JSON.stringify(assessment)).not.toMatch(
+      /\bsafe\b|\bno interaction\b/i,
+    );
+    expect(JSON.stringify(assessment)).not.toMatch(/affirm/i);
+    expect(assessment).not.toHaveProperty('affirmedNoInteraction');
+    expect(assessment.finding).not.toHaveProperty('affirmedNoInteraction');
+  }
+});
+
+it('every assessment carries the assessment logic version', async () => {
+  expect(INTERACTION_ASSESSMENT_LOGIC_VERSION).toBe('2.0.0');
+  const evaluation = await evaluate(createNoRecordSyntheticProvider());
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const documentedResult =
+    await createDisagreementSyntheticProvider().evaluate(request);
+  const malformed = {
+    ...documentedResult,
+    records: null,
+  } as unknown as ProviderResult;
+  const merged = mergeProviderResults([
+    await createNoRecordSyntheticProvider().evaluate(request),
+    documentedResult,
+  ]);
+  const malformedMerged = mergeProviderResults([
+    malformed,
+    await createOfflineSyntheticProvider().evaluate(request),
+  ]);
+
+  const assessments = [
+    assess(evaluation, CONTRACT_PAIR_AB),
+    assess(merged, CONTRACT_PAIR_AB),
+    assess(malformedMerged, CONTRACT_PAIR_AB),
+  ];
+
+  for (const assessment of assessments) {
+    expect(assessment.logicVersion).toBe(INTERACTION_ASSESSMENT_LOGIC_VERSION);
+    expect(assessment.logicVersion).toBe('2.0.0');
+  }
+  expect(isDeeplyFrozen(assessments[0])).toBe(true);
 });
 
 it('scenario 10: repeated assessment is deterministic and deeply frozen', async () => {
@@ -612,7 +679,7 @@ it('scenario 11: a malformed provider result makes the pair unavailable instead 
   expect(result.coverage.status).toBe('unavailable');
   expect(result.coverage.coverageComplete).toBe(false);
   expect(result.coverage.reasons).toContain('provider-result-invalid');
-  expect(result.finding.affirmedNoInteraction).toBe(false);
+  expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(result.finding.documentedInteraction).toBe(true);
   expect(result.evidence.positions).toEqual(
     expect.arrayContaining([
@@ -639,7 +706,7 @@ it('scenario 11: a malformed provider result makes the pair unavailable instead 
   );
   expect(unidentified.coverage.status).toBe('unavailable');
   expect(unidentified.coverage.reasons).toContain('provider-result-invalid');
-  expect(unidentified.finding.affirmedNoInteraction).toBe(false);
+  expect(unidentified.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(unidentified.finding.documentedInteraction).toBe(true);
   expect(unidentified.evidence.positions).toEqual([
     {
@@ -662,7 +729,7 @@ it('scenario 11: a malformed provider result makes the pair unavailable instead 
   );
   expect(fieldResult.coverage.status).toBe('unavailable');
   expect(fieldResult.coverage.reasons).toContain('provider-result-invalid');
-  expect(fieldResult.finding.affirmedNoInteraction).toBe(false);
+  expect(fieldResult.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(fieldResult.finding.documentedInteraction).toBe(true);
 });
 
@@ -715,7 +782,7 @@ it('scenario 13: only a valid current record reports a documenting position', as
   );
   expect(outdatedResult.currency.currentRecordIds).toEqual([]);
   expect(outdatedResult.finding.documentedInteraction).toBe(false);
-  expect(outdatedResult.finding.affirmedNoInteraction).toBe(false);
+  expect(outdatedResult.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(outdatedResult.coverage.coverageComplete).toBe(false);
 
   const mismatchBase = createOfflineSyntheticProvider();
@@ -758,7 +825,7 @@ it('scenario 13: only a valid current record reports a documenting position', as
   });
   expect(mismatchedResult.currency.currentRecordIds).toEqual([]);
   expect(mismatchedResult.finding.documentedInteraction).toBe(false);
-  expect(mismatchedResult.finding.affirmedNoInteraction).toBe(false);
+  expect(mismatchedResult.finding).not.toHaveProperty('affirmedNoInteraction');
   expect(mismatchedResult.coverage.coverageComplete).toBe(false);
 });
 
@@ -793,7 +860,7 @@ it('scenario 14: an unavailable evaluation without coverage rows reports unavail
     expect(result.coverage.coverageComplete).toBe(false);
     expect(result.coverage.reasons).toContain(reason);
     expect(result.finding.documentedInteraction).toBe(false);
-    expect(result.finding.affirmedNoInteraction).toBe(false);
+    expect(result.finding).not.toHaveProperty('affirmedNoInteraction');
   }
 });
 
