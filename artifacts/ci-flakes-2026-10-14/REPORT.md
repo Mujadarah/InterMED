@@ -70,3 +70,7 @@ New logs preserve actual failures, commands and exit codes. Terminal colors and 
 4. Final evidence commit — this report, logs, inventory and corrected timeout rationale (its SHA is reported in the final chat response).
 
 The maintainer retains push/PR/merge authority. Required targeted repeats are complete; current-host full checks pass. Exact-branch remote CI remains unverified because pushing was expressly forbidden.
+
+## Follow-up after PR #29 CI (Claude, 2026-10-14)
+
+The first Windows CI run of this branch passed the handler test (11.7 s) but timed out a different install-running test: "pins literal dynamic imports and fails closed on computed ones" took 64.6 s. The first build test took 42.7 s in the same run. The slow phase is the offline artifact installation on the hosted Windows runner, and which test it hits varies from run to run. The named budget was therefore renamed `artifactInstallTimeout` (120 s). It now applies to every test that calls `installArtifactOffline`: the first build, the re-export cases, the direct-external, dynamic-import and handler tests. Pure (non-installing) tests keep 60 s, and no assertion changed. Locally all 14 tests pass apart from the known environmental temp-directory case.
