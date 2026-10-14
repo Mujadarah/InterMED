@@ -10,6 +10,7 @@ import type {
 
 export interface CalculationInputValidationOutcome {
   readonly normalizedValues: Record<string, number | undefined>;
+  readonly categoryValues: Record<string, string | undefined>;
   readonly inputEcho: readonly CalculationInputEcho[];
   readonly errors: readonly InputValidationError[];
   readonly unitErrors: readonly CalculationUnitError[];
@@ -19,6 +20,7 @@ export interface CalculationInputValidationOutcome {
 interface OneInputOutcome {
   readonly echo: CalculationInputEcho;
   readonly normalizedValue?: number;
+  readonly categoryValue?: string;
   readonly error?: InputValidationError;
   readonly unitError?: CalculationUnitError;
 }
@@ -31,10 +33,29 @@ function blankEcho(
   definition: FormulaInputDefinition,
   submitted?: unknown,
 ): CalculationInputEcho {
+  if (definition.kind === 'category') {
+    const submittedCategory =
+      isRecord(submitted) && typeof submitted.category === 'string'
+        ? (submitted.category as string)
+        : null;
+    return {
+      inputId: definition.id,
+      kind: 'category',
+      submittedValue: null,
+      submittedUnit: null,
+      normalizedValue: null,
+      normalizedUnit: '',
+      conversions: [],
+      submittedCategory,
+      selectedOptionId: null,
+      selectedOptionLabel: null,
+    };
+  }
   const submittedValue = isRecord(submitted) ? submitted.value : undefined;
   const submittedUnit = isRecord(submitted) ? submitted.unit : undefined;
   return {
     inputId: definition.id,
+    kind: 'quantity',
     submittedValue: typeof submittedValue === 'number' ? submittedValue : null,
     submittedUnit: typeof submittedUnit === 'string' ? submittedUnit : null,
     normalizedValue: null,
@@ -89,8 +110,77 @@ function missingOrMalformedInput(
   return undefined;
 }
 
+function validateCategoryInput(
+  definition: Extract<FormulaInputDefinition, { kind: 'category' }>,
+  submitted: Record<string, unknown>,
+): OneInputOutcome {
+  if ('value' in submitted || 'unit' in submitted) {
+    return {
+      echo: {
+        ...blankEcho(definition, submitted),
+        submittedCategory:
+          typeof submitted.category === 'string'
+            ? (submitted.category as string)
+            : null,
+      },
+      error: inputError(
+        definition.id,
+        'invalid-input-shape',
+        'A numeric value was submitted for a categorical input.',
+      ),
+    };
+  }
+  const category = submitted.category;
+  if (typeof category !== 'string' || category.trim() === '') {
+    return {
+      echo: blankEcho(definition, submitted),
+      error: inputError(
+        definition.id,
+        'invalid-input-shape',
+        'Categorical inputs must contain a category id.',
+      ),
+    };
+  }
+  const option = definition.options.find(
+    (candidate) => candidate.id === category,
+  );
+  if (!option) {
+    return {
+      echo: {
+        ...blankEcho(definition, submitted),
+        submittedCategory: category,
+      },
+      error: inputError(
+        definition.id,
+        'invalid-value',
+        'The submitted category is not a declared option for this input.',
+      ),
+    };
+  }
+  return {
+    echo: {
+      inputId: definition.id,
+      kind: 'category',
+      submittedValue: null,
+      submittedUnit: null,
+      normalizedValue: null,
+      normalizedUnit: '',
+      conversions: [],
+      submittedCategory: category,
+      selectedOptionId: option.id,
+      selectedOptionLabel: option.label,
+    },
+    categoryValue: option.id,
+  };
+}
+
+type QuantityInputDefinition = Exclude<
+  FormulaInputDefinition,
+  { kind: 'category' }
+>;
+
 function readFiniteValue(
-  definition: FormulaInputDefinition,
+  definition: QuantityInputDefinition,
   submitted: Record<string, unknown>,
   echo: CalculationInputEcho,
 ):
@@ -127,7 +217,7 @@ function readFiniteValue(
 }
 
 function readAllowedUnit(
-  definition: FormulaInputDefinition,
+  definition: QuantityInputDefinition,
   submitted: Record<string, unknown>,
   echo: CalculationInputEcho,
 ):
@@ -164,7 +254,7 @@ function readAllowedUnit(
 }
 
 function validatePlausibleRange(
-  definition: FormulaInputDefinition,
+  definition: QuantityInputDefinition,
   value: number,
   unit: string,
   echo: CalculationInputEcho,
@@ -193,7 +283,7 @@ function validatePlausibleRange(
 }
 
 function convertedInputOutcome(
-  definition: FormulaInputDefinition,
+  definition: QuantityInputDefinition,
   submittedUnit: string,
   value: number,
   conversions: FormulaDefinition['unitConversions'],
@@ -243,6 +333,7 @@ function convertedInputOutcome(
     return {
       echo: {
         inputId: definition.id,
+        kind: 'quantity',
         submittedValue: value,
         submittedUnit,
         normalizedValue: converted.value,
@@ -259,6 +350,7 @@ function convertedInputOutcome(
   return {
     echo: {
       inputId: definition.id,
+      kind: 'quantity',
       submittedValue: value,
       submittedUnit,
       normalizedValue: converted.value,
@@ -280,6 +372,19 @@ function validateSubmittedInput(
   if (submitted === undefined) return { echo };
 
   const submittedRecord = submitted as Record<string, unknown>;
+  if (definition.kind === 'category') {
+    return validateCategoryInput(definition, submittedRecord);
+  }
+  if ('category' in submittedRecord) {
+    return {
+      echo,
+      error: inputError(
+        definition.id,
+        'invalid-input-shape',
+        'A category was submitted for a numeric input.',
+      ),
+    };
+  }
   const finite = readFiniteValue(definition, submittedRecord, echo);
   if (!finite.valid) return finite.outcome;
   const allowedUnit = readAllowedUnit(definition, submittedRecord, echo);
@@ -307,6 +412,9 @@ export function validateCalculationInputs(
   const normalizedValues: Record<string, number | undefined> = Object.create(
     null,
   ) as Record<string, number | undefined>;
+  const categoryValues: Record<string, string | undefined> = Object.create(
+    null,
+  ) as Record<string, string | undefined>;
   const inputEcho: CalculationInputEcho[] = [];
   const errors: InputValidationError[] = [];
   const unitErrors: CalculationUnitError[] = [];
@@ -392,12 +500,14 @@ export function validateCalculationInputs(
     );
     inputEcho.push(outcome.echo);
     normalizedValues[inputDefinition.id] = outcome.normalizedValue;
+    categoryValues[inputDefinition.id] = outcome.categoryValue;
     if (outcome.error) errors.push(outcome.error);
     if (outcome.unitError) unitErrors.push(outcome.unitError);
   }
 
   return {
     normalizedValues,
+    categoryValues,
     inputEcho: Object.freeze(inputEcho),
     errors: Object.freeze(errors),
     unitErrors: Object.freeze(unitErrors),

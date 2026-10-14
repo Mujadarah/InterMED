@@ -15,6 +15,7 @@ import {
   commonCases,
   atLeastGuarded,
   atMostGuarded,
+  categoricalRequired,
   divergentNarrow,
   divergentWide,
   confirmationRequired,
@@ -596,6 +597,9 @@ describe('calculator registry and result provenance', () => {
       (item) => item.id === 'synthetic-axis',
     );
     if (!axisInput) throw new Error('Synthetic fixture input is missing.');
+    if (axisInput.kind === 'category') {
+      throw new Error('Synthetic fixture input is missing.');
+    }
     const range = axisInput.plausibleRangeByUnit['synthetic-unit'];
     if (!range) throw new Error('Synthetic fixture range is missing.');
     const registry = createFormulaRegistry();
@@ -998,8 +1002,8 @@ describe('calculator registry and result provenance', () => {
     expect(result.unroundedValue).toBe(24.999999);
     expect(result.displayValue).toBe(25);
     expect(classify).toHaveBeenCalledTimes(2);
-    expect(classify).toHaveBeenNthCalledWith(1, 24.999999);
-    expect(classify).toHaveBeenNthCalledWith(2, 25);
+    expect(classify).toHaveBeenNthCalledWith(1, 24.999999, expect.anything());
+    expect(classify).toHaveBeenNthCalledWith(2, 25, expect.anything());
     expect(result.classification).toEqual({
       code: 'below-25',
       label: 'Fictional below category.',
@@ -1207,5 +1211,219 @@ describe('calculator registry and result provenance', () => {
 
     expect(result.status).toBe('out-of-population');
     expect(compute).not.toHaveBeenCalled();
+  });
+});
+
+describe('calculator engine categorical inputs', () => {
+  function categoricalResult(
+    inputs: Parameters<typeof request>[2],
+  ): TestCalculationResult {
+    const registry = createFormulaRegistry();
+    registry.register(categoricalRequired);
+    return calculateWith(
+      registry,
+      request(
+        categoricalRequired.formulaId,
+        categoricalRequired.formulaVersion,
+        inputs,
+      ),
+    );
+  }
+
+  it('computes with a required category and echoes the selected option', () => {
+    const result = categoricalResult({
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-group': { category: 'group-a' },
+    });
+
+    expect(result.status).toBe('ok');
+    expect(result.unroundedValue).toBe(40);
+    expect(
+      result.inputEcho.find((echo) => echo.inputId === 'synthetic-group'),
+    ).toMatchObject({
+      submittedCategory: 'group-a',
+      selectedOptionId: 'group-a',
+      selectedOptionLabel: 'Fictional group A',
+    });
+  });
+
+  it('passes categories separately from numeric compute values', () => {
+    const compute = vi.fn(
+      (
+        values: Readonly<Record<string, number | undefined>>,
+        categories: Readonly<Record<string, string | undefined>> | undefined,
+      ) => {
+        expect(values['synthetic-group']).toBeUndefined();
+        expect(values['synthetic-optional-group']).toBeUndefined();
+        expect(categories?.['synthetic-group']).toBe('group-b');
+        return (values['synthetic-axis'] ?? 0) + 1;
+      },
+    );
+    const formula: TestFormulaDefinition = {
+      ...categoricalRequired,
+      compute,
+    };
+    const registry = createFormulaRegistry();
+    registry.register(formula);
+    const result = calculateWith(
+      registry,
+      request(formula.formulaId, formula.formulaVersion, {
+        'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+        'synthetic-group': { category: 'group-b' },
+      }),
+    );
+
+    expect(result.status).toBe('ok');
+    expect(compute).toHaveBeenCalledTimes(1);
+    expect(compute.mock.calls[0]?.[1]).toMatchObject({
+      'synthetic-group': 'group-b',
+    });
+  });
+
+  it('treats an omitted optional category as undefined with a null echo', () => {
+    const result = categoricalResult({
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-group': { category: 'group-b' },
+    });
+
+    expect(result.status).toBe('ok');
+    expect(result.unroundedValue).toBe(50);
+    expect(
+      result.inputEcho.find(
+        (echo) => echo.inputId === 'synthetic-optional-group',
+      ),
+    ).toMatchObject({
+      submittedCategory: null,
+      selectedOptionId: null,
+    });
+  });
+
+  it('returns missing-required for an omitted required category', () => {
+    const result = categoricalResult({
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+    });
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'synthetic-group',
+          code: 'missing-required',
+        }),
+      ]),
+    );
+  });
+
+  it('returns invalid-value for an unknown category option', () => {
+    const result = categoricalResult({
+      'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+      'synthetic-group': { category: 'group-unknown' },
+    });
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'synthetic-group',
+          code: 'invalid-value',
+        }),
+      ]),
+    );
+  });
+
+  it('rejects a numeric value submitted for a category input', () => {
+    const registry = createFormulaRegistry();
+    registry.register(categoricalRequired);
+    const result = calculateWith(
+      registry,
+      request(
+        categoricalRequired.formulaId,
+        categoricalRequired.formulaVersion,
+        {
+          'synthetic-axis': { value: 30, unit: 'synthetic-unit' },
+          'synthetic-group': {
+            value: 1,
+            unit: 'synthetic-unit',
+          } as unknown as {
+            readonly category: string;
+          },
+        },
+      ),
+    );
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'synthetic-group',
+          code: 'invalid-input-shape',
+        }),
+      ]),
+    );
+  });
+
+  it('rejects a category submitted for a numeric input', () => {
+    const result = categoricalResult({
+      'synthetic-axis': { category: 'group-a' },
+      'synthetic-group': { category: 'group-a' },
+    });
+
+    expect(result.status).toBe('invalid-input');
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'synthetic-axis',
+          code: 'invalid-input-shape',
+        }),
+      ]),
+    );
+  });
+
+  it('rejects category definitions with duplicate options or numeric fields', () => {
+    const duplicate: TestFormulaDefinition = {
+      ...categoricalRequired,
+      formulaId: 'synthetic-duplicate-option',
+      inputs: categoricalRequired.inputs.map((item) =>
+        item.id === 'synthetic-group'
+          ? {
+              ...item,
+              options: [
+                { id: 'group-a', label: 'Fictional group A' },
+                { id: 'group-a', label: 'Fictional group A again' },
+              ],
+            }
+          : item,
+      ),
+    };
+    expect(() => createFormulaRegistry().register(duplicate)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+
+    const withUnits = {
+      ...categoricalRequired,
+      formulaId: 'synthetic-category-with-units',
+      inputs: categoricalRequired.inputs.map((item) =>
+        item.id === 'synthetic-group'
+          ? {
+              ...item,
+              quantityKind: 'synthetic-axis',
+              canonicalUnit: 'synthetic-unit',
+              allowedUnits: ['synthetic-unit'],
+              plausibleRangeByUnit: {
+                'synthetic-unit': { min: 0, max: 1 },
+              },
+            }
+          : item,
+      ),
+    } as unknown as TestFormulaDefinition;
+    expect(() => createFormulaRegistry().register(withUnits)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
   });
 });

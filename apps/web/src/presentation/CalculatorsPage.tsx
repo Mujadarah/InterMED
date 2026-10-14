@@ -19,9 +19,21 @@ const DEFINITIONS: Record<'bmi' | 'bsa-mosteller', FormulaDefinition> = {
 
 type CalculatorId = keyof typeof DEFINITIONS;
 
-function inputDefinition(definition: FormulaDefinition, inputId: string) {
+type QuantityInputDefinition = Exclude<
+  FormulaDefinition['inputs'][number],
+  { kind: 'category' }
+>;
+
+/** BMI and BSA declare only quantity inputs; narrow to that shape. */
+function inputDefinition(
+  definition: FormulaDefinition,
+  inputId: string,
+): QuantityInputDefinition {
   const found = definition.inputs.find((input) => input.id === inputId);
   if (!found) throw new Error(`Missing input definition: ${inputId}.`);
+  if (found.kind === 'category') {
+    throw new Error(`Input ${inputId} is not a quantity input.`);
+  }
   return found;
 }
 

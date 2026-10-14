@@ -460,6 +460,72 @@ export const throwing = makeDefinition({
   },
 });
 
+export const categoricalRequired: TestFormulaDefinition = {
+  ...linear,
+  formulaId: 'synthetic-categorical-required',
+  formulaVersion: formulaVersionId({
+    ...linear.componentVersions,
+    formula: 'cat-1.0',
+  }),
+  componentVersions: {
+    ...linear.componentVersions,
+    formula: 'cat-1.0',
+  },
+  inputs: [
+    ...(linear.inputs.filter(
+      (item) => item.id === 'synthetic-axis',
+    ) as TestInputDefinition[]),
+    {
+      id: 'synthetic-group',
+      label: 'Fictional group',
+      kind: 'category',
+      required: true,
+      options: [
+        { id: 'group-a', label: 'Fictional group A' },
+        { id: 'group-b', label: 'Fictional group B' },
+      ],
+    },
+    {
+      id: 'synthetic-optional-group',
+      label: 'Fictional optional group',
+      kind: 'category',
+      required: false,
+      options: [
+        { id: 'optional-x', label: 'Fictional optional X' },
+        { id: 'optional-y', label: 'Fictional optional Y' },
+      ],
+    },
+  ],
+  unitConversions: {},
+  populationLimits: {
+    text: 'Synthetic test values only; these limits are fictional.',
+    guards: [
+      {
+        id: 'synthetic-axis-window',
+        inputId: 'synthetic-axis',
+        operator: 'between',
+        minimum: 0,
+        maximum: 100,
+        unit: 'synthetic-unit',
+        message: 'Fictional test range only.',
+      },
+    ],
+  },
+  compute: (values, categories) => {
+    const axis = values['synthetic-axis'];
+    const group = categories?.['synthetic-group'];
+    if (axis === undefined || group === undefined) {
+      throw new Error('Synthetic required input is missing.');
+    }
+    const optional = categories?.['synthetic-optional-group'];
+    return (
+      axis +
+      (group === 'group-a' ? 10 : 20) +
+      (optional === 'optional-y' ? 1 : 0)
+    );
+  },
+};
+
 function withConcentrationRanges(
   definition: TestFormulaDefinition,
   ranges: Readonly<

@@ -236,6 +236,7 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       expect(Object.isFrozen(formula.inputs)).toBe(true);
       for (const input of formula.inputs) {
         expect(Object.isFrozen(input)).toBe(true);
+        if (input.kind === 'category') continue;
         expect(Object.isFrozen(input.allowedUnits)).toBe(true);
       }
       expect(Object.isFrozen(formula.output)).toBe(true);

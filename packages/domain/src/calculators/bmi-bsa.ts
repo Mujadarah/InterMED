@@ -21,26 +21,29 @@ const FORMULA_UNIT_CONVERSIONS: FormulaUnitConversions = Object.freeze({
   length: lengthConversions,
 });
 
-const WEIGHT_RANGES: FormulaInputDefinition['plausibleRangeByUnit'] =
-  Object.freeze({
-    kg: Object.freeze({ min: 1, max: 500 }),
-    lb: Object.freeze({
-      min: 2.2046226218487757,
-      max: 500 * 2.2046226218487757,
-    }),
-  });
+type QuantityRanges = Extract<
+  FormulaInputDefinition,
+  { kind?: 'quantity' }
+>['plausibleRangeByUnit'];
 
-const HEIGHT_RANGES: FormulaInputDefinition['plausibleRangeByUnit'] =
-  Object.freeze({
-    cm: Object.freeze({ min: 50, max: 272 }),
-    m: Object.freeze({ min: 0.5, max: 2.72 }),
-    in: Object.freeze({ min: 50 / 2.54, max: 272 / 2.54 }),
-  });
+const WEIGHT_RANGES: QuantityRanges = Object.freeze({
+  kg: Object.freeze({ min: 1, max: 500 }),
+  lb: Object.freeze({
+    min: 2.2046226218487757,
+    max: 500 * 2.2046226218487757,
+  }),
+});
+
+const HEIGHT_RANGES: QuantityRanges = Object.freeze({
+  cm: Object.freeze({ min: 50, max: 272 }),
+  m: Object.freeze({ min: 0.5, max: 2.72 }),
+  in: Object.freeze({ min: 50 / 2.54, max: 272 / 2.54 }),
+});
 
 // The technical minimum lets under-18 ages reach the adult release-scope guard.
-const AGE_RANGE: FormulaInputDefinition['plausibleRangeByUnit'] = Object.freeze(
-  { years: Object.freeze({ min: 0, max: 130 }) },
-);
+const AGE_RANGE: QuantityRanges = Object.freeze({
+  years: Object.freeze({ min: 0, max: 130 }),
+});
 
 function weightInput(): FormulaInputDefinition {
   return {
