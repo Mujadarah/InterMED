@@ -35,6 +35,13 @@ afterEach(cleanup);
 
 const FIXED_WARNING =
   'Absence of a record does not mean the combination is safe.';
+const COVERED_NO_RECORD_SENTENCE = `No interaction record identified within Source ${JSON.stringify(sourceId)}'s evaluated coverage.`;
+const ADDITIONAL_NO_RECORD_SOURCE_ID = mustId(
+  'DataSource',
+  SOURCE_NAMESPACE,
+  'source.synthetic-checker-covered-no-record',
+);
+const ADDITIONAL_NO_RECORD_SOURCE_VERSION = 'synthetic-covered-no-record-v2';
 const SYNTHETIC_MAPPING = {
   mappingVersion: 'synthetic-display-only-v1',
   reviewed: false,
@@ -176,6 +183,61 @@ function withSyntheticDisagreement(
   };
 }
 
+function withAdditionalCoveredNoRecordSource(
+  evaluation: InteractionEvaluation,
+): InteractionEvaluation {
+  const pair = evaluation.evaluatedPairCoverage[0]?.pair;
+  if (!pair) return evaluation;
+  const providerId = 'synthetic-covered-no-record-secondary-provider';
+  return {
+    ...evaluation,
+    evaluatedPairCoverage: [
+      ...evaluation.evaluatedPairCoverage,
+      {
+        pair,
+        providerId,
+        sourceId: ADDITIONAL_NO_RECORD_SOURCE_ID,
+        sourceVersion: ADDITIONAL_NO_RECORD_SOURCE_VERSION,
+        status: 'covered-no-record',
+      },
+    ],
+    sourceVersions: [
+      ...evaluation.sourceVersions,
+      {
+        providerId,
+        sourceId: ADDITIONAL_NO_RECORD_SOURCE_ID,
+        sourceVersion: ADDITIONAL_NO_RECORD_SOURCE_VERSION,
+      },
+    ],
+  };
+}
+
+function expectNoUnlabelledSafetyLanguage() {
+  const page = screen
+    .getByTestId('interaction-checker-page')
+    .cloneNode(true) as HTMLElement;
+  for (const statement of page.querySelectorAll<HTMLElement>(
+    '[aria-label^="Source statement"]',
+  )) {
+    const text = statement.textContent ?? '';
+    expect(text).toMatch(/source id:/i);
+    expect(text).toMatch(/source version:/i);
+    expect(text).toMatch(/record id:/i);
+    expect(text).toMatch(/limitations:/i);
+    statement.remove();
+  }
+
+  const textOutsideApprovedWording = (page.textContent ?? '')
+    .replaceAll(FIXED_WARNING, '')
+    .replaceAll(
+      /No interaction record identified within Source .*?'s evaluated coverage\./g,
+      '',
+    );
+  expect(textOutsideApprovedWording).not.toMatch(/\bsafe\b/i);
+  expect(textOutsideApprovedWording).not.toMatch(/\bno interaction\b/i);
+  expect(textOutsideApprovedWording).not.toMatch(/\bcompatible\b/i);
+}
+
 function fixtureDataset(
   generation: LocalDatasetGeneration,
 ): DatasetStateSource {
@@ -277,7 +339,7 @@ it('shows documented interactions as an independent finding with source provenan
   ).toBeVisible();
 });
 
-it('shows a covered no-record pair with the fixed warning and no safety verdict', async () => {
+it('shows stale no-record coverage without asserting a finding', async () => {
   const { user, selection } = await renderScenario({
     provider: withStaleNoRecordCoverage(createNoRecordSyntheticProvider()),
   });
@@ -286,27 +348,62 @@ it('shows a covered no-record pair with the fixed warning and no safety verdict'
 
   expect(await screen.findByText(FIXED_WARNING)).toBeVisible();
   expect(
-    screen.getByText(/No active interaction record is reported/),
+    screen.getByText('No current finding was returned for this pair.'),
   ).toBeVisible();
   expect(
-    screen.queryByText(/^This combination is safe\.?$/i),
+    screen.queryByText(/No interaction record identified within Source/),
   ).not.toBeInTheDocument();
-  expect(
-    screen.queryByText(/^No interaction is expected\.?$/i),
-  ).not.toBeInTheDocument();
+  expectNoUnlabelledSafetyLanguage();
 });
 
-it('limits an affirmed-none position to source wording and still shows the safety warning', async () => {
+it('renders covered no-record wording exactly and keeps the fixed warning', async () => {
   const { user, selection } = await renderScenario({
     provider: createNoRecordSyntheticProvider(),
   });
   await addAllFixtureProducts(user, selection);
   await checkSelectedProducts(user);
 
+  expect(await screen.findByText(COVERED_NO_RECORD_SENTENCE)).toBeVisible();
+  expect(await screen.findByText(FIXED_WARNING)).toBeVisible();
   expect(
-    await screen.findByText(/Source .* states no interaction is expected/),
+    screen.queryByText(/states no interaction is expected/i),
+  ).not.toBeInTheDocument();
+  expectNoUnlabelledSafetyLanguage();
+});
+
+it('keeps a current interaction visible beside another source no-record position', async () => {
+  const { user, selection } = await renderScenario({
+    provider: createOfflineSyntheticProvider(),
+    decorate: withAdditionalCoveredNoRecordSource,
+  });
+  await addAllFixtureProducts(user, selection);
+  await checkSelectedProducts(user);
+
+  const pair = await screen.findByRole('region', {
+    name: 'Ingredient pair 1 assessment',
+  });
+  expect(
+    within(pair).getByText('A current source record documents an interaction.'),
   ).toBeVisible();
-  expect(screen.getAllByText(FIXED_WARNING).length).toBeGreaterThan(0);
+  expect(
+    within(pair).getByText(
+      `No interaction record identified within Source ${JSON.stringify(ADDITIONAL_NO_RECORD_SOURCE_ID)}'s evaluated coverage.`,
+    ),
+  ).toBeVisible();
+  expect(within(pair).getByText('Evidence conflict: yes.')).toBeVisible();
+  expect(
+    within(pair).getByText(
+      /version synthetic-interactions-v1: documents-interaction/,
+    ),
+  ).toBeVisible();
+  expect(
+    within(pair).getByText(
+      `Source version ${JSON.stringify(ADDITIONAL_NO_RECORD_SOURCE_VERSION)}.`,
+    ),
+  ).toBeVisible();
+  expect(within(pair).queryByText(/affirms-none/)).not.toBeInTheDocument();
+  expect(within(pair).getByRole('note')).toHaveTextContent(FIXED_WARNING);
+  expectNoUnlabelledSafetyLanguage();
 });
 
 it('shows not-covered pair status and its reason without an overall verdict', async () => {
@@ -539,7 +636,7 @@ it('shows the production no-provider state without a check action', async () => 
   ).toBeVisible();
   expect(
     screen.getByText(
-      /Interaction checking is unavailable.*No approved interaction source is configured/,
+      /Interaction checking is unavailable\. No source has been approved/,
     ),
   ).toBeVisible();
   expect(

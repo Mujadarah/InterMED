@@ -78,7 +78,21 @@ function namedProduct(
 function sourcePositionText(
   position: PairAssessment['evidence']['positions'][number],
 ) {
+  if (position.position === 'affirms-none') {
+    // TODO(domain 2.0.0): switch to the `no-record-in-coverage` position.
+    return `No interaction record identified within Source ${identifierText(position.sourceId)}'s evaluated coverage.`;
+  }
   return `${identifierText(position.sourceId)} · version ${position.sourceVersion}: ${position.position}`;
+}
+
+function uniqueEvaluatedPairs(evaluation: InteractionEvaluation) {
+  const pairs = new Map<
+    string,
+    InteractionEvaluation['evaluatedPairCoverage'][number]['pair']
+  >();
+  for (const coverage of evaluation.evaluatedPairCoverage)
+    pairs.set(JSON.stringify(coverage.pair), coverage.pair);
+  return [...pairs.values()];
 }
 
 function formatSourceSeverity(
@@ -108,13 +122,15 @@ function AssessmentDimension({
   selectedProducts: readonly SelectedProduct[];
 }) {
   const sourcePositions = assessment.evidence.positions;
-  const affirmativeSources = sourcePositions.filter(
+  const coveredNoRecordPositions = sourcePositions.filter(
     (position) => position.position === 'affirms-none',
   );
   const mapping = evaluation.selectedProductToIngredientMappings.find((item) =>
     item.ingredientIds.includes(assessment.pair[0]),
   );
-  const noActiveRecord = !assessment.finding.documentedInteraction;
+  const showAbsenceWarning =
+    !assessment.finding.documentedInteraction ||
+    coveredNoRecordPositions.length > 0;
 
   return (
     <section
@@ -138,17 +154,8 @@ function AssessmentDimension({
           <dd>
             {assessment.finding.documentedInteraction ? (
               <p>A current source record documents an interaction.</p>
-            ) : assessment.finding.affirmedNoInteraction ? (
-              <ul>
-                {affirmativeSources.map((position) => (
-                  <li key={`${position.sourceId}-${position.sourceVersion}`}>
-                    Source {position.sourceId} version {position.sourceVersion}{' '}
-                    states no interaction is expected.
-                  </li>
-                ))}
-              </ul>
             ) : (
-              <p>No active interaction record is reported for this pair.</p>
+              <p>No current finding was returned for this pair.</p>
             )}
             {assessment.finding.sourceSeverities.length > 0 && (
               <ul>
@@ -178,7 +185,16 @@ function AssessmentDimension({
                 <li
                   key={`${position.sourceId}-${position.sourceVersion}-${position.position}`}
                 >
-                  {sourcePositionText(position)}
+                  {position.position === 'affirms-none' ? (
+                    <>
+                      <p>{sourcePositionText(position)}</p>
+                      <p>
+                        Source version {identifierText(position.sourceVersion)}.
+                      </p>
+                    </>
+                  ) : (
+                    sourcePositionText(position)
+                  )}
                 </li>
               ))}
               {assessment.evidence.evidenceLevels.map((level) => (
@@ -233,7 +249,7 @@ function AssessmentDimension({
         </div>
       </dl>
 
-      {noActiveRecord && (
+      {showAbsenceWarning && (
         <p className="interaction-absence-warning" role="note">
           {ABSENCE_WARNING}
         </p>
@@ -474,11 +490,11 @@ function EvaluationResults({
 
       {evaluation.evaluatedPairCoverage.length > 0 ? (
         <ol className="interaction-pair-list" aria-label="Pair assessments">
-          {evaluation.evaluatedPairCoverage.map((coverage, index) => (
-            <li key={JSON.stringify(coverage.pair)}>
+          {uniqueEvaluatedPairs(evaluation).map((pair, index) => (
+            <li key={JSON.stringify(pair)}>
               <AssessmentDimension
                 pairNumber={index + 1}
-                assessment={assessInteractionPair(evaluation, coverage.pair)}
+                assessment={assessInteractionPair(evaluation, pair)}
                 evaluation={evaluation}
                 selectedProducts={selectedProducts}
               />
@@ -701,28 +717,27 @@ export function InteractionCheckerPage({
       </h1>
       <p className="lead">
         {checker.availability === 'unavailable'
-          ? 'No approved interaction source is configured, so interaction checking is unavailable.'
+          ? 'No source has been approved for interaction checking, so this feature is unavailable.'
           : 'Select products from the local synthetic catalogue to inspect a development-only result. This feature does not support care decisions.'}
       </p>
       <p className="interaction-preview-banner" role="note">
-        Development preview — not for clinical use. No interaction source has
-        been approved.
+        Development preview — not for clinical use. No source has been approved
+        for interaction checking.
       </p>
 
       {checkerUnavailable ? (
         <p className="interaction-unavailable" role="status" aria-live="polite">
-          Interaction checking is unavailable. No approved interaction source is
-          configured.
+          Interaction checking is unavailable. No source has been approved.
         </p>
       ) : !generation ? (
         <p className="interaction-unavailable" role="status" aria-live="polite">
           A synthetic local catalogue generation is required for the development
-          preview. No approved interaction source is configured.
+          preview. No source has been approved for interaction checking.
         </p>
       ) : !generation.synthetic ? (
         <p className="interaction-unavailable" role="status" aria-live="polite">
           The synthetic preview is disabled for this non-synthetic catalogue. No
-          approved interaction source is configured.
+          source has been approved for interaction checking.
         </p>
       ) : (
         <>
@@ -873,7 +888,7 @@ export function InteractionCheckerPage({
               : requestState.status === 'error' ||
                   requestState.status === 'ready'
                 ? requestState.message
-                : 'No interaction evaluation has been run.'}
+                : 'No evaluation has been run.'}
           </p>
           {currentEvaluation && (
             <EvaluationResults
@@ -892,7 +907,7 @@ export function InteractionCheckerPage({
             aria-live="polite"
           >
             A synthetic preview provider is not available in this build. No
-            approved interaction source is configured.
+            source has been approved for interaction checking.
           </p>
         )}
     </section>
