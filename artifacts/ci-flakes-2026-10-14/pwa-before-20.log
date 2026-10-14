@@ -1,0 +1,72 @@
+Command: npx playwright test tests/browser/pwa.spec.ts --project=webkit-phone --grep 'caches only the shell' --repeat-each=20
+Exit code: 0
+
+[WebServer] (node:34128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2984) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 3 workers
+
+(node:57196) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16100) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  3 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.9s)
+  ok  2 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.9s)
+  ok  1 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (2.0s)
+(node:21184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47648) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  6 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok  5 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.5s)
+  ok  4 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.5s)
+(node:26608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56008) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  7 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+  ok  8 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok  9 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+(node:58848) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48268) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21016) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+  ok 11 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok 12 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+(node:34804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 14 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok 13 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+  ok 15 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+(node:45844) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:11808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 18 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.3s)
+  ok 16 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+  ok 17 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.4s)
+(node:7212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:57524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 20 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.2s)
+  ok 19 [webkit-phone] › tests\browser\pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline (1.2s)
+
+  20 passed (18.1s)
