@@ -65,7 +65,7 @@ Types:
 - `EvaluatedPairCoverage` — evaluated pair status with provider, source and retrieval metadata.
 - `InteractionContext` — required context limitations plus optional values.
 - `InteractionDisagreement` — one pair where providers disagree, with reasons and terms.
-- `InteractionDisagreementReason` — `severity-terms-differ` or `reported-vs-covered-no-record`.
+- `InteractionDisagreementReason` — `severity-terms-differ` or `reported-vs-covered-no-record`. **Superseded by assessment logic 3.0.0: the reason is now only `severity-terms-differ`; coverage differences are reported separately as `coverageDiscrepancies`.**
 - `InteractionDisagreementTerm` — one provider's source severity term for a disputed pair.
 - `InteractionEvaluation` — full evaluation result with status, records, evidence and provenance, including `directIngredientIds` and the `recordsFromUnavailableProvider` qualifier.
 - `InteractionEvaluationOptions` — online flag, context, pair limit, timeout, mapping, clock, timer.
@@ -277,6 +277,11 @@ empty evaluated coverage and the same accumulated reasons before any pair work. 
   `covered-no-record`. Each disagreement carries the pair, the reasons and the contributing
   severity terms with provider, source and version.
 - The merge creates no combined severity and no combined verdict; it has no `status` field.
+
+> Superseded by assessment logic 3.0.0: `reported-vs-covered-no-record` no longer
+> produces an `InteractionDisagreement`. Disagreements hold only clinical evidence
+> disagreements (today `severity-terms-differ`). A documenting source beside a
+> no-record source is reported separately as `coverageDiscrepancies`.
 
 ### Provider payload validation and record provenance
 
@@ -654,7 +659,7 @@ What changed in 2.0.0 (`INTERACTION_ASSESSMENT_LOGIC_VERSION = '2.0.0'`, exporte
 - `PairAssessmentSourcePosition`: `'affirms-none'` is replaced by `'no-record-in-coverage'`.
 - `PairAssessment.finding.affirmedNoInteraction` is removed. The finding holds only `documentedInteraction` plus `sourceSeverities`. No provider format today carries an explicit, verbatim source assertion, so nothing may set a negative finding.
 - `PairAssessment` carries `readonly logicVersion: string`, set to `'2.0.0'` on every assessment, including unavailable and malformed-payload paths. Assessments remain deeply frozen and deterministic.
-- `evidenceConflict` remains true when one source documents an interaction and another has no record in coverage. This is a disagreement in what sources hold, not a negative finding.
+- `evidenceConflict` remains true when one source documents an interaction and another has no record in coverage. This is a disagreement in what sources hold, not a negative finding. **Superseded by assessment logic 3.0.0: a documents-interaction position beside a no-record-in-coverage position no longer sets `evidenceConflict`; it sets `coverageDiscrepancy` instead.**
 - Scenarios 4, 5 and 9 are re-tested under logic 2.0.0 and are pending owner approval at logic 2.0.0.
 
 Fixed display sentences for the UI:
@@ -665,3 +670,94 @@ Fixed display sentences for the UI:
 Source-statement rule (scenario 9): the assessment JSON contains no "safe" or "no interaction" wording across no-record, documented, conflicting, historical-only and unavailable cases, and no key or value contains an affirmative-negative concept. InterMED never issues its own unqualified "safe" or "no interaction" verdict. A future explicit source assertion is out of scope for 2.0.0 and would require, at minimum, the verbatim source statement with its sourceId, sourceVersion and recordId, stated limitations, an explicit "source statement" label, separate versioning, and owner approval. It is documented here only; it is not implemented.
 
 Boundaries: this sign-off does not approve a live provider, a medication database, severity mappings, dosing rules or public clinical release. All fixtures remain synthetic; provider selection, source rights, reviewed ingredient and severity mappings, real-provider clinical validation and M10 presentation remain open.
+
+## Owner sign-off (2026-10-14, round 2) and assessment logic 3.0.0
+
+Owner decisions (surgeon, clinical reviewer), 2026-10-14, round 2:
+
+- Scenario 4 at logic 2.0.0: **APPROVED** (historical evidence kept verbatim above).
+- Scenario 9 at logic 2.0.0: **APPROVED** (historical evidence kept verbatim above).
+- Scenario 5 at logic 2.0.0: **CHANGES REQUIRED**. A valid documented interaction must
+  never be suppressed by another source having no record. Absence of a record in B is
+  not evidence contradicting A's documented finding.
+
+What changed in 3.0.0 (`INTERACTION_ASSESSMENT_LOGIC_VERSION = '3.0.0'`, exported from `@intermed/domain`):
+
+- Clinical evidence conflict versus coverage discrepancy are now separate concepts.
+  A clinical evidence conflict means sources give genuinely conflicting clinical
+  statements or findings, today differing source severity terms for current records
+  across sources. A coverage discrepancy means one source documents an interaction
+  while another source covers the same pair with no record within its evaluated
+  coverage. A coverage discrepancy is a neutral observation and is never clinical
+  evidence against the documented finding. No valid documented interaction is
+  suppressed, every source position and provenance is preserved, and no absence of
+  an interaction or safety is inferred.
+- `merge.ts`: `hasReportedVsCoveredDisagreement` no longer produces an
+  `InteractionDisagreement` reason. `InteractionDisagreementReason` is now only
+  `'severity-terms-differ'`, so `disagreements` holds only clinical evidence
+  disagreements. A separate `coverageDiscrepancies: readonly InteractionCoverageDiscrepancy[]`
+  is added on `MergedProviderResults`; each entry carries the pair, the documenting
+  `{ providerId, sourceId, sourceVersion }` entries and the no-record
+  `{ providerId, sourceId, sourceVersion }` entries, sorted deterministically and frozen.
+- `assessment.ts`: `evidenceConflict` is now merged clinical disagreements for the pair
+  or a cross-source severity conflict among current records. The documents-versus-no-record
+  position conflict is deleted. A new `evidence.coverageDiscrepancy: boolean` is true when
+  a `documents-interaction` position and a `no-record-in-coverage` position coexist for the
+  pair (from positions or merged `coverageDiscrepancies`). Source-native severity terms and
+  evidence grades are kept without inference.
+- Scenario 5 is implemented in 3.0.0 and stays **pending** owner approval.
+
+Scenario 5 tests (`tests/domain/interaction-dimensions.test.ts`, synthetic providers only):
+
+- A documents (current valid) plus B no-record-in-coverage: `documentedInteraction` true,
+  `evidenceConflict` false, `coverageDiscrepancy` true, with both positions and provenance present.
+- A documents plus B documents with the same severity term plus C no-record:
+  conflict false, discrepancy true.
+- A documents severity "X" plus B documents severity "Y" (different sources):
+  conflict true; with C no-record also present: conflict true and discrepancy true.
+- A documents plus B documents with no no-record source: discrepancy false.
+- Merge level: `disagreements` never contains a coverage-only entry;
+  `coverageDiscrepancies` lists the documenting and no-record sources.
+- Provider order does not change the result.
+- The scenario 9 wording guard holds over all these outputs: no `safe`,
+  `no interaction` or `affirm` wording, and no affirmative-negative concept.
+- `logicVersion === '3.0.0'` on every assessment path, including unavailable and
+  malformed-payload paths. Assessments remain deterministic and deeply frozen.
+
+Renewal comparison (throwaway, not committed):
+
+- A throwaway collector ran every scenario 1-14 input and the two severity-conflict
+  tests under 2.0.0 (base branch) and 3.0.0, then compared assessment outputs while
+  ignoring only `logicVersion` and the added `coverageDiscrepancy` field.
+- Changed assessment outputs: scenario 5 (documents plus no-record: `evidenceConflict`
+  true at 2.0.0, false at 3.0.0 with `coverageDiscrepancy` true) and the conflicting
+  input of scenario 9 (same documents-plus-no-record change). Merge outputs for those
+  inputs also changed as designed: coverage-only pairs moved from `disagreements`
+  (`reported-vs-covered-no-record`) to `coverageDiscrepancies`.
+- Unchanged assessment outputs: scenarios 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14 and
+  both severity-conflict tests (same-source terms stay non-conflicting; cross-source
+  differing terms stay conflicting).
+
+Per-scenario approval status at 3.0.0:
+
+- Carry forward unchanged at 3.0.0, no renewed sign-off required: scenarios 1, 2, 3, 4,
+  6, 7, 8, 10, 11, 12, 13, 14 and the two severity-conflict tests. Scenario 4 was
+  approved at 2.0.0 and its output is unchanged at 3.0.0, so that approval carries forward.
+- Require renewed sign-off at 3.0.0: scenarios 5 and 9. Scenario 5 stays pending after the
+  fix. Scenario 9 was approved at 2.0.0 for its wording rule, but its conflicting
+  assessment output changed (conflict false with discrepancy true), so it requires renewal
+  even though the wording guard still passes over all new outputs.
+
+Superseded 2.0.0 statements:
+
+- The 2.0.0 statement that documents-versus-no-record sets `evidenceConflict`
+  ("remains true when one source documents an interaction and another has no record
+  in coverage") is superseded by 3.0.0.
+- The 2.0.0 `InteractionDisagreementReason` value `reported-vs-covered-no-record` and the
+  merge rule deriving a disagreement from reported-versus-covered-no-record are superseded;
+  coverage differences are now `coverageDiscrepancies`, never `disagreements`.
+
+Boundaries: this sign-off does not approve a live provider, a medication database,
+severity mappings, dosing rules or public clinical release. All fixtures remain synthetic;
+provider selection, source rights, reviewed ingredient and severity mappings, real-provider
+clinical validation and M10 presentation remain open.
