@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
+import type { Socket } from 'node:net';
 import { renderWorker } from '../../apps/web/pwa/worker';
 import type { ShellRelease } from '../../apps/web/pwa/shell-build';
 
@@ -19,6 +20,11 @@ export async function productionServer(precacheAssets?: number) {
     | 'offline'
     | 'worker' = 'none';
   const requests: string[] = [];
+  // Every accepted TCP connection, including idle keep-alive and half-open
+  // ones that never complete a request. A real offline origin fails all of
+  // them fast; destroying only on 'request' leaves the rest hanging, and
+  // WebKit's fresh-page navigation can stall behind such a socket.
+  const sockets = new Set<Socket>();
   const server = createServer(async (request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     requests.push(request.url ?? '/');
@@ -149,6 +155,16 @@ self.addEventListener('message', event => {
       response.end('Missing test asset');
     }
   });
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.once('close', () => {
+      sockets.delete(socket);
+    });
+    // A real offline origin never finishes a handshake: fail connections
+    // accepted while offline immediately, even if the client never sends a
+    // request on them. The per-request destroy below stays as a backstop.
+    if (failure === 'offline') socket.destroy();
+  });
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   const address = server.address();
   if (!address || typeof address === 'string')
@@ -161,6 +177,9 @@ self.addEventListener('message', event => {
     },
     failure: (value: typeof failure) => {
       failure = value;
+      // Fail fast like a real offline origin: tear down idle keep-alive and
+      // half-open connections too, not just sockets carrying a request.
+      if (value === 'offline') for (const socket of sockets) socket.destroy();
     },
     close: async () => {
       server.closeAllConnections();
