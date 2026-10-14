@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
 import { renderWorker } from './worker.ts';
+import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget.ts';
 
 export interface ShellAsset {
   url: string;
@@ -65,7 +66,7 @@ export function shellBuild(): Plugin {
     },
     /**
      * Write sw.js with hashes of the emitted public shell assets.
-     * Reject if index.html is absent, the shell exceeds 16 assets or 2 MiB,
+     * Reject if index.html is absent, the shell exceeds 24 assets or 2 MiB,
      * or reading an asset or writing the worker fails.
      */
     async writeBundle(_options, bundle) {
@@ -106,16 +107,20 @@ export function shellBuild(): Plugin {
             : 'application/manifest+json',
         });
       }
-      if (
-        !entries.some((entry) => entry.url === '/index.html') ||
-        entries.length > 16 ||
-        entries.reduce(
-          (total, entry) => total + Buffer.byteLength(entry.bytes),
-          0,
-        ) >
-          2 * 1024 * 1024
-      )
-        throw new Error('Invalid or oversized public shell');
+      if (!entries.some((entry) => entry.url === '/index.html'))
+        throw new Error(
+          'Invalid or oversized public shell: missing index.html',
+        );
+      const totalBytes = entries.reduce(
+        (total, entry) => total + Buffer.byteLength(entry.bytes),
+        0,
+      );
+      const budget = `${entries.length}/${maxPrecacheAssets} assets, ${totalBytes}/${maxPrecacheBytes} bytes`;
+      if (entries.length > maxPrecacheAssets || totalBytes > maxPrecacheBytes)
+        throw new Error('Public shell precache budget exceeded: ' + budget);
+      this.info(
+        `Public shell precache budget: ${budget}; headroom: ${maxPrecacheAssets - entries.length} assets, ${maxPrecacheBytes - totalBytes} bytes`,
+      );
       const assets = entries
         .sort((a, b) => a.url.localeCompare(b.url))
         .map(({ url, bytes, type }) => ({ url, hash: hash(bytes), type }));

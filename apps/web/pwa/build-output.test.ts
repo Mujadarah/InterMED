@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { ShellRelease } from './shell-build';
+import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget';
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..');
 const webRoot = resolve(repositoryRoot, 'apps/web');
@@ -13,7 +14,6 @@ const buildDirectory = await mkdtemp(join(tmpdir(), 'intermed-build-output-'));
 
 /** Vite reports kilobytes as 1 kB = 1,000 bytes, so the 500 kB advisory is 500,000 bytes. */
 const maxChunkBytes = 500_000;
-const maxPrecacheAssets = 16;
 
 afterAll(async () => {
   await rm(buildDirectory, { recursive: true, force: true });
@@ -89,7 +89,17 @@ it('precaches every emitted JavaScript and CSS asset', async () => {
     );
 });
 
-it('keeps the precached public shell within the sixteen-asset cap', async () => {
+it('reports headroom within the 24-asset / 2 MiB public-shell precache budget', async () => {
   const { release } = await buildShell();
-  expect(release.assets.length).toBeLessThanOrEqual(maxPrecacheAssets);
+  const sizes = await Promise.all(
+    release.assets.map(
+      async (asset) =>
+        (await stat(join(buildDirectory, asset.url.slice(1)))).size,
+    ),
+  );
+  const bytes = sizes.reduce((total, size) => total + size, 0);
+  const report = `Public shell precache budget: ${release.assets.length}/${maxPrecacheAssets} assets, ${bytes}/${maxPrecacheBytes} bytes; headroom: ${maxPrecacheAssets - release.assets.length} assets, ${maxPrecacheBytes - bytes} bytes`;
+  console.info(report);
+  expect(release.assets.length, report).toBeLessThanOrEqual(maxPrecacheAssets);
+  expect(bytes, report).toBeLessThanOrEqual(maxPrecacheBytes);
 });

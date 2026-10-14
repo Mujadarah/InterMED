@@ -50,7 +50,7 @@ function memoryCache() {
 
 /** Execute the emitted worker through its public events, using real response
  * bodies and SHA-256 with isolated in-memory storage and no network access. */
-function worker() {
+function worker(shell = release, assetBodies = bodies) {
   const stores = new Map<string, ReturnType<typeof memoryCache>>();
   const caches = {
     has: vi.fn(async (name: string) => stores.has(name)),
@@ -67,7 +67,7 @@ function worker() {
   };
   const fetch = vi.fn(async (request: WorkerRequest) => {
     const path = new URL(request.url).pathname;
-    return new Response(bodies.get(path) ?? 'network response', {
+    return new Response(assetBodies.get(path) ?? 'network response', {
       headers: {
         'content-type': path.endsWith('.html')
           ? 'text/html'
@@ -101,7 +101,7 @@ function worker() {
       super(typeof input === 'string' ? new URL(input, origin) : input, init);
     }
   }
-  runInNewContext(renderWorker(release), {
+  runInNewContext(renderWorker(shell), {
     self,
     caches,
     fetch,
@@ -141,20 +141,20 @@ function worker() {
   }
   async function seed(shellVersion = version, order?: number) {
     const cache = await caches.open(prefix + shellVersion);
-    for (const asset of release.assets) {
+    for (const asset of shell.assets) {
       const headers = new Headers({
         'content-type':
           asset.type === 'javascript' ? 'text/javascript' : asset.type,
       });
       if (asset.url === '/index.html') {
         headers.set('X-Intermed-Shell-Version', shellVersion);
-        headers.set('X-Intermed-Shell-Assets', JSON.stringify(release.assets));
+        headers.set('X-Intermed-Shell-Assets', JSON.stringify(shell.assets));
         if (order !== undefined)
           headers.set('X-Intermed-Activation-Order', String(order));
       }
       await cache.put(
         asset.url,
-        new Response(bodies.get(asset.url), { headers }),
+        new Response(assetBodies.get(asset.url), { headers }),
       );
     }
     return cache;
@@ -320,10 +320,6 @@ it.each([
     ),
   ],
   ['null entry', JSON.stringify([...release.assets, null])],
-  [
-    'too many entries',
-    JSON.stringify(Array.from({ length: 17 }, () => release.assets[0])),
-  ],
 ])('rejects prior-shell metadata with %s', async (_label, metadata) => {
   const env = worker();
   const cache = await env.seed(priorVersion, 1);
@@ -630,3 +626,47 @@ it('reports repair download failure without declaring success', async () => {
     type: 'SHELL_REPAIR_FAILED',
   });
 });
+
+// Unique URLs and valid pins ensure only the count distinguishes these fixtures.
+it.each([
+  [24, true],
+  [25, false],
+] as const)(
+  'prior release with %i assets has readiness %s',
+  async (count, ready) => {
+    const assetBodies = new Map(bodies);
+    const assets = [...release.assets];
+    for (let i = assets.length; i < count; i++) {
+      const url = '/assets/budget-' + i + '.js';
+      const body = '/* synthetic budget asset ' + i + ' */';
+      assetBodies.set(url, body);
+      assets.push({
+        url,
+        hash: createHash('sha256').update(body).digest('hex'),
+        type: 'javascript',
+      });
+    }
+    const env = worker({ version, assets }, assetBodies);
+    const cache = await env.seed(priorVersion, 1);
+    expect(await env.message('SHELL_STATUS')).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ready,
+        storageAccessible: true,
+        fallback: ready,
+      }),
+    );
+    if (ready) {
+      // The last asset must be verified too, even when the release is at the cap.
+      const last = assets.at(-1)!;
+      await cache.put(
+        last.url,
+        new Response('damaged', {
+          headers: { 'content-type': 'text/javascript' },
+        }),
+      );
+      expect(await env.message('SHELL_STATUS')).toHaveBeenCalledWith(
+        expect.objectContaining({ ready: false, fallback: false }),
+      );
+    }
+  },
+);

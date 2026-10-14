@@ -1,4 +1,5 @@
 import type { ShellRelease } from './shell-build.ts';
+import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget.ts';
 
 /** Generate a classic, browser-native worker without broad runtime caching. */
 export function renderWorker(shell: ShellRelease): string {
@@ -29,7 +30,7 @@ const verifiedBytes = async (response, asset) => {
   const usableType = asset.type === 'javascript' ? ['text/javascript', 'application/javascript'].includes(mime) : mime === asset.type;
   if (!response?.ok || response.redirected || !usableType) return null;
   const bytes = await response.clone().arrayBuffer();
-  if (bytes.byteLength > 2 * 1024 * 1024) return null;
+  if (bytes.byteLength > ${maxPrecacheBytes}) return null;
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
   return actual === asset.hash ? bytes : null;
@@ -44,7 +45,7 @@ const readShell = async (name, requestedPath) => {
   if (!index || index.headers.get('X-Intermed-Shell-Version') !== name.slice(PREFIX.length)) return null;
   let assets;
   try { assets = JSON.parse(index.headers.get('X-Intermed-Shell-Assets')); } catch { return null; }
-  if (!Array.isArray(assets) || assets.length === 0 || assets.length > 16 || !assets.some(asset => asset?.url === '/index.html') || assets.some(asset => !asset || typeof asset.url !== 'string' || !publicAsset(asset.url) || typeof asset.hash !== 'string' || !/^[a-f0-9]{64}$/.test(asset.hash) || asset.type !== assetType(asset.url)) || new Set(assets.map(asset => asset.url)).size !== assets.length) return null;
+  if (!Array.isArray(assets) || assets.length === 0 || assets.length > ${maxPrecacheAssets} || !assets.some(asset => asset?.url === '/index.html') || assets.some(asset => !asset || typeof asset.url !== 'string' || !publicAsset(asset.url) || typeof asset.hash !== 'string' || !/^[a-f0-9]{64}$/.test(asset.hash) || asset.type !== assetType(asset.url)) || new Set(assets.map(asset => asset.url)).size !== assets.length) return null;
   // The worker's own release uses compiled pins; prior releases use the public
   // metadata preserved at installation. Validate bytes, not just cache presence.
   if (name === CACHE && JSON.stringify(assets) !== JSON.stringify(SHELL.assets)) return null;
@@ -62,7 +63,7 @@ const readShell = async (name, requestedPath) => {
   let totalBytes = 0;
   for (const {asset, response, size} of verified) {
     totalBytes += size;
-    if (totalBytes > 2 * 1024 * 1024) return null;
+    if (totalBytes > ${maxPrecacheBytes}) return null;
     responses.set(asset.url, response);
   }
   const order = Number(index.headers.get('X-Intermed-Activation-Order'));
