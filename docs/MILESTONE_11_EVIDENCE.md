@@ -268,7 +268,7 @@ BMI remains a screening index, not a direct body-fat measure or diagnosis; muscl
 
 Mosteller BSA remains an estimate with no dosing advice, no Du Bois superiority claim and no automatic substitution. Applicability beyond source populations is unvalidated. Its explicit presentation limitation is: **the displayed rounded value must not be used as an implicit input for medication-dose calculations**. Original-paper rounding/derivation and instrument-specific reuse rights remain unverified as stated by the definitions. This change adds no calculator UI, patient persistence or auto-population.
 
-### Proposed confirmation checks — pending owner sign-off
+### Approved confirmation checks — confirmation@1.0.0 values approved
 
 Both formulas declare the following soft checks inside the technical input bounds. These are proposed confirmation prompts, **not clinically validated thresholds**:
 
@@ -341,3 +341,25 @@ The documentation worker independently reran lint, typecheck, unit tests and arc
 - **WHO classification behavior:** international adult labels/cutoffs applied to the unrounded result, their intended population/application at ages 18–19, and the boundary-crossing `classificationNote`.
 - **Presentation:** decimal half-up from the shortest decimal, BMI 1 dp / BSA 2 dp, and the explicit prohibition on using displayed rounded BSA as an implicit medication-dose input.
 - **Clinical/reference and rights evidence:** clinical reference vectors, original publication/derivation and instrument-specific reuse rights remain unverified; MDCalc is supplementary manual cross-checking only. Calculator UI and Milestone 12 hardening remain separate acceptance gates.
+
+### Owner approval (2026-10-14)
+
+On 2026-10-14 the owner (a surgeon, the project's clinical reviewer) wrote: "approve #26 all components". This approves exactly these component versions:
+
+| formulaId     | component      | version |
+| ------------- | -------------- | ------- |
+| bmi           | formula        | 1.0.0   |
+| bmi           | population     | 2.1.0   |
+| bmi           | classification | 2.0.0   |
+| bmi           | presentation   | 2.0.0   |
+| bmi           | confirmation   | 1.0.0   |
+| bsa-mosteller | formula        | 1.0.0   |
+| bsa-mosteller | population     | 2.1.0   |
+| bsa-mosteller | presentation   | 2.0.0   |
+| bsa-mosteller | confirmation   | 1.0.0   |
+
+These 9 records are frozen in `packages/domain/src/calculators/approvals.ts` with `approvedBy: 'Project owner (surgeon, clinical reviewer)'`, `approvedOn: '2026-10-14'`, and `scope: 'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only'`.
+
+Wording-only change after approval: soft-check messages drop the word "proposed", `SOFT_CHECK_LIMITATION` becomes "Confirmation is required for: weight below 30 kg or above 250 kg; height below 130 cm or above 220 cm; age above 110 years; implied BMI below 12 or above 70 kg/m².", BMI limitation 1 becomes "WHO international adult classification uses thresholds from WHO Technical Report Series 894 (2000) and applies categories to the unrounded BMI value.", and the BSA "Behavior is proposed, pending owner sign-off." limitation is deleted. No number, threshold, rounding, input, unit or formula changed. This bumps `presentation` 2.0.0 → **2.0.1** and `confirmation` 1.0.0 → **1.0.1** for both formulas.
+
+Presentation 2.0.1 and confirmation 1.0.1 are not approved yet and await separate owner approval, so `reviewStatus` stays `unreviewed` for both candidates.
