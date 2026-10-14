@@ -224,7 +224,7 @@ The review-fix worker re-ran the gates on this branch from PowerShell: format, l
 
 ## BMI and Mosteller BSA candidates (M11b)
 
-Date: 2026-10-12. Branch `codex/m11-bmi-bsa`, PR #26, implementation verified at `0e93856` after merging main. Commit `ee56daa` applies the owner's decisions, `36d4fed` records their checks, and `0e93856` clarifies adult-only release scope. Definitions are in `packages/domain/src/calculators/bmi-bsa.ts`; engine, types, registry and approval logic are in the same directory. Tests are in `tests/domain/calculators/bmi-bsa.test.ts` and `tests/domain/calculators/calculator-engine.test.ts`. Both candidates remain `unreviewed` with marker **UNREVIEWED**: implementing the decisions does not supply final clinical sign-off. The M11a sections above describe historical behavior, not the current candidate policies below.
+Date: 2026-10-12. Branch `codex/m11-bmi-bsa`, PR #26, implementation verified at `0e93856` after merging main. Commit `ee56daa` applies the owner's decisions, `36d4fed` records their checks, and `0e93856` clarifies adult-only release scope. Definitions are in `packages/domain/src/calculators/bmi-bsa.ts`; engine, types, registry and approval logic are in the same directory. Tests are in `tests/domain/calculators/bmi-bsa.test.ts` and `tests/domain/calculators/calculator-engine.test.ts`. At this PR #26 snapshot both candidates were `unreviewed` with marker **UNREVIEWED**; the owner sign-off round 2 section below records their current `clinically-reviewed` status. The M11a sections above describe historical behavior, not the current candidate policies below.
 
 ### Owner directives and component approvals
 
@@ -333,7 +333,7 @@ The orchestrator's rerun after merging main reports **1,326 unit tests passed**.
 
 The documentation worker independently reran lint, typecheck, unit tests and architecture boundaries at `0e93856` with Node `24.21.0`, npm `11.19.0` and Node `22.23.2` configured through `INTERMED_NODE22_RUNTIME`: **66 files / 1,326 tests passed**, and boundaries passed for **119 source files**. The updated document also passed `npx prettier --write` and `npm run format:check`. Only this evidence document was changed.
 
-### Owner clinical sign-off items (PR #26 snapshot)
+### Owner clinical sign-off items (PR #26 snapshot, superseded for wording bumps by round 2 below)
 
 These items were presented to the owner for sign-off at PR #26. The per-component approvals were granted on 2026-10-14 (see "Owner approval (2026-10-14)" below); the wording-bump versions `presentation@2.0.1` and `confirmation@1.0.1` remain pending, and the reference/rights evidence gaps in the last item remain open.
 
@@ -364,11 +364,11 @@ These 9 records are frozen in `packages/domain/src/calculators/approvals.ts` wit
 
 Wording-only change after approval: soft-check messages drop the word "proposed", `SOFT_CHECK_LIMITATION` becomes "Confirmation is required for: weight below 30 kg or above 250 kg; height below 130 cm or above 220 cm; age above 110 years; implied BMI below 12 or above 70 kg/m².", BMI limitation 1 becomes "WHO international adult classification uses thresholds from WHO Technical Report Series 894 (2000) and applies categories to the unrounded BMI value.", and the BSA "Behavior is proposed, pending owner sign-off." limitation is deleted. No number, threshold, rounding, input, unit or formula changed. This bumps `presentation` 2.0.0 → **2.0.1** and `confirmation` 1.0.0 → **1.0.1** for both formulas.
 
-Presentation 2.0.1 and confirmation 1.0.1 are not approved yet and await separate owner approval, so `reviewStatus` stays `unreviewed` for both candidates. Presentation 2.0.1 also rewords the rounding-boundary `classificationNote` to name the actual category and state the scheme once — e.g. "Classified as Normal range from the unrounded value 24.96 kg/m² (WHO international adult classification, WHO Technical Report Series 894 (2000)). The displayed value 25.0 kg/m² would fall in Pre-obese (overweight); the classification uses the unrounded value." — while the classification behaviour itself is unchanged.
+Presentation 2.0.1 and confirmation 1.0.1 were approved by the owner in sign-off round 2 on 2026-10-14 (see "Owner sign-off round 2 (2026-10-14)" below), so both candidates now carry `reviewStatus` clinically-reviewed (reviewer `Project owner (surgeon, clinical reviewer)`, `2026-10-14`) with marker **CLINICALLY REVIEWED**. Presentation 2.0.1 also rewords the rounding-boundary `classificationNote` to name the actual category and state the scheme once — e.g. "Classified as Normal range from the unrounded value 24.96 kg/m² (WHO international adult classification, WHO Technical Report Series 894 (2000)). The displayed value 25.0 kg/m² would fall in Pre-obese (overweight); the classification uses the unrounded value." — while the classification behaviour itself is unchanged.
 
 ## M11d — CKD-EPI 2021 creatinine candidate (pending owner sign-off)
 
-Date: 2026-10-14. Branch `claude/m11-ckd-epi`. Definition in `packages/domain/src/calculators/ckd-epi.ts`; tests in `tests/domain/calculators/ckd-epi.test.ts`; categorical engine extension in `packages/domain/src/calculators/{types,inputs,calculate,registry}.ts` with fictional coverage in `tests/domain/calculators/calculator-fixtures.ts` and `tests/domain/calculators/calculator-engine.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: nothing in this work is clinically approved.
+Date: 2026-10-14. Branch `claude/m11-ckd-epi`. Definition in `packages/domain/src/calculators/ckd-epi.ts`; tests in `tests/domain/calculators/ckd-epi.test.ts`; categorical engine extension in `packages/domain/src/calculators/{types,inputs,calculate,registry}.ts` with fictional coverage in `tests/domain/calculators/calculator-fixtures.ts` and `tests/domain/calculators/calculator-engine.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: the owner sign-off round 2 section below approves only formula `1.0.0` and population `1.0.0`, leaving presentation `1.1.0` pending, so nothing in this work is clinically released.
 
 ### Formula and source
 
@@ -389,15 +389,15 @@ Inputs are `creatinine` (quantity kind `serum-creatinine`, canonical `mg/dL`, al
 
 ### Component versions
 
-`egfr-ckd-epi-2021-cr`, composite `formula=1.0.0|population=1.0.0|presentation=1.0.0`: formula `1.0.0`, population `1.0.0`, presentation `1.0.0`, no classification, no confirmation. `FORMULA_APPROVALS` holds only the nine BMI/BSA records from the 2026-10-14 owner approval; this work adds none, so all three CKD-EPI components are pending. Registering a `clinically-reviewed` copy throws without exact approvals.
+`egfr-ckd-epi-2021-cr`, composite `formula=1.0.0|population=1.0.0|presentation=1.1.0`: formula `1.0.0`, population `1.0.0`, presentation `1.1.0`, no classification, no confirmation. `FORMULA_APPROVALS` holds the sixteen round-2 records; for this formula the approved components are formula `1.0.0` and population `1.0.0`, so only presentation `1.1.0` is pending. Registering a `clinically-reviewed` copy still throws without an approval for the current presentation version.
 
 ### Proposed presentation
 
-Output unit `mL/min/1.73 m²`, rounding `half-up-decimal` precision 0 (integer display), proposed pending owner sign-off. Classification is decided from the unrounded value; this candidate has no classifier.
+Output unit `mL/min/1.73 m²`, rounding `half-up-decimal` precision 0 (integer display). The sex input is labelled "Sex coefficient used by the equation (female/male)" with no pre-selected option. Classification is decided from the unrounded value; this candidate has no classifier.
 
 ### Limitations
 
-Visible definition text covers: stable adult kidney function only; not for AKI, dialysis or pregnancy; unreliable with extremes of muscle mass, amputation, malnutrition or obesity; requires an IDMS-traceable creatinine assay; the cystatin C equations are separate and not implemented; not Cockcroft–Gault and not for dosing, and de-indexing by BSA does not authorise dosing; no CKD diagnosis or staging from a single value; Romanian population suitability and the sex-coefficient selection need clinical review; display precision is proposed, pending owner sign-off; plus the technical-bounds notice (creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated).
+Visible definition text covers: stable adult kidney function only; not for acute kidney injury, unstable creatinine, dialysis or pregnancy; unreliable with extreme muscle mass, amputation, malnutrition, obesity, and other conditions impairing accuracy; requires an IDMS-traceable creatinine assay; the cystatin C equations are separate and not implemented; not Cockcroft–Gault and not for dosing, and de-indexing by BSA does not authorise dosing; no CKD diagnosis or staging from a single value; estimated kidney function for adults with no Romanian-population validation or population-specific precision claim, using the published female/male coefficients without an ethnicity adjustment; accuracy limits when creatinine generation differs substantially from the reference populations, including relevant hormonal or muscle-mass changes; displayed as a whole number with the unrounded value kept internally and never used for later calculations or threshold decisions; plus the technical-bounds notice (creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated). No "proposed, pending owner sign-off" wording remains.
 
 ### Fixtures
 
@@ -405,16 +405,18 @@ Derived fixtures (tolerance 1e-8 on `unroundedValue`, age 60): Scr 1 mg/dL male 
 
 ### Open owner decisions
 
-1. Integer display (half-up to 0 dp).
-2. The sex-coefficient wording ("Sex used by the equation (female/male coefficients)").
+The owner's round-2 decisions on 2026-10-14 (see "Owner sign-off round 2" below) resolve these items as presentation `1.1.0`, which remains pending approval (formula and population `1.0.0` are approved):
+
+1. Integer display (half-up to 0 dp) with the unrounded value kept internally and never reused.
+2. The sex-coefficient wording ("Sex coefficient used by the equation (female/male)"), no pre-selection.
 3. The adult-only scope (age ≥ 18 `out-of-population`).
 4. The technical bounds (creatinine 0.1–20 mg/dL, age 0–130, not clinically validated).
-5. Whether to add soft checks (none declared; confirmation component omitted).
-6. Romanian applicability, including the sex-coefficient selection.
+5. No soft checks (no confirmation component declared).
+6. Romanian applicability wording and the accuracy limits above, including hormonal or muscle-mass changes.
 
 ## M11e — Cockcroft–Gault candidate (pending owner sign-off)
 
-Date: 2026-10-14. Branch `claude/m11-cockcroft-gault`, stacked on `claude/m11-ckd-epi` for its categorical inputs. Definition in `packages/domain/src/calculators/cockcroft-gault.ts`; tests in `tests/domain/calculators/cockcroft-gault.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: nothing in this work is clinically approved.
+Date: 2026-10-14. Branch `claude/m11-cockcroft-gault`, stacked on `claude/m11-ckd-epi` for its categorical inputs. Definition in `packages/domain/src/calculators/cockcroft-gault.ts`; tests in `tests/domain/calculators/cockcroft-gault.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: the owner sign-off round 2 section below approves only population `1.0.0`, leaving formula `1.1.0` and presentation `1.1.0` pending, so nothing in this work is clinically released.
 
 ### Cockcroft–Gault formula and source
 
@@ -428,11 +430,11 @@ Output is unindexed creatinine clearance, not eGFR.
 
 ### Cockcroft–Gault inputs
 
-`age` (years, technical bounds 0–130, adult guard ≥ 18 → `out-of-population`, plus a technical `age-below-140` at-most guard so the zero/negative arithmetic at age ≥ 140 never gets computed); `weight` (kg or lb via the shared mass conversions, labelled "Body weight used by the equation (actual/ideal/adjusted convention pending clinical review)" — no ideal or adjusted body-weight equation is implemented, the equation uses the number entered); `creatinine` (`mg/dL`, or `µmol/L` converted ÷ 88.4 unrounded before computing, reusing the CKD-EPI conversion rules); `sex` (category, options `female`/`male`, labelled "Sex used by the equation (female × 0.85 adjustment)"). Component versions: formula, population and presentation, all `1.0.0` (composite `formula=1.0.0|population=1.0.0|presentation=1.0.0`). No classification, no soft checks. Proposed presentation: half-up to 0 dp (integer), pending owner sign-off. `FORMULA_APPROVALS` holds only the nine BMI/BSA records; this work adds none, so all three Cockcroft–Gault components are pending.
+`age` (years, technical bounds 0–130, adult guard ≥ 18 → `out-of-population`, plus a technical `age-below-140` at-most guard so the zero/negative arithmetic at age ≥ 140 never gets computed); `weight` (kg or lb via the shared mass conversions, labelled "Body weight entered (kg or lb)" — the equation uses the number entered with no conversion between conventions and no ideal or adjusted body-weight equation implemented); `weightConvention` (required category labelled "Which body weight was entered", options actual/ideal/adjusted with no default; missing selection returns `invalid-input`, and the selected convention is echoed and shown next to the result value, with a not-validated note for ideal/adjusted); `creatinine` (`mg/dL`, or `µmol/L` converted ÷ 88.4 unrounded before computing, reusing the CKD-EPI conversion rules); `sex` (category, options `female`/`male`, labelled "Sex used by the equation (female × 0.85 adjustment)"). Component versions: formula `1.1.0`, population `1.0.0`, presentation `1.1.0` (composite `formula=1.1.0|population=1.0.0|presentation=1.1.0`). No classification, no soft checks. Presentation: half-up to 0 dp (integer). `FORMULA_APPROVALS` holds the sixteen round-2 records; for this formula only population `1.0.0` is approved, so formula `1.1.0` and presentation `1.1.0` are pending.
 
 ### Cockcroft–Gault limitations
 
-Visible definition text covers: unindexed creatinine clearance, not eGFR, and not interchangeable with CKD-EPI; derived in 249 men aged 18–92 while the female × 0.85 factor was not separately derived; ages above 92 outside the derivation cohort (an applicability flag, not a physiological cutoff); the weight convention (actual/ideal/adjusted) pending clinical review; assay-era compatibility with IDMS creatinine unverified; not for unstable function or AKI, pregnancy, critical illness, muscle-mass extremes, amputation, children or dialysis; no drug dosing is provided; do not round a low Scr up to 1.0; display precision proposed, pending owner sign-off; plus the technical-bounds notice (weight 1–500 kg, creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated).
+Visible definition text covers: unindexed creatinine clearance, not eGFR, and not interchangeable with CKD-EPI or measured GFR; derived in 249 men aged 18–92 while the female × 0.85 factor was estimated and was not independently validated in the original derivation population; ages above 92 outside the derivation cohort (an applicability flag, not a physiological cutoff); the equation uses the body-weight number entered with an explicit actual/ideal/adjusted selection and no inter-convention conversion; the original equation predates IDMS standardization with possible differences on modern standardized assays and no InterMED clinical validation of modern-assay compatibility; not for unstable function or AKI, pregnancy, critical illness, muscle-mass extremes, amputation, children or dialysis; not validated specifically for the Romanian population; not InterMED's default medication-dosing method with no drug dosing provided; do not round a low Scr up to 1.0; displayed as a whole number with the unrounded value kept internally; plus the technical-bounds notice (weight 1–500 kg, creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated). No "proposed, pending owner sign-off" wording remains.
 
 ### Cockcroft–Gault fixtures
 
@@ -440,9 +442,37 @@ Derived fixtures (tolerance 1e-8 on `unroundedValue`): age 60, 72 kg, Scr 1 mg/d
 
 ### Cockcroft–Gault open owner decisions
 
-1. The weight convention (actual/ideal/adjusted) — the key decision; the equation currently uses the number entered.
+The owner's round-2 decisions on 2026-10-14 (see "Owner sign-off round 2" below) resolve these items as formula `1.1.0` and presentation `1.1.0`, both pending approval (population `1.0.0` is approved):
+
+1. The weight convention: a required explicit actual/ideal/adjusted selection; the equation uses the number entered with no IBW/AdjBW equation; the convention is echoed and shown next to the result, with a not-validated note for ideal/adjusted.
 2. The female factor wording ("Sex used by the equation (female × 0.85 adjustment)").
-3. Integer display (half-up to 0 dp).
+3. Integer display (half-up to 0 dp) with the unrounded value kept internally.
 4. Adult scope (age ≥ 18 `out-of-population`) and technical bounds (age 0–130, weight 1–500 kg, creatinine 0.1–20 mg/dL, not clinically validated).
-5. The IDMS assay compatibility assumption.
-6. Romanian applicability.
+5. The IDMS assay wording above (predates standardization; modern-assay compatibility not clinically validated).
+6. Romanian applicability wording and the not-a-default-dosing-method boundary.
+
+## Owner sign-off round 2 (2026-10-14)
+
+On 2026-10-14 the owner (surgeon, clinical reviewer) gave explicit wording and scope decisions. Exactly seven approval records were added to `FORMULA_APPROVALS` in `packages/domain/src/calculators/approvals.ts` with `approvedBy: 'Project owner (surgeon, clinical reviewer)'` and `approvedOn: '2026-10-14'`; no other approval record was added and existing records stay untouched:
+
+| formulaId            | component    | version | scope                                                                                                                                                       |
+| -------------------- | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| bmi                  | presentation | 2.0.1   | Adult (18+) wording-only revision of presentation 2.0.0; synthetic-data development build only; not a public clinical release                               |
+| bmi                  | confirmation | 1.0.1   | Adult (18+) wording-only revision of confirmation 1.0.0; synthetic-data development build only; not a public clinical release                               |
+| bsa-mosteller        | presentation | 2.0.1   | Adult (18+) wording-only revision of presentation 2.0.0; synthetic-data development build only; not a public clinical release                               |
+| bsa-mosteller        | confirmation | 1.0.1   | Adult (18+) wording-only revision of confirmation 1.0.0; synthetic-data development build only; not a public clinical release                               |
+| egfr-ckd-epi-2021-cr | formula      | 1.0.0   | Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing |
+| egfr-ckd-epi-2021-cr | population   | 1.0.0   | Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing |
+| crcl-cockcroft-gault | population   | 1.0.0   | Adult (18+) scope with technical age guards; development and review scope only; not a default dosing method                                                 |
+
+The register now holds 16 records. BMI and Mosteller BSA have every declared component approved, so their `reviewStatus` is `{ status: 'clinically-reviewed', reviewer: 'Project owner (surgeon, clinical reviewer)', reviewedAt: '2026-10-14' }` with marker **CLINICALLY REVIEWED**, development scope only and not a public clinical release. No BMI/BSA component version, text, or behaviour changed for this status update. CKD-EPI and Cockcroft–Gault stay `unreviewed` because each still has pending components.
+
+### Owner decisions per item
+
+CKD-EPI presentation `1.0.0` → `1.1.0` (pending, no approval record): formula, population, arithmetic, bounds, and rounding (integer, half-up, unrounded kept) are unchanged. The owner decided: the sex input label is "Sex coefficient used by the equation (female/male)" with no pre-selected option; all "proposed, pending owner sign-off" wording is removed; the Romanian line now states estimated adult kidney function with no Romanian-population validation or population-specific precision claim and no ethnicity adjustment to the published female/male coefficients; an accuracy limitation covers creatinine-generation differences including relevant hormonal or muscle-mass changes; the limitations name acute kidney injury, unstable creatinine, dialysis, pregnancy, extreme muscle mass, malnutrition, and other conditions impairing accuracy; the display line states the whole-number display with the unrounded value kept internally and never reused. No soft checks, no staging, and no dosing lines were added, and the technical-bounds line is unchanged.
+
+Cockcroft–Gault weight convention (formula `1.0.0` → `1.1.0`, presentation `1.0.0` → `1.1.0`, both pending; population stays `1.0.0`; arithmetic unchanged): the owner decided on a required `weightConvention` category input ("Which body weight was entered": actual/ideal/adjusted, no default; missing selection is engine `invalid-input`); the weight input label is "Body weight entered (kg or lb)" and the equation uses the number entered with no inter-convention conversion and no IBW/AdjBW equation; the selected convention is echoed and shown next to the result value on the Calculators page (for example "80 mL/min — weight entered: Actual body weight"), rendered generically from the `weightConvention` echo; ideal/adjusted selections surface the note "InterMED has not calculated or validated the ideal or adjusted body weight entered, or the method used to derive it."; "proposed, pending owner sign-off" wording is removed; the IDMS line states the equation predates standardization with possible modern-assay differences and no InterMED clinical validation of modern-assay compatibility; the female × 0.85 factor is described as estimated and not independently validated in the original derivation population; the limitations keep the do-not-round-up line, the non-interchangeability with CKD-EPI or measured GFR, the Romanian-population non-validation, and the not-a-default-dosing-method boundary with no drug dosing.
+
+### Approval boundaries
+
+No CKD diagnosis or staging, no renal dosing, and Cockcroft–Gault is not a default dosing method. There is no public clinical release and no regulatory conformity claim. CKD-EPI pending is only `presentation@1.1.0`; Cockcroft–Gault pending is `formula@1.1.0` and `presentation@1.1.0`; registering either formula as clinically reviewed still throws. BMI/BSA numeric behaviour is unchanged.
