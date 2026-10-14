@@ -12,7 +12,7 @@
 - idle keep-alive connections opened before the switch;
 - connections accepted without a complete request, such as a speculative preconnect.
 
-Node keeps such sockets open for up to its default request timeout of 300 s. A browser that reuses or waits on one of them sees a hanging origin rather than an offline one. A real offline origin fails immediately. A temporary diagnostic probe confirmed the server-side behaviour: before the change, a requestless socket and an idle keep-alive socket both stayed open after `failure('offline')`.
+Node does not close them at once. With Node 24's defaults, an idle keep-alive socket closes after `keepAliveTimeout` (5 s) plus `keepAliveTimeoutBuffer` (1 s). A connection that never completes its request headers lasts until `headersTimeout` (60 s). The 300 s `requestTimeout` applies only to a request that has started but not finished. A browser that reuses or waits on one of them sees a hanging origin rather than an offline one. A real offline origin fails immediately. A temporary diagnostic probe confirmed the server-side behaviour: before the change, a requestless socket and an idle keep-alive socket both stayed open after `failure('offline')`.
 
 ## Change
 
@@ -32,6 +32,19 @@ The per-request destroy is kept as a backstop. No production code, assertion, ti
 | Target test only, webkit-phone, `--repeat-each=30`                                    | —                       | 30/30                   |
 | `pwa`, `pwa-lifecycle`, `offline-deeplinks`, webkit phone + tablet, `--repeat-each=5` | —                       | 210/210                 |
 | Forced worker-update race diagnostic, webkit-phone, `--repeat-each=10`                | —                       | 10/10                   |
+
+Windows, after the change: `pwa`, `recovery-update` and `eviction-recovery` across chromium-desktop, webkit-phone and webkit-tablet with `--repeat-each=3` passed 108/108.
+
+### Automated regression test
+
+`tests/production-server-offline.test.ts` (Vitest, raw TCP sockets) asserts four things:
+
+- an idle keep-alive connection is closed when the server switches offline;
+- an accepted connection that never sent a request is closed;
+- a new connection made while offline is closed immediately;
+- an online keep-alive connection stays open.
+
+Against the previous server, the three offline cases fail (each socket was still open after 1 s) and the online case passes. With the change, all four pass.
 
 **Limitation, stated plainly:** the CI hang was **not reproduced** locally. The old server also passed 270/270 under WSL. The change closes a confirmed gap in the offline simulation, the only one found that can hold a WebKit navigation open, and the faster run is consistent with no stale sockets lingering. It is hardening, not a proven root-cause fix. If the WebKit-phone failures recur on CI after this lands, the next step is to capture a Playwright trace from the CI run itself.
 
