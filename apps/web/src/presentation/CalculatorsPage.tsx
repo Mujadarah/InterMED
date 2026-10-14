@@ -86,11 +86,6 @@ function helpText(input: FormulaInputDefinition): string {
   }
 }
 
-function parseField(raw: string): number | undefined {
-  if (raw.trim() === '') return undefined;
-  return Number(raw);
-}
-
 function runCalculation(
   definition: FormulaDefinition,
   rawValues: Readonly<Record<string, string>>,
@@ -300,13 +295,12 @@ export function CalculatorsPage() {
           if (input.kind === 'category') {
             const helpId = `calculator-${input.id}-help`;
             const errorId = `calculator-${input.id}-error`;
+            const inputErrors = fieldErrors[input.id];
             return (
               <fieldset
                 key={input.id}
                 className="calculator-field calculator-category"
-                aria-describedby={
-                  fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
-                }
+                aria-describedby={inputErrors ? `${helpId} ${errorId}` : helpId}
               >
                 <legend>{input.label}</legend>
                 {input.options.map((option) => (
@@ -330,13 +324,13 @@ export function CalculatorsPage() {
                 <p id={helpId} className="calculator-help">
                   {helpText(input)}
                 </p>
-                {fieldErrors[input.id] && (
+                {inputErrors && (
                   <p
                     id={errorId}
                     className="calculator-field-error"
                     role="alert"
                   >
-                    {fieldErrors[input.id].join(' ')}
+                    {inputErrors.join(' ')}
                   </p>
                 )}
               </fieldset>
@@ -348,6 +342,7 @@ export function CalculatorsPage() {
           const unitId = `${fieldId}-unit`;
           const raw = rawValues[input.id] ?? '';
           const unit = units[input.id] ?? input.canonicalUnit;
+          const inputErrors = fieldErrors[input.id];
           return (
             <div key={input.id} className="calculator-field">
               <label htmlFor={fieldId}>{fieldLabelText(input)}</label>
@@ -360,7 +355,7 @@ export function CalculatorsPage() {
                     autoComplete="off"
                     value={raw}
                     aria-describedby={
-                      fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
+                      inputErrors ? `${helpId} ${errorId}` : helpId
                     }
                     onChange={(event) => {
                       const entered = event.currentTarget.value;
@@ -401,7 +396,7 @@ export function CalculatorsPage() {
                   autoComplete="off"
                   value={raw}
                   aria-describedby={
-                    fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
+                    inputErrors ? `${helpId} ${errorId}` : helpId
                   }
                   onChange={(event) => {
                     const entered = event.currentTarget.value;
@@ -416,9 +411,9 @@ export function CalculatorsPage() {
               <p id={helpId} className="calculator-help">
                 {helpText(input)}
               </p>
-              {fieldErrors[input.id] && (
+              {inputErrors && (
                 <p id={errorId} className="calculator-field-error" role="alert">
-                  {fieldErrors[input.id].join(' ')}
+                  {inputErrors.join(' ')}
                 </p>
               )}
             </div>
