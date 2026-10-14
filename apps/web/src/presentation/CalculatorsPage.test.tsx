@@ -49,7 +49,7 @@ it('calculates a normal BMI and always shows the review badge and limitations', 
   expect(
     screen.getByText('Development preview — not for clinical use.'),
   ).toBeVisible();
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
   expect(screen.getByText('Limitations')).toBeVisible();
   expect(
     screen.getByText(/Technical bounds, not clinically validated/, {
@@ -135,7 +135,7 @@ it('takes the review badge from the returned result once calculated', async () =
   const user = userEvent.setup();
   renderPage();
 
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
 
   await useCentimetres(user);
   await calculate(user, { weight: '70', height: '175', age: '17' });
@@ -146,7 +146,7 @@ it('takes the review badge from the returned result once calculated', async () =
   expect(
     screen.queryByText(/Result:/, { exact: false }),
   ).not.toBeInTheDocument();
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
 });
 
 it('normalizes pound and inch inputs before calculating', async () => {
@@ -285,22 +285,144 @@ it('calculates Cockcroft-Gault clearance for male and female', async () => {
     user,
     'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
   );
-  await user.clear(screen.getByLabelText(/Body weight used by the equation/));
+  expect(
+    screen.getByRole('radio', { name: 'Actual body weight' }),
+  ).not.toBeChecked();
+  expect(
+    screen.getByRole('radio', { name: 'Ideal body weight' }),
+  ).not.toBeChecked();
+  expect(
+    screen.getByRole('radio', { name: 'Adjusted body weight' }),
+  ).not.toBeChecked();
+
+  await user.clear(screen.getByLabelText('Body weight entered (kg or lb)'));
   await user.type(
-    screen.getByLabelText(/Body weight used by the equation/),
+    screen.getByLabelText('Body weight entered (kg or lb)'),
+    '72',
+  );
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Actual body weight' }));
+  await user.click(screen.getByRole('radio', { name: 'Male' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('Creatinine clearance (unindexed)')).toBeVisible();
+  expect(
+    screen.getByText('Result: 80 mL/min — weight entered: Actual body weight'),
+  ).toBeVisible();
+  expect(
+    screen.queryByText(
+      /has not calculated or validated the ideal or adjusted/,
+      {
+        exact: false,
+      },
+    ),
+  ).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('radio', { name: 'Female' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(
+    screen.getByText('Result: 68 mL/min — weight entered: Actual body weight'),
+  ).toBeVisible();
+});
+
+it('shows the not-validated note for ideal and adjusted conventions', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  await user.clear(screen.getByLabelText('Body weight entered (kg or lb)'));
+  await user.type(
+    screen.getByLabelText('Body weight entered (kg or lb)'),
+    '72',
+  );
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Male' }));
+
+  await user.click(screen.getByRole('radio', { name: 'Ideal body weight' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+  expect(
+    screen.getByText('Result: 80 mL/min — weight entered: Ideal body weight'),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/has not calculated or validated the ideal or adjusted/, {
+      exact: false,
+    }),
+  ).toBeVisible();
+
+  await user.click(screen.getByRole('radio', { name: 'Adjusted body weight' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+  expect(
+    screen.getByText(
+      'Result: 80 mL/min — weight entered: Adjusted body weight',
+    ),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/has not calculated or validated the ideal or adjusted/, {
+      exact: false,
+    }),
+  ).toBeVisible();
+});
+
+it('requires the weight convention before calculating Cockcroft-Gault', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  await user.clear(screen.getByLabelText('Body weight entered (kg or lb)'));
+  await user.type(
+    screen.getByLabelText('Body weight entered (kg or lb)'),
     '72',
   );
   await fillRenalInputs(user, { creatinine: '1', age: '60' });
   await user.click(screen.getByRole('radio', { name: 'Male' }));
   await user.click(screen.getByRole('button', { name: 'Calculate' }));
 
-  expect(screen.getByText('Creatinine clearance (unindexed)')).toBeVisible();
-  expect(screen.getByText('Result: 80 mL/min')).toBeVisible();
+  expect(
+    screen.getByText(/cannot be calculated/, { exact: false }),
+  ).toBeVisible();
+  expect(
+    screen.queryByText(/Result:/, { exact: false }),
+  ).not.toBeInTheDocument();
+});
 
-  await user.click(screen.getByRole('radio', { name: 'Female' }));
-  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+it('clears the weight convention when switching calculators', async () => {
+  const user = userEvent.setup();
+  renderPage();
 
-  expect(screen.getByText('Result: 68 mL/min')).toBeVisible();
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  await user.click(screen.getByRole('radio', { name: 'Ideal body weight' }));
+  expect(
+    screen.getByRole('radio', { name: 'Ideal body weight' }),
+  ).toBeChecked();
+
+  await selectCalculator(user, 'Body mass index (adult)');
+  expect(
+    screen.queryByRole('radio', { name: 'Ideal body weight' }),
+  ).not.toBeInTheDocument();
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  expect(
+    screen.getByRole('radio', { name: 'Ideal body weight' }),
+  ).not.toBeChecked();
+  expect(
+    screen.getByRole('radio', { name: 'Actual body weight' }),
+  ).not.toBeChecked();
+  expect(
+    screen.getByRole('radio', { name: 'Adjusted body weight' }),
+  ).not.toBeChecked();
 });
 
 it('shows the missing-required message when sex is not selected', async () => {
@@ -361,7 +483,7 @@ it('keeps shared inputs and clears the rest when switching calculators', async (
   );
 
   // Weight and age keep their entered values and units; height is gone.
-  expect(screen.getByLabelText(/Body weight used by the equation/)).toHaveValue(
+  expect(screen.getByLabelText('Body weight entered (kg or lb)')).toHaveValue(
     '70',
   );
   expect(screen.getByLabelText('Weight unit')).toHaveValue('kg');
@@ -390,7 +512,7 @@ it('shows the badge and limitations for both renal calculators', async () => {
     user,
     'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
   );
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
   expect(
     screen.getByText(/cystatin C equations are separate/, { exact: false }),
   ).toBeVisible();
@@ -404,12 +526,17 @@ it('shows the badge and limitations for both renal calculators', async () => {
     user,
     'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
   );
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
   expect(
-    screen.getByText(/No drug dosing is provided/, { exact: false }),
+    screen.getByText(/no drug dosing is provided/i, { exact: false }),
   ).toBeVisible();
   expect(
-    screen.getByText(/not interchangeable with CKD-EPI/, { exact: false }),
+    screen.getByText(/not intermed's default medication-dosing method/i, {
+      exact: false,
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/not interchangeable with CKD-EPI/i, { exact: false }),
   ).toBeVisible();
 });
 

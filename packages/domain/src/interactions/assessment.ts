@@ -14,6 +14,8 @@ import type {
 import { canonicalPair, compareStrings, pairKey } from './pairs';
 import { isProviderResult, isRecord } from './provider-result';
 
+export const INTERACTION_ASSESSMENT_LOGIC_VERSION = '3.0.0';
+
 interface AssessmentRecord {
   readonly record: DrugInteraction;
   readonly providerId?: string;
@@ -648,8 +650,10 @@ function sourceIsComplete(source: PairSource): boolean {
 function sourcePosition(source: PairSource): PairAssessmentSourcePosition {
   // Only a valid current record documents the interaction. A current-status
   // record that is outdated or source/dataset mismatched is retained as
-  // provenance, but it is neither a documenting position nor an affirmative
-  // negative for its source.
+  // provenance, but it is neither a documenting position nor a negative
+  // finding for its source. A covered source with no records reports only
+  // the absence of a record in its evaluated coverage, never an affirmative
+  // claim that no interaction exists.
   if (source.records.some((entry) => entry.validCurrent))
     return 'documents-interaction';
   if (source.records.length > 0) return 'no-coverage';
@@ -659,7 +663,7 @@ function sourcePosition(source: PairSource): PairAssessmentSourcePosition {
     !source.stale &&
     !source.invalidCoverage
   )
-    return 'affirms-none';
+    return 'no-record-in-coverage';
   return 'no-coverage';
 }
 
@@ -921,16 +925,10 @@ function applyAssessmentReasons(
 
 function createFindingDimension(
   sets: AssessmentRecordSets,
-  positions: PairAssessment['evidence']['positions'],
-  coverageComplete: boolean,
   sourceSeverities: PairAssessment['finding']['sourceSeverities'],
 ): PairAssessment['finding'] {
   return {
     documentedInteraction: sets.current.length > 0,
-    affirmedNoInteraction:
-      positions.some((item) => item.position === 'affirms-none') &&
-      coverageComplete &&
-      sets.current.length === 0,
     sourceSeverities,
   };
 }
@@ -944,14 +942,22 @@ function createEvidenceDimension(
   const crossSourceSeverityConflict = hasCrossSourceSeverityConflict(
     sets.current,
   );
-  const hasPositionConflict =
+  // A coverage discrepancy (one source documents an interaction while another
+  // covers the pair with no record) is a neutral observation about coverage,
+  // not clinical evidence against the documented finding. Absence of a record
+  // is never an affirmative claim that no interaction exists, so it must not
+  // set `evidenceConflict`. `evidenceConflict` holds only genuine clinical
+  // disagreements: merged clinical disagreements for the pair or differing
+  // source severity terms for current records across sources.
+  // The discrepancy is derived from the validated source positions, not the
+  // merge-level list: a source whose only records are outdated or mismatched
+  // does not document the interaction for this assessment.
+  const hasCoverageDiscrepancy =
     positions.some((item) => item.position === 'documents-interaction') &&
-    positions.some((item) => item.position === 'affirms-none');
+    positions.some((item) => item.position === 'no-record-in-coverage');
   return {
-    evidenceConflict:
-      state.evidenceConflict ||
-      hasPositionConflict ||
-      crossSourceSeverityConflict,
+    evidenceConflict: state.evidenceConflict || crossSourceSeverityConflict,
+    coverageDiscrepancy: hasCoverageDiscrepancy,
     positions,
     sourceStatedUncertainty: state.records.some(
       ({ record }) => record.sourceStatesUncertainEvidence === true,
@@ -992,12 +998,8 @@ function createAssessment(
 
   return freezeTree({
     pair,
-    finding: createFindingDimension(
-      sets,
-      positions,
-      coverageComplete,
-      createSourceSeverities(state),
-    ),
+    logicVersion: INTERACTION_ASSESSMENT_LOGIC_VERSION,
+    finding: createFindingDimension(sets, createSourceSeverities(state)),
     evidence: createEvidenceDimension(
       state,
       sets,

@@ -70,6 +70,7 @@ function baseInputs(
   return {
     age: { value: 60, unit: 'years' },
     weight: { value: 72, unit: 'kg' },
+    weightConvention: { category: 'actual' },
     creatinine: { value: 1, unit: 'mg/dL' },
     sex: { category: 'male' },
     ...overrides,
@@ -180,6 +181,7 @@ function contractCases(): FormulaContractCases {
           age: base.age,
           creatinine: base.creatinine,
           sex: base.sex,
+          weightConvention: base.weightConvention,
         },
       ),
       expectedStatus: 'invalid-input',
@@ -228,22 +230,26 @@ function contractCases(): FormulaContractCases {
 describeFormulaContract(cockcroftGault, contractCases());
 
 describe('Cockcroft-Gault candidate (M11e)', () => {
-  it('exports the pinned, explicitly unreviewed candidate version', () => {
+  it('exports the pinned, clinically-reviewed candidate version', () => {
     expect(cockcroftGault).toMatchObject({
       formulaId: 'crcl-cockcroft-gault',
       componentVersions: {
-        formula: '1.0.0',
+        formula: '1.1.0',
         population: '1.0.0',
-        presentation: '1.0.0',
+        presentation: '1.1.0',
       },
-      reviewStatus: 'unreviewed',
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
       output: {
         unit: 'mL/min',
         rounding: { mode: 'half-up-decimal', precision: 0 },
       },
     });
     expect(cockcroftGault.formulaVersion).toBe(
-      'formula=1.0.0|population=1.0.0|presentation=1.0.0',
+      'formula=1.1.0|population=1.0.0|presentation=1.1.0',
     );
     expect(cockcroftGault.componentVersions.classification).toBeUndefined();
     expect(cockcroftGault.componentVersions.confirmation).toBeUndefined();
@@ -252,6 +258,7 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
     expect(cockcroftGault.inputs.map((input) => input.id)).toEqual([
       'age',
       'weight',
+      'weightConvention',
       'creatinine',
       'sex',
     ]);
@@ -259,9 +266,22 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
       (input) => input.id === 'weight',
     );
     expect(weightInput).toMatchObject({
-      label:
-        'Body weight used by the equation (actual/ideal/adjusted convention pending clinical review)',
+      label: 'Body weight entered (kg or lb)',
     });
+    const conventionInput = cockcroftGault.inputs.find(
+      (input) => input.id === 'weightConvention',
+    );
+    expect(conventionInput).toMatchObject({
+      kind: 'category',
+      label: 'Which body weight was entered',
+      required: true,
+      options: [
+        { id: 'actual', label: 'Actual body weight' },
+        { id: 'ideal', label: 'Ideal body weight' },
+        { id: 'adjusted', label: 'Adjusted body weight' },
+      ],
+    });
+    expect(conventionInput).not.toHaveProperty('default');
     const sexInput = cockcroftGault.inputs.find((input) => input.id === 'sex');
     expect(sexInput).toMatchObject({
       kind: 'category',
@@ -305,6 +325,72 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
         `${sex} fixture`,
       ).toBeLessThan(1e-8);
     }
+  });
+
+  it('returns the same number for actual, ideal, and adjusted conventions', () => {
+    for (const [sex, expected] of [
+      ['male', 80],
+      ['female', 68],
+    ] as const) {
+      const values = (['actual', 'ideal', 'adjusted'] as const).map(
+        (convention) =>
+          calculateOk(
+            baseInputs({
+              sex: { category: sex },
+              weightConvention: { category: convention },
+            }),
+          ).unroundedValue,
+      );
+      for (const value of values) {
+        expect(Math.abs((value ?? 0) - expected)).toBeLessThan(1e-8);
+      }
+      expect(values[1]).toBe(values[0]);
+      expect(values[2]).toBe(values[0]);
+    }
+  });
+
+  it('echoes the selected weight convention id and label', () => {
+    const result = calculateOk(
+      baseInputs({ weightConvention: { category: 'ideal' } }),
+    );
+    expect(
+      result.inputEcho.find((item) => item.inputId === 'weightConvention'),
+    ).toMatchObject({
+      submittedCategory: 'ideal',
+      selectedOptionId: 'ideal',
+      selectedOptionLabel: 'Ideal body weight',
+    });
+  });
+
+  it('rejects a missing or unknown weight convention without a number', () => {
+    const full = baseInputs();
+    const withoutConvention: SubmittedInputs = {
+      age: full.age,
+      weight: full.weight,
+      creatinine: full.creatinine,
+      sex: full.sex,
+    };
+    const missing = calculate(withoutConvention);
+    expect(missing.status).toBe('invalid-input');
+    expect(missing.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inputId: 'weightConvention',
+          code: 'missing-required',
+        }),
+      ]),
+    );
+    expect(missing).not.toHaveProperty('unroundedValue');
+
+    const unknown = calculate(
+      baseInputs({ weightConvention: { category: 'other' } }),
+    );
+    expect(unknown.status).toBe('invalid-input');
+    expect(unknown.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ inputId: 'weightConvention' }),
+      ]),
+    );
   });
 
   it('converts 88.4 µmol/L to the same value as 1 mg/dL with a visible echo', () => {
@@ -387,6 +473,7 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
     const missingCreatinine = calculate({
       age: { value: 60, unit: 'years' },
       weight: { value: 72, unit: 'kg' },
+      weightConvention: { category: 'actual' },
       sex: { category: 'male' },
     });
     expect(missingCreatinine.status).toBe('invalid-input');
@@ -409,6 +496,7 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
     const missingSex = calculate({
       age: { value: 60, unit: 'years' },
       weight: { value: 72, unit: 'kg' },
+      weightConvention: { category: 'actual' },
       creatinine: { value: 1, unit: 'mg/dL' },
     });
     expect(missingSex.status).toBe('invalid-input');
@@ -426,6 +514,7 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
 
     const missingWeight = calculate({
       age: { value: 60, unit: 'years' },
+      weightConvention: { category: 'actual' },
       creatinine: { value: 1, unit: 'mg/dL' },
       sex: { category: 'male' },
     });
@@ -475,72 +564,95 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
     const text = cockcroftGault.limitations.join(' ').toLowerCase();
     for (const fragment of [
       'unindexed creatinine clearance, not egfr',
-      'not interchangeable with ckd-epi',
+      'not interchangeable with ckd-epi or measured gfr',
       'derived in 249 men aged 18-92',
-      'the female × 0.85 factor was not separately derived',
+      'the female × 0.85 factor was estimated and was not independently validated in the original derivation population',
       'ages above 92 are outside the derivation cohort',
       'applicability flag, not a physiological cutoff',
-      'the weight convention (actual/ideal/adjusted) is pending clinical review',
-      'assay-era compatibility with idms creatinine is unverified',
+      'select which body weight was entered (actual, ideal, or adjusted)',
+      'does not convert between weight conventions',
+      'no ideal or adjusted body-weight equation is implemented',
+      'the original equation predates idms creatinine standardization',
+      'results with modern standardized assays may differ from historical pharmacokinetic estimates',
+      'has not clinically validated modern-assay compatibility',
       'not for unstable function or aki, pregnancy, critical illness, muscle-mass extremes, amputation, children or dialysis',
+      'not validated specifically for the romanian population',
+      "not intermed's default medication-dosing method",
       'no drug dosing is provided',
       'do not round a low serum creatinine up to 1.0',
-      'display precision (integer) is proposed, pending owner sign-off',
+      'displayed as a whole number; the unrounded value is kept internally',
       'technical bounds, not clinically validated',
     ]) {
       expect(text, fragment).toContain(fragment);
     }
+    expect(text).not.toContain('proposed');
+    expect(text).not.toContain('pending owner sign-off');
   });
 
-  it('lists every Cockcroft-Gault component as pending without touching approvals', () => {
+  it('lists no pending approvals after the round-3 formula and presentation approvals', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(9);
+    expect(approvals).toHaveLength(19);
     expect(
-      approvals.every(
-        (record) =>
-          (record as { formulaId: string }).formulaId === 'bmi' ||
-          (record as { formulaId: string }).formulaId === 'bsa-mosteller',
-      ),
-    ).toBe(true);
-    expect(
-      approvals.some(
+      approvals.filter(
         (record) =>
           (record as { formulaId: string }).formulaId ===
           'crcl-cockcroft-gault',
       ),
-    ).toBe(false);
+    ).toHaveLength(3);
     if (!m11.pendingApprovals) {
       throw new Error('pendingApprovals export is missing.');
     }
     const registry = new Domain.FormulaRegistry();
     registry.register(cockcroftGault);
-    expect(m11.pendingApprovals(registry)).toEqual([
-      {
-        formulaId: 'crcl-cockcroft-gault',
-        formulaVersion: cockcroftGault.formulaVersion,
-        component: 'formula',
-        componentVersion: '1.0.0',
-      },
-      {
-        formulaId: 'crcl-cockcroft-gault',
-        formulaVersion: cockcroftGault.formulaVersion,
-        component: 'population',
-        componentVersion: '1.0.0',
-      },
-      {
-        formulaId: 'crcl-cockcroft-gault',
-        formulaVersion: cockcroftGault.formulaVersion,
-        component: 'presentation',
-        componentVersion: '1.0.0',
-      },
-    ]);
+    expect(m11.pendingApprovals(registry)).toEqual([]);
   });
 
-  it('rejects registration as clinically reviewed without approvals', () => {
+  it('registers the clinically-reviewed Cockcroft-Gault definition with its approvals', () => {
+    expect(() =>
+      new Domain.FormulaRegistry().register(
+        cockcroftGault as unknown as Domain.FormulaDefinition,
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects a bumped presentation version as clinically reviewed without an exact approval', () => {
+    const bumped = {
+      ...cockcroftGault,
+      formulaVersion: 'formula=1.1.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(cockcroftGault.componentVersions as unknown as Record<
+          string,
+          string
+        >),
+        presentation: '1.1.1',
+      },
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
+    } as unknown as Domain.FormulaDefinition;
+    expect(() => new Domain.FormulaRegistry().register(bumped)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+  });
+
+  it('rejects registration as clinically reviewed without an exact approval', () => {
     const reviewed = {
       ...cockcroftGault,
+      formulaVersion: 'formula=1.1.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(cockcroftGault.componentVersions as unknown as Record<
+          string,
+          string
+        >),
+        presentation: '1.1.1',
+      },
       reviewStatus: {
         status: 'clinically-reviewed',
         reviewer: 'Fictional test reviewer',

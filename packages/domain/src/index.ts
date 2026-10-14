@@ -98,6 +98,8 @@ export type {
   EvaluatedPairCoverage,
   InteractionAbortSignal,
   InteractionContext,
+  InteractionCoverageDiscrepancy,
+  InteractionCoverageDiscrepancySource,
   InteractionDisagreement,
   InteractionDisagreementReason,
   InteractionDisagreementTerm,
@@ -145,7 +147,10 @@ export type {
   PairAssessmentSourcePositionEntry,
   PairAssessmentSourceSeverity,
 } from './interactions/types';
-export { assessInteractionPair } from './interactions/assessment';
+export {
+  INTERACTION_ASSESSMENT_LOGIC_VERSION,
+  assessInteractionPair,
+} from './interactions/assessment';
 export {
   canonicalPair,
   evaluateInteractions,

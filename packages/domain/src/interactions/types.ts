@@ -300,7 +300,10 @@ export type PairAssessmentCoverageStatus =
   | 'truncated';
 
 export type PairAssessmentSourcePosition =
-  'documents-interaction' | 'affirms-none' | 'no-coverage' | 'unavailable';
+  | 'documents-interaction'
+  | 'no-record-in-coverage'
+  | 'no-coverage'
+  | 'unavailable';
 
 export interface PairAssessmentSourceSeverity {
   readonly sourceId: DataSourceId;
@@ -333,13 +336,14 @@ export interface PairAssessmentProvenance {
 
 export interface PairAssessment {
   readonly pair: CanonicalIngredientPair;
+  readonly logicVersion: string;
   readonly finding: {
     readonly documentedInteraction: boolean;
-    readonly affirmedNoInteraction: boolean;
     readonly sourceSeverities: readonly PairAssessmentSourceSeverity[];
   };
   readonly evidence: {
     readonly evidenceConflict: boolean;
+    readonly coverageDiscrepancy: boolean;
     readonly positions: readonly PairAssessmentSourcePositionEntry[];
     readonly sourceStatedUncertainty: boolean;
     readonly evidenceLevels: readonly PairAssessmentEvidenceLevel[];
@@ -362,8 +366,7 @@ export type PairAssessmentInput =
   | readonly InteractionEvaluation[]
   | MergedProviderResults;
 
-export type InteractionDisagreementReason =
-  'severity-terms-differ' | 'reported-vs-covered-no-record';
+export type InteractionDisagreementReason = 'severity-terms-differ';
 
 export interface InteractionDisagreementTerm {
   readonly providerId: string;
@@ -378,12 +381,25 @@ export interface InteractionDisagreement {
   readonly severityTerms: readonly InteractionDisagreementTerm[];
 }
 
+export interface InteractionCoverageDiscrepancySource {
+  readonly providerId: string;
+  readonly sourceId: DataSourceId;
+  readonly sourceVersion: string;
+}
+
+export interface InteractionCoverageDiscrepancy {
+  readonly pair: CanonicalIngredientPair;
+  readonly documentingSources: readonly InteractionCoverageDiscrepancySource[];
+  readonly noRecordSources: readonly InteractionCoverageDiscrepancySource[];
+}
+
 export interface MergedProviderResults {
   readonly providerResults: readonly ProviderResult[];
   readonly records: readonly DrugInteraction[];
   readonly evidence: readonly InteractionEvidence[];
   readonly sourceVersions: readonly InteractionSourceVersion[];
   readonly disagreements: readonly InteractionDisagreement[];
+  readonly coverageDiscrepancies: readonly InteractionCoverageDiscrepancy[];
 }
 
 export interface EvaluationBase {

@@ -102,7 +102,7 @@ test('shows local diagnostics on status without external requests', async ({
     'no approved provider',
   );
   await expect(diagnostics.getByLabel('Diagnostics report')).toContainText(
-    'unreviewed',
+    'clinically-reviewed',
   );
   await expect(
     diagnostics.getByRole('button', { name: 'Copy diagnostics' }),

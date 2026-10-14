@@ -93,6 +93,96 @@ export const FORMULA_APPROVALS: readonly FormulaApprovalRecord[] =
       scope:
         'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
     }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'presentation',
+      componentVersion: '2.0.1',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) wording-only revision of presentation 2.0.0; synthetic-data development build only; not a public clinical release',
+    }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'confirmation',
+      componentVersion: '1.0.1',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) wording-only revision of confirmation 1.0.0; synthetic-data development build only; not a public clinical release',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'presentation',
+      componentVersion: '2.0.1',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) wording-only revision of presentation 2.0.0; synthetic-data development build only; not a public clinical release',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'confirmation',
+      componentVersion: '1.0.1',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) wording-only revision of confirmation 1.0.0; synthetic-data development build only; not a public clinical release',
+    }),
+    Object.freeze({
+      formulaId: 'egfr-ckd-epi-2021-cr',
+      component: 'formula',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing',
+    }),
+    Object.freeze({
+      formulaId: 'egfr-ckd-epi-2021-cr',
+      component: 'population',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing',
+    }),
+    Object.freeze({
+      formulaId: 'crcl-cockcroft-gault',
+      component: 'population',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) scope with technical age guards; development and review scope only; not a default dosing method',
+    }),
+    Object.freeze({
+      formulaId: 'egfr-ckd-epi-2021-cr',
+      component: 'presentation',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
+    Object.freeze({
+      formulaId: 'crcl-cockcroft-gault',
+      component: 'formula',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations and weight-convention handling; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
+    Object.freeze({
+      formulaId: 'crcl-cockcroft-gault',
+      component: 'presentation',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations and weight-convention handling; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
   ]);
 
 export function hasFormulaApproval(

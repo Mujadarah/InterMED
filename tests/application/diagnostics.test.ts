@@ -88,21 +88,30 @@ it('builds version, age, update, formula review and storage diagnostics from inj
       },
     },
     calculators: {
-      // Owner approvals (PR #28) leave only the wording-bump components
-      // presentation@2.0.1 and confirmation@1.0.1 pending for each formula.
-      pendingApprovalCount: 4,
+      // Owner sign-off round 2 (2026-10-14) approves every BMI/BSA component,
+      // so both fully approved definitions register as clinically reviewed
+      // with no pending component approvals.
+      pendingApprovalCount: 0,
       formulas: [
         {
           formulaId: 'bmi',
           formulaVersion:
             'formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.1|confirmation=1.0.1',
-          reviewStatus: 'unreviewed',
-          pendingApprovalCount: 2,
+          reviewStatus: {
+            status: 'clinically-reviewed',
+            reviewer: 'Project owner (surgeon, clinical reviewer)',
+            reviewedAt: '2026-10-14',
+          },
+          pendingApprovalCount: 0,
         },
         {
           formulaId: 'bsa-mosteller',
-          reviewStatus: 'unreviewed',
-          pendingApprovalCount: 2,
+          reviewStatus: {
+            status: 'clinically-reviewed',
+            reviewer: 'Project owner (surgeon, clinical reviewer)',
+            reviewedAt: '2026-10-14',
+          },
+          pendingApprovalCount: 0,
         },
       ],
     },

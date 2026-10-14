@@ -14,9 +14,9 @@ if (!massConversions) {
 
 const COCKCROFT_GAULT_COMPONENT_VERSIONS: FormulaComponentVersions =
   Object.freeze({
-    formula: '1.0.0',
+    formula: '1.1.0',
     population: '1.0.0',
-    presentation: '1.0.0',
+    presentation: '1.1.0',
   });
 
 const COCKCROFT_GAULT_CONVERSIONS: FormulaUnitConversions = Object.freeze({
@@ -101,8 +101,7 @@ export const COCKCROFT_GAULT_FORMULA: FormulaDefinition = freezeDefinition({
     },
     {
       id: 'weight',
-      label:
-        'Body weight used by the equation (actual/ideal/adjusted convention pending clinical review)',
+      label: 'Body weight entered (kg or lb)',
       quantityKind: 'mass',
       canonicalUnit: 'kg',
       allowedUnits: ['kg', 'lb'],
@@ -114,6 +113,17 @@ export const COCKCROFT_GAULT_FORMULA: FormulaDefinition = freezeDefinition({
         },
       },
       required: true,
+    },
+    {
+      kind: 'category',
+      id: 'weightConvention',
+      label: 'Which body weight was entered',
+      required: true,
+      options: [
+        { id: 'actual', label: 'Actual body weight' },
+        { id: 'ideal', label: 'Ideal body weight' },
+        { id: 'adjusted', label: 'Adjusted body weight' },
+      ],
     },
     {
       id: 'creatinine',
@@ -145,17 +155,22 @@ export const COCKCROFT_GAULT_FORMULA: FormulaDefinition = freezeDefinition({
   },
   populationLimits: ADULT_POPULATION,
   limitations: [
-    'Unindexed creatinine clearance, not eGFR, and not interchangeable with CKD-EPI; proposed, pending owner sign-off.',
-    'Derived in 249 men aged 18-92; the female × 0.85 factor was not separately derived.',
+    'Unindexed creatinine clearance, not eGFR, and not interchangeable with CKD-EPI or measured GFR.',
+    'Derived in 249 men aged 18-92; the female × 0.85 factor was estimated and was not independently validated in the original derivation population.',
     'Ages above 92 are outside the derivation cohort (an applicability flag, not a physiological cutoff).',
-    'The weight convention (actual/ideal/adjusted) is pending clinical review; no ideal or adjusted body-weight equation is implemented and the equation uses the number entered.',
-    'Assay-era compatibility with IDMS creatinine is unverified.',
+    'The equation uses the body weight number entered; select which body weight was entered (actual, ideal, or adjusted). InterMED does not convert between weight conventions and no ideal or adjusted body-weight equation is implemented.',
+    'The original equation predates IDMS creatinine standardization; results with modern standardized assays may differ from historical pharmacokinetic estimates. InterMED has not clinically validated modern-assay compatibility.',
     'Not for unstable function or AKI, pregnancy, critical illness, muscle-mass extremes, amputation, children or dialysis.',
-    'No drug dosing is provided.',
+    'Not validated specifically for the Romanian population; no population-specific precision is claimed.',
+    "Not InterMED's default medication-dosing method; no drug dosing is provided.",
     'Do not round a low serum creatinine up to 1.0.',
-    'Display precision (integer) is proposed, pending owner sign-off.',
+    'Displayed as a whole number; the unrounded value is kept internally and is never used for later calculations or threshold decisions.',
     'Technical bounds, not clinically validated plausibility thresholds: weight 1-500 kg, creatinine 0.1-20 mg/dL (8.84-1768 µmol/L), age 0-130 years. Values outside these technical bounds return invalid-input.',
   ],
-  reviewStatus: 'unreviewed',
+  reviewStatus: Object.freeze({
+    status: 'clinically-reviewed',
+    reviewer: 'Project owner (surgeon, clinical reviewer)',
+    reviewedAt: '2026-10-14',
+  }),
   compute: computeCockcroftGault,
 });
