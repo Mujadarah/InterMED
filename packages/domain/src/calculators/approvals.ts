@@ -7,11 +7,93 @@ import type {
 } from './types';
 
 /**
- * Clinical approvals are owner-managed evidence. Keep this list empty until
- * an owner adds scoped records for the exact component versions.
+ * Clinical approvals are owner-managed evidence. Records are added only after
+ * the owner explicitly approves an exact component version.
  */
 export const FORMULA_APPROVALS: readonly FormulaApprovalRecord[] =
-  Object.freeze([]);
+  Object.freeze([
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'formula',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'population',
+      componentVersion: '2.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'classification',
+      componentVersion: '2.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'presentation',
+      componentVersion: '2.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bmi',
+      component: 'confirmation',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'formula',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'population',
+      componentVersion: '2.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'presentation',
+      componentVersion: '2.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+    Object.freeze({
+      formulaId: 'bsa-mosteller',
+      component: 'confirmation',
+      componentVersion: '1.0.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only',
+    }),
+  ]);
 
 export function hasFormulaApproval(
   formulaId: string,
