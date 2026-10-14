@@ -756,6 +756,174 @@ button {
 .calculator-meta {
   margin-top: 1.5rem;
 }
+.interaction-checker-page {
+  max-width: 60rem;
+}
+.interaction-preview-banner,
+.interaction-unavailable,
+.interaction-limitations,
+.interaction-absence-warning {
+  max-width: none;
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid #8b4d09;
+  border-radius: 0 0.4rem 0.4rem 0;
+  color: #633a09;
+  background: #fff8e8;
+}
+.interaction-preview-banner {
+  font-weight: 700;
+}
+.interaction-work-limit {
+  max-width: none;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.interaction-candidate-list,
+.interaction-selection ul,
+.interaction-provenance,
+.interaction-pair-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+.interaction-candidate-list li,
+.interaction-selection li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+.interaction-candidate-list li > div,
+.interaction-selection li > div {
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+.interaction-candidate-list h2 {
+  margin: 0 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+.interaction-candidate-list p,
+.interaction-selection p {
+  margin: 0.25rem 0;
+  overflow-wrap: anywhere;
+}
+.interaction-candidate-list button,
+.interaction-selection button {
+  flex: 0 0 auto;
+}
+.interaction-selection,
+.interaction-evaluation,
+.interaction-resolution,
+.interaction-limitations,
+.interaction-history,
+.interaction-pair {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+.interaction-selection h2,
+.interaction-evaluation h2,
+.interaction-limitations h2,
+.interaction-resolution h3,
+.interaction-history h3,
+.interaction-pair h3,
+.interaction-pair h4 {
+  margin: 0 0 0.75rem;
+}
+.interaction-evaluation,
+.interaction-limitations,
+.interaction-resolution,
+.interaction-history,
+.interaction-pair {
+  max-width: none;
+  overflow-wrap: anywhere;
+}
+.interaction-limitations {
+  color: #183642;
+  border-color: #8b4d09;
+  background: #fff8e8;
+}
+.interaction-limitations h3 {
+  margin: 0.8rem 0 0.25rem;
+  font-size: 1rem;
+}
+.interaction-dimensions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.interaction-dimensions > div {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: #f7fafb;
+}
+.interaction-dimensions dd {
+  min-width: 0;
+  margin-top: 0.4rem;
+  overflow-wrap: anywhere;
+}
+.interaction-dimensions p {
+  margin: 0.25rem 0;
+}
+.interaction-dimensions ul,
+.interaction-limitations ul,
+.interaction-resolution ul,
+.interaction-history ul {
+  padding-left: 1.25rem;
+  overflow-wrap: anywhere;
+}
+.interaction-pair-list > li {
+  position: relative;
+  min-width: 0;
+  padding-left: 2rem;
+}
+.interaction-pair-identifiers,
+.interaction-provenance li,
+.interaction-resolution li,
+.interaction-history li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.interaction-pair code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+.interaction-absence-warning {
+  color: #183642;
+  border-color: #075b70;
+  background: #edf5f7;
+  font-weight: 650;
+}
+.interaction-request-status {
+  max-width: none;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: #fff;
+}
+.interaction-evaluation > h2 {
+  margin-bottom: 0.6rem;
+}
+.interaction-selection > ul {
+  margin-bottom: 0;
+}
 .review-badge {
   display: inline-block;
   padding: 0.35rem 0.8rem;
@@ -791,6 +959,26 @@ button {
   .favorite-entry {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .interaction-candidate-list li,
+  .interaction-selection li {
+    padding: 0.8rem;
+  }
+  .interaction-candidate-list button,
+  .interaction-selection button {
+    width: 100%;
+    margin: 0;
+  }
+  .interaction-selection,
+  .interaction-evaluation,
+  .interaction-limitations,
+  .interaction-resolution,
+  .interaction-history,
+  .interaction-pair {
+    padding: 0.8rem;
+  }
+  .interaction-dimensions {
+    grid-template-columns: 1fr;
   }
 }
 
