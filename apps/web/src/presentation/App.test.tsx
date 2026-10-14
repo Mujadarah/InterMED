@@ -194,6 +194,9 @@ it('registers the interaction checker route in navigation and focuses its headin
     ),
   ).toBeVisible();
   expect(
+    screen.getByText('Interaction presentation pending clinical review'),
+  ).toBeVisible();
+  expect(
     screen.getByText(
       'Interaction checking is unavailable. No approved interaction source is configured.',
     ),

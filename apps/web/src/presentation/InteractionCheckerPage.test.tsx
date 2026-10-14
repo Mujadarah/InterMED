@@ -37,6 +37,8 @@ const FIXED_WARNING =
   'Absence of a record does not mean the combination is safe.';
 const REQUIRED_PREVIEW_BANNER =
   'Development preview — not for clinical use. No interaction source has been approved.';
+const REQUIRED_CLINICAL_REVIEW_LINE =
+  'Interaction presentation pending clinical review';
 const COVERED_NO_RECORD_SENTENCE = `No interaction record identified within Source ${JSON.stringify(sourceId)}'s evaluated coverage.`;
 const COVERAGE_DISCREPANCY_SENTENCE =
   'Coverage differs between sources: at least one source documents this interaction and another has no record within its evaluated coverage. Absence of a record is not evidence against the documented interaction.';
@@ -54,6 +56,8 @@ const ADDITIONAL_DISAGREEMENT_SOURCE_ID = mustId(
   'source.synthetic-checker-disagreement-secondary',
 );
 const ADDITIONAL_DISAGREEMENT_SOURCE_VERSION = 'synthetic-disagreement-v2';
+const SAME_SOURCE_ADAPTER_PROVIDER_ID = 'synthetic-same-source-adapter';
+const SAME_SOURCE_ADAPTER_VERSION = 'synthetic-same-source-adapter-v2';
 const SYNTHETIC_MAPPING = {
   mappingVersion: 'synthetic-display-only-v1',
   reviewed: false,
@@ -251,6 +255,24 @@ function withAdditionalCoveredNoRecordSource(
   };
 }
 
+function withSecondProviderForSameSource(
+  evaluation: InteractionEvaluation,
+): InteractionEvaluation {
+  const source = evaluation.sourceVersions[0];
+  if (!source) return evaluation;
+  return {
+    ...evaluation,
+    sourceVersions: [
+      ...evaluation.sourceVersions,
+      {
+        providerId: SAME_SOURCE_ADAPTER_PROVIDER_ID,
+        sourceId: source.sourceId,
+        sourceVersion: SAME_SOURCE_ADAPTER_VERSION,
+      },
+    ],
+  };
+}
+
 function expectNoUnlabelledSafetyLanguage() {
   expect(screen.getByText(REQUIRED_PREVIEW_BANNER)).toBeVisible();
   const page = screen
@@ -378,8 +400,13 @@ it('shows documented interactions as an independent finding with source provenan
   ).toBeVisible();
   expect(screen.getByText(/unreviewed mapping/)).toBeVisible();
   expect(
-    screen.getByText(/source version synthetic-interactions-v1/),
+    within(screen.getByRole('region', { name: 'Source provenance' })).getByText(
+      /source version synthetic-interactions-v1/,
+    ),
   ).toBeVisible();
+  expect(
+    screen.queryByText(COVERAGE_DISCREPANCY_SENTENCE),
+  ).not.toBeInTheDocument();
 });
 
 it('shows stale no-record coverage without asserting a finding', async () => {
@@ -408,17 +435,48 @@ it('renders covered no-record wording exactly and keeps the fixed warning', asyn
 
   expect(await screen.findByText(COVERED_NO_RECORD_SENTENCE)).toBeVisible();
   expect(await screen.findByText(FIXED_WARNING)).toBeVisible();
+  expect(
+    screen.queryByText(COVERAGE_DISCREPANCY_SENTENCE),
+  ).not.toBeInTheDocument();
   const pair = screen.getByRole('region', {
     name: 'Ingredient pair 1 assessment',
   });
   expect(
     within(pair).getByText('Assessment logic version: 3.0.0.'),
   ).toBeVisible();
-  expect(within(pair).queryByText('Sources disagree.')).not.toBeInTheDocument();
+  expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
   expect(
     screen.queryByText(/states no interaction is expected/i),
   ).not.toBeInTheDocument();
   expectNoUnlabelledSafetyLanguage();
+});
+
+it('groups provider adapters by source identity and lists provider versions as provenance', async () => {
+  const { user, selection } = await renderScenario({
+    decorate: withSecondProviderForSameSource,
+  });
+  await addAllFixtureProducts(user, selection);
+  await checkSelectedProducts(user);
+
+  const sourceProvenance = await screen.findByRole('region', {
+    name: 'Source provenance',
+  });
+  const sourceRows = within(sourceProvenance).getAllByRole('listitem');
+  expect(sourceRows).toHaveLength(1);
+  expect(sourceRows[0]).toHaveTextContent(SAME_SOURCE_ADAPTER_PROVIDER_ID);
+  expect(sourceRows[0]).toHaveTextContent(SAME_SOURCE_ADAPTER_VERSION);
+
+  const pair = screen.getByRole('region', {
+    name: 'Ingredient pair 1 assessment',
+  });
+  const sourcePositions = within(pair).getByRole('list', {
+    name: 'Source positions grouped by source',
+  });
+  expect(within(sourcePositions).getAllByRole('listitem')).toHaveLength(1);
+  expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
+  expect(
+    within(pair).queryByText(COVERAGE_DISCREPANCY_SENTENCE),
+  ).not.toBeInTheDocument();
 });
 
 it('keeps a current interaction visible beside another source no-record position', async () => {
@@ -441,7 +499,7 @@ it('keeps a current interaction visible beside another source no-record position
     ),
   ).toBeVisible();
   expect(within(pair).getByText(COVERAGE_DISCREPANCY_SENTENCE)).toBeVisible();
-  expect(within(pair).queryByText('Sources disagree.')).not.toBeInTheDocument();
+  expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
   expect(
     within(pair).queryByText(/Evidence conflict:/i),
   ).not.toBeInTheDocument();
@@ -620,7 +678,7 @@ it('shows source disagreements in the top evaluation limitations', async () => {
   const pair = screen.getByRole('region', {
     name: 'Ingredient pair 1 assessment',
   });
-  expect(within(pair).getByText('Sources disagree.')).toBeVisible();
+  expect(within(pair).getByText('Sources disagree')).toBeVisible();
   expect(within(pair).getByText(/source-band-crimson/)).toBeVisible();
   expect(
     within(pair).getByText(/Source severity term: no interaction is expected/),
@@ -714,6 +772,8 @@ it('shows the production no-provider state without a check action', async () => 
       'Interaction checking is unavailable. No approved interaction source is configured.',
     ),
   ).toBeVisible();
+  expect(screen.getByText(REQUIRED_PREVIEW_BANNER)).toBeVisible();
+  expect(screen.getByText(REQUIRED_CLINICAL_REVIEW_LINE)).toBeVisible();
   expect(
     screen.queryByRole('button', { name: 'Check selected products' }),
   ).not.toBeInTheDocument();

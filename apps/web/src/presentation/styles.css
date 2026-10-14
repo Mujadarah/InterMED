@@ -774,6 +774,13 @@ button {
 .interaction-preview-banner {
   font-weight: 700;
 }
+.interaction-preview-banner > p {
+  max-width: none;
+  margin: 0;
+}
+.interaction-preview-banner > p + p {
+  margin-top: 0.4rem;
+}
 .interaction-work-limit {
   max-width: none;
   padding: 0.75rem 1rem;
@@ -899,6 +906,10 @@ button {
 }
 .interaction-source-statement p {
   margin: 0.2rem 0;
+}
+.interaction-provider-provenance {
+  max-width: none;
+  overflow-wrap: anywhere;
 }
 .interaction-dimensions ul,
 .interaction-limitations ul,

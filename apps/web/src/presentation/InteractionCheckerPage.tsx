@@ -86,6 +86,59 @@ function sourcePositionText(
   return `${identifierText(position.sourceId)} · version ${position.sourceVersion}: ${position.position}`;
 }
 
+function groupBySourceId<T extends { readonly sourceId: string }>(
+  entries: readonly T[],
+) {
+  const groups = new Map<string, T[]>();
+  for (const entry of entries) {
+    const sourceEntries = groups.get(entry.sourceId) ?? [];
+    sourceEntries.push(entry);
+    groups.set(entry.sourceId, sourceEntries);
+  }
+  return [...groups].map(([sourceId, sourceEntries]) => ({
+    sourceId,
+    entries: sourceEntries,
+  }));
+}
+
+function sourceProviderVersions(
+  evaluation: InteractionEvaluation,
+  sourceId: string,
+) {
+  const versions = new Map<
+    string,
+    InteractionEvaluation['sourceVersions'][number]
+  >();
+  for (const item of evaluation.sourceVersions) {
+    if (item.sourceId !== sourceId) continue;
+    versions.set(JSON.stringify([item.providerId, item.sourceVersion]), item);
+  }
+  return [...versions.values()];
+}
+
+function SourceProviderVersionProvenance({
+  sourceId,
+  evaluation,
+}: {
+  sourceId: string;
+  evaluation: InteractionEvaluation;
+}) {
+  const providerVersions = sourceProviderVersions(evaluation, sourceId);
+  if (providerVersions.length === 0) return null;
+  return (
+    <p className="interaction-provider-provenance">
+      <strong>Provider/version provenance:</strong>{' '}
+      {providerVersions
+        .map(
+          (item) =>
+            `Provider ${identifierText(item.providerId)}; source version ${item.sourceVersion}`,
+        )
+        .join('; ')}
+      .
+    </p>
+  );
+}
+
 function uniqueEvaluatedPairs(evaluation: InteractionEvaluation) {
   const pairs = new Map<
     string,
@@ -136,6 +189,53 @@ function SourceStatementBlock({
   );
 }
 
+interface SourceSeverityStatement {
+  readonly key: string;
+  readonly sourceId: string;
+  readonly sourceVersion: string;
+  readonly recordId: string | undefined;
+  readonly statementText: string;
+  readonly limitations: string;
+  readonly details: readonly string[];
+}
+
+function SourceSeverityGroups({
+  groups,
+  evaluation,
+}: {
+  groups: readonly {
+    readonly sourceId: string;
+    readonly entries: readonly SourceSeverityStatement[];
+  }[];
+  evaluation: InteractionEvaluation;
+}) {
+  return (
+    <ul>
+      {groups.map(({ sourceId, entries }) => (
+        <li key={sourceId}>
+          <p>Source id: {identifierText(sourceId)}.</p>
+          <SourceProviderVersionProvenance
+            sourceId={sourceId}
+            evaluation={evaluation}
+          />
+          {entries.map((statement) => (
+            <SourceStatementBlock
+              key={statement.key}
+              sourceId={statement.sourceId}
+              sourceVersion={statement.sourceVersion}
+              recordId={statement.recordId}
+              statementLabel="Source severity term"
+              statementText={statement.statementText}
+              limitations={statement.limitations}
+              details={statement.details}
+            />
+          ))}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function sourceSeverityDetails(
   item: PairAssessment['finding']['sourceSeverities'][number],
   evaluation: InteractionEvaluation,
@@ -175,10 +275,10 @@ function AssessmentDimension({
   const conflictingSeverityTerms = matchingDisagreements.flatMap(
     (disagreement) => disagreement.severityTerms,
   );
-  const sourceSeverityStatements =
+  const sourceSeverityStatements: SourceSeverityStatement[] =
     assessment.evidence.evidenceConflict && conflictingSeverityTerms.length > 0
       ? conflictingSeverityTerms.map((term) => ({
-          key: `${term.sourceId}-${term.sourceVersion}-${term.severity}`,
+          key: `${term.sourceId}-${term.providerId}-${term.sourceVersion}-${term.severity}`,
           sourceId: term.sourceId,
           sourceVersion: term.sourceVersion,
           recordId: undefined,
@@ -197,6 +297,12 @@ function AssessmentDimension({
             'Only the source-reported severity term is displayed in this statement.',
           details: sourceSeverityDetails(item, evaluation),
         }));
+  const sourceSeverityGroups = groupBySourceId(sourceSeverityStatements);
+  const sourcePositionGroups = groupBySourceId(sourcePositions);
+  const sourceEvidenceLevelGroups = groupBySourceId(
+    assessment.evidence.evidenceLevels,
+  );
+  const sourceProvenanceGroups = groupBySourceId(assessment.provenance);
   const mapping = evaluation.selectedProductToIngredientMappings.find((item) =>
     item.ingredientIds.includes(assessment.pair[0]),
   );
@@ -236,25 +342,14 @@ function AssessmentDimension({
           <dd>
             {assessment.evidence.evidenceConflict && (
               <div className="interaction-evidence-indicator" role="note">
-                <p>Sources disagree.</p>
-                {sourceSeverityStatements.length > 0 && (
+                <p>Sources disagree</p>
+                {sourceSeverityGroups.length > 0 && (
                   <>
-                    <p>Differing source severity terms:</p>
-                    <ul>
-                      {sourceSeverityStatements.map((statement) => (
-                        <li key={statement.key}>
-                          <SourceStatementBlock
-                            sourceId={statement.sourceId}
-                            sourceVersion={statement.sourceVersion}
-                            recordId={statement.recordId}
-                            statementLabel="Source severity term"
-                            statementText={statement.statementText}
-                            limitations={statement.limitations}
-                            details={statement.details}
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                    <p>Differing source severity terms by source:</p>
+                    <SourceSeverityGroups
+                      groups={sourceSeverityGroups}
+                      evaluation={evaluation}
+                    />
                   </>
                 )}
               </div>
@@ -265,76 +360,91 @@ function AssessmentDimension({
               </p>
             )}
             {!assessment.evidence.evidenceConflict &&
-              sourceSeverityStatements.length > 0 && (
+              sourceSeverityGroups.length > 0 && (
                 <div>
-                  <p>Source severity details:</p>
-                  <ul>
-                    {sourceSeverityStatements.map((statement) => (
-                      <li key={statement.key}>
-                        <SourceStatementBlock
-                          sourceId={statement.sourceId}
-                          sourceVersion={statement.sourceVersion}
-                          recordId={statement.recordId}
-                          statementLabel="Source severity term"
-                          statementText={statement.statementText}
-                          limitations={statement.limitations}
-                          details={statement.details}
-                        />
-                      </li>
-                    ))}
-                  </ul>
+                  <p>Source severity details by source:</p>
+                  <SourceSeverityGroups
+                    groups={sourceSeverityGroups}
+                    evaluation={evaluation}
+                  />
                 </div>
               )}
             <p>
               Source-stated uncertainty:{' '}
               {assessment.evidence.sourceStatedUncertainty ? 'yes' : 'no'}.
             </p>
-            <ul>
-              {sourcePositions.map((position) => (
-                <li
-                  key={`${position.sourceId}-${position.sourceVersion}-${position.position}`}
-                >
-                  {position.position === 'no-record-in-coverage' ? (
-                    <>
-                      <p>{sourcePositionText(position)}</p>
-                      <p>
-                        Source version {identifierText(position.sourceVersion)}.
-                      </p>
-                    </>
-                  ) : (
-                    sourcePositionText(position)
-                  )}
+            <h4>Source positions</h4>
+            <ul aria-label="Source positions grouped by source">
+              {sourcePositionGroups.map(({ sourceId, entries }) => (
+                <li key={sourceId}>
+                  <p>Source id: {identifierText(sourceId)}.</p>
+                  <SourceProviderVersionProvenance
+                    sourceId={sourceId}
+                    evaluation={evaluation}
+                  />
+                  {entries.map((position) => (
+                    <div key={`${position.sourceVersion}-${position.position}`}>
+                      {position.position === 'no-record-in-coverage' ? (
+                        <>
+                          <p>{sourcePositionText(position)}</p>
+                          <p>
+                            Source version{' '}
+                            {identifierText(position.sourceVersion)}.
+                          </p>
+                        </>
+                      ) : (
+                        <p>{sourcePositionText(position)}</p>
+                      )}
+                    </div>
+                  ))}
                 </li>
               ))}
-              {assessment.evidence.evidenceLevels.map((level) => {
-                const sourceVersion =
-                  assessment.provenance.find(
-                    (item) =>
-                      item.sourceId === level.sourceId &&
-                      item.recordId === level.recordId,
-                  )?.sourceVersion ??
-                  evaluation.sourceVersions.find(
-                    (item) => item.sourceId === level.sourceId,
-                  )?.sourceVersion ??
-                  'not supplied';
-                return (
-                  <li key={`${level.sourceId}-${level.recordId}`}>
-                    <SourceStatementBlock
-                      sourceId={level.sourceId}
-                      sourceVersion={sourceVersion}
-                      recordId={level.recordId}
-                      statementLabel="Source evidence level"
-                      statementText={level.evidenceLevel ?? 'not supplied'}
-                      limitations="Only the source-supplied evidence level is displayed."
-                    />
-                  </li>
-                );
-              })}
-              {sourcePositions.length === 0 &&
-                assessment.evidence.evidenceLevels.length === 0 && (
-                  <li>No evidence position or level was returned.</li>
-                )}
             </ul>
+            {sourceEvidenceLevelGroups.length > 0 && (
+              <>
+                <h4>Source evidence levels</h4>
+                <ul aria-label="Source evidence levels grouped by source">
+                  {sourceEvidenceLevelGroups.map(({ sourceId, entries }) => (
+                    <li key={sourceId}>
+                      <p>Source id: {identifierText(sourceId)}.</p>
+                      <SourceProviderVersionProvenance
+                        sourceId={sourceId}
+                        evaluation={evaluation}
+                      />
+                      {entries.map((level) => {
+                        const sourceVersion =
+                          assessment.provenance.find(
+                            (item) =>
+                              item.sourceId === level.sourceId &&
+                              item.recordId === level.recordId,
+                          )?.sourceVersion ??
+                          evaluation.sourceVersions.find(
+                            (item) => item.sourceId === level.sourceId,
+                          )?.sourceVersion ??
+                          'not supplied';
+                        return (
+                          <SourceStatementBlock
+                            key={`${level.sourceId}-${level.recordId}`}
+                            sourceId={level.sourceId}
+                            sourceVersion={sourceVersion}
+                            recordId={level.recordId}
+                            statementLabel="Source evidence level"
+                            statementText={
+                              level.evidenceLevel ?? 'not supplied'
+                            }
+                            limitations="Only the source-supplied evidence level is displayed."
+                          />
+                        );
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {sourcePositionGroups.length === 0 &&
+              sourceEvidenceLevelGroups.length === 0 && (
+                <p>No evidence position or level was returned.</p>
+              )}
           </dd>
         </div>
         <div>
@@ -386,12 +496,22 @@ function AssessmentDimension({
       <p>Assessment logic version: {assessment.logicVersion}.</p>
       {assessment.provenance.length > 0 ? (
         <ul className="interaction-provenance">
-          {assessment.provenance.map((item) => (
-            <li key={`${item.sourceId}-${item.sourceVersion}-${item.recordId}`}>
-              {identifierText(item.sourceId)} · source version{' '}
-              {item.sourceVersion} · record {item.recordId} · catalogue version{' '}
-              {identifierText(item.datasetVersionId)}
-              {item.retrievedAt ? ` · retrieved ${item.retrievedAt}` : ''}
+          {sourceProvenanceGroups.map(({ sourceId, entries }) => (
+            <li key={sourceId}>
+              <p>Source id: {identifierText(sourceId)}.</p>
+              <SourceProviderVersionProvenance
+                sourceId={sourceId}
+                evaluation={evaluation}
+              />
+              {entries.map((item) => (
+                <p
+                  key={`${item.sourceVersion}-${item.recordId}-${item.datasetVersionId}`}
+                >
+                  Source version {item.sourceVersion} · record {item.recordId} ·
+                  catalogue version {identifierText(item.datasetVersionId)}
+                  {item.retrievedAt ? ` · retrieved ${item.retrievedAt}` : ''}
+                </p>
+              ))}
             </li>
           ))}
         </ul>
@@ -499,30 +619,32 @@ function EvaluationLimitations({
         <div>
           <h3>Source disagreements</h3>
           <ul>
-            {disagreements.map((disagreement, index) => (
-              <li key={`${disagreement.pair.join('-')}-${index}`}>
-                Pair {identifierText(disagreement.pair[0])} +{' '}
-                {identifierText(disagreement.pair[1])}: reasons{' '}
-                {disagreement.reasons.join(', ')}. Source severity terms:
-                <ul>
-                  {disagreement.severityTerms.map((term) => (
-                    <li
-                      key={`${term.sourceId}-${term.sourceVersion}-${term.severity}`}
-                    >
-                      <SourceStatementBlock
-                        sourceId={term.sourceId}
-                        sourceVersion={term.sourceVersion}
-                        recordId={undefined}
-                        statementLabel="Source severity term"
-                        statementText={term.severity}
-                        limitations="The merged disagreement term does not include a record id."
-                        details={[`Provider id: ${term.providerId}.`]}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
+            {disagreements.map((disagreement, index) => {
+              const sourceSeverityGroups = groupBySourceId(
+                disagreement.severityTerms.map((term, termIndex) => ({
+                  key: `${term.sourceId}-${term.providerId}-${term.sourceVersion}-${term.severity}-${termIndex}`,
+                  sourceId: term.sourceId,
+                  sourceVersion: term.sourceVersion,
+                  recordId: undefined,
+                  statementText: term.severity,
+                  limitations:
+                    'The merged disagreement term does not include a record id.',
+                  details: [`Provider id: ${term.providerId}.`],
+                })),
+              );
+              return (
+                <li key={`${disagreement.pair.join('-')}-${index}`}>
+                  Pair {identifierText(disagreement.pair[0])} +{' '}
+                  {identifierText(disagreement.pair[1])}: reasons{' '}
+                  {disagreement.reasons.join(', ')}. Source severity terms by
+                  source:
+                  <SourceSeverityGroups
+                    groups={sourceSeverityGroups}
+                    evaluation={evaluation}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -584,17 +706,16 @@ function EvaluationResults({
       </section>
 
       {evaluation.sourceVersions.length > 0 && (
-        <section aria-labelledby="interaction-source-versions-title">
-          <h3 id="interaction-source-versions-title">
-            Provider and source versions
-          </h3>
+        <section aria-labelledby="interaction-source-provenance-title">
+          <h3 id="interaction-source-provenance-title">Source provenance</h3>
           <ul>
-            {evaluation.sourceVersions.map((source) => (
-              <li
-                key={`${source.providerId}-${source.sourceId}-${source.sourceVersion}`}
-              >
-                {source.providerId} · {identifierText(source.sourceId)} ·
-                version {source.sourceVersion}
+            {groupBySourceId(evaluation.sourceVersions).map(({ sourceId }) => (
+              <li key={sourceId}>
+                <p>Source id: {identifierText(sourceId)}.</p>
+                <SourceProviderVersionProvenance
+                  sourceId={sourceId}
+                  evaluation={evaluation}
+                />
               </li>
             ))}
           </ul>
@@ -611,15 +732,29 @@ function EvaluationResults({
             Superseded and withdrawn records are history, not active findings.
           </p>
           <ul>
-            {evaluation.inactiveRecords.map(({ record, reason }) => (
-              <li key={record.id}>
-                {reason}: record {record.id} · source{' '}
-                {identifierText(record.sourceId)} · version{' '}
-                {record.sourceVersion} · dataset version{' '}
-                {identifierText(record.datasetVersionId)}
-                {record.supersededBy
-                  ? ` · superseded by ${record.supersededBy}`
-                  : ''}
+            {groupBySourceId(
+              evaluation.inactiveRecords.map(({ record, reason }) => ({
+                sourceId: record.sourceId,
+                record,
+                reason,
+              })),
+            ).map(({ sourceId, entries }) => (
+              <li key={sourceId}>
+                <p>Source id: {identifierText(sourceId)}.</p>
+                <SourceProviderVersionProvenance
+                  sourceId={sourceId}
+                  evaluation={evaluation}
+                />
+                {entries.map(({ record, reason }) => (
+                  <p key={record.id}>
+                    {reason}: record {record.id} · source version{' '}
+                    {record.sourceVersion} · dataset version{' '}
+                    {identifierText(record.datasetVersionId)}
+                    {record.supersededBy
+                      ? ` · superseded by ${record.supersededBy}`
+                      : ''}
+                  </p>
+                ))}
               </li>
             ))}
           </ul>
@@ -858,10 +993,13 @@ export function InteractionCheckerPage({
           ? 'No source has been approved for interaction checking, so this feature is unavailable.'
           : 'Select products from the local synthetic catalogue to inspect a development-only result. This feature does not support care decisions.'}
       </p>
-      <p className="interaction-preview-banner" role="note">
-        Development preview — not for clinical use. No interaction source has
-        been approved.
-      </p>
+      <div className="interaction-preview-banner">
+        <p role="note">
+          Development preview — not for clinical use. No interaction source has
+          been approved.
+        </p>
+        <p>Interaction presentation pending clinical review</p>
+      </div>
 
       {checkerUnavailable ? (
         <p className="interaction-unavailable" role="status" aria-live="polite">
