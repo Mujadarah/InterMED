@@ -5,16 +5,19 @@ import type {
   InteractionEvaluation,
   InteractionEvidence,
   InteractionIncompleteReason,
+  InteractionWithinSourceInconsistency,
+  InteractionWithinSourceInconsistencyReason,
   MergedProviderResults,
   PairAssessment,
   PairAssessmentInput,
   PairAssessmentSourcePosition,
+  PairAssessmentWithinSourceInconsistency,
   PairCoverageStatus,
 } from './types';
 import { canonicalPair, compareStrings, pairKey } from './pairs';
 import { isProviderResult, isRecord } from './provider-result';
 
-export const INTERACTION_ASSESSMENT_LOGIC_VERSION = '3.0.0';
+export const INTERACTION_ASSESSMENT_LOGIC_VERSION = '4.0.0';
 
 interface AssessmentRecord {
   readonly record: DrugInteraction;
@@ -59,6 +62,7 @@ interface AssessmentState {
   globalInvalidity: boolean;
   providerUnavailable: boolean;
   evidenceConflict: boolean;
+  readonly mergedWithinSource: InteractionWithinSourceInconsistency[];
 }
 
 const KNOWN_REASONS = new Set([
@@ -625,6 +629,10 @@ function addMergedResults(
       matchesPair(disagreement.pair, requestedKey) &&
       disagreement.reasons.length > 0,
   );
+  for (const entry of merged.withinSourceInconsistencies ?? []) {
+    if (matchesPair(entry.pair, requestedKey))
+      state.mergedWithinSource.push(entry);
+  }
 }
 
 function sourceIsComplete(source: PairSource): boolean {
@@ -796,6 +804,7 @@ function createAssessmentState(): AssessmentState {
     globalInvalidity: false,
     providerUnavailable: false,
     evidenceConflict: false,
+    mergedWithinSource: [],
   };
 }
 
@@ -939,6 +948,12 @@ function createEvidenceDimension(
   positions: PairAssessment['evidence']['positions'],
   evidenceLevels: PairAssessment['evidence']['evidenceLevels'],
 ): PairAssessment['evidence'] {
+  // Independent clinical evidence is defined by source identity (`sourceId`),
+  // not by provider identity (`providerId`) or `sourceVersion`. Two adapters
+  // that reference the same underlying clinical source (same `sourceId`) are
+  // the same source even when they use different provider ids or versions, so
+  // their differences are within-source inconsistencies, never cross-source
+  // clinical conflicts or coverage discrepancies.
   const crossSourceSeverityConflict = hasCrossSourceSeverityConflict(
     sets.current,
   );
@@ -951,19 +966,129 @@ function createEvidenceDimension(
   // source severity terms for current records across sources.
   // The discrepancy is derived from the validated source positions, not the
   // merge-level list: a source whose only records are outdated or mismatched
-  // does not document the interaction for this assessment.
-  const hasCoverageDiscrepancy =
-    positions.some((item) => item.position === 'documents-interaction') &&
-    positions.some((item) => item.position === 'no-record-in-coverage');
+  // does not document the interaction for this assessment. A genuine
+  // cross-source discrepancy requires distinct underlying source identities.
+  const documentingSourceIds = new Set(
+    positions
+      .filter((item) => item.position === 'documents-interaction')
+      .map((item) => item.sourceId),
+  );
+  const noRecordSourceIds = new Set(
+    positions
+      .filter((item) => item.position === 'no-record-in-coverage')
+      .map((item) => item.sourceId),
+  );
+  const hasCoverageDiscrepancy = [...documentingSourceIds].some((sourceId) =>
+    [...noRecordSourceIds].some((other) => other !== sourceId),
+  );
   return {
     evidenceConflict: state.evidenceConflict || crossSourceSeverityConflict,
     coverageDiscrepancy: hasCoverageDiscrepancy,
+    withinSourceInconsistencies: createWithinSourceInconsistencies(state),
     positions,
     sourceStatedUncertainty: state.records.some(
       ({ record }) => record.sourceStatesUncertainEvidence === true,
     ),
     evidenceLevels,
   };
+}
+
+function createWithinSourceInconsistencies(
+  state: AssessmentState,
+): PairAssessment['evidence']['withinSourceInconsistencies'] {
+  if (state.mergedWithinSource.length > 0) {
+    const presentSourceIds = new Set(
+      state.sources.map((source) => source.sourceId),
+    );
+    const mapped = state.mergedWithinSource
+      .filter((entry) => presentSourceIds.has(entry.sourceId))
+      .map((entry): PairAssessmentWithinSourceInconsistency => ({
+        sourceId: entry.sourceId,
+        reasons: [...entry.reasons].sort(compareStrings),
+        sourceVersions: [
+          ...new Set(entry.entries.map((item) => item.sourceVersion)),
+        ].sort(compareStrings),
+      }))
+      .sort((left, right) => compareStrings(left.sourceId, right.sourceId));
+    const unique = new Map<string, PairAssessmentWithinSourceInconsistency>();
+    for (const item of mapped) {
+      const key = JSON.stringify([
+        item.sourceId,
+        item.reasons,
+        item.sourceVersions,
+      ]);
+      if (!unique.has(key)) unique.set(key, item);
+    }
+    return [...unique.values()];
+  }
+  return deriveWithinSourceFromState(state);
+}
+
+function deriveWithinSourceFromState(
+  state: AssessmentState,
+): PairAssessmentWithinSourceInconsistency[] {
+  const sourceIds = [
+    ...new Set([
+      ...state.sources.map((source) => source.sourceId),
+      ...state.records.map((entry) => entry.record.sourceId),
+    ]),
+  ].sort(compareStrings);
+  const result: PairAssessmentWithinSourceInconsistency[] = [];
+  for (const sourceId of sourceIds) {
+    const reasons: InteractionWithinSourceInconsistencyReason[] = [];
+    const currentForSource = state.records.filter(
+      (entry) =>
+        entry.validCurrent &&
+        entry.record.sourceId === sourceId &&
+        entry.record.severity !== undefined,
+    );
+    const hasSeverityDifference = currentForSource.some((left, leftPos) =>
+      currentForSource
+        .slice(leftPos + 1)
+        .some(
+          (right) =>
+            right.record.severity !== left.record.severity &&
+            ((right.providerId ?? '') !== (left.providerId ?? '') ||
+              right.record.sourceVersion !== left.record.sourceVersion),
+        ),
+    );
+    if (hasSeverityDifference) reasons.push('severity-terms-differ');
+
+    const sourcesForId = state.sources.filter(
+      (source) => source.sourceId === sourceId,
+    );
+    const documentingIdentities = new Set(
+      sourcesForId
+        .filter((source) => sourcePosition(source) === 'documents-interaction')
+        .map((source) =>
+          JSON.stringify([source.providerId ?? '', source.sourceVersion]),
+        ),
+    );
+    const noRecordIdentities = new Set(
+      sourcesForId
+        .filter((source) => sourcePosition(source) === 'no-record-in-coverage')
+        .map((source) =>
+          JSON.stringify([source.providerId ?? '', source.sourceVersion]),
+        ),
+    );
+    const hasReportedVsNoRecord = [...documentingIdentities].some(
+      (documenting) =>
+        [...noRecordIdentities].some((noRecord) => noRecord !== documenting),
+    );
+    if (hasReportedVsNoRecord) reasons.push('reported-vs-covered-no-record');
+    if (reasons.length === 0) continue;
+    reasons.sort(compareStrings);
+    const sourceVersions = [
+      ...new Set([
+        ...sourcesForId.map((source) => source.sourceVersion),
+        ...state.records
+          .filter((entry) => entry.record.sourceId === sourceId)
+          .map((entry) => entry.record.sourceVersion),
+      ]),
+    ].sort(compareStrings);
+    result.push({ sourceId, reasons, sourceVersions });
+  }
+  return result;
 }
 
 function recordIds(records: readonly AssessmentRecord[]): string[] {
