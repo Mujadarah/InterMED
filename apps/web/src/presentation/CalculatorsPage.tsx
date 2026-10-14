@@ -465,7 +465,6 @@ export function CalculatorsPage() {
       </section>
 
       <section className="calculator-meta" aria-label="Formula information">
-        {' '}
         <p className="review-badge">Review status: {reviewBadge}</p>
         <h2>{definition.title}</h2>
         <p>Formula version: {definition.formulaVersion}</p>
