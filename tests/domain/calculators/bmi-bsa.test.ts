@@ -256,11 +256,11 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       }).toThrow(TypeError);
     }
   });
-  it('exports an immutable approval register with the sixteen owner-approved component versions', () => {
+  it('exports an immutable approval register with the nineteen owner-approved component versions', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(16);
+    expect(approvals).toHaveLength(19);
     expect(Object.isFrozen(approvals)).toBe(true);
     const pr26Scope =
       'Adult (18+) candidate as presented for PR #26 sign-off; synthetic-data development build only';
@@ -272,6 +272,10 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       'Adult (18+) CKD-EPI 2021 race-free creatinine estimate; technical input limits only; development and review scope only; no CKD diagnosis, staging or dosing';
     const cgPopulationScope =
       'Adult (18+) scope with technical age guards; development and review scope only; not a default dosing method';
+    const renalScope =
+      'Adult (18+) development and review scope with the current equation, units, rounding, limitations and weight-convention handling; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets';
+    const ckdEpiPresentationScope =
+      'Adult (18+) development and review scope with the current equation, units, rounding, limitations; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets';
     const expected: readonly FormulaApprovalRecord[] = [
       {
         formulaId: 'bmi',
@@ -401,6 +405,30 @@ describe('Milestone 11 BMI and BSA candidates', () => {
         approvedOn: '2026-10-14',
         scope: cgPopulationScope,
       },
+      {
+        formulaId: 'egfr-ckd-epi-2021-cr',
+        component: 'presentation',
+        componentVersion: '1.1.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: ckdEpiPresentationScope,
+      },
+      {
+        formulaId: 'crcl-cockcroft-gault',
+        component: 'formula',
+        componentVersion: '1.1.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: renalScope,
+      },
+      {
+        formulaId: 'crcl-cockcroft-gault',
+        component: 'presentation',
+        componentVersion: '1.1.0',
+        approvedBy: 'Project owner (surgeon, clinical reviewer)',
+        approvedOn: '2026-10-14',
+        scope: renalScope,
+      },
     ];
     expect([...approvals]).toEqual([...expected]);
     for (const record of approvals) {
@@ -420,6 +448,23 @@ describe('Milestone 11 BMI and BSA candidates', () => {
       const registry = new Domain.FormulaRegistry();
       registry.register(bmiFormula);
       registry.register(bsaFormula);
+
+      expect(m11.pendingApprovals(registry)).toEqual([]);
+    });
+
+    it('lists no pending approvals across BMI, BSA, CKD-EPI and Cockcroft-Gault', () => {
+      if (!m11.pendingApprovals) {
+        throw new Error('pendingApprovals export is missing.');
+      }
+      const extended = m11 as unknown as {
+        readonly CKD_EPI_2021_CREATININE_FORMULA: Domain.FormulaDefinition;
+        readonly COCKCROFT_GAULT_FORMULA: Domain.FormulaDefinition;
+      };
+      const registry = new Domain.FormulaRegistry();
+      registry.register(bmiFormula);
+      registry.register(bsaFormula);
+      registry.register(extended.CKD_EPI_2021_CREATININE_FORMULA);
+      registry.register(extended.COCKCROFT_GAULT_FORMULA);
 
       expect(m11.pendingApprovals(registry)).toEqual([]);
     });

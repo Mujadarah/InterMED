@@ -173,7 +173,7 @@ function contractCases(): FormulaContractCases {
 describeFormulaContract(ckdEpi, contractCases());
 
 describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
-  it('exports the pinned, explicitly unreviewed candidate version', () => {
+  it('exports the pinned, clinically-reviewed candidate version', () => {
     expect(ckdEpi).toMatchObject({
       formulaId: 'egfr-ckd-epi-2021-cr',
       componentVersions: {
@@ -181,7 +181,11 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
         population: '1.0.0',
         presentation: '1.1.0',
       },
-      reviewStatus: 'unreviewed',
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
       output: {
         unit: 'mL/min/1.73 m²',
         rounding: { mode: 'half-up-decimal', precision: 0 },
@@ -418,36 +422,64 @@ describe('CKD-EPI 2021 creatinine candidate (M11d)', () => {
     expect(text).not.toContain('pending owner sign-off');
   });
 
-  it('lists only presentation 1.1.0 as pending after the formula and population approvals', () => {
+  it('lists no pending approvals after the round-3 presentation approval', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(16);
+    expect(approvals).toHaveLength(19);
     expect(
       approvals.filter(
         (record) =>
           (record as { formulaId: string }).formulaId ===
           'egfr-ckd-epi-2021-cr',
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
     if (!m11.pendingApprovals) {
       throw new Error('pendingApprovals export is missing.');
     }
     const registry = new Domain.FormulaRegistry();
     registry.register(ckdEpi);
-    expect(m11.pendingApprovals(registry)).toEqual([
-      {
-        formulaId: 'egfr-ckd-epi-2021-cr',
-        formulaVersion: ckdEpi.formulaVersion,
-        component: 'presentation',
-        componentVersion: '1.1.0',
-      },
-    ]);
+    expect(m11.pendingApprovals(registry)).toEqual([]);
   });
 
-  it('rejects registration as clinically reviewed without approvals', () => {
+  it('registers the clinically-reviewed CKD-EPI definition with its approvals', () => {
+    expect(() =>
+      new Domain.FormulaRegistry().register(
+        ckdEpi as unknown as Domain.FormulaDefinition,
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects a bumped presentation version as clinically reviewed without an exact approval', () => {
+    const bumped = {
+      ...ckdEpi,
+      formulaVersion: 'formula=1.0.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(ckdEpi.componentVersions as unknown as Record<string, string>),
+        presentation: '1.1.1',
+      },
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
+    } as unknown as Domain.FormulaDefinition;
+    expect(() => new Domain.FormulaRegistry().register(bumped)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+  });
+
+  it('rejects registration as clinically reviewed without an exact approval', () => {
     const reviewed = {
       ...ckdEpi,
+      formulaVersion: 'formula=1.0.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(ckdEpi.componentVersions as unknown as Record<string, string>),
+        presentation: '1.1.1',
+      },
       reviewStatus: {
         status: 'clinically-reviewed',
         reviewer: 'Fictional test reviewer',
