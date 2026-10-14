@@ -417,11 +417,14 @@ export function createTimeoutSyntheticProvider(): DrugInteractionProvider {
   });
 }
 
-export function createSecondVocabularySyntheticProvider(): DrugInteractionProvider {
+export function createSecondVocabularySyntheticProvider(
+  overrides: Partial<SyntheticProviderOptions> = {},
+): DrugInteractionProvider {
   return createSyntheticProvider({
     providerId: 'synthetic-second-vocabulary-provider',
     sourceVersion: 'synthetic-interactions-v2',
     severity: 'tier-cyan',
+    ...overrides,
   });
 }
 
@@ -438,12 +441,15 @@ export function createDisagreementSyntheticProvider(): DrugInteractionProvider {
   });
 }
 
-export function createNoRecordSyntheticProvider(): DrugInteractionProvider {
+export function createNoRecordSyntheticProvider(
+  overrides: Partial<SyntheticProviderOptions> = {},
+): DrugInteractionProvider {
   return createSyntheticProvider({
     providerId: 'synthetic-covered-no-record-provider',
     sourceVersion: 'synthetic-interactions-v1',
     severity: 'source-band-unused',
     reportFirstPair: false,
+    ...overrides,
   });
 }
 
