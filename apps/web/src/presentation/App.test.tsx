@@ -190,12 +190,12 @@ it('registers the interaction checker route in navigation and focuses its headin
   ).toHaveFocus();
   expect(
     screen.getByText(
-      'Development preview — not for clinical use. No source has been approved for interaction checking.',
+      'Development preview — not for clinical use. No interaction source has been approved.',
     ),
   ).toBeVisible();
   expect(
     screen.getByText(
-      /Interaction checking is unavailable\. No source has been approved/,
+      'Interaction checking is unavailable. No approved interaction source is configured.',
     ),
   ).toBeVisible();
   expect(

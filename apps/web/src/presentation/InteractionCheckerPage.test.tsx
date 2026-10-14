@@ -35,13 +35,25 @@ afterEach(cleanup);
 
 const FIXED_WARNING =
   'Absence of a record does not mean the combination is safe.';
+const REQUIRED_PREVIEW_BANNER =
+  'Development preview — not for clinical use. No interaction source has been approved.';
 const COVERED_NO_RECORD_SENTENCE = `No interaction record identified within Source ${JSON.stringify(sourceId)}'s evaluated coverage.`;
+const COVERAGE_DISCREPANCY_SENTENCE =
+  'Coverage differs between sources: at least one source documents this interaction and another has no record within its evaluated coverage. Absence of a record is not evidence against the documented interaction.';
 const ADDITIONAL_NO_RECORD_SOURCE_ID = mustId(
   'DataSource',
   SOURCE_NAMESPACE,
   'source.synthetic-checker-covered-no-record',
 );
 const ADDITIONAL_NO_RECORD_SOURCE_VERSION = 'synthetic-covered-no-record-v2';
+const ADDITIONAL_DISAGREEMENT_PROVIDER_ID =
+  'synthetic-disagreement-secondary-provider';
+const ADDITIONAL_DISAGREEMENT_SOURCE_ID = mustId(
+  'DataSource',
+  SOURCE_NAMESPACE,
+  'source.synthetic-checker-disagreement-secondary',
+);
+const ADDITIONAL_DISAGREEMENT_SOURCE_VERSION = 'synthetic-disagreement-v2';
 const SYNTHETIC_MAPPING = {
   mappingVersion: 'synthetic-display-only-v1',
   reviewed: false,
@@ -153,29 +165,56 @@ function withSyntheticDisagreement(
   evaluation: InteractionEvaluation,
 ): InteractionEvaluation {
   const pair = evaluation.evaluatedPairCoverage[0]?.pair;
-  if (!pair) return evaluation;
+  const interaction = evaluation.interactions[0];
+  if (!pair || !interaction) return evaluation;
+  const secondarySeverity = 'no interaction is expected';
+  const secondaryInteraction = {
+    ...interaction,
+    id: `${interaction.id}-secondary-source`,
+    sourceId: ADDITIONAL_DISAGREEMENT_SOURCE_ID,
+    sourceVersion: ADDITIONAL_DISAGREEMENT_SOURCE_VERSION,
+    severity: secondarySeverity,
+    evidenceIds: [],
+  };
   return {
     ...evaluation,
+    evaluatedPairCoverage: [
+      ...evaluation.evaluatedPairCoverage,
+      {
+        pair,
+        providerId: ADDITIONAL_DISAGREEMENT_PROVIDER_ID,
+        sourceId: ADDITIONAL_DISAGREEMENT_SOURCE_ID,
+        sourceVersion: ADDITIONAL_DISAGREEMENT_SOURCE_VERSION,
+        status: 'reported',
+      },
+    ],
+    interactions: [...evaluation.interactions, secondaryInteraction],
+    sourceVersions: [
+      ...evaluation.sourceVersions,
+      {
+        providerId: ADDITIONAL_DISAGREEMENT_PROVIDER_ID,
+        sourceId: ADDITIONAL_DISAGREEMENT_SOURCE_ID,
+        sourceVersion: ADDITIONAL_DISAGREEMENT_SOURCE_VERSION,
+      },
+    ],
     disagreements: [
       {
         pair,
         reasons: ['severity-terms-differ'],
         severityTerms: [
           {
-            providerId: 'synthetic-preview-provider-a',
-            sourceId,
-            sourceVersion: 'synthetic-v1',
-            severity: 'fictional-band-amber',
+            providerId:
+              evaluation.sourceVersions[0]?.providerId ??
+              'synthetic-disagreement-provider',
+            sourceId: interaction.sourceId,
+            sourceVersion: interaction.sourceVersion,
+            severity: interaction.severity ?? 'not supplied',
           },
           {
-            providerId: 'synthetic-preview-provider-b',
-            sourceId: mustId(
-              'DataSource',
-              SOURCE_NAMESPACE,
-              'source.synthetic-disagreement-ui',
-            ),
-            sourceVersion: 'synthetic-v2',
-            severity: 'fictional-band-violet',
+            providerId: ADDITIONAL_DISAGREEMENT_PROVIDER_ID,
+            sourceId: ADDITIONAL_DISAGREEMENT_SOURCE_ID,
+            sourceVersion: ADDITIONAL_DISAGREEMENT_SOURCE_VERSION,
+            severity: secondarySeverity,
           },
         ],
       },
@@ -213,6 +252,7 @@ function withAdditionalCoveredNoRecordSource(
 }
 
 function expectNoUnlabelledSafetyLanguage() {
+  expect(screen.getByText(REQUIRED_PREVIEW_BANNER)).toBeVisible();
   const page = screen
     .getByTestId('interaction-checker-page')
     .cloneNode(true) as HTMLElement;
@@ -228,6 +268,7 @@ function expectNoUnlabelledSafetyLanguage() {
   }
 
   const textOutsideApprovedWording = (page.textContent ?? '')
+    .replaceAll(REQUIRED_PREVIEW_BANNER, '')
     .replaceAll(FIXED_WARNING, '')
     .replaceAll(
       /No interaction record identified within Source .*?'s evaluated coverage\./g,
@@ -332,7 +373,9 @@ it('shows documented interactions as an independent finding with source provenan
   expect(
     await screen.findByText(/A current source record documents an interaction/),
   ).toBeVisible();
-  expect(screen.getByText(/Source term: source-band-amber/)).toBeVisible();
+  expect(
+    screen.getByText(/Source severity term: source-band-amber/),
+  ).toBeVisible();
   expect(screen.getByText(/unreviewed mapping/)).toBeVisible();
   expect(
     screen.getByText(/source version synthetic-interactions-v1/),
@@ -365,6 +408,13 @@ it('renders covered no-record wording exactly and keeps the fixed warning', asyn
 
   expect(await screen.findByText(COVERED_NO_RECORD_SENTENCE)).toBeVisible();
   expect(await screen.findByText(FIXED_WARNING)).toBeVisible();
+  const pair = screen.getByRole('region', {
+    name: 'Ingredient pair 1 assessment',
+  });
+  expect(
+    within(pair).getByText('Assessment logic version: 3.0.0.'),
+  ).toBeVisible();
+  expect(within(pair).queryByText('Sources disagree.')).not.toBeInTheDocument();
   expect(
     screen.queryByText(/states no interaction is expected/i),
   ).not.toBeInTheDocument();
@@ -390,7 +440,14 @@ it('keeps a current interaction visible beside another source no-record position
       `No interaction record identified within Source ${JSON.stringify(ADDITIONAL_NO_RECORD_SOURCE_ID)}'s evaluated coverage.`,
     ),
   ).toBeVisible();
-  expect(within(pair).getByText('Evidence conflict: yes.')).toBeVisible();
+  expect(within(pair).getByText(COVERAGE_DISCREPANCY_SENTENCE)).toBeVisible();
+  expect(within(pair).queryByText('Sources disagree.')).not.toBeInTheDocument();
+  expect(
+    within(pair).queryByText(/Evidence conflict:/i),
+  ).not.toBeInTheDocument();
+  expect(
+    within(pair).getByText('Assessment logic version: 3.0.0.'),
+  ).toBeVisible();
   expect(
     within(pair).getByText(
       /version synthetic-interactions-v1: documents-interaction/,
@@ -401,8 +458,10 @@ it('keeps a current interaction visible beside another source no-record position
       `Source version ${JSON.stringify(ADDITIONAL_NO_RECORD_SOURCE_VERSION)}.`,
     ),
   ).toBeVisible();
-  expect(within(pair).queryByText(/affirms-none/)).not.toBeInTheDocument();
-  expect(within(pair).getByRole('note')).toHaveTextContent(FIXED_WARNING);
+  expect(
+    within(pair).queryByText(/no-record-in-coverage/),
+  ).not.toBeInTheDocument();
+  expect(within(pair).getByText(FIXED_WARNING)).toBeVisible();
   expectNoUnlabelledSafetyLanguage();
 });
 
@@ -552,8 +611,24 @@ it('shows source disagreements in the top evaluation limitations', async () => {
   });
   expect(within(limitations).getByText(/Source disagreements/)).toBeVisible();
   expect(within(limitations).getByText(/severity-terms-differ/)).toBeVisible();
-  expect(within(limitations).getByText(/fictional-band-amber/)).toBeVisible();
-  expect(within(limitations).getByText(/fictional-band-violet/)).toBeVisible();
+  expect(within(limitations).getByText(/source-band-crimson/)).toBeVisible();
+  expect(
+    within(limitations).getByText(
+      /Source severity term: no interaction is expected/,
+    ),
+  ).toBeVisible();
+  const pair = screen.getByRole('region', {
+    name: 'Ingredient pair 1 assessment',
+  });
+  expect(within(pair).getByText('Sources disagree.')).toBeVisible();
+  expect(within(pair).getByText(/source-band-crimson/)).toBeVisible();
+  expect(
+    within(pair).getByText(/Source severity term: no interaction is expected/),
+  ).toBeVisible();
+  expect(
+    within(pair).queryByText(COVERAGE_DISCREPANCY_SENTENCE),
+  ).not.toBeInTheDocument();
+  expectNoUnlabelledSafetyLanguage();
 });
 
 it.each([
@@ -636,7 +711,7 @@ it('shows the production no-provider state without a check action', async () => 
   ).toBeVisible();
   expect(
     screen.getByText(
-      /Interaction checking is unavailable\. No source has been approved/,
+      'Interaction checking is unavailable. No approved interaction source is configured.',
     ),
   ).toBeVisible();
   expect(
