@@ -30,10 +30,17 @@ const MedicationDetailPage = lazy(() =>
     default: module.MedicationDetailPage,
   })),
 );
+// The calculators page runs the versioned M11 domain engine for BMI and
+// Mosteller BSA on ephemeral inputs. It loads lazily like the other route
+// pages and takes the last precache slot: the shell is now at its
+// sixteen-asset cap, so no further lazy chunk fits without raising it.
+const CalculatorsPage = lazy(() =>
+  import('./CalculatorsPage').then((module) => ({
+    default: module.CalculatorsPage,
+  })),
+);
 // The favorites page and the local preferences settings stay eager imports.
-// The precached shell is one asset below its sixteen-asset cap, so one more
-// lazy chunk would take the last slot and leave no headroom; both pages are
-// small, so they ride along in the entry chunk instead.
+// Both pages are small, so they ride along in the entry chunk instead.
 
 /**
  * Calm placeholder while a lazily loaded route chunk arrives.
@@ -203,6 +210,9 @@ export function App({
           <NavLink to="/favorites" tabIndex={0}>
             Favorites
           </NavLink>
+          <NavLink to="/calculators" tabIndex={0}>
+            Calculators
+          </NavLink>
           <NavLink to="/status" tabIndex={0}>
             Development status
           </NavLink>
@@ -233,11 +243,16 @@ export function App({
                         <p>
                           Local medication search reads candidates only from a
                           dataset already stored in this browser. It does not
-                          provide clinical guidance. Interaction checking and
-                          calculators are unavailable.
+                          provide clinical guidance. Interaction checking is
+                          unavailable. The development calculators run the
+                          versioned domain engine on values you enter.
                         </p>
                         <Link to="/search" tabIndex={0}>
                           Search local medication data
+                        </Link>
+                        <br />
+                        <Link to="/calculators" tabIndex={0}>
+                          Open development calculators
                         </Link>
                         <br />
                         <Link to="/status" tabIndex={0}>
@@ -334,6 +349,7 @@ export function App({
                     />
                   }
                 />
+                <Route path="/calculators" element={<CalculatorsPage />} />
                 <Route
                   path="/medication/:productId"
                   element={<MedicationDetailRoute services={services} />}

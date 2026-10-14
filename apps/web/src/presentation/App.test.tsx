@@ -158,6 +158,22 @@ it('registers the medication search route in navigation', async () => {
   );
 });
 
+it('registers calculators as a route in navigation', async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  await user.click(screen.getByRole('link', { name: 'Calculators' }));
+  expect(
+    await screen.findByRole('heading', { name: 'Calculators' }),
+  ).toBeVisible();
+  expect(
+    screen.getByText('Development preview — not for clinical use.'),
+  ).toBeVisible();
+});
+
 it('registers favorites as a route in navigation', async () => {
   const user = userEvent.setup();
   render(
