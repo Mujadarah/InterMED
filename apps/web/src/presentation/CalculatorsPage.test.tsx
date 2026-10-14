@@ -71,7 +71,7 @@ it('shows the boundary note when the display crosses a WHO cutoff', async () => 
   await useCentimetres(user);
   await calculate(user, { weight: '99.84', height: '200', age: '30' });
 
-  expect(screen.getByText('Result: 25 kg/m²')).toBeVisible();
+  expect(screen.getByText('Result: 25.0 kg/m²')).toBeVisible();
   expect(
     screen.getByText(/Classification:.*Normal range/, { exact: false }),
   ).toBeVisible();
@@ -94,6 +94,38 @@ it('calculates BSA on the Mosteller calculator', async () => {
   await calculate(user, { weight: '70', height: '175', age: '30' });
 
   expect(screen.getByText('Result: 1.84 m²')).toBeVisible();
+});
+
+it('renders BSA to two decimal places for a whole-number result', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await user.click(
+    screen.getByRole('radio', {
+      name: 'Body surface area, Mosteller (adult estimate)',
+    }),
+  );
+  await calculate(user, { weight: '80', height: '180', age: '30' });
+
+  expect(screen.getByText('Result: 2.00 m²')).toBeVisible();
+});
+
+it('takes the review badge from the returned result once calculated', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+
+  await useCentimetres(user);
+  await calculate(user, { weight: '70', height: '175', age: '17' });
+
+  expect(
+    screen.getByText(/Outside this release's scope/, { exact: false }),
+  ).toBeVisible();
+  expect(
+    screen.queryByText(/Result:/, { exact: false }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
 });
 
 it('normalizes pound and inch inputs before calculating', async () => {

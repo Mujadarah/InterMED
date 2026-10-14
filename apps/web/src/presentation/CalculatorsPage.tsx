@@ -149,6 +149,11 @@ export function CalculatorsPage() {
       ? result.checks.map((check) => check.id)
       : [];
 
+  // Once calculated, the badge reflects the returned result (which pins the
+  // exact formula id and version); before any calculation it reflects the
+  // selected definition.
+  const reviewBadge = result ? result.reviewMarker : reviewMarkerOf(definition);
+
   return (
     <section className="calculators-page" aria-labelledby="calculators-title">
       <h1 id="calculators-title" tabIndex={-1}>
@@ -347,7 +352,8 @@ export function CalculatorsPage() {
         {result?.status === 'ok' && (
           <>
             <p className="calculator-value">
-              Result: {String(result.displayValue)} {result.unit}
+              Result: {result.displayValue.toFixed(result.precision)}{' '}
+              {result.unit}
             </p>
             {result.classification && (
               <div className="calculator-classification">
@@ -445,9 +451,8 @@ export function CalculatorsPage() {
       </section>
 
       <section className="calculator-meta" aria-label="Formula information">
-        <p className="review-badge">
-          Review status: {reviewMarkerOf(definition)}
-        </p>
+        {' '}
+        <p className="review-badge">Review status: {reviewBadge}</p>
         <h2>{definition.title}</h2>
         <p>Formula version: {definition.formulaVersion}</p>
         <p>
