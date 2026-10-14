@@ -438,6 +438,26 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
         }),
       ]),
     );
+
+    for (const value of [0, -1]) {
+      const result = calculate(baseInputs({ weight: { value, unit: 'kg' } }));
+      expect(result.status, `weight ${value}`).toBe('invalid-input');
+    }
+  });
+
+  it('declares the technical age guard that keeps (140 - age) positive', () => {
+    // Unreachable through the 0-130 technical bound today; asserted so a
+    // future bound change cannot silently allow zero or negative arithmetic.
+    expect(cockcroftGault.populationLimits.guards).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'age-below-140',
+          inputId: 'age',
+          operator: 'at-most',
+          value: 139,
+        }),
+      ]),
+    );
   });
 
   it('presents an integer display while keeping the unrounded value', () => {
