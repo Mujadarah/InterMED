@@ -261,7 +261,8 @@ export function CalculatorsPage() {
         Calculators
       </h1>
       <p className="lead">
-        Body mass index and body surface area estimates for development and
+        Body mass index, body surface area, CKD-EPI 2021 eGFR and
+        Cockcroft–Gault creatinine clearance estimates for development and
         review. Synthetic use only.
       </p>
       <p className="calculator-banner" role="note">
