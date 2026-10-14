@@ -71,7 +71,15 @@ export interface FormulaDeprecation {
   readonly notice: string;
 }
 
-export interface FormulaInputDefinition {
+export interface FormulaCategoryOption {
+  readonly id: string;
+  readonly label: string;
+}
+
+export type FormulaInputKind = 'quantity' | 'category';
+
+interface FormulaQuantityInputDefinition {
+  readonly kind?: 'quantity';
   readonly id: string;
   readonly label: string;
   readonly quantityKind: FormulaQuantityKind;
@@ -84,6 +92,17 @@ export interface FormulaInputDefinition {
   readonly required: boolean;
   readonly allowNegative?: boolean;
 }
+
+interface FormulaCategoryInputDefinition {
+  readonly kind: 'category';
+  readonly id: string;
+  readonly label: string;
+  readonly required: boolean;
+  readonly options: readonly FormulaCategoryOption[];
+}
+
+export type FormulaInputDefinition =
+  FormulaQuantityInputDefinition | FormulaCategoryInputDefinition;
 
 export interface UnitConversionRule {
   readonly fromUnit: string;
@@ -180,14 +199,24 @@ export interface FormulaDefinition {
   readonly softChecks?: readonly FormulaSoftCheck[];
   readonly reviewStatus: FormulaReviewStatus;
   readonly deprecated?: FormulaDeprecation;
-  /** Pure, synchronous calculation over values normalized to canonical units. */
-  compute(values: Readonly<Record<string, number | undefined>>): number;
+  /**
+   * Pure, synchronous calculation over values normalized to canonical units.
+   * Categorical inputs arrive in the separate `categories` map, never encoded
+   * as magic numbers in `values`.
+   */
+  compute(
+    values: Readonly<Record<string, number | undefined>>,
+    categories?: Readonly<Record<string, string | undefined>>,
+  ): number;
   /**
    * Optional pure classification hook. The returned classification uses the
    * unrounded compute output; the rounded display value may also be classified
    * to explain a presentation-boundary crossing without changing that result.
    */
-  classify?: (unroundedValue: number) => FormulaClassification;
+  classify?: (
+    unroundedValue: number,
+    categories?: Readonly<Record<string, string | undefined>>,
+  ) => FormulaClassification;
 }
 
 export interface FormulaVersionSummary {
@@ -204,10 +233,17 @@ export interface FormulaVersionSummary {
  */
 export type FormulaMetadata = Omit<FormulaDefinition, 'compute' | 'classify'>;
 
-export interface CalculationInput {
+export interface QuantityCalculationInput {
   readonly value: number;
   readonly unit: string;
 }
+
+export interface CategoryCalculationInput {
+  readonly category: string;
+}
+
+export type CalculationInput =
+  QuantityCalculationInput | CategoryCalculationInput;
 
 export interface CalculationRequest {
   readonly formulaId: string;
@@ -227,11 +263,18 @@ export interface UnitConversionRecord {
 
 export interface CalculationInputEcho {
   readonly inputId: string;
+  readonly kind: FormulaInputKind;
   readonly submittedValue: number | null;
   readonly submittedUnit: string | null;
   readonly normalizedValue: number | null;
   readonly normalizedUnit: string;
   readonly conversions: readonly UnitConversionRecord[];
+  /** Category inputs only: the submitted option id, if one was submitted. */
+  readonly submittedCategory?: string | null;
+  /** Category inputs only: the selected option id echoed back. */
+  readonly selectedOptionId?: string | null;
+  /** Category inputs only: the selected option label echoed back. */
+  readonly selectedOptionLabel?: string | null;
 }
 
 export type InputValidationCode =

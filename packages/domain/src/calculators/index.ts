@@ -2,11 +2,14 @@ export { calculateFormula } from './calculate';
 export { FormulaRegistrationError, FormulaRegistry } from './registry';
 export { FORMULA_APPROVALS, pendingApprovals } from './approvals';
 export { BMI_FORMULA, MOSTELLER_BSA_FORMULA } from './bmi-bsa';
+export { CKD_EPI_2021_CREATININE_FORMULA } from './ckd-epi';
 export { STANDARD_UNIT_CONVERSIONS } from './units';
 export { getFormulaVersionId } from './types';
 export type {
   CalculationConfirmationRequiredResult,
   CalculationInput,
+  CategoryCalculationInput,
+  QuantityCalculationInput,
   CalculationInputEcho,
   CalculationInvalidInputResult,
   CalculationOkResult,
@@ -17,10 +20,12 @@ export type {
   CalculationUnitError,
   CalculationUnitErrorResult,
   CalculationUnavailableResult,
+  FormulaCategoryOption,
   FormulaClassification,
   FormulaComponent,
   FormulaComponentVersions,
   FormulaDefinition,
+  FormulaInputKind,
   FormulaMetadata,
   FormulaApprovalRecord,
   FormulaDeprecation,

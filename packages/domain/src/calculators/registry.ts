@@ -53,9 +53,76 @@ function assertReference(definition: FormulaDefinition): void {
   }
 }
 
+function assertCategoryInput(
+  input: Extract<FormulaInputDefinition, { kind: 'category' }>,
+): void {
+  if (
+    !hasText(input.id) ||
+    !hasText(input.label) ||
+    typeof input.required !== 'boolean'
+  ) {
+    invalidDefinition(
+      'Each category input requires an id, label, and required flag.',
+    );
+  }
+  if (!Array.isArray(input.options) || input.options.length === 0) {
+    invalidDefinition(
+      `Input ${input.id} requires at least one category option.`,
+    );
+  }
+  const seenOptionIds = new Set<string>();
+  for (const option of input.options) {
+    if (!option || typeof option !== 'object') {
+      invalidDefinition(`Input ${input.id} has a malformed category option.`);
+    }
+    if (!hasText(option.id) || !hasText(option.label)) {
+      invalidDefinition(
+        `Input ${input.id} requires a non-empty id and label for every option.`,
+      );
+    }
+    if (seenOptionIds.has(option.id)) {
+      invalidDefinition(
+        `Input ${input.id} has a duplicate option id ${option.id}.`,
+      );
+    }
+    seenOptionIds.add(option.id);
+  }
+  const quantityFields = input as unknown as Record<string, unknown>;
+  if (
+    quantityFields.quantityKind !== undefined ||
+    quantityFields.canonicalUnit !== undefined ||
+    quantityFields.allowedUnits !== undefined ||
+    quantityFields.plausibleRangeByUnit !== undefined ||
+    quantityFields.allowNegative !== undefined
+  ) {
+    invalidDefinition(
+      `Input ${input.id} is categorical and must not declare units or ranges.`,
+    );
+  }
+}
+
 function assertInput(input: FormulaInputDefinition): void {
   if (!input || typeof input !== 'object') {
     invalidDefinition('Each formula input must be a structured object.');
+  }
+  if (
+    input.kind !== undefined &&
+    input.kind !== 'quantity' &&
+    input.kind !== 'category'
+  ) {
+    invalidDefinition('Each formula input has an unknown input kind.');
+  }
+  if (input.kind === 'category') {
+    assertCategoryInput(input);
+    return;
+  }
+  if (
+    'options' in input &&
+    (input as unknown as Record<string, unknown>).options !== undefined
+  ) {
+    invalidDefinition(
+      `Input ${input.id} is numeric and must not declare category options.`,
+    );
   }
   if (
     !hasText(input.id) ||
@@ -115,6 +182,7 @@ function assertConversionRules(
 ): void {
   const unitsByKind = new Map<string, Set<string>>();
   for (const input of inputs) {
+    if (input.kind === 'category') continue;
     const units = unitsByKind.get(input.quantityKind) ?? new Set<string>();
     input.allowedUnits.forEach((unit) => units.add(unit));
     unitsByKind.set(input.quantityKind, units);
@@ -137,6 +205,7 @@ function assertConversionRules(
   }
 
   for (const input of inputs) {
+    if (input.kind === 'category') continue;
     for (const unit of input.allowedUnits) {
       if (
         !findConversionPath(
@@ -317,6 +386,7 @@ function assertGuard(
     !hasText(guard.message) ||
     !input ||
     !input.required ||
+    input.kind === 'category' ||
     guard.unit !== input.canonicalUnit
   ) {
     invalidDefinition(
@@ -419,21 +489,27 @@ function assertSoftCheck(
   }
   if (check.kind === 'input-range') {
     const input = inputsById.get(check.inputId);
+    if (input?.kind === 'category') {
+      invalidDefinition(
+        `Soft check ${check.id} must reference a numeric input.`,
+      );
+    }
+    const quantityInput = input;
     const hasMinimum = check.minimum !== undefined;
     const hasMaximum = check.maximum !== undefined;
     const unitToCanonicalPath =
-      input && hasText(check.unit)
+      quantityInput && hasText(check.unit)
         ? findConversionPath(
             conversions,
-            input.quantityKind,
+            quantityInput.quantityKind,
             check.unit,
-            input.canonicalUnit,
+            quantityInput.canonicalUnit,
           )
         : undefined;
     const hasSupportedUnit =
-      input !== undefined &&
+      quantityInput !== undefined &&
       hasText(check.unit) &&
-      input.allowedUnits.includes(check.unit) &&
+      quantityInput.allowedUnits.includes(check.unit) &&
       unitToCanonicalPath !== undefined;
     const canonicalMinimum =
       hasMinimum && unitToCanonicalPath
@@ -467,6 +543,8 @@ function assertSoftCheck(
     if (
       !weight ||
       !height ||
+      weight.kind === 'category' ||
+      height.kind === 'category' ||
       weight === height ||
       weight.quantityKind !== 'mass' ||
       height.quantityKind !== 'length' ||
@@ -637,8 +715,16 @@ function validateDefinition(definition: FormulaDefinition): void {
 export function freezeDefinition(
   definition: FormulaDefinition,
 ): FormulaDefinition {
-  const inputs = definition.inputs.map((input) =>
-    Object.freeze({
+  const inputs = definition.inputs.map((input) => {
+    if (input.kind === 'category') {
+      return Object.freeze({
+        ...input,
+        options: Object.freeze(
+          input.options.map((option) => Object.freeze({ ...option })),
+        ),
+      });
+    }
+    return Object.freeze({
       ...input,
       allowedUnits: Object.freeze([...input.allowedUnits]),
       plausibleRangeByUnit: Object.freeze({
@@ -649,8 +735,8 @@ export function freezeDefinition(
           ]),
         ),
       }),
-    }),
-  );
+    });
+  });
   const conversions = Object.freeze(
     Object.fromEntries(
       Object.entries(definition.unitConversions).map(([kind, rules]) => [

@@ -153,7 +153,8 @@ function valueInUnit(
 ): number | undefined {
   const input = definition.inputs.find((candidate) => candidate.id === inputId);
   const value = normalizedValues[inputId];
-  if (!input || value === undefined) return undefined;
+  if (!input || input.kind === 'category' || value === undefined)
+    return undefined;
   const path = findConversionPath(
     definition.unitConversions,
     input.quantityKind,
@@ -171,7 +172,7 @@ function valueFromUnit(
   sourceUnit: string,
 ): number | undefined {
   const input = definition.inputs.find((candidate) => candidate.id === inputId);
-  if (!input) return undefined;
+  if (!input || input.kind === 'category') return undefined;
   const path = findConversionPath(
     definition.unitConversions,
     input.quantityKind,
@@ -405,11 +406,12 @@ function roundForDisplay(
 function classifyAt(
   definition: FormulaDefinition,
   value: number,
+  categories?: Readonly<Record<string, string | undefined>>,
 ): FormulaClassification | undefined {
   if (!definition.classify) return undefined;
   let rawClassification: unknown;
   try {
-    rawClassification = definition.classify(value);
+    rawClassification = definition.classify(value, categories);
   } catch {
     return undefined;
   }
@@ -485,6 +487,7 @@ function calculateKnownFormula(
   try {
     unroundedValue = definition.compute(
       Object.freeze({ ...validation.normalizedValues }),
+      Object.freeze({ ...validation.categoryValues }),
     );
   } catch {
     return {
@@ -514,7 +517,8 @@ function calculateKnownFormula(
   let classification: FormulaClassification | undefined;
   let classificationNote: string | undefined;
   if (definition.classify) {
-    classification = classifyAt(definition, unroundedValue);
+    const frozenCategories = Object.freeze({ ...validation.categoryValues });
+    classification = classifyAt(definition, unroundedValue, frozenCategories);
     if (!classification) {
       return {
         status: 'unavailable',
@@ -522,7 +526,11 @@ function calculateKnownFormula(
         reason: 'The pinned formula classification could not be computed.',
       };
     }
-    const displayClassification = classifyAt(definition, displayValue);
+    const displayClassification = classifyAt(
+      definition,
+      displayValue,
+      Object.freeze({ ...validation.categoryValues }),
+    );
     if (!displayClassification) {
       return {
         status: 'unavailable',

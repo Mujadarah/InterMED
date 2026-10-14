@@ -1,18 +1,30 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as Domain from '@intermed/domain';
 
-export interface TestInputDefinition {
-  readonly id: string;
-  readonly label: string;
-  readonly quantityKind: string;
-  readonly canonicalUnit: string;
-  readonly allowedUnits: readonly string[];
-  readonly plausibleRangeByUnit: Readonly<
-    Record<string, { readonly min: number; readonly max: number }>
-  >;
-  readonly required: boolean;
-  readonly allowNegative?: boolean;
-}
+export type TestInputDefinition =
+  | {
+      readonly id: string;
+      readonly label: string;
+      readonly kind?: 'quantity';
+      readonly quantityKind: string;
+      readonly canonicalUnit: string;
+      readonly allowedUnits: readonly string[];
+      readonly plausibleRangeByUnit: Readonly<
+        Record<string, { readonly min: number; readonly max: number }>
+      >;
+      readonly required: boolean;
+      readonly allowNegative?: boolean;
+    }
+  | {
+      readonly id: string;
+      readonly label: string;
+      readonly kind: 'category';
+      readonly required: boolean;
+      readonly options: readonly {
+        readonly id: string;
+        readonly label: string;
+      }[];
+    };
 
 export type TestFormulaComponent =
   'formula' | 'population' | 'classification' | 'presentation' | 'confirmation';
@@ -121,27 +133,31 @@ export interface TestFormulaDefinition {
   readonly deprecated?: { readonly notice: string };
   readonly compute: (
     values: Readonly<Record<string, number | undefined>>,
+    categories?: Readonly<Record<string, string | undefined>>,
   ) => number;
-  readonly classify?: (unroundedValue: number) => {
+  readonly classify?: (
+    unroundedValue: number,
+    categories?: Readonly<Record<string, string | undefined>>,
+  ) => {
     readonly code: string;
     readonly label: string;
   };
 }
 
+export type TestSubmittedInput =
+  | { readonly value: number; readonly unit: string }
+  | { readonly category: string };
+
 export interface TestCalculationRequest {
   readonly formulaId: string;
   readonly formulaVersion: string;
   readonly confirmedChecks?: readonly string[];
-  readonly inputs: Readonly<
-    Record<
-      string,
-      { readonly value: number; readonly unit: string } | undefined
-    >
-  >;
+  readonly inputs: Readonly<Record<string, TestSubmittedInput | undefined>>;
 }
 
 interface TestInputEcho {
   readonly inputId: string;
+  readonly kind?: 'quantity' | 'category';
   readonly submittedValue: number | null;
   readonly submittedUnit: string | null;
   readonly normalizedValue: number | null;
@@ -153,6 +169,9 @@ interface TestInputEcho {
     readonly offset: number;
     readonly convertedValue: number;
   }[];
+  readonly submittedCategory?: string | null;
+  readonly selectedOptionId?: string | null;
+  readonly selectedOptionLabel?: string | null;
 }
 
 export interface TestCalculationResult {
@@ -476,7 +495,10 @@ function describeOptionalCase(
       const optionalInput = definition.inputs.find(
         (item) => item.id === testCase.inputId,
       );
-      const unit = optionalInput?.allowedUnits[0];
+      const unit =
+        optionalInput && optionalInput.kind !== 'category'
+          ? optionalInput.allowedUnits[0]
+          : undefined;
       if (unit) {
         const zeroFilled = calculatorEngine.calculateFormula(registry, {
           ...testCase.request,
