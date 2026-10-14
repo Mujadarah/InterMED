@@ -1,0 +1,72 @@
+{
+  "baseCommit": "8c913c1",
+  "baselineVersion": "2fc468dd520cb0d0eca6",
+  "version": "a5068b4d3f6ba170174c",
+  "assetCap": 24,
+  "byteCap": 2097152,
+  "assets": [
+    {
+      "url": "/assets/dexie-vendor-IbC1YGSs.js",
+      "bytes": 95195
+    },
+    {
+      "url": "/assets/framework-vendor-b34q1Hby.js",
+      "bytes": 258585
+    },
+    {
+      "url": "/assets/index-BLy0wwGa.css",
+      "bytes": 9013
+    },
+    {
+      "url": "/assets/index-tbvF__MU.js",
+      "bytes": 100432
+    },
+    {
+      "url": "/assets/MedicationDetailPage-7WU8On9o.js",
+      "bytes": 14512
+    },
+    {
+      "url": "/assets/MedicationSearchPage-Bb8td9UD.js",
+      "bytes": 10535
+    },
+    {
+      "url": "/assets/rolldown-runtime-CbXtAM7H.js",
+      "bytes": 589
+    },
+    {
+      "url": "/assets/search-status-BRMNX2ez.js",
+      "bytes": 2808
+    },
+    {
+      "url": "/assets/zod-vendor-C0xu5dkI.js",
+      "bytes": 90913
+    },
+    {
+      "url": "/icons/apple-touch-180.png",
+      "bytes": 835
+    },
+    {
+      "url": "/icons/icon-192.png",
+      "bytes": 882
+    },
+    {
+      "url": "/icons/icon-512.png",
+      "bytes": 3359
+    },
+    {
+      "url": "/icons/maskable-512.png",
+      "bytes": 3359
+    },
+    {
+      "url": "/index.html",
+      "bytes": 1925
+    },
+    {
+      "url": "/manifest.webmanifest",
+      "bytes": 722
+    }
+  ],
+  "totalBytes": 593664,
+  "remainingAssets": 9,
+  "remainingBytes": 1503488
+}

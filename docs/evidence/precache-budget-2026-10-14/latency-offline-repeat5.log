@@ -1,0 +1,99 @@
+[WebServer] (node:35504) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:24680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 30 tests using 3 workers
+
+(node:19236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32344) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  3 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  2 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.3s)
+(node:41212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:58792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  5 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  6 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.3s)
+  ok  4 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.3s)
+(node:40964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  7 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  8 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.3s)
+  ok  9 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.3s)
+(node:41136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 11 [chromium-desktop] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.2s)
+(node:38364) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.6s)
+  ok 12 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.6s)
+(node:37096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 13 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+(node:3776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 14 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.5s)
+  ok 15 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+(node:38136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 16 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.4s)
+(node:14244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 17 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+  ok 18 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.5s)
+(node:43264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 19 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.6s)
+(node:57036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 20 [webkit-phone] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.5s)
+  ok 21 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+(node:50124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 22 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.4s)
+(node:50260) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 24 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.4s)
+  ok 23 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+(node:35848) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 25 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.4s)
+(node:46240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 26 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.4s)
+  ok 27 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.4s)
+(node:40476) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21116) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 28 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.5s)
+  ok 29 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps status within the readiness deadline (1.5s)
+  ok 30 [webkit-tablet] › tests\browser\slow-cache.spec.ts:5:3 › 24-asset shell with slow synthetic storage keeps javascript within the readiness deadline (1.5s)
+
+  30 passed (26.4s)

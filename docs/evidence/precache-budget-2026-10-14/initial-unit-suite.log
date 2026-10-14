@@ -1,0 +1,30 @@
+
+> intermed@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ tests/repository-path-hygiene.test.ts (3 tests | 1 failed) 7223ms
+   × keeps tracked text and logs UTF-8/LF and free of machine paths 6482ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/repository-path-hygiene.test.ts > keeps tracked text and logs UTF-8/LF and free of machine paths
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/repository-path-hygiene.test.ts:164:1
+    162| });
+    163|
+    164| it('keeps tracked text and logs UTF-8/LF and free of machine paths', (…
+       | ^
+    165|   const root = resolve(import.meta.dirname, '..');
+    166|   expect(trackedPathFindings(root)).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 66 passed (67)
+      Tests  1 failed | 1382 passed (1383)
+   Start at  15:07:50
+   Duration  39.20s (transform 10.83s, setup 0ms, import 75.06s, tests 70.58s, environment 165.62s)
