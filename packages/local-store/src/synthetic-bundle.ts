@@ -25,6 +25,7 @@ import {
   type RegulatoryDocument,
 } from '@intermed/domain';
 import { sha256TransportChecksum } from './validate';
+import { bundleByteLength } from './bundle-byte-length';
 
 /**
  * Synthetic bundle builder for the local dataset store.
@@ -129,11 +130,6 @@ function mustId<K extends EntityKind>(
   const result = deriveStableId(kind, sourceId, sourceRecordKey);
   if (!result.ok) throw new Error(`Synthetic ${kind} id was rejected`);
   return result.id;
-}
-
-/** UTF-8 byte length of a bundle text, as reported by a publisher's byteSize. */
-export function bundleByteLength(text: string): number {
-  return new TextEncoder().encode(text).length;
 }
 
 /**

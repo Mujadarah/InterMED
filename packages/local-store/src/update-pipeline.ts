@@ -32,7 +32,7 @@ import {
   type GenerationRecord,
   type LocalDatasetDatabase,
 } from './schema';
-import { bundleByteLength } from './synthetic-bundle';
+import { bundleByteLength } from './bundle-byte-length';
 import { toCatalogueRows } from './rows';
 import { checkBundle, checkManifest } from './validate';
 

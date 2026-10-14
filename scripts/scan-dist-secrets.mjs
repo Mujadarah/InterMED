@@ -18,6 +18,13 @@ import { fileURLToPath } from 'node:url';
 import { findCredentialShape } from '../tests/support/secret-scan.ts';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
+// These are the fictional interaction-provider markers kept under `src/dev`.
+// Report only a generic label so scan output never repeats bundled text.
+const syntheticInteractionMarkers = [
+  'FICTIVOLINUM',
+  'SYNTHETINIX',
+  'intermed-development-synthetic-interaction-preview',
+];
 const target = resolve(
   process.argv[2] ?? join(repositoryRoot, 'apps/web/dist'),
 );
@@ -42,10 +49,15 @@ async function scanDirectory(directory) {
   const files = await listFiles(directory);
   const findings = [];
   for (const file of files) {
-    const label = findCredentialShape(await readFile(file, 'utf8'));
-    if (label)
+    const content = await readFile(file, 'utf8');
+    const credentialShape = findCredentialShape(content);
+    if (credentialShape)
       findings.push(
-        `${relative(directory, file).replaceAll('\\', '/')}: ${label}`,
+        `${relative(directory, file).replaceAll('\\', '/')}: ${credentialShape}`,
+      );
+    if (syntheticInteractionMarkers.some((marker) => content.includes(marker)))
+      findings.push(
+        `${relative(directory, file).replaceAll('\\', '/')}: synthetic interaction marker`,
       );
   }
   return { count: files.length, findings };
@@ -74,5 +86,5 @@ if (findings.length) {
   process.exit(1);
 }
 console.log(
-  `scan-dist-secrets: ${count} file(s) scanned in ${target}, no credential-shaped strings.`,
+  `scan-dist-secrets: ${count} file(s) scanned in ${target}, no credential-shaped strings and no synthetic interaction markers.`,
 );

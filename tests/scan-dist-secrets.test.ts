@@ -58,6 +58,28 @@ describe('post-build bundle secret scan', () => {
     expect(result.stderr).not.toContain(syntheticKey);
   });
 
+  it.each([
+    'FICTIVOLINUM',
+    'intermed-development-synthetic-interaction-preview',
+  ])(
+    'reports synthetic interaction marker %s without echoing the marker',
+    async (marker) => {
+      const directory = await fakeBundleDirectory();
+      await writeFile(
+        join(directory, 'interactions.js'),
+        `const name = "${marker}";`,
+      );
+      const result = runScan(directory);
+      expect(
+        result.status,
+        'synthetic interaction data must stay out of production output',
+      ).toBe(1);
+      expect(result.stderr).toContain('interactions.js');
+      expect(result.stderr).toContain('synthetic interaction marker');
+      expect(result.stderr).not.toContain(marker);
+    },
+  );
+
   it('passes clean build output', async () => {
     const directory = await fakeBundleDirectory();
     await writeFile(
@@ -67,6 +89,7 @@ describe('post-build bundle secret scan', () => {
     const result = runScan(directory);
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain('no credential-shaped strings');
+    expect(result.stdout).toContain('no synthetic interaction markers');
   });
 });
 
