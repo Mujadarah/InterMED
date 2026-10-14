@@ -76,7 +76,7 @@ it('shows the boundary note when the display crosses a WHO cutoff', async () => 
     screen.getByText(/Classification:.*Normal range/, { exact: false }),
   ).toBeVisible();
   const note = screen.getByText(
-    'WHO international adult classification, WHO Technical Report Series 894 (2000) uses the unrounded exact value 24.96 kg/m²; the displayed value 25.0 kg/m² would be classified as WHO international adult classification, WHO Technical Report Series 894 (2000): Pre-obese (overweight).',
+    'Classified as Normal range from the unrounded value 24.96 kg/m² (WHO international adult classification, WHO Technical Report Series 894 (2000)). The displayed value 25.0 kg/m² would fall in Pre-obese (overweight); the classification uses the unrounded value.',
   );
   expect(note).toBeVisible();
   expect(note.textContent).toContain('Pre-obese (overweight)');
