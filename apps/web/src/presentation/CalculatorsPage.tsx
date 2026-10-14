@@ -60,6 +60,16 @@ function resultLabelFor(formulaId: string): string | null {
   return null;
 }
 
+function weightConventionEcho(
+  result: CalculationResult,
+): CalculationInputEcho | undefined {
+  if (result.status !== 'ok') return undefined;
+  return result.inputEcho.find((echo) => echo.inputId === 'weightConvention');
+}
+
+const WEIGHT_CONVENTION_NOTE =
+  'InterMED has not calculated or validated the ideal or adjusted body weight entered, or the method used to derive it.';
+
 function fieldLabelText(input: FormulaInputDefinition): string {
   if (input.kind === 'category') return input.label;
   if (input.id === 'age') return 'Age in years';
@@ -254,6 +264,12 @@ export function CalculatorsPage() {
   const reviewBadge = result ? result.reviewMarker : reviewMarkerOf(definition);
   const okResultLabel =
     result?.status === 'ok' ? resultLabelFor(result.formulaId) : null;
+  const conventionEcho =
+    result?.status === 'ok' ? weightConventionEcho(result) : undefined;
+  const conventionLabel = conventionEcho?.selectedOptionLabel ?? undefined;
+  const showWeightConventionNote =
+    conventionEcho?.selectedOptionId === 'ideal' ||
+    conventionEcho?.selectedOptionId === 'adjusted';
 
   return (
     <section className="calculators-page" aria-labelledby="calculators-title">
@@ -440,7 +456,13 @@ export function CalculatorsPage() {
             <p className="calculator-value">
               Result: {result.displayValue.toFixed(result.precision)}{' '}
               {result.unit}
+              {conventionLabel ? ` — weight entered: ${conventionLabel}` : ''}
             </p>
+            {showWeightConventionNote && (
+              <p className="calculator-weight-convention-note">
+                {WEIGHT_CONVENTION_NOTE}
+              </p>
+            )}
             {result.classification && (
               <div className="calculator-classification">
                 <p>Classification: {result.classification.label}</p>
