@@ -9,7 +9,7 @@ import type {
 const CKD_EPI_COMPONENT_VERSIONS: FormulaComponentVersions = Object.freeze({
   formula: '1.0.0',
   population: '1.0.0',
-  presentation: '1.0.0',
+  presentation: '1.1.0',
 });
 
 const CREATININE_CONVERSIONS: FormulaUnitConversions = Object.freeze({
@@ -104,7 +104,7 @@ export const CKD_EPI_2021_CREATININE_FORMULA: FormulaDefinition =
       {
         kind: 'category',
         id: 'sex',
-        label: 'Sex used by the equation (female/male coefficients)',
+        label: 'Sex coefficient used by the equation (female/male)',
         required: true,
         options: [
           { id: 'female', label: 'Female' },
@@ -119,15 +119,16 @@ export const CKD_EPI_2021_CREATININE_FORMULA: FormulaDefinition =
     },
     populationLimits: ADULT_POPULATION,
     limitations: [
-      'Candidate equation for stable adult kidney function only; proposed, pending owner sign-off.',
-      'Not for acute kidney injury, dialysis or pregnancy.',
-      'Unreliable with extremes of muscle mass, amputation, malnutrition or obesity.',
+      'Candidate equation for stable adult kidney function only.',
+      'Not for acute kidney injury, unstable creatinine, dialysis or pregnancy.',
+      'Unreliable with extreme muscle mass, amputation, malnutrition, obesity, and other conditions impairing accuracy.',
       'Requires an IDMS-traceable creatinine assay.',
       'The cystatin C equations are separate and not implemented.',
       'This is not Cockcroft-Gault and not for dosing; de-indexing by BSA does not authorise dosing.',
       'No CKD diagnosis or staging from a single value; no KDIGO G-stages are implemented.',
-      'Romanian population suitability and the sex-coefficient selection need clinical review; proposed, pending owner sign-off.',
-      'Display precision (integer) is proposed, pending owner sign-off.',
+      'Estimated kidney function for adults; not validated specifically for the Romanian population and no population-specific precision is claimed. The published female/male coefficients are used without an ethnicity adjustment.',
+      "Accuracy may be limited when creatinine generation differs substantially from the equation's reference populations, including relevant hormonal or muscle-mass changes.",
+      'Displayed as a whole number; the unrounded value is kept internally and is never used for later calculations or threshold decisions.',
       'Technical bounds, not clinically validated plausibility thresholds: creatinine 0.1-20 mg/dL (8.84-1768 µmol/L), age 0-130 years. Values outside these technical bounds return invalid-input.',
     ],
     reviewStatus: 'unreviewed',

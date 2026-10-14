@@ -234,7 +234,11 @@ export const BMI_FORMULA: FormulaDefinition = freezeDefinition({
     'Original-paper rounding and instrument-specific reuse rights have not been verified.',
   ],
   softChecks: PROPOSED_SOFT_CHECKS,
-  reviewStatus: 'unreviewed',
+  reviewStatus: Object.freeze({
+    status: 'clinically-reviewed',
+    reviewer: 'Project owner (surgeon, clinical reviewer)',
+    reviewedAt: '2026-10-14',
+  }),
   compute: (values) => {
     const weightKg = values['weight'];
     const heightM = values['height'];
@@ -271,7 +275,11 @@ export const MOSTELLER_BSA_FORMULA: FormulaDefinition = freezeDefinition({
     'Original derivation and instrument-specific reuse rights have not been verified.',
   ],
   softChecks: PROPOSED_SOFT_CHECKS,
-  reviewStatus: 'unreviewed',
+  reviewStatus: Object.freeze({
+    status: 'clinically-reviewed',
+    reviewer: 'Project owner (surgeon, clinical reviewer)',
+    reviewedAt: '2026-10-14',
+  }),
   compute: (values) => {
     const weightKg = values['weight'];
     const heightCm = values['height'];

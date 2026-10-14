@@ -37,7 +37,7 @@ it('shows versions and review status while treating unavailable storage capabili
   expect(report).toHaveTextContent('Runtime mode: mock');
   expect(report).toHaveTextContent('Local-store supported schema version: 1');
   expect(report).toHaveTextContent('Dataset update state: never-downloaded');
-  expect(report).toHaveTextContent('unreviewed');
+  expect(report).toHaveTextContent('clinically-reviewed');
   expect(report).toHaveTextContent('no approved provider');
   expect(report).toHaveTextContent('Storage persisted: unavailable');
 });
