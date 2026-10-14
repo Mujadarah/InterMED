@@ -512,7 +512,7 @@ it('shows the badge and limitations for both renal calculators', async () => {
     user,
     'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
   );
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
   expect(
     screen.getByText(/cystatin C equations are separate/, { exact: false }),
   ).toBeVisible();
@@ -526,7 +526,7 @@ it('shows the badge and limitations for both renal calculators', async () => {
     user,
     'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
   );
-  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(screen.getByText('Review status: CLINICALLY REVIEWED')).toBeVisible();
   expect(
     screen.getByText(/no drug dosing is provided/i, { exact: false }),
   ).toBeVisible();
