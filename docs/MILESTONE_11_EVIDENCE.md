@@ -411,3 +411,38 @@ Derived fixtures (tolerance 1e-8 on `unroundedValue`, age 60): Scr 1 mg/dL male 
 4. The technical bounds (creatinine 0.1–20 mg/dL, age 0–130, not clinically validated).
 5. Whether to add soft checks (none declared; confirmation component omitted).
 6. Romanian applicability, including the sex-coefficient selection.
+
+## M11e — Cockcroft–Gault candidate (pending owner sign-off)
+
+Date: 2026-10-14. Branch `claude/m11-cockcroft-gault`, stacked on `claude/m11-ckd-epi` for its categorical inputs. Definition in `packages/domain/src/calculators/cockcroft-gault.ts`; tests in `tests/domain/calculators/cockcroft-gault.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: nothing in this work is clinically approved.
+
+### Formula and source
+
+Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine. _Nephron._ 1976;16:31–41. [DOI 10.1159/000180580](https://doi.org/10.1159/000180580):
+
+```text
+CrCl [mL/min] = (140 − age) × weight [kg] / (72 × Scr [mg/dL]), × 0.85 if female
+```
+
+Output is unindexed creatinine clearance, not eGFR.
+
+### Inputs
+
+`age` (years, technical bounds 0–130, adult guard ≥ 18 → `out-of-population`, plus a technical `age-below-140` at-most guard so the zero/negative arithmetic at age ≥ 140 never gets computed); `weight` (kg or lb via the shared mass conversions, labelled "Body weight used by the equation (actual/ideal/adjusted convention pending clinical review)" — no ideal or adjusted body-weight equation is implemented, the equation uses the number entered); `creatinine` (`mg/dL`, or `µmol/L` converted ÷ 88.4 unrounded before computing, reusing the CKD-EPI conversion rules); `sex` (category, options `female`/`male`, labelled "Sex used by the equation (female × 0.85 adjustment)"). Component versions: formula, population and presentation, all `1.0.0` (composite `formula=1.0.0|population=1.0.0|presentation=1.0.0`). No classification, no soft checks. Proposed presentation: half-up to 0 dp (integer), pending owner sign-off. `FORMULA_APPROVALS` holds only the nine BMI/BSA records; this work adds none, so all three Cockcroft–Gault components are pending.
+
+### Limitations
+
+Visible definition text covers: unindexed creatinine clearance, not eGFR, and not interchangeable with CKD-EPI; derived in 249 men aged 18–92 while the female × 0.85 factor was not separately derived; ages above 92 outside the derivation cohort (an applicability flag, not a physiological cutoff); the weight convention (actual/ideal/adjusted) pending clinical review; assay-era compatibility with IDMS creatinine unverified; not for unstable function or AKI, pregnancy, critical illness, muscle-mass extremes, amputation, children or dialysis; no drug dosing is provided; do not round a low Scr up to 1.0; display precision proposed, pending owner sign-off; plus the technical-bounds notice (weight 1–500 kg, creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated).
+
+### Fixtures
+
+Derived fixtures (tolerance 1e-8 on `unroundedValue`): age 60, 72 kg, Scr 1 mg/dL → male exactly 80, female exactly 68. SI check: 88.4 µmol/L equals 1 mg/dL with a visible conversion echo; lb input matches kg input. Age 17 → `out-of-population`, 18 → `ok`; 92 and 93 → `ok` (inside scope despite being outside/edge of the derivation cohort); 130 → `ok`, 131 → `invalid-input`. Integer display keeps the unrounded value. The definition is deeply frozen.
+
+### Open owner decisions
+
+1. The weight convention (actual/ideal/adjusted) — the key decision; the equation currently uses the number entered.
+2. The female factor wording ("Sex used by the equation (female × 0.85 adjustment)").
+3. Integer display (half-up to 0 dp).
+4. Adult scope (age ≥ 18 `out-of-population`) and technical bounds (age 0–130, weight 1–500 kg, creatinine 0.1–20 mg/dL, not clinically validated).
+5. The IDMS assay compatibility assumption.
+6. Romanian applicability.

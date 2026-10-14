@@ -75,8 +75,7 @@ function computeCockcroftGault(
   ) {
     return Number.NaN;
   }
-  const clearance =
-    ((140 - age) * weightKg) / (72 * creatinineMgPerDl);
+  const clearance = ((140 - age) * weightKg) / (72 * creatinineMgPerDl);
   return sex === 'female' ? clearance * 0.85 : clearance;
 }
 
