@@ -681,6 +681,26 @@ button {
   color: #5c1b13;
   font-weight: 650;
 }
+.calculator-category {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: #fff;
+}
+.calculator-category legend {
+  padding: 0 0.4rem;
+  font-weight: 650;
+}
+.calculator-category > label {
+  display: block;
+  min-height: 44px;
+  padding: 0.4rem 0;
+}
+.calculator-result-label {
+  margin: 0 0 0.4rem;
+  font-weight: 650;
+}
 .calculator-form button[type='submit'] {
   min-height: 48px;
   margin-top: 1.25rem;

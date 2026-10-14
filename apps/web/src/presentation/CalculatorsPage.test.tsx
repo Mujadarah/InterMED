@@ -219,6 +219,200 @@ it('shows engine messages for invalid inputs without a number', async () => {
   ).not.toBeInTheDocument();
 });
 
+async function selectCalculator(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) {
+  await user.click(screen.getByRole('radio', { name }));
+}
+
+async function fillRenalInputs(
+  user: ReturnType<typeof userEvent.setup>,
+  values: { creatinine: string; age: string },
+) {
+  await user.clear(screen.getByLabelText('Serum creatinine'));
+  await user.type(screen.getByLabelText('Serum creatinine'), values.creatinine);
+  await user.clear(screen.getByLabelText('Age in years'));
+  await user.type(screen.getByLabelText('Age in years'), values.age);
+}
+
+it('calculates CKD-EPI eGFR for female and male without pre-selecting sex', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  );
+
+  expect(screen.getByRole('radio', { name: 'Female' })).not.toBeChecked();
+  expect(screen.getByRole('radio', { name: 'Male' })).not.toBeChecked();
+
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Female' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('eGFR')).toBeVisible();
+  expect(screen.getByText('Result: 64 mL/min/1.73 m²')).toBeVisible();
+
+  await user.click(screen.getByRole('radio', { name: 'Male' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('Result: 86 mL/min/1.73 m²')).toBeVisible();
+});
+
+it('matches milligram and micromole creatinine results for CKD-EPI', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  );
+  await user.selectOptions(screen.getByLabelText('Creatinine unit'), 'µmol/L');
+  await fillRenalInputs(user, { creatinine: '88.4', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Female' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('Result: 64 mL/min/1.73 m²')).toBeVisible();
+});
+
+it('calculates Cockcroft-Gault clearance for male and female', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  await user.clear(screen.getByLabelText(/Body weight used by the equation/));
+  await user.type(
+    screen.getByLabelText(/Body weight used by the equation/),
+    '72',
+  );
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Male' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('Creatinine clearance (unindexed)')).toBeVisible();
+  expect(screen.getByText('Result: 80 mL/min')).toBeVisible();
+
+  await user.click(screen.getByRole('radio', { name: 'Female' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(screen.getByText('Result: 68 mL/min')).toBeVisible();
+});
+
+it('shows the missing-required message when sex is not selected', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  );
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  // The engine's missing-required message shows at the field and in the
+  // result section, with no number.
+  const messages = screen.getAllByText(/A required value was not supplied/, {
+    exact: false,
+  });
+  expect(messages).toHaveLength(2);
+  for (const message of messages) expect(message).toBeVisible();
+  expect(
+    screen.queryByText(/Result:/, { exact: false }),
+  ).not.toBeInTheDocument();
+});
+
+it('shows out-of-population for a renal calculator at age 17', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  );
+  await fillRenalInputs(user, { creatinine: '1', age: '17' });
+  await user.click(screen.getByRole('radio', { name: 'Male' }));
+  await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+  expect(
+    screen.getByText(/adults aged 18 years or older/, { exact: false }),
+  ).toBeVisible();
+  expect(
+    screen.queryByText(/Result:/, { exact: false }),
+  ).not.toBeInTheDocument();
+});
+
+it('keeps shared inputs and clears the rest when switching calculators', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await user.type(screen.getByLabelText('Weight'), '70');
+  await user.type(screen.getByLabelText('Height'), '175');
+  await user.selectOptions(screen.getByLabelText('Height unit'), 'cm');
+  await user.type(screen.getByLabelText('Age in years'), '60');
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+
+  // Weight and age keep their entered values and units; height is gone.
+  expect(screen.getByLabelText(/Body weight used by the equation/)).toHaveValue(
+    '70',
+  );
+  expect(screen.getByLabelText('Weight unit')).toHaveValue('kg');
+  expect(screen.getByLabelText('Age in years')).toHaveValue('60');
+  expect(screen.queryByLabelText('Height')).not.toBeInTheDocument();
+
+  await fillRenalInputs(user, { creatinine: '1', age: '60' });
+  await user.click(screen.getByRole('radio', { name: 'Female' }));
+
+  await selectCalculator(user, 'Body mass index (adult)');
+
+  // Creatinine and sex do not leak into the BMI calculator.
+  expect(screen.queryByLabelText('Serum creatinine')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('radio', { name: 'Female' }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Weight')).toHaveValue('70');
+  expect(screen.getByLabelText('Age in years')).toHaveValue('60');
+});
+
+it('shows the badge and limitations for both renal calculators', async () => {
+  const user = userEvent.setup();
+  renderPage();
+
+  await selectCalculator(
+    user,
+    'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  );
+  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(
+    screen.getByText(/cystatin C equations are separate/, { exact: false }),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/Technical bounds, not clinically validated/, {
+      exact: false,
+    }),
+  ).toBeVisible();
+
+  await selectCalculator(
+    user,
+    'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  );
+  expect(screen.getByText('Review status: UNREVIEWED')).toBeVisible();
+  expect(
+    screen.getByText(/No drug dosing is provided/, { exact: false }),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/not interchangeable with CKD-EPI/, { exact: false }),
+  ).toBeVisible();
+});
+
 it('keeps inputs ephemeral across re-mounts', async () => {
   const user = userEvent.setup();
   const rendered = render(

@@ -2,33 +2,88 @@ import { useMemo, useState } from 'react';
 import {
   BMI_FORMULA,
   calculateFormula,
+  CKD_EPI_2021_CREATININE_FORMULA,
+  COCKCROFT_GAULT_FORMULA,
   FormulaRegistry,
   MOSTELLER_BSA_FORMULA,
 } from '@intermed/domain';
 import type {
   CalculationInput,
+  CalculationInputEcho,
   CalculationResult,
   FormulaDefinition,
+  FormulaInputDefinition,
 } from '@intermed/domain';
 import { useRouteHeadingFocus } from './route-focus';
 
-const DEFINITIONS: Record<'bmi' | 'bsa-mosteller', FormulaDefinition> = {
+const DEFINITIONS = {
   bmi: BMI_FORMULA,
   'bsa-mosteller': MOSTELLER_BSA_FORMULA,
-};
+  'egfr-ckd-epi-2021-cr': CKD_EPI_2021_CREATININE_FORMULA,
+  'crcl-cockcroft-gault': COCKCROFT_GAULT_FORMULA,
+} satisfies Record<string, FormulaDefinition>;
 
 type CalculatorId = keyof typeof DEFINITIONS;
 
-function inputDefinition(definition: FormulaDefinition, inputId: string) {
-  const found = definition.inputs.find((input) => input.id === inputId);
-  if (!found) throw new Error(`Missing input definition: ${inputId}.`);
-  return found;
-}
+const CALCULATOR_CHOICES: readonly {
+  readonly id: CalculatorId;
+  readonly label: string;
+}[] = [
+  { id: 'bmi', label: 'Body mass index (adult)' },
+  {
+    id: 'bsa-mosteller',
+    label: 'Body surface area, Mosteller (adult estimate)',
+  },
+  {
+    id: 'egfr-ckd-epi-2021-cr',
+    label: 'eGFR, CKD-EPI 2021 creatinine (adult, unreviewed)',
+  },
+  {
+    id: 'crcl-cockcroft-gault',
+    label: 'Creatinine clearance, Cockcroft–Gault (adult, unreviewed)',
+  },
+];
 
 function reviewMarkerOf(definition: FormulaDefinition): string {
   return definition.reviewStatus === 'unreviewed'
     ? 'UNREVIEWED'
     : 'CLINICALLY REVIEWED';
+}
+
+function resultLabelFor(formulaId: string): string | null {
+  if (formulaId === 'crcl-cockcroft-gault') {
+    return 'Creatinine clearance (unindexed)';
+  }
+  if (formulaId === 'egfr-ckd-epi-2021-cr') {
+    return 'eGFR';
+  }
+  return null;
+}
+
+function fieldLabelText(input: FormulaInputDefinition): string {
+  if (input.kind === 'category') return input.label;
+  if (input.id === 'age') return 'Age in years';
+  return input.label;
+}
+
+function unitLabelText(inputId: string): string {
+  return `${inputId.charAt(0).toUpperCase()}${inputId.slice(1)} unit`;
+}
+
+function helpText(input: FormulaInputDefinition): string {
+  if (input.kind === 'category') return 'Choose one option.';
+  switch (input.id) {
+    case 'weight':
+      return 'Enter the weight as a number, without patient identifiers.';
+    case 'height':
+      return 'Enter the height as a number, without patient identifiers.';
+    case 'age':
+      return 'Whole years, 18 or older for this release. No patient identifiers.';
+    case 'creatinine':
+      return 'Enter the serum creatinine as a number, without patient identifiers.';
+    default:
+      return `Enter the ${input.label} as a number, without patient identifiers.`;
+  }
 }
 
 function parseField(raw: string): number | undefined {
@@ -38,30 +93,33 @@ function parseField(raw: string): number | undefined {
 
 function runCalculation(
   definition: FormulaDefinition,
-  values: {
-    weight: number | undefined;
-    height: number | undefined;
-    age: number | undefined;
-  },
-  units: { weight: string; height: string; age: string },
+  rawValues: Readonly<Record<string, string>>,
+  units: Readonly<Record<string, string>>,
+  selections: Readonly<Record<string, string>>,
   confirmedChecks: readonly string[],
 ): CalculationResult {
   const registry = new FormulaRegistry();
   registry.register(definition);
-  const inputs: Record<string, CalculationInput | undefined> = {
-    weight:
-      values.weight === undefined
-        ? undefined
-        : { value: values.weight, unit: units.weight },
-    height:
-      values.height === undefined
-        ? undefined
-        : { value: values.height, unit: units.height },
-    age:
-      values.age === undefined
-        ? undefined
-        : { value: values.age, unit: units.age },
-  };
+  const inputs: Record<string, CalculationInput | undefined> = {};
+  for (const input of definition.inputs) {
+    if (input.kind === 'category') {
+      const selected = selections[input.id];
+      inputs[input.id] =
+        selected === undefined || selected === ''
+          ? undefined
+          : { category: selected };
+      continue;
+    }
+    const raw = rawValues[input.id] ?? '';
+    if (raw.trim() === '') {
+      inputs[input.id] = undefined;
+      continue;
+    }
+    inputs[input.id] = {
+      value: Number(raw),
+      unit: units[input.id] ?? input.canonicalUnit,
+    };
+  }
   return calculateFormula(registry, {
     formulaId: definition.formulaId,
     formulaVersion: definition.formulaVersion,
@@ -70,23 +128,45 @@ function runCalculation(
   });
 }
 
+function echoDescription(echo: CalculationInputEcho) {
+  if (echo.kind === 'category') {
+    return (
+      <>
+        Submitted {echo.submittedCategory ?? 'none'}; selected{' '}
+        {echo.selectedOptionId ?? 'none'}
+        {echo.selectedOptionLabel ? ` (${echo.selectedOptionLabel})` : ''}.
+      </>
+    );
+  }
+  return (
+    <>
+      Submitted {echo.submittedValue} {echo.submittedUnit}; normalized{' '}
+      {echo.normalizedValue} {echo.normalizedUnit}
+      {echo.conversions.map((conversion, index) => (
+        <span key={index}>
+          ; converted {conversion.fromUnit} to {conversion.toUnit} (factor{' '}
+          {String(conversion.factor)}, input {String(conversion.inputValue)} →
+          converted {String(conversion.convertedValue)})
+        </span>
+      ))}
+      .
+    </>
+  );
+}
+
 /**
- * Development-only calculators for BMI and Mosteller BSA.
- * Inputs are ephemeral component state: never persisted, never pre-filled,
- * cleared on unmount. Results are display-only and never reused.
+ * Development-only calculators for BMI, Mosteller BSA and the unreviewed
+ * renal candidates. Inputs are ephemeral component state: never persisted,
+ * never pre-filled, cleared on unmount. Results are display-only and never
+ * reused.
  */
 export function CalculatorsPage() {
   const [calculatorId, setCalculatorId] = useState<CalculatorId>('bmi');
   const definition = DEFINITIONS[calculatorId];
-  const weightInput = inputDefinition(definition, 'weight');
-  const heightInput = inputDefinition(definition, 'height');
-  const ageInput = inputDefinition(definition, 'age');
 
-  const [weight, setWeight] = useState('');
-  const [weightUnit, setWeightUnit] = useState(weightInput.canonicalUnit);
-  const [height, setHeight] = useState('');
-  const [heightUnit, setHeightUnit] = useState(heightInput.canonicalUnit);
-  const [age, setAge] = useState('');
+  const [rawValues, setRawValues] = useState<Record<string, string>>({});
+  const [units, setUnits] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>({});
   const [result, setResult] = useState<CalculationResult | null>(null);
 
   // This route's chunk resolves after the App's pathname effect, so the
@@ -121,40 +201,50 @@ export function CalculatorsPage() {
 
   function selectCalculator(next: CalculatorId) {
     if (next === calculatorId) return;
+    // Never reinterpret an entered value under a different unit. The rule
+    // applies per input id across calculators: an empty field takes the next
+    // calculator's canonical unit; an entered value keeps its unit when the
+    // next calculator declares the same input id and accepts the unit, and is
+    // cleared otherwise. Values for inputs the next calculator does not have
+    // are cleared so they cannot leak into another calculator. The previous
+    // result belonged to the other calculator.
+    const nextDefinition = DEFINITIONS[next];
+    const currentById = new Map(
+      definition.inputs.map((item) => [item.id, item]),
+    );
+    const nextRaw: Record<string, string> = {};
+    const nextUnits: Record<string, string> = {};
+    const nextSelections: Record<string, string> = {};
+    for (const input of nextDefinition.inputs) {
+      if (input.kind === 'category') {
+        const kept = selections[input.id];
+        if (kept) nextSelections[input.id] = kept;
+        continue;
+      }
+      const raw = rawValues[input.id] ?? '';
+      const current = currentById.get(input.id);
+      const unit =
+        units[input.id] ??
+        (current && current.kind !== 'category'
+          ? current.canonicalUnit
+          : input.canonicalUnit);
+      if (raw.trim() === '' || !input.allowedUnits.includes(unit)) {
+        nextUnits[input.id] = input.canonicalUnit;
+        continue;
+      }
+      nextRaw[input.id] = raw;
+      nextUnits[input.id] = unit;
+    }
     setCalculatorId(next);
-    // Never reinterpret an entered value under a different unit. An empty
-    // field takes the next calculator's canonical unit; an entered value keeps
-    // its unit when the next calculator accepts it and is cleared otherwise.
-    // The previous result belonged to the other calculator.
-    const nextHeight = inputDefinition(DEFINITIONS[next], 'height');
-    if (height.trim() === '') {
-      setHeightUnit(nextHeight.canonicalUnit);
-    } else if (!nextHeight.allowedUnits.includes(heightUnit)) {
-      setHeight('');
-      setHeightUnit(nextHeight.canonicalUnit);
-    }
-    const nextWeight = inputDefinition(DEFINITIONS[next], 'weight');
-    if (weight.trim() === '') {
-      setWeightUnit(nextWeight.canonicalUnit);
-    } else if (!nextWeight.allowedUnits.includes(weightUnit)) {
-      setWeight('');
-      setWeightUnit(nextWeight.canonicalUnit);
-    }
+    setRawValues(nextRaw);
+    setUnits(nextUnits);
+    setSelections(nextSelections);
     setResult(null);
   }
 
   function submit(confirmedChecks: readonly string[]) {
     setResult(
-      runCalculation(
-        definition,
-        {
-          weight: parseField(weight),
-          height: parseField(height),
-          age: parseField(age),
-        },
-        { weight: weightUnit, height: heightUnit, age: ageInput.canonicalUnit },
-        confirmedChecks,
-      ),
+      runCalculation(definition, rawValues, units, selections, confirmedChecks),
     );
   }
 
@@ -167,6 +257,8 @@ export function CalculatorsPage() {
   // exact formula id and version); before any calculation it reflects the
   // selected definition.
   const reviewBadge = result ? result.reviewMarker : reviewMarkerOf(definition);
+  const okResultLabel =
+    result?.status === 'ok' ? resultLabelFor(result.formulaId) : null;
 
   return (
     <section className="calculators-page" aria-labelledby="calculators-title">
@@ -190,167 +282,148 @@ export function CalculatorsPage() {
       >
         <fieldset className="calculator-choice">
           <legend>Choose a calculator</legend>
-          <label>
-            <input
-              type="radio"
-              name="calculator"
-              value="bmi"
-              checked={calculatorId === 'bmi'}
-              onChange={() => selectCalculator('bmi')}
-            />{' '}
-            Body mass index (adult)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="calculator"
-              value="bsa-mosteller"
-              checked={calculatorId === 'bsa-mosteller'}
-              onChange={() => selectCalculator('bsa-mosteller')}
-            />{' '}
-            Body surface area, Mosteller (adult estimate)
-          </label>
+          {CALCULATOR_CHOICES.map((choice) => (
+            <label key={choice.id}>
+              <input
+                type="radio"
+                name="calculator"
+                value={choice.id}
+                checked={calculatorId === choice.id}
+                onChange={() => selectCalculator(choice.id)}
+              />{' '}
+              {choice.label}
+            </label>
+          ))}
         </fieldset>
 
-        <div className="calculator-field">
-          <label htmlFor="calculator-weight">Weight</label>
-          <div className="calculator-value-unit">
-            <input
-              id="calculator-weight"
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={weight}
-              aria-describedby={
-                fieldErrors['weight']
-                  ? 'calculator-weight-help calculator-weight-error'
-                  : 'calculator-weight-help'
-              }
-              onChange={(event) => {
-                setWeight(event.currentTarget.value);
-                clearResult();
-              }}
-            />
-            <label
-              className="calculator-unit-label"
-              htmlFor="calculator-weight-unit"
-            >
-              Weight unit
-            </label>
-            <select
-              id="calculator-weight-unit"
-              value={weightUnit}
-              onChange={(event) => {
-                setWeightUnit(event.currentTarget.value);
-                clearResult();
-              }}
-            >
-              {weightInput.allowedUnits.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </div>
-          <p id="calculator-weight-help" className="calculator-help">
-            Enter the weight as a number, without patient identifiers.
-          </p>
-          {fieldErrors['weight'] && (
-            <p
-              id="calculator-weight-error"
-              className="calculator-field-error"
-              role="alert"
-            >
-              {fieldErrors['weight'].join(' ')}
-            </p>
-          )}
-        </div>
-
-        <div className="calculator-field">
-          <label htmlFor="calculator-height">Height</label>
-          <div className="calculator-value-unit">
-            <input
-              id="calculator-height"
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={height}
-              aria-describedby={
-                fieldErrors['height']
-                  ? 'calculator-height-help calculator-height-error'
-                  : 'calculator-height-help'
-              }
-              onChange={(event) => {
-                setHeight(event.currentTarget.value);
-                clearResult();
-              }}
-            />
-            <label
-              className="calculator-unit-label"
-              htmlFor="calculator-height-unit"
-            >
-              Height unit
-            </label>
-            <select
-              id="calculator-height-unit"
-              value={heightUnit}
-              onChange={(event) => {
-                setHeightUnit(event.currentTarget.value);
-                clearResult();
-              }}
-            >
-              {heightInput.allowedUnits.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </div>
-          <p id="calculator-height-help" className="calculator-help">
-            Enter the height as a number, without patient identifiers.
-          </p>
-          {fieldErrors['height'] && (
-            <p
-              id="calculator-height-error"
-              className="calculator-field-error"
-              role="alert"
-            >
-              {fieldErrors['height'].join(' ')}
-            </p>
-          )}
-        </div>
-
-        <div className="calculator-field">
-          <label htmlFor="calculator-age">Age in years</label>
-          <input
-            id="calculator-age"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            value={age}
-            aria-describedby={
-              fieldErrors['age']
-                ? 'calculator-age-help calculator-age-error'
-                : 'calculator-age-help'
-            }
-            onChange={(event) => {
-              setAge(event.currentTarget.value);
-              clearResult();
-            }}
-          />
-          <p id="calculator-age-help" className="calculator-help">
-            Whole years, 18 or older for this release. No patient identifiers.
-          </p>
-          {fieldErrors['age'] && (
-            <p
-              id="calculator-age-error"
-              className="calculator-field-error"
-              role="alert"
-            >
-              {fieldErrors['age'].join(' ')}
-            </p>
-          )}
-        </div>
+        {definition.inputs.map((input) => {
+          if (input.kind === 'category') {
+            const helpId = `calculator-${input.id}-help`;
+            const errorId = `calculator-${input.id}-error`;
+            return (
+              <fieldset
+                key={input.id}
+                className="calculator-field calculator-category"
+                aria-describedby={
+                  fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
+                }
+              >
+                <legend>{input.label}</legend>
+                {input.options.map((option) => (
+                  <label key={option.id}>
+                    <input
+                      type="radio"
+                      name={`calculator-${input.id}`}
+                      value={option.id}
+                      checked={(selections[input.id] ?? '') === option.id}
+                      onChange={() => {
+                        setSelections((previous) => ({
+                          ...previous,
+                          [input.id]: option.id,
+                        }));
+                        clearResult();
+                      }}
+                    />{' '}
+                    {option.label}
+                  </label>
+                ))}
+                <p id={helpId} className="calculator-help">
+                  {helpText(input)}
+                </p>
+                {fieldErrors[input.id] && (
+                  <p
+                    id={errorId}
+                    className="calculator-field-error"
+                    role="alert"
+                  >
+                    {fieldErrors[input.id].join(' ')}
+                  </p>
+                )}
+              </fieldset>
+            );
+          }
+          const fieldId = `calculator-${input.id}`;
+          const helpId = `${fieldId}-help`;
+          const errorId = `${fieldId}-error`;
+          const unitId = `${fieldId}-unit`;
+          const raw = rawValues[input.id] ?? '';
+          const unit = units[input.id] ?? input.canonicalUnit;
+          return (
+            <div key={input.id} className="calculator-field">
+              <label htmlFor={fieldId}>{fieldLabelText(input)}</label>
+              {input.allowedUnits.length > 1 ? (
+                <div className="calculator-value-unit">
+                  <input
+                    id={fieldId}
+                    type="text"
+                    inputMode={input.id === 'age' ? 'numeric' : 'decimal'}
+                    autoComplete="off"
+                    value={raw}
+                    aria-describedby={
+                      fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
+                    }
+                    onChange={(event) => {
+                      const entered = event.currentTarget.value;
+                      setRawValues((previous) => ({
+                        ...previous,
+                        [input.id]: entered,
+                      }));
+                      clearResult();
+                    }}
+                  />
+                  <label className="calculator-unit-label" htmlFor={unitId}>
+                    {unitLabelText(input.id)}
+                  </label>
+                  <select
+                    id={unitId}
+                    value={unit}
+                    onChange={(event) => {
+                      const selected = event.currentTarget.value;
+                      setUnits((previous) => ({
+                        ...previous,
+                        [input.id]: selected,
+                      }));
+                      clearResult();
+                    }}
+                  >
+                    {input.allowedUnits.map((allowed) => (
+                      <option key={allowed} value={allowed}>
+                        {allowed}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <input
+                  id={fieldId}
+                  type="text"
+                  inputMode={input.id === 'age' ? 'numeric' : 'decimal'}
+                  autoComplete="off"
+                  value={raw}
+                  aria-describedby={
+                    fieldErrors[input.id] ? `${helpId} ${errorId}` : helpId
+                  }
+                  onChange={(event) => {
+                    const entered = event.currentTarget.value;
+                    setRawValues((previous) => ({
+                      ...previous,
+                      [input.id]: entered,
+                    }));
+                    clearResult();
+                  }}
+                />
+              )}
+              <p id={helpId} className="calculator-help">
+                {helpText(input)}
+              </p>
+              {fieldErrors[input.id] && (
+                <p id={errorId} className="calculator-field-error" role="alert">
+                  {fieldErrors[input.id].join(' ')}
+                </p>
+              )}
+            </div>
+          );
+        })}
 
         <button type="submit">Calculate</button>
       </form>
@@ -365,6 +438,9 @@ export function CalculatorsPage() {
 
         {result?.status === 'ok' && (
           <>
+            {okResultLabel && (
+              <p className="calculator-result-label">{okResultLabel}</p>
+            )}
             <p className="calculator-value">
               Result: {result.displayValue.toFixed(result.precision)}{' '}
               {result.unit}
@@ -389,20 +465,7 @@ export function CalculatorsPage() {
                 {result.inputEcho.map((echo) => (
                   <div key={echo.inputId}>
                     <dt>{echo.inputId}</dt>
-                    <dd>
-                      Submitted {echo.submittedValue} {echo.submittedUnit};
-                      normalized {echo.normalizedValue} {echo.normalizedUnit}
-                      {echo.conversions.map((conversion, index) => (
-                        <span key={index}>
-                          ; converted {conversion.fromUnit} to{' '}
-                          {conversion.toUnit} (factor{' '}
-                          {String(conversion.factor)}, input{' '}
-                          {String(conversion.inputValue)} → converted{' '}
-                          {String(conversion.convertedValue)})
-                        </span>
-                      ))}
-                      .
-                    </dd>
+                    <dd>{echoDescription(echo)}</dd>
                   </div>
                 ))}
               </dl>
