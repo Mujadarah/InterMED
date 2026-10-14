@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import type { DatasetStateSource, DatasetUpdateState } from '@intermed/domain';
+import { unavailableInteractionChecker } from '../application/interaction-checker-contract';
 import { unavailablePreferencesService } from '../application/preferences';
 import { App, RouteErrorBoundary } from './App';
 
@@ -45,6 +46,7 @@ const services = {
   medicationDetail: {
     productDetail: async () => null,
   },
+  interactionChecker: unavailableInteractionChecker,
   preferences: unavailablePreferencesService,
 };
 

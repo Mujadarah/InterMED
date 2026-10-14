@@ -52,9 +52,10 @@ function browser() {
     location: { reload: vi.fn() },
   });
   vi.stubGlobal('window', window);
-  vi.stubGlobal('navigator', { serviceWorker });
+  const navigator = { serviceWorker, onLine: true };
+  vi.stubGlobal('navigator', navigator);
   vi.stubGlobal('MessageChannel', TestChannel);
-  return { active, registration, serviceWorker, window };
+  return { active, registration, serviceWorker, window, navigator };
 }
 
 /** Flush registration and immediate message continuations without real sleeps. */
@@ -89,9 +90,25 @@ describe('registration and readiness', () => {
       availability: 'development',
       update: 'none',
       canInstall: false,
+      online: true,
     });
     expect(env.serviceWorker.register).not.toHaveBeenCalled();
     expect(env.active.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('publishes browser online and offline state in development mode', () => {
+    const shell = createBrowserShell(false);
+    const initial = shell.getSnapshot();
+    expect(initial.online).toBe(true);
+
+    env.navigator.onLine = false;
+    env.window.dispatchEvent(new Event('offline'));
+    expect(shell.getSnapshot().online).toBe(false);
+
+    env.navigator.onLine = true;
+    env.window.dispatchEvent(new Event('online'));
+    expect(shell.getSnapshot().online).toBe(true);
+    expect(env.serviceWorker.register).not.toHaveBeenCalled();
   });
 
   it.each(['insecure context', 'missing service workers'])(

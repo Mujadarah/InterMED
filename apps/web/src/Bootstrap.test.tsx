@@ -32,6 +32,7 @@ it.each(['/', '/status'])(
       availability: 'ready' as const,
       update: 'available' as const,
       canInstall: false,
+      online: true,
       version: 'injected-shell',
     };
     const shell = {

@@ -7,7 +7,14 @@ import {
   useLocation,
   useParams,
 } from 'react-router';
-import { Component, lazy, Suspense, useEffect, useRef } from 'react';
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import type { ReactNode } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
@@ -31,13 +38,16 @@ const MedicationDetailPage = lazy(() =>
     default: module.MedicationDetailPage,
   })),
 );
-// The calculators page runs the versioned M11 domain engine for BMI and
-// Mosteller BSA on ephemeral inputs. It loads lazily like the other route
-// pages and takes the last precache slot: the shell is now at its
-// sixteen-asset cap, so no further lazy chunk fits without raising it.
+// Feature pages stay independently lazy. The public shell precaches each route
+// chunk so deep links can load offline after the shell is installed.
 const CalculatorsPage = lazy(() =>
   import('./CalculatorsPage').then((module) => ({
     default: module.CalculatorsPage,
+  })),
+);
+const InteractionCheckerPage = lazy(() =>
+  import('./InteractionCheckerPage').then((module) => ({
+    default: module.InteractionCheckerPage,
   })),
 );
 // The favorites page and the local preferences settings stay eager imports.
@@ -65,6 +75,24 @@ function MedicationDetailRoute({ services }: { services: AppServices }) {
       dataset={services.dataset}
       detail={services.medicationDetail}
       preferences={services.preferences}
+    />
+  );
+}
+
+function InteractionCheckerRoute({
+  services,
+  shell,
+}: {
+  services: AppServices;
+  shell: ShellController;
+}) {
+  const shellState = useSyncExternalStore(shell.subscribe, shell.getSnapshot);
+  return (
+    <InteractionCheckerPage
+      dataset={services.dataset}
+      search={services.medicationSearch}
+      checker={services.interactionChecker}
+      online={shellState.online}
     />
   );
 }
@@ -214,6 +242,9 @@ export function App({
           <NavLink to="/calculators" tabIndex={0}>
             Calculators
           </NavLink>
+          <NavLink to="/interactions" tabIndex={0}>
+            Check interactions
+          </NavLink>
           <NavLink to="/status" tabIndex={0}>
             Development status
           </NavLink>
@@ -244,9 +275,11 @@ export function App({
                         <p>
                           Local medication search reads candidates only from a
                           dataset already stored in this browser. It does not
-                          provide clinical guidance. Interaction checking is
-                          unavailable. The development calculators run the
-                          versioned domain engine on values you enter.
+                          provide clinical guidance. No approved interaction
+                          source is configured; a synthetic preview may be
+                          available with a synthetic dataset. The development
+                          calculators run the versioned domain engine on values
+                          you enter.
                         </p>
                         <Link to="/search" tabIndex={0}>
                           Search local medication data
@@ -254,6 +287,10 @@ export function App({
                         <br />
                         <Link to="/calculators" tabIndex={0}>
                           Open development calculators
+                        </Link>
+                        <br />
+                        <Link to="/interactions" tabIndex={0}>
+                          Open interaction checker preview
                         </Link>
                         <br />
                         <Link to="/status" tabIndex={0}>
@@ -274,8 +311,10 @@ export function App({
                       <p className="lead">Development PWA shell</p>
                       <p>
                         Local medication search uses only an active dataset
-                        stored in this browser. Interaction checking is
-                        unavailable. No clinical capability has been validated.
+                        stored in this browser. No approved interaction source
+                        is configured; a synthetic preview may be available with
+                        a synthetic dataset. No clinical capability has been
+                        validated.
                       </p>
                       <dl className="status-list">
                         <div>
@@ -357,6 +396,15 @@ export function App({
                   }
                 />
                 <Route path="/calculators" element={<CalculatorsPage />} />
+                <Route
+                  path="/interactions"
+                  element={
+                    <InteractionCheckerRoute
+                      services={services}
+                      shell={shell}
+                    />
+                  }
+                />
                 <Route
                   path="/medication/:productId"
                   element={<MedicationDetailRoute services={services} />}
