@@ -87,19 +87,21 @@ it('builds version, age, update, formula review and storage diagnostics from inj
       },
     },
     calculators: {
-      pendingApprovalCount: 9,
+      // Owner approvals (PR #28) leave only the wording-bump components
+      // presentation@2.0.1 and confirmation@1.0.1 pending for each formula.
+      pendingApprovalCount: 4,
       formulas: [
         {
           formulaId: 'bmi',
           formulaVersion:
-            'formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.0|confirmation=1.0.0',
+            'formula=1.0.0|population=2.1.0|classification=2.0.0|presentation=2.0.1|confirmation=1.0.1',
           reviewStatus: 'unreviewed',
-          pendingApprovalCount: 5,
+          pendingApprovalCount: 2,
         },
         {
           formulaId: 'bsa-mosteller',
           reviewStatus: 'unreviewed',
-          pendingApprovalCount: 4,
+          pendingApprovalCount: 2,
         },
       ],
     },

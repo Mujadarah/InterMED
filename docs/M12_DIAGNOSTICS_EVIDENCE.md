@@ -144,6 +144,8 @@ Storage persisted: false
 User agent: SyntheticBrowser/1.0
 ```
 
+This sample was generated on the branch base `c4c48ee`, before PR #28 recorded the owner's BMI/BSA component approvals. On current main the same report shows 4 pending component approvals in total (BMI and BSA: 2 each, `presentation@2.0.1` and `confirmation@1.0.1`) and the 2.0.1/1.0.1 composite versions; the unit test asserts the current values.
+
 ## Evidence files
 
 - [Final complete gate output](evidence/m12-diagnostics-2026-10-14/npm-run-check.log)
