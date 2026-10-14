@@ -3,6 +3,7 @@ export { FormulaRegistrationError, FormulaRegistry } from './registry';
 export { FORMULA_APPROVALS, pendingApprovals } from './approvals';
 export { BMI_FORMULA, MOSTELLER_BSA_FORMULA } from './bmi-bsa';
 export { CKD_EPI_2021_CREATININE_FORMULA } from './ckd-epi';
+export { COCKCROFT_GAULT_FORMULA } from './cockcroft-gault';
 export { STANDARD_UNIT_CONVERSIONS } from './units';
 export { getFormulaVersionId } from './types';
 export type {
