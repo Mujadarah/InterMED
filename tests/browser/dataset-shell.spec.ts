@@ -101,6 +101,11 @@ test('a dataset update succeeds while a shell update waits and survives its acti
       'data-dataset-state',
       'ready',
     );
+    const datasetVersion = page
+      .getByTestId('dataset-section')
+      .locator('dt:text-is("Dataset version") + dd');
+    const alphaVersion = (await datasetVersion.textContent())?.trim();
+    expect(alphaVersion).toBeTruthy();
 
     // A newer shell build appears and waits for explicit activation.
     server.revision('b');
@@ -138,6 +143,9 @@ test('a dataset update succeeds while a shell update waits and survives its acti
     await expect(
       page.locator('meta[name="intermed-shell-revision"]'),
     ).toHaveAttribute('content', 'harness');
+    await expect(datasetVersion).not.toHaveText(alphaVersion ?? '');
+    const betaVersion = (await datasetVersion.textContent())?.trim();
+    expect(betaVersion).toBeTruthy();
 
     // Activating the waiting shell preserves the active dataset generation.
     await page.getByRole('button', { name: 'Update shell and reload' }).click();
@@ -151,6 +159,9 @@ test('a dataset update succeeds while a shell update waits and survives its acti
     ).toBeVisible();
     const section = page.getByTestId('dataset-section');
     await expect(section).toHaveAttribute('data-dataset-state', 'ready');
+    // The beta generation, not alpha, must still be the active dataset.
+    await expect(datasetVersion).toHaveText(betaVersion ?? '');
+    await expect(datasetVersion).not.toHaveText(alphaVersion ?? '');
     await expect(
       page.getByText('Synthetic development data — not for clinical use.'),
     ).toBeVisible();
