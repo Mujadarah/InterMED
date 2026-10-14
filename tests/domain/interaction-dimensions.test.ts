@@ -12,7 +12,7 @@ import {
   type MergedProviderResults,
   type ProviderResult,
 } from '@intermed/domain';
-import { mustId, SOURCE_KEY } from './builders';
+import { mustId, SOURCE_KEY, SOURCE_NAMESPACE } from './builders';
 import {
   CONTRACT_INGREDIENT_A,
   CONTRACT_INGREDIENT_B,
@@ -409,7 +409,7 @@ it('scenario 5: a no-record source position never cancels another source current
   expect(merged.coverageDiscrepancies[0]?.pair).toEqual(CONTRACT_PAIR_AB);
   expect(JSON.stringify(result)).not.toMatch(/\bsafe\b|\bno interaction\b/i);
   expect(JSON.stringify(result)).not.toMatch(/affirm/i);
-  expect(result.logicVersion).toBe('3.0.0');
+  expect(result.logicVersion).toBe('4.0.0');
 });
 
 it('scenario 5: two documenting sources with the same term plus a no-record source stay conflict-free', async () => {
@@ -424,8 +424,13 @@ it('scenario 5: two documenting sources with the same term plus a no-record sour
     sourceVersion: 'synthetic-scenario5-v1',
     severity: 'source-band-amber',
   }).evaluate(request);
-  const noRecordResult =
-    await createNoRecordSyntheticProvider().evaluate(request);
+  const noRecordResult = await createNoRecordSyntheticProvider({
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-scenario5-no-record',
+    ),
+  }).evaluate(request);
   const merged = mergeProviderResults([
     firstDocumented,
     secondDocumented,
@@ -440,7 +445,7 @@ it('scenario 5: two documenting sources with the same term plus a no-record sour
   expect(merged.coverageDiscrepancies).toHaveLength(1);
   expect(JSON.stringify(result)).not.toMatch(/\bsafe\b|\bno interaction\b/i);
   expect(JSON.stringify(result)).not.toMatch(/affirm/i);
-  expect(result.logicVersion).toBe('3.0.0');
+  expect(result.logicVersion).toBe('4.0.0');
 });
 
 it('scenario 5: differing source severity terms stay a clinical conflict, with or without a no-record source', async () => {
@@ -459,7 +464,7 @@ it('scenario 5: differing source severity terms stay a clinical conflict, with o
   expect(conflicting.finding.documentedInteraction).toBe(true);
   expect(conflicting.evidence.evidenceConflict).toBe(true);
   expect(conflicting.evidence.coverageDiscrepancy).toBe(false);
-  expect(conflicting.logicVersion).toBe('3.0.0');
+  expect(conflicting.logicVersion).toBe('4.0.0');
 
   const noRecordResult =
     await createNoRecordSyntheticProvider().evaluate(request);
@@ -470,7 +475,7 @@ it('scenario 5: differing source severity terms stay a clinical conflict, with o
   expect(conflictingWithNoRecord.finding.documentedInteraction).toBe(true);
   expect(conflictingWithNoRecord.evidence.evidenceConflict).toBe(true);
   expect(conflictingWithNoRecord.evidence.coverageDiscrepancy).toBe(true);
-  expect(conflictingWithNoRecord.logicVersion).toBe('3.0.0');
+  expect(conflictingWithNoRecord.logicVersion).toBe('4.0.0');
 
   for (const assessment of [conflicting, conflictingWithNoRecord]) {
     expect(JSON.stringify(assessment)).not.toMatch(
@@ -494,7 +499,7 @@ it('scenario 5: two documenting sources without a no-record source have no cover
   expect(result.evidence.coverageDiscrepancy).toBe(false);
   expect(result.evidence.evidenceConflict).toBe(true);
   expect(merged.coverageDiscrepancies).toEqual([]);
-  expect(result.logicVersion).toBe('3.0.0');
+  expect(result.logicVersion).toBe('4.0.0');
 });
 
 it('scenario 5: coverage-only pairs never appear in clinical disagreements and order does not matter', async () => {
@@ -532,7 +537,7 @@ it('scenario 5: coverage-only pairs never appear in clinical disagreements and o
   expect(reversedAssessment).toEqual(forwardAssessment);
   expect(forwardAssessment.evidence.evidenceConflict).toBe(false);
   expect(forwardAssessment.evidence.coverageDiscrepancy).toBe(true);
-  expect(forwardAssessment.logicVersion).toBe('3.0.0');
+  expect(forwardAssessment.logicVersion).toBe('4.0.0');
   expect(Object.isFrozen(forward.coverageDiscrepancies)).toBe(true);
   expect(isDeeplyFrozen(forwardAssessment)).toBe(true);
 });
@@ -763,7 +768,7 @@ it('scenario 9: the assessment has no safety, no-interaction, or affirmative-neg
 });
 
 it('every assessment carries the assessment logic version', async () => {
-  expect(INTERACTION_ASSESSMENT_LOGIC_VERSION).toBe('3.0.0');
+  expect(INTERACTION_ASSESSMENT_LOGIC_VERSION).toBe('4.0.0');
   const evaluation = await evaluate(createNoRecordSyntheticProvider());
   const request = requestForPair(CONTRACT_PAIR_AB);
   const documentedResult =
@@ -789,7 +794,7 @@ it('every assessment carries the assessment logic version', async () => {
 
   for (const assessment of assessments) {
     expect(assessment.logicVersion).toBe(INTERACTION_ASSESSMENT_LOGIC_VERSION);
-    expect(assessment.logicVersion).toBe('3.0.0');
+    expect(assessment.logicVersion).toBe('4.0.0');
   }
   expect(isDeeplyFrozen(assessments[0])).toBe(true);
 });

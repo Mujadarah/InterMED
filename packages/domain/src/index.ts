@@ -113,6 +113,9 @@ export type {
   InteractionSourceVersion,
   InteractionTimer,
   InteractionProviderDescriptor,
+  InteractionWithinSourceInconsistency,
+  InteractionWithinSourceInconsistencyEntry,
+  InteractionWithinSourceInconsistencyReason,
   NormalizedSeverity,
   PairCoverageStatus,
   ProviderAvailability,
@@ -146,6 +149,7 @@ export type {
   PairAssessmentSourcePosition,
   PairAssessmentSourcePositionEntry,
   PairAssessmentSourceSeverity,
+  PairAssessmentWithinSourceInconsistency,
 } from './interactions/types';
 export {
   INTERACTION_ASSESSMENT_LOGIC_VERSION,

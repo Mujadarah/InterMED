@@ -761,3 +761,149 @@ Boundaries: this sign-off does not approve a live provider, a medication databas
 severity mappings, dosing rules or public clinical release. All fixtures remain synthetic;
 provider selection, source rights, reviewed ingredient and severity mappings, real-provider
 clinical validation and M10 presentation remain open.
+
+## Owner sign-off round 3 (2026-10-14) and assessment logic 4.0.0
+
+Owner decisions (surgeon, clinical reviewer), 2026-10-14, round 3:
+
+- Scenario 9 at logic 3.0.0: **APPROVED.** The renewed safety-wording behaviour is
+  accepted. Its approval history above is preserved, and InterMED never generates
+  unsupported "safe" or "no interaction" conclusions.
+- Scenario 5 at logic 3.0.0: **CHANGES REQUIRED.** Two adapters that reference the same
+  underlying clinical source must not be treated as independent clinical sources.
+  Cross-source clinical disagreements must be distinguished from within-source data
+  inconsistencies, and a genuine cross-source coverage discrepancy must require distinct
+  underlying source identities. Scenario 5 is implemented in 4.0.0 below and stays
+  **pending** owner approval after this work; its approval is not recorded.
+
+What changed in 4.0.0 (`INTERACTION_ASSESSMENT_LOGIC_VERSION = '4.0.0'`, exported from `@intermed/domain`):
+
+- Source identity is `sourceId` (`DataSourceId`). Different `providerId` values or
+  different `sourceVersion` values with the same `sourceId` are the same source.
+- `merge.ts`: `severityTermsDifferAcrossProviders` is renamed to
+  `severityTermsDifferAcrossSources` and reports `'severity-terms-differ'` in
+  `disagreements` only when two terms with different `sourceId` differ.
+  `deriveCoverageDiscrepancies` creates an entry only when a documenting source and a
+  no-record source have different `sourceId`, and `documentingSources` /
+  `noRecordSources` are restricted to the sources that form the cross-source pair.
+- `merge.ts`: `MergedProviderResults` gains
+  `withinSourceInconsistencies: readonly InteractionWithinSourceInconsistency[]`, one
+  entry per pair and `sourceId`, each with `pair`, `sourceId`,
+  `reasons` (`'severity-terms-differ'` and/or `'reported-vs-covered-no-record'`) and
+  `entries` (`{ providerId, sourceId, sourceVersion, status, severity? }[]` provenance),
+  sorted deterministically and deep-frozen.
+- `assessment.ts`: `coverageDiscrepancy` requires a `documents-interaction` position and
+  a `no-record-in-coverage` position with different `sourceId` (validated positions, not
+  the merge-level list). `hasCrossSourceSeverityConflict` still compares `sourceId`.
+- `assessment.ts`: `evidence` gains
+  `withinSourceInconsistencies: readonly { sourceId; reasons; sourceVersions }[]`,
+  derived only from the validated positions and records for the pair, for every input
+  shape; the merge-level list is provenance and is never copied into the assessment. A
+  within-source inconsistency never sets `evidenceConflict` or `coverageDiscrepancy`,
+  never suppresses a documented finding, and is never phrased as safety or absence. A
+  code comment records why source identity, not provider identity, defines independent
+  clinical evidence.
+- `types.ts` and exports: the new types and fields are added.
+- The meaning of `evidenceConflict` and `coverageDiscrepancy` narrows and new fields are
+  added. Everything stays deterministic and deeply frozen.
+
+Definitions:
+
+- Source identity: the underlying clinical source, identified by `sourceId`.
+- Cross-source clinical conflict: differing severity terms for current records from
+  different `sourceId` values (or a merged clinical disagreement for the pair).
+- Cross-source coverage discrepancy: one `sourceId` documents the pair while a different
+  `sourceId` covers it with no record.
+- Within-source inconsistency: the same `sourceId` gives different severity terms via
+  different providers or versions, or reports the pair through one provider or version
+  while covering it with no record through another. It is kept separately with
+  provenance and never treated as independent clinical evidence.
+
+Scenario 5 tests at 4.0.0 (`tests/domain/interaction-source-identity.test.ts`, synthetic only):
+
+- Same `sourceId`, two providers, different severity terms: `evidenceConflict` false,
+  within-source `'severity-terms-differ'` with both providers' provenance, documented
+  finding visible.
+- Different `sourceId`, different severity terms: `evidenceConflict` true (unchanged).
+- Same `sourceId`, one provider reports and another gives no record:
+  `coverageDiscrepancy` false, within-source `'reported-vs-covered-no-record'`,
+  documented finding visible.
+- Different `sourceId`, one documents and the other gives no record:
+  `coverageDiscrepancy` true (unchanged).
+- Mixed (source S1 via two providers documenting and no-record, plus source S2
+  no-record): `coverageDiscrepancy` true (S1 versus S2) with S1's within-source entry
+  listed.
+- Same `sourceId` with different `sourceVersion`: treated as the same source.
+- Provider order never changes results.
+- Merge level: `disagreements` and `coverageDiscrepancies` contain no same-source
+  entries; `withinSourceInconsistencies` lists them.
+- Scenario 9 wording guard (no `safe` / `no interaction` / `affirm`) holds over every
+  new output.
+- `logicVersion === '4.0.0'` on every path.
+
+Renewal comparison (throwaway, not committed):
+
+- A throwaway collector ran every scenario 1-14 input plus the two severity tests under
+  3.0.0 (`origin/main`) and 4.0.0, comparing assessment and merge outputs while ignoring
+  only `logicVersion` and the new `withinSourceInconsistencies` field when it is empty.
+- Identical (ignoring only those fields): the two severity tests, scenario 1 assessment,
+  scenarios 2, 3, 4, 5a assessment, 5c conflict without no-record, 5d, 5e assessment, 5f,
+  all scenario 6 cases, scenarios 7, 8, 9 (all five assessments), 10, 11, 12, 13 and 14.
+  Merge outputs for the identical cross-source cases are likewise identical once the
+  empty new field is ignored.
+- Changed assessment output: scenario 5b (two documenting same-term providers plus a
+  no-record provider, all sharing one `sourceId`): `evidence.coverageDiscrepancy` true
+  at 3.0.0, false at 4.0.0, with a new non-empty
+  `evidence.withinSourceInconsistencies` entry
+  (`sourceId` the shared source, `reasons: ["reported-vs-covered-no-record"]`,
+  `sourceVersions: ["synthetic-interactions-v1", "synthetic-scenario5-v1"]`). Positions,
+  finding, currency, coverage status and provenance are unchanged.
+- Changed merge output for scenario 5b: `coverageDiscrepancies` has one entry at 3.0.0
+  (both documenting providers versus the no-record provider) and is empty at 4.0.0; a new
+  `withinSourceInconsistencies` entry lists the same source with reason
+  `'reported-vs-covered-no-record'` and three provenance entries (two `reported` with
+  `source-band-amber`, one `covered-no-record`).
+- Changed merge output for scenario 5c with no-record (offline documents, disagreement
+  documents with a different `sourceId`, no-record shares the offline `sourceId`):
+  assessment flags are unchanged (`evidenceConflict` true, `coverageDiscrepancy` true)
+  with a new non-empty within-source entry for the shared source; the merge
+  `coverageDiscrepancies` `documentingSources` narrows from both documenting providers at
+  3.0.0 to only the cross-source documenting provider at 4.0.0
+  (`synthetic-disagreement-provider` versus `synthetic-covered-no-record-provider`),
+  and the same-source documenting/no-record pair moves to `withinSourceInconsistencies`
+  with reason `'reported-vs-covered-no-record'`.
+- Scenario 9 conflicting assessment and merge outputs are identical at 3.0.0 and 4.0.0
+  (conflict false with discrepancy true for the documents-plus-no-record input across
+  different sources); only the empty new field differs and is ignored.
+
+Per-scenario approval status at 4.0.0:
+
+- Carry forward at 4.0.0, no renewed sign-off required: scenarios 1, 2, 3, 4, 6, 7, 8, 9,
+  10, 11, 12, 13, 14 and the two severity-conflict tests. Scenario 9 was approved at
+  3.0.0 and its output is unchanged at 4.0.0, so that approval carries forward. Scenario
+  4 (approved at 2.0.0) remains unchanged and carries forward.
+- Require sign-off at 4.0.0: scenario 5. It stays pending after the fix. The exact
+  outputs requiring re-approval are the scenario 5b assessment and merge outputs quoted
+  above (coverage `true` to `false` with the new within-source entry) and the scenario
+  5c merge narrowing (same-source pair moved out of `documentingSources` into
+  `withinSourceInconsistencies`). Scenario 9 needs no renewed sign-off at 4.0.0.
+
+Superseded 3.0.0 statements:
+
+- The 3.0.0 provider-identity rule that `severity-terms-differ` requires terms from
+  different providers is superseded: it now requires different `sourceId` values.
+- The 3.0.0 merge rule deriving a `coverageDiscrepancies` entry from any documenting
+  provider beside any no-record provider is superseded: it now requires different
+  `sourceId` values and restricts both source lists to the cross-source pair.
+- The 3.0.0 assessment rule that any coexisting `documents-interaction` and
+  `no-record-in-coverage` positions set `coverageDiscrepancy` is superseded: it now
+  requires different `sourceId` values.
+- The 3.0.0 scenario 5 expectation that same-term documenting providers beside a
+  no-record provider from the same underlying source produce a coverage discrepancy is
+  superseded: that case is now a within-source inconsistency with no coverage
+  discrepancy.
+
+Boundaries: this sign-off does not approve a live provider, a medication database,
+severity mappings, dosing rules or public clinical release. All fixtures remain synthetic;
+provider selection, source rights, reviewed ingredient and severity mappings, real-provider
+clinical validation and M10 presentation remain open.
