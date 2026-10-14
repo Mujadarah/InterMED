@@ -131,6 +131,10 @@ export const CKD_EPI_2021_CREATININE_FORMULA: FormulaDefinition =
       'Displayed as a whole number; the unrounded value is kept internally and is never used for later calculations or threshold decisions.',
       'Technical bounds, not clinically validated plausibility thresholds: creatinine 0.1-20 mg/dL (8.84-1768 µmol/L), age 0-130 years. Values outside these technical bounds return invalid-input.',
     ],
-    reviewStatus: 'unreviewed',
+    reviewStatus: Object.freeze({
+      status: 'clinically-reviewed',
+      reviewer: 'Project owner (surgeon, clinical reviewer)',
+      reviewedAt: '2026-10-14',
+    }),
     compute: computeCkdEpi2021,
   });

@@ -230,7 +230,7 @@ function contractCases(): FormulaContractCases {
 describeFormulaContract(cockcroftGault, contractCases());
 
 describe('Cockcroft-Gault candidate (M11e)', () => {
-  it('exports the pinned, explicitly unreviewed candidate version', () => {
+  it('exports the pinned, clinically-reviewed candidate version', () => {
     expect(cockcroftGault).toMatchObject({
       formulaId: 'crcl-cockcroft-gault',
       componentVersions: {
@@ -238,7 +238,11 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
         population: '1.0.0',
         presentation: '1.1.0',
       },
-      reviewStatus: 'unreviewed',
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
       output: {
         unit: 'mL/min',
         rounding: { mode: 'half-up-decimal', precision: 0 },
@@ -585,42 +589,70 @@ describe('Cockcroft-Gault candidate (M11e)', () => {
     expect(text).not.toContain('pending owner sign-off');
   });
 
-  it('lists formula 1.1.0 and presentation 1.1.0 as pending after the population approval', () => {
+  it('lists no pending approvals after the round-3 formula and presentation approvals', () => {
     const approvals = m11.FORMULA_APPROVALS;
     expect(approvals).toBeDefined();
     if (!approvals) return;
-    expect(approvals).toHaveLength(16);
+    expect(approvals).toHaveLength(19);
     expect(
       approvals.filter(
         (record) =>
           (record as { formulaId: string }).formulaId ===
           'crcl-cockcroft-gault',
       ),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
     if (!m11.pendingApprovals) {
       throw new Error('pendingApprovals export is missing.');
     }
     const registry = new Domain.FormulaRegistry();
     registry.register(cockcroftGault);
-    expect(m11.pendingApprovals(registry)).toEqual([
-      {
-        formulaId: 'crcl-cockcroft-gault',
-        formulaVersion: cockcroftGault.formulaVersion,
-        component: 'formula',
-        componentVersion: '1.1.0',
-      },
-      {
-        formulaId: 'crcl-cockcroft-gault',
-        formulaVersion: cockcroftGault.formulaVersion,
-        component: 'presentation',
-        componentVersion: '1.1.0',
-      },
-    ]);
+    expect(m11.pendingApprovals(registry)).toEqual([]);
   });
 
-  it('rejects registration as clinically reviewed without approvals', () => {
+  it('registers the clinically-reviewed Cockcroft-Gault definition with its approvals', () => {
+    expect(() =>
+      new Domain.FormulaRegistry().register(
+        cockcroftGault as unknown as Domain.FormulaDefinition,
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects a bumped presentation version as clinically reviewed without an exact approval', () => {
+    const bumped = {
+      ...cockcroftGault,
+      formulaVersion: 'formula=1.1.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(cockcroftGault.componentVersions as unknown as Record<
+          string,
+          string
+        >),
+        presentation: '1.1.1',
+      },
+      reviewStatus: {
+        status: 'clinically-reviewed',
+        reviewer: 'Project owner (surgeon, clinical reviewer)',
+        reviewedAt: '2026-10-14',
+      },
+    } as unknown as Domain.FormulaDefinition;
+    expect(() => new Domain.FormulaRegistry().register(bumped)).toThrow(
+      expect.objectContaining({
+        name: 'FormulaRegistrationError',
+        code: 'invalid-definition',
+      }),
+    );
+  });
+
+  it('rejects registration as clinically reviewed without an exact approval', () => {
     const reviewed = {
       ...cockcroftGault,
+      formulaVersion: 'formula=1.1.0|population=1.0.0|presentation=1.1.1',
+      componentVersions: {
+        ...(cockcroftGault.componentVersions as unknown as Record<
+          string,
+          string
+        >),
+        presentation: '1.1.1',
+      },
       reviewStatus: {
         status: 'clinically-reviewed',
         reviewer: 'Fictional test reviewer',

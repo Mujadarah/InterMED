@@ -156,6 +156,33 @@ export const FORMULA_APPROVALS: readonly FormulaApprovalRecord[] =
       scope:
         'Adult (18+) scope with technical age guards; development and review scope only; not a default dosing method',
     }),
+    Object.freeze({
+      formulaId: 'egfr-ckd-epi-2021-cr',
+      component: 'presentation',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
+    Object.freeze({
+      formulaId: 'crcl-cockcroft-gault',
+      component: 'formula',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations and weight-convention handling; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
+    Object.freeze({
+      formulaId: 'crcl-cockcroft-gault',
+      component: 'presentation',
+      componentVersion: '1.1.0',
+      approvedBy: 'Project owner (surgeon, clinical reviewer)',
+      approvedOn: '2026-10-14',
+      scope:
+        'Adult (18+) development and review scope with the current equation, units, rounding, limitations and weight-convention handling; not a public clinical release; no medication dosing recommendations; no deployment with unvalidated clinical datasets',
+    }),
   ]);
 
 export function hasFormulaApproval(
