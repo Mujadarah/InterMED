@@ -1,0 +1,72 @@
+Command: npx playwright test tests/browser/eviction-recovery.spec.ts --project=chromium-desktop --grep 'user-controlled same-build repair' --repeat-each=20
+Exit code: 0
+
+[WebServer] (node:55968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:17948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 3 workers
+
+(node:47688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:57892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  3 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (3.0s)
+  ok  1 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (3.0s)
+  ok  2 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (3.0s)
+(node:21332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:38488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  5 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+  ok  6 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+  ok  4 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+(node:57396) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:33344) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  7 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+  ok  8 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok  9 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+(node:47520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36880) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40084) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 11 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok 12 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok 10 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+(node:28736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56000) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22116) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 13 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok 14 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok 15 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+(node:16480) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:11104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 17 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+  ok 16 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.3s)
+  ok 18 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+(node:43528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16672) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 20 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+  ok 19 [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage (1.2s)
+
+  20 passed (20.0s)

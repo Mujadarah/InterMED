@@ -1,0 +1,83 @@
+Source supplied with brief: windows-job-114998950195.log
+2026-10-12T20:46:31.1318222Z
+2026-10-12T20:46:31.1341478Z
+2026-10-12T20:46:31.1363949Z ##[error]Error: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/importer/artifact.test.ts:768:3
+
+
+2026-10-12T20:46:31.2500670Z ##[error]Process completed with exit code 1.
+2026-10-12T20:46:31.2717638Z Post job cleanup.
+2026-10-12T20:46:31.4108854Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-12T20:46:31.4320917Z git version 2.55.0.windows.5
+2026-10-12T20:46:31.4369227Z Temporarily overriding HOME='D:\a\_temp\1cb7fbe7-6cbb-4be6-a640-56c7b310d29a' before making global git config changes
+2026-10-12T20:46:31.4369930Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-12T20:46:31.4377160Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory <CI_REPO>
+2026-10-12T20:46:31.4606812Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-12T20:46:31.4850933Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-12T20:46:31.9361420Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-12T20:46:31.9590617Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-12T20:46:32.3903611Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+
+Source supplied with brief: windows-job-115001809682.log
+2026-10-12T20:57:27.3329798Z   1) [chromium-desktop] › tests\browser\eviction-recovery.spec.ts:71:1 › user-controlled same-build repair restores an evicted shell without clearing other storage
+2026-10-12T20:57:27.3330535Z
+2026-10-12T20:57:27.3330752Z     Error: expect(locator).toBeVisible() failed
+2026-10-12T20:57:27.3331035Z
+2026-10-12T20:57:27.3331452Z     Locator: getByText('Shell unavailable offline', { exact: true })
+2026-10-12T20:57:27.3332189Z     Expected: visible
+2026-10-12T20:57:27.3332661Z     Timeout: 5000ms
+2026-10-12T20:57:27.3333045Z     Error: element(s) not found
+2026-10-12T20:57:27.3333341Z
+2026-10-12T20:57:27.3333507Z     Call log:
+2026-10-12T20:57:27.3334305Z       - Expect "toBeVisible" getByText('Shell unavailable offline', { exact: true }) with timeout 5000ms
+2026-10-12T20:57:27.3335255Z       - waiting for getByText('Shell unavailable offline', { exact: true })
+2026-10-12T20:57:27.3335617Z
+2026-10-12T20:57:27.3335624Z
+2026-10-12T20:57:27.3335741Z       92 |     await expect(
+2026-10-12T20:57:27.3336174Z       93 |       page.getByText('Shell unavailable offline', { exact: true }),
+2026-10-12T20:57:27.3337006Z     > 94 |     ).toBeVisible();
+2026-10-12T20:57:27.3337503Z          |       ^
+2026-10-12T20:57:27.3338122Z       95 |     await page.getByRole('button', { name: 'Retry shell caching' }).click();
+2026-10-12T20:57:27.3338954Z       96 |     await expect(
+2026-10-12T20:57:27.3339615Z       97 |       page.getByText('Shell available offline', { exact: true }),
+2026-10-12T20:57:27.3340269Z         at <CI_REPO>\tests\browser\eviction-recovery.spec.ts:94:7
+2026-10-12T20:57:27.3340593Z
+2026-10-12T20:57:27.3341169Z     Error Context: test-results\eviction-recovery-user-con-1c0ce-hout-clearing-other-storage-chromium-desktop\error-context.md
+2026-10-12T20:57:27.3341779Z
+
+Source supplied with brief: ubuntu-job-114988233312.log
+2026-10-12T20:14:10.6332287Z   1) [webkit-phone] › tests/browser/pwa.spec.ts:192:1 › caches only the shell and launches/reloads existing deep links offline
+2026-10-12T20:14:10.6333085Z
+2026-10-12T20:14:10.6333386Z     Error: page.goto: Connection terminated unexpectedly
+2026-10-12T20:14:10.6333933Z     Call log:
+2026-10-12T20:14:10.6334516Z       - navigating to "http://127.0.0.1:45061/", waiting until "load"
+2026-10-12T20:14:10.6334958Z
+2026-10-12T20:14:10.6334967Z
+2026-10-12T20:14:10.6335148Z       227 |     ).toBeVisible();
+2026-10-12T20:14:10.6335688Z       228 |     const freshPage = await context.newPage();
+2026-10-12T20:14:10.6336091Z     > 229 |     await freshPage.goto(server.url);
+2026-10-12T20:14:10.6337055Z           |                     ^
+2026-10-12T20:14:10.6337469Z       230 |     await expect(
+2026-10-12T20:14:10.6337956Z       231 |       freshPage.getByRole('heading', { name: 'A foundation for InterMED' }),
+2026-10-12T20:14:10.6338415Z       232 |     ).toBeVisible();
+2026-10-12T20:14:10.6339438Z         at <CI_REPO>/tests/browser/pwa.spec.ts:229:21
+2026-10-12T20:14:10.6339817Z
+2026-10-12T20:14:10.6340340Z     Error Context: test-results/pwa-caches-only-the-shell--0b5f5-existing-deep-links-offline-webkit-phone/error-context.md
+
+Additional importer assertion context from supplied log:
+2026-10-12T20:46:31.1148892Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+2026-10-12T20:46:31.1149291Z
+2026-10-12T20:46:31.1161084Z  FAIL  tests/importer/artifact.test.ts > importer function artifact > pins the exact handler runtime root dependencies without registry metadata
+2026-10-12T20:46:31.1165807Z Error: Test timed out in 60000ms.
+2026-10-12T20:46:31.1166886Z If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+2026-10-12T20:46:31.1168314Z  ❯ tests/importer/artifact.test.ts:768:3
+2026-10-12T20:46:31.1293145Z     766|   }, 60_000);
+2026-10-12T20:46:31.1293676Z     767|
+2026-10-12T20:46:31.1294441Z     768|   it('pins the exact handler runtime root dependencies without registr…
+2026-10-12T20:46:31.1295433Z        |   ^
+2026-10-12T20:46:31.1296163Z     769|     const parent = mkdtempSync(join(tmpdir(), 'intermed-artifact-handl…
+2026-10-12T20:46:31.1297374Z     770|     const functionSourceDir = join(parent, 'function-src');
+2026-10-12T20:46:31.1297982Z
+2026-10-12T20:46:31.1299594Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+2026-10-12T20:46:31.1299979Z

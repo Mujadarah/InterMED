@@ -1,0 +1,15 @@
+Command: npm test -- tests/importer/artifact.test.ts -t 'pins the exact handler runtime root dependencies without registry metadata'
+Exit code: 0
+
+
+> intermed@0.0.0 test
+> vitest run tests/importer/artifact.test.ts -t pins the exact handler runtime root dependencies without registry metadata
+
+
+ RUN  v4.1.11 <WORKTREE>
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 13 skipped (14)
+   Start at  14:09:03
+   Duration  10.52s (transform 97ms, setup 0ms, import 278ms, tests 9.70s, environment 0ms)

@@ -244,8 +244,9 @@ function readRootLock(): Lockfile {
 // This integration test independently compiles twice to prove deterministic
 // locks, seeds an isolated tarball cache, runs offline npm ci and executes the
 // handler. Keep both builds: sharing a fixture would erase that proof. The
-// Windows CI log reached 60.2 s under suite contention, so budget one minute
-// per build/install leg rather than the single-build 60 s used by nearby tests.
+// Windows CI run exhausted the 60 s whole-test budget. Allow two minutes for
+// both builds, isolated installation and execution; the log does not identify
+// which stage consumed the time. Keep assertions and other timeouts unchanged.
 const handlerArtifactTimeout = 120_000;
 describe('importer function artifact', () => {
   it('builds a disjoint isolated runtime artifact and rejects safely', async () => {
