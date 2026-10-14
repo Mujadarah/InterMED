@@ -768,7 +768,7 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
   expect(reviewed.interactions[0]?.severityMappingReviewed).toBe(true);
 });
 
-it('merges provider records and flags source-term and reported-versus-covered disagreement', async () => {
+it('merges provider records and keeps severity conflicts separate from coverage discrepancies', async () => {
   const firstProvider = createOfflineSyntheticProvider();
   const secondProvider = createSecondVocabularySyntheticProvider();
   const firstResult = await firstProvider.evaluate(CONTRACT_REQUEST);
@@ -786,16 +786,31 @@ it('merges provider records and flags source-term and reported-versus-covered di
       }),
     ]),
   );
+  expect(severityMerge.coverageDiscrepancies).toEqual([]);
   expect(severityMerge).not.toHaveProperty('status');
 
   const noRecord = createNoRecordSyntheticProvider();
   const noRecordResult: ProviderResult =
     await noRecord.evaluate(CONTRACT_REQUEST);
   const coverageMerge = mergeProviderResults([firstResult, noRecordResult]);
-  expect(coverageMerge.disagreements).toEqual(
+  expect(coverageMerge.disagreements).toEqual([]);
+  expect(coverageMerge.coverageDiscrepancies).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        reasons: expect.arrayContaining(['reported-vs-covered-no-record']),
+        documentingSources: expect.arrayContaining([
+          expect.objectContaining({
+            providerId: firstResult.providerId,
+            sourceId: firstResult.sourceId,
+            sourceVersion: firstResult.sourceVersion,
+          }),
+        ]),
+        noRecordSources: expect.arrayContaining([
+          expect.objectContaining({
+            providerId: noRecordResult.providerId,
+            sourceId: noRecordResult.sourceId,
+            sourceVersion: noRecordResult.sourceVersion,
+          }),
+        ]),
       }),
     ]),
   );
@@ -812,6 +827,7 @@ it('does not report inactive records as cross-provider findings', async () => {
   expect(merged.records).toHaveLength(1);
   expect(merged.records[0]?.recordStatus).toBe('withdrawn');
   expect(merged.disagreements).toEqual([]);
+  expect(merged.coverageDiscrepancies).toEqual([]);
 });
 
 it('flags severity disagreement only when different providers report different terms', async () => {
@@ -840,6 +856,8 @@ it('flags severity disagreement only when different providers report different t
   ]);
   for (const disagreement of sameProviderMerge.disagreements)
     expect(disagreement.reasons).not.toContain('severity-terms-differ');
+  expect(sameProviderMerge.disagreements).toEqual([]);
+  expect(sameProviderMerge.coverageDiscrepancies).not.toEqual([]);
 
   const secondResult =
     await createSecondVocabularySyntheticProvider().evaluate(CONTRACT_REQUEST);
@@ -854,6 +872,7 @@ it('flags severity disagreement only when different providers report different t
       }),
     ]),
   );
+  expect(crossProviderMerge.coverageDiscrepancies).toEqual([]);
 });
 
 it('reports malformed provider results as unusable instead of throwing', async () => {
