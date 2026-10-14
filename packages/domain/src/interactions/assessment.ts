@@ -59,7 +59,6 @@ interface AssessmentState {
   globalInvalidity: boolean;
   providerUnavailable: boolean;
   evidenceConflict: boolean;
-  coverageDiscrepancy: boolean;
 }
 
 const KNOWN_REASONS = new Set([
@@ -626,9 +625,6 @@ function addMergedResults(
       matchesPair(disagreement.pair, requestedKey) &&
       disagreement.reasons.length > 0,
   );
-  state.coverageDiscrepancy = merged.coverageDiscrepancies.some((entry) =>
-    matchesPair(entry.pair, requestedKey),
-  );
 }
 
 function sourceIsComplete(source: PairSource): boolean {
@@ -800,7 +796,6 @@ function createAssessmentState(): AssessmentState {
     globalInvalidity: false,
     providerUnavailable: false,
     evidenceConflict: false,
-    coverageDiscrepancy: false,
   };
 }
 
@@ -954,12 +949,15 @@ function createEvidenceDimension(
   // set `evidenceConflict`. `evidenceConflict` holds only genuine clinical
   // disagreements: merged clinical disagreements for the pair or differing
   // source severity terms for current records across sources.
+  // The discrepancy is derived from the validated source positions, not the
+  // merge-level list: a source whose only records are outdated or mismatched
+  // does not document the interaction for this assessment.
   const hasCoverageDiscrepancy =
     positions.some((item) => item.position === 'documents-interaction') &&
     positions.some((item) => item.position === 'no-record-in-coverage');
   return {
     evidenceConflict: state.evidenceConflict || crossSourceSeverityConflict,
-    coverageDiscrepancy: state.coverageDiscrepancy || hasCoverageDiscrepancy,
+    coverageDiscrepancy: hasCoverageDiscrepancy,
     positions,
     sourceStatedUncertainty: state.records.some(
       ({ record }) => record.sourceStatesUncertainEvidence === true,

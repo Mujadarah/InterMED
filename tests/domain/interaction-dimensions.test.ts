@@ -951,25 +951,59 @@ it('scenario 13: only a valid current record reports a documenting position', as
   if (!mismatchedRecord)
     throw new Error('synthetic mismatched record is missing');
 
-  const mismatchedResult = assess(
+  const withdrawnResult = assess(
     [mismatchedEvaluation, noRecordEvaluation],
     CONTRACT_PAIR_AB,
   );
 
   expect(
-    mismatchedResult.evidence.positions.some(
+    withdrawnResult.evidence.positions.some(
       (entry) => entry.position === 'documents-interaction',
     ),
   ).toBe(false);
-  expect(mismatchedResult.evidence.positions).toContainEqual({
+  expect(withdrawnResult.evidence.positions).toContainEqual({
     sourceId: mismatchedRecord.sourceId,
     sourceVersion: mismatchedRecord.sourceVersion,
     position: 'no-coverage',
   });
-  expect(mismatchedResult.currency.currentRecordIds).toEqual([]);
-  expect(mismatchedResult.finding.documentedInteraction).toBe(false);
-  expect(mismatchedResult.finding).not.toHaveProperty('affirmedNoInteraction');
-  expect(mismatchedResult.coverage.coverageComplete).toBe(false);
+  expect(withdrawnResult.currency.currentRecordIds).toEqual([]);
+  expect(withdrawnResult.finding.documentedInteraction).toBe(false);
+  expect(withdrawnResult.finding).not.toHaveProperty('affirmedNoInteraction');
+  expect(withdrawnResult.coverage.coverageComplete).toBe(false);
+});
+
+it('scenario 5: a reporting source without a valid current record beside a no-record source is not a coverage discrepancy', async () => {
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  // The provider still reports the pair, but its only record is withdrawn, so
+  // the source has no valid current record documenting the interaction.
+  const reportedBase =
+    await createDisagreementSyntheticProvider().evaluate(request);
+  const withdrawnResult = {
+    ...reportedBase,
+    records: reportedBase.records.map((record) => ({
+      ...record,
+      recordStatus: 'withdrawn' as const,
+      statusChangedAt: record.lastUpdated,
+    })),
+  };
+  const noRecordResult =
+    await createNoRecordSyntheticProvider().evaluate(request);
+
+  for (const merged of [
+    mergeProviderResults([withdrawnResult, noRecordResult]),
+    mergeProviderResults([noRecordResult, withdrawnResult]),
+  ]) {
+    const result = assess(merged, CONTRACT_PAIR_AB);
+
+    expect(
+      result.evidence.positions.some(
+        (entry) => entry.position === 'documents-interaction',
+      ),
+    ).toBe(false);
+    expect(result.finding.documentedInteraction).toBe(false);
+    expect(result.evidence.coverageDiscrepancy).toBe(false);
+    expect(result.evidence.evidenceConflict).toBe(false);
+  }
 });
 
 it('scenario 14: an unavailable evaluation without coverage rows reports unavailable', async () => {
