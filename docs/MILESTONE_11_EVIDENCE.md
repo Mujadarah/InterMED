@@ -341,3 +341,49 @@ The documentation worker independently reran lint, typecheck, unit tests and arc
 - **WHO classification behavior:** international adult labels/cutoffs applied to the unrounded result, their intended population/application at ages 18–19, and the boundary-crossing `classificationNote`.
 - **Presentation:** decimal half-up from the shortest decimal, BMI 1 dp / BSA 2 dp, and the explicit prohibition on using displayed rounded BSA as an implicit medication-dose input.
 - **Clinical/reference and rights evidence:** clinical reference vectors, original publication/derivation and instrument-specific reuse rights remain unverified; MDCalc is supplementary manual cross-checking only. Calculator UI and Milestone 12 hardening remain separate acceptance gates.
+
+## M11d — CKD-EPI 2021 creatinine candidate (pending owner sign-off)
+
+Date: 2026-10-14. Branch `claude/m11-ckd-epi`. Definition in `packages/domain/src/calculators/ckd-epi.ts`; tests in `tests/domain/calculators/ckd-epi.test.ts`; categorical engine extension in `packages/domain/src/calculators/{types,inputs,calculate,registry}.ts` with fictional coverage in `tests/domain/calculators/calculator-fixtures.ts` and `tests/domain/calculators/calculator-engine.test.ts`. The candidate remains `unreviewed` with marker **UNREVIEWED**: nothing in this work is clinically approved.
+
+### Formula and source
+
+The 2021 race-free CKD-EPI creatinine equation (Inker LA et al. New creatinine- and cystatin C-based equations to estimate GFR without race. _N Engl J Med._ 2021;385:1737–1749, Table 2; [DOI 10.1056/NEJMoa2102953](https://doi.org/10.1056/NEJMoa2102953); coefficients confirmed by NIDDK):
+
+```text
+eGFR [mL/min/1.73 m²] = 142 × min(Scr/κ,1)^α × max(Scr/κ,1)^−1.200
+                       × 0.9938^age × (1.012 if female)
+Scr = IDMS-traceable mg/dL; age = years, ≥ 18
+Female: κ = 0.7, α = −0.241; male: κ = 0.9, α = −0.302
+```
+
+Inputs are `creatinine` (quantity kind `serum-creatinine`, canonical `mg/dL`, allowed `mg/dL` and `µmol/L`, conversion **µmol/L → mg/dL ÷ 88.4** applied unrounded before the κ branch), `age` (years), and `sex` (category, options `female`/`male`, labelled "Sex used by the equation (female/male coefficients)"). No classification component is declared: KDIGO G-stages are a separate, unapproved decision and are not implemented. No confirmation component is declared: no soft checks were added.
+
+### Engine categorical-input extension
+
+`FormulaInputDefinition` gains an optional discriminant `kind?: 'quantity' | 'category'` (absent means quantity, so every existing BMI/BSA definition is unchanged). A category input declares `options: readonly { id; label }[]` and no units or ranges; registration rejects categorical units/ranges and numeric options. Requests carry e.g. `inputs.sex = { category: 'female' }`: an unknown option or a missing required category returns `invalid-input`, as does a numeric value for a category input or a category for a numeric input. `compute`/`classify` receive categories in a separate typed map (`categories?: Readonly<Record<string, string | undefined>>`), never as magic numbers in `values`. `inputEcho` carries `kind` on every entry and echoes the selected option id and label (`submittedCategory`, `selectedOptionId`, `selectedOptionLabel`); quantity echoes are unchanged apart from the added `kind: 'quantity'`. Population guards and soft checks must reference numeric inputs. BMI/BSA behaviour and versions are untouched.
+
+### Component versions
+
+`egfr-ckd-epi-2021-cr`, composite `formula=1.0.0|population=1.0.0|presentation=1.0.0`: formula `1.0.0`, population `1.0.0`, presentation `1.0.0`, no classification, no confirmation. `FORMULA_APPROVALS` is unchanged (still empty); all three components are pending. Registering a `clinically-reviewed` copy throws without exact approvals.
+
+### Proposed presentation
+
+Output unit `mL/min/1.73 m²`, rounding `half-up-decimal` precision 0 (integer display), proposed pending owner sign-off. Classification is decided from the unrounded value; this candidate has no classifier.
+
+### Limitations
+
+Visible definition text covers: stable adult kidney function only; not for AKI, dialysis or pregnancy; unreliable with extremes of muscle mass, amputation, malnutrition or obesity; requires an IDMS-traceable creatinine assay; the cystatin C equations are separate and not implemented; not Cockcroft–Gault and not for dosing, and de-indexing by BSA does not authorise dosing; no CKD diagnosis or staging from a single value; Romanian population suitability and the sex-coefficient selection need clinical review; display precision is proposed, pending owner sign-off; plus the technical-bounds notice (creatinine 0.1–20 mg/dL / 8.84–1768 µmol/L, age 0–130, labelled not clinically validated).
+
+### Fixtures
+
+Derived fixtures (tolerance 1e-8 on `unroundedValue`, age 60): Scr 1 mg/dL male `86.1626207797`, female `64.4950003539`; male Scr 0.9 `97.7750144829`; female Scr 0.7 `98.9483146567`. Knot continuity within 1e-6 relative on either side of κ per sex. SI check: 88.4 µmol/L equals 1 mg/dL with a visible conversion echo. Age 17 → `out-of-population`, 18 → `ok`. Integer display keeps the unrounded value. The definition is deeply frozen.
+
+### Open owner decisions
+
+1. Integer display (half-up to 0 dp).
+2. The sex-coefficient wording ("Sex used by the equation (female/male coefficients)").
+3. The adult-only scope (age ≥ 18 `out-of-population`).
+4. The technical bounds (creatinine 0.1–20 mg/dL, age 0–130, not clinically validated).
+5. Whether to add soft checks (none declared; confirmation component omitted).
+6. Romanian applicability, including the sex-coefficient selection.
