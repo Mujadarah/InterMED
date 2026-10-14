@@ -145,7 +145,10 @@ export type {
   PairAssessmentSourcePositionEntry,
   PairAssessmentSourceSeverity,
 } from './interactions/types';
-export { assessInteractionPair } from './interactions/assessment';
+export {
+  INTERACTION_ASSESSMENT_LOGIC_VERSION,
+  assessInteractionPair,
+} from './interactions/assessment';
 export {
   canonicalPair,
   evaluateInteractions,

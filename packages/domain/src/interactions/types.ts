@@ -300,7 +300,10 @@ export type PairAssessmentCoverageStatus =
   | 'truncated';
 
 export type PairAssessmentSourcePosition =
-  'documents-interaction' | 'affirms-none' | 'no-coverage' | 'unavailable';
+  | 'documents-interaction'
+  | 'no-record-in-coverage'
+  | 'no-coverage'
+  | 'unavailable';
 
 export interface PairAssessmentSourceSeverity {
   readonly sourceId: DataSourceId;
@@ -333,9 +336,9 @@ export interface PairAssessmentProvenance {
 
 export interface PairAssessment {
   readonly pair: CanonicalIngredientPair;
+  readonly logicVersion: string;
   readonly finding: {
     readonly documentedInteraction: boolean;
-    readonly affirmedNoInteraction: boolean;
     readonly sourceSeverities: readonly PairAssessmentSourceSeverity[];
   };
   readonly evidence: {
