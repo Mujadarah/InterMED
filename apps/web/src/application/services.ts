@@ -18,6 +18,8 @@ import {
 } from './preferences';
 
 export interface AppServices {
+  readonly runtimeMode?: AppConfig['mode'];
+  readonly localStoreSchemaVersion?: number | null;
   readonly info: BootstrapInfo;
   readonly dataset: DatasetStateSource;
   readonly medicationSearch: MedicationSearchService;
@@ -37,10 +39,13 @@ export function createServices(
   medicationSearch: MedicationSearchService = unavailableMedicationSearch,
   medicationDetail: MedicationDetailService = unavailableMedicationDetail,
   preferences: PreferencesService = unavailablePreferencesService,
+  localStoreSchemaVersion: number | null = null,
 ): AppServices {
   if (config.mode !== 'mock') throw new Error('Only mock mode is supported');
   return {
     info: provider.getInfo(),
+    runtimeMode: config.mode,
+    localStoreSchemaVersion,
     dataset,
     medicationSearch,
     medicationDetail,

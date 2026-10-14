@@ -8,6 +8,8 @@ This is evidence for **Milestone 2 only**, under [CODEX_BUILD_PLAN](../plan/CODE
 
 Implementation/testing began on **2026-10-01**; work resumed on **2026-10-06 Europe/Bucharest**. Local automated evidence is recorded below. **Current status (2026-10-06): accepted for development by maintainer decision; the remaining gates moved to the Milestone 12 pre-release checklist and are not waived** (see [the decision record](#owner-acceptance-decision-2026-10-06)). Earlier dated sections that call acceptance open are preserved as historical snapshots. No merge, tag, release, protection/reviewer change or acceptance waiver is part of this work. Milestone 1 evidence and the planning corpus remain historical snapshots.
 
+**Precache budget follow-up (2026-10-14):** [Decision 0004](decisions/0004-precache-asset-budget.md) records the later 24-asset cap, unchanged 2 MiB byte cap, current measurements and renewed latency/integrity verification. The sixteen-asset figures below remain the original M2 history.
+
 ## Reverified starting point and document inventory
 
 Before code changes, `git status`, branches, worktrees, ancestor/repository instructions and remote identity were inspected. There were no preexisting user changes in this checkout. The implementation branch `codex/pwa-milestone-1-bootstrap` and planning worktree `<worktree>` (`plan/pwa-appwrite-revision`, `95722e993cd5b3c8f5c07bbe30d0052eb3a0e3f6`) were preserved.
