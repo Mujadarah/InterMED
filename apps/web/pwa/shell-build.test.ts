@@ -20,6 +20,7 @@ function hook<T>(value: T | { handler: T } | undefined): T {
 const outputDirectory = resolve('/synthetic-project', 'dist');
 let files: Map<string, Buffer>;
 let plugin: Plugin;
+const info = vi.fn();
 
 beforeEach(() => {
   vi.stubEnv('INTERMED_SHELL_REVISION', undefined);
@@ -81,7 +82,7 @@ async function emit(
   const writeBundle = hook(plugin.writeBundle);
   // Only fileName is consumed; the bundler owns the other output metadata.
   await writeBundle.call(
-    {} as never,
+    { info } as never,
     {} as never,
     bundle as unknown as Parameters<typeof writeBundle>[1],
   );
@@ -217,17 +218,17 @@ it('refuses a bundle without its entry HTML', async () => {
   expect(writeFile).not.toHaveBeenCalled();
 });
 
-it('allows sixteen assets but rejects a seventeenth', async () => {
+it('allows twenty-four assets but rejects a twenty-fifth', async () => {
   const names = ['index.html'];
-  for (let i = 0; i < 11; i++) {
+  for (let i = 0; i < 19; i++) {
     const name = `assets/chunk-${i}.js`;
     files.set(name, Buffer.from('synthetic'));
     names.push(name);
   }
-  expect((await emit(names.slice(0, 11))).assets).toHaveLength(16);
+  expect((await emit(names.slice(0, 19))).assets).toHaveLength(24);
   vi.mocked(writeFile).mockClear();
   await expect(emit(names)).rejects.toThrow(
-    'Invalid or oversized public shell',
+    /Public shell precache budget exceeded: 25\/24 assets/,
   );
   expect(writeFile).not.toHaveBeenCalled();
 });
@@ -240,7 +241,9 @@ it('allows exactly two MiB but rejects one additional byte', async () => {
   await emit();
   vi.mocked(writeFile).mockClear();
   files.set('index.html', Buffer.alloc(2 * 1024 * 1024 - others + 1));
-  await expect(emit()).rejects.toThrow('Invalid or oversized public shell');
+  await expect(emit()).rejects.toThrow(
+    /Public shell precache budget exceeded: 8\/24 assets, 2097153\/2097152 bytes/,
+  );
   expect(writeFile).not.toHaveBeenCalled();
 });
 
@@ -250,4 +253,13 @@ it('does not emit a worker when a required public file cannot be read', async ()
     'Missing fixture: icons/maskable-512.png',
   );
   expect(writeFile).not.toHaveBeenCalled();
+});
+
+it('reports the numeric precache budget and remaining asset and byte headroom', async () => {
+  await emit();
+  expect(info).toHaveBeenCalledWith(
+    expect.stringMatching(
+      /Public shell precache budget: 8\/24 assets, \d+\/2097152 bytes; headroom: 16 assets, \d+ bytes/,
+    ),
+  );
 });

@@ -1,9 +1,15 @@
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
+import { runInNewContext } from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
+import type { Socket } from 'node:net';
+import { renderWorker } from '../../apps/web/pwa/worker';
+import type { ShellRelease } from '../../apps/web/pwa/shell-build';
 
 /** Node-only test controls: no admin endpoints are served to the application. */
-export async function productionServer() {
+export async function productionServer(precacheAssets?: number) {
+  const syntheticAssets = new Map<string, string>();
   let revision = 'a';
   let failure:
     | 'none'
@@ -14,6 +20,11 @@ export async function productionServer() {
     | 'offline'
     | 'worker' = 'none';
   const requests: string[] = [];
+  // Every accepted TCP connection, including idle keep-alive and half-open
+  // ones that never complete a request. A real offline origin fails all of
+  // them fast; destroying only on 'request' leaves the rest hanging, and
+  // WebKit's fresh-page navigation can stall behind such a socket.
+  const sockets = new Set<Socket>();
   const server = createServer(async (request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     requests.push(request.url ?? '/');
@@ -27,6 +38,11 @@ export async function productionServer() {
       response.end(
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Worker probe</title></head><body>Worker probe</body></html>',
       );
+      return;
+    }
+    if (syntheticAssets.has(path)) {
+      response.setHeader('Content-Type', 'text/javascript');
+      response.end(syntheticAssets.get(path));
       return;
     }
     if (
@@ -60,6 +76,34 @@ export async function productionServer() {
       if (!target.startsWith(root + '/') && !target.startsWith(root + '\\'))
         throw new Error('Outside test root');
       let bytes = await readFile(target);
+      if (path === '/sw.js' && precacheAssets !== undefined) {
+        // Pad the real production release with pinned synthetic JS, only in tests.
+        const shell = runInNewContext(bytes.toString() + '\nSHELL;', {
+          self: { addEventListener() {} },
+        }) as ShellRelease;
+        if (shell.assets.length > precacheAssets)
+          throw new Error(
+            'Synthetic precache target is below the real asset count',
+          );
+        for (let i = shell.assets.length; i < precacheAssets; i++) {
+          const url = '/assets/budget-fixture-' + i + '.js';
+          const body = '/* synthetic budget fixture ' + i + ' */';
+          syntheticAssets.set(url, body);
+          shell.assets.push({
+            url,
+            hash: createHash('sha256').update(body).digest('hex'),
+            type: 'javascript',
+          });
+        }
+        shell.assets.sort((a, b) => a.url.localeCompare(b.url));
+        shell.version = createHash('sha256')
+          .update(
+            renderWorker({ version: 'identity-input', assets: shell.assets }),
+          )
+          .digest('hex')
+          .slice(0, 20);
+        bytes = Buffer.from(renderWorker(shell));
+      }
       if (failure === 'corrupt' && path === '/icons/icon-512.png')
         bytes = Buffer.from('SYNTHETIC_CORRUPTION');
       if (failure === 'storage' && path === '/sw.js')
@@ -111,6 +155,16 @@ self.addEventListener('message', event => {
       response.end('Missing test asset');
     }
   });
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.once('close', () => {
+      sockets.delete(socket);
+    });
+    // A real offline origin never finishes a handshake: fail connections
+    // accepted while offline immediately, even if the client never sends a
+    // request on them. The per-request destroy below stays as a backstop.
+    if (failure === 'offline') socket.destroy();
+  });
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   const address = server.address();
   if (!address || typeof address === 'string')
@@ -123,6 +177,9 @@ self.addEventListener('message', event => {
     },
     failure: (value: typeof failure) => {
       failure = value;
+      // Fail fast like a real offline origin: tear down idle keep-alive and
+      // half-open connections too, not just sockets carrying a request.
+      if (value === 'offline') for (const socket of sockets) socket.destroy();
     },
     close: async () => {
       server.closeAllConnections();

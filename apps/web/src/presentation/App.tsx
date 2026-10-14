@@ -12,6 +12,7 @@ import type { ReactNode } from 'react';
 import type { ShellController } from '../application/shell';
 import { developmentShell } from '../application/shell';
 import { DatasetStatus } from './DatasetStatus';
+import { DiagnosticsSection } from './DiagnosticsSection';
 import { FavoritesPage } from './FavoritesPage';
 import { LocalPreferencesSettings } from './LocalPreferencesSettings';
 import { RouteFocusContext, useRouteFocus } from './route-focus';
@@ -291,6 +292,12 @@ export function App({
                         </div>
                       </dl>
                       <DatasetStatus dataset={services.dataset} />
+                      <DiagnosticsSection
+                        dataset={services.dataset}
+                        shell={shell}
+                        schemaVersion={services.localStoreSchemaVersion ?? null}
+                        runtimeMode={services.runtimeMode ?? 'mock'}
+                      />
                       <p>
                         This build uses contributor mock mode without accounts
                         or cloud connections. Future clinical content requires

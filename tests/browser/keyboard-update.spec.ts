@@ -29,7 +29,13 @@ const expectKeyboardFocus = async (target: Locator) => {
 };
 
 const tabTo = async (page: Page, target: Locator) => {
-  for (let presses = 0; presses < 12; presses += 1) {
+  // Status-page tools add native tab stops. Bound a full keyboard traversal by
+  // the current controls rather than a fixed count that predates those tools.
+  const traversalBound =
+    (await page
+      .locator('a[href], button, input, select, textarea, [tabindex="0"]')
+      .count()) + 1;
+  for (let presses = 0; presses < traversalBound; presses += 1) {
     if (await target.evaluate((element) => element === document.activeElement))
       break;
     await page.keyboard.press('Tab');

@@ -793,3 +793,12 @@ button {
     flex-direction: column;
   }
 }
+
+.diagnostics-report {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+}

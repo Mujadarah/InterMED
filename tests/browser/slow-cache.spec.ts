@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 import { productionServer } from './production-server';
 
 for (const operation of ['status', 'javascript'] as const) {
-  test(`slow synthetic storage keeps ${operation} within the readiness deadline`, async ({
+  test(`24-asset shell with slow synthetic storage keeps ${operation} within the readiness deadline`, async ({
     page,
   }) => {
-    const server = await productionServer();
+    const server = await productionServer(24);
     server.failure('storage-after');
     try {
       await page.goto(server.url);
@@ -15,6 +15,16 @@ for (const operation of ['status', 'javascript'] as const) {
       await page.waitForFunction(
         () => navigator.serviceWorker.controller !== null,
       );
+      expect(
+        await page.evaluate(async () => {
+          const name = (await caches.keys()).find((value) =>
+            value.startsWith('intermed-public-shell-v1-'),
+          )!;
+          return (await (await caches.open(name)).keys()).length;
+        }),
+      ).toBe(24);
+      // A network fallback must not make the cached-JavaScript check pass.
+      server.failure('offline');
       const result = await page.evaluate(async (kind) => {
         const worker = navigator.serviceWorker.controller!;
         const message = (data: unknown) =>

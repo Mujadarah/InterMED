@@ -80,3 +80,50 @@ test('fits the viewport and records a synthetic shell screenshot', async ({
     fullPage: true,
   });
 });
+
+test('shows local diagnostics on status without external requests', async ({
+  page,
+}) => {
+  const external: string[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).hostname !== '127.0.0.1')
+      external.push(request.url());
+  });
+  await page.goto('/status');
+  const diagnostics = page.getByRole('region', {
+    name: 'Diagnostics',
+    exact: true,
+  });
+  await expect(diagnostics).toBeVisible();
+  await expect(diagnostics.getByLabel('Diagnostics report')).toContainText(
+    'Runtime mode: mock',
+  );
+  await expect(diagnostics.getByLabel('Diagnostics report')).toContainText(
+    'no approved provider',
+  );
+  await expect(diagnostics.getByLabel('Diagnostics report')).toContainText(
+    'unreviewed',
+  );
+  await expect(
+    diagnostics.getByRole('button', { name: 'Copy diagnostics' }),
+  ).toBeEnabled();
+  const download = diagnostics.getByRole('button', {
+    name: 'Download diagnostics JSON',
+  });
+  await download.focus();
+  await expect(download).toBeFocused();
+  const downloaded = page.waitForEvent('download');
+  await page.keyboard.press('Enter');
+  expect((await downloaded).suggestedFilename()).toMatch(
+    /^intermed-diagnostics-\d{4}-\d{2}-\d{2}\.json$/,
+  );
+  await expect(diagnostics.getByRole('status')).toContainText(
+    'Diagnostics downloaded.',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  expect(external).toEqual([]);
+});

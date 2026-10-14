@@ -156,6 +156,53 @@ it('clears every local dataset and preference record explicitly', async () => {
   expect(await store.openReader()).toBeNull();
 });
 
+it('downloads a fresh generation after clear-all-data', async () => {
+  const store = testStore();
+  const alpha = await bundle('alpha');
+  await store.updates.stageAndActivate(alpha.manifest, alpha.text);
+  await store.preferences.addFavorite({
+    productId: alpha.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol alpha',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+  await store.preferences.addRecentSearch({
+    query: 'fictivol',
+    lastKnownDatasetVersionId: alpha.generationId,
+  });
+
+  expect(await store.preferences.clearAllLocalData()).toEqual({
+    status: 'cleared',
+  });
+  expect(store.getState()).toMatchObject({ status: 'never-downloaded' });
+  expect(await store.preferences.listFavorites()).toEqual([]);
+  expect(await store.preferences.listRecentSearches()).toEqual([]);
+  expect(await store.openReader()).toBeNull();
+
+  // A fresh start after the clear: a new generation stages, activates and
+  // reads, and preferences work again against it.
+  const beta = await bundle('beta');
+  await store.updates.stageAndActivate(beta.manifest, beta.text);
+  expect(store.getState()).toMatchObject({
+    status: 'ready',
+    generation: { generationId: beta.generationId },
+  });
+  const reader = (await store.openReader())!;
+  expect(await reader.productIds()).toHaveLength(2);
+  expect(
+    (await reader.product(beta.productIds['SP-FICTIVOL']!))?.commercialName,
+  ).toBe('Fictivol beta');
+  reader.release();
+
+  await store.preferences.addFavorite({
+    productId: beta.productIds['SP-FICTIVOL']!,
+    lastKnownDisplayName: 'Fictivol beta',
+    lastKnownDatasetVersionId: beta.generationId,
+  });
+  expect(await store.preferences.listFavorites()).toMatchObject([
+    { productId: beta.productIds['SP-FICTIVOL'], status: 'available' },
+  ]);
+});
+
 it('orders recent searches by recency and can clear them', async () => {
   const clock = testClock();
   const store = testStore({ now: clock.now });
