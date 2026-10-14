@@ -369,3 +369,45 @@ it('merge level keeps same-source differences out of cross-source lists', async 
   wordingGuard(merged);
   expect(INTERACTION_ASSESSMENT_LOGIC_VERSION).toBe('4.0.0');
 });
+
+it('a merged within-source entry is reported only when the validated evidence for the pair shows it', async () => {
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const documented = cloneResult(
+    await createDisagreementSyntheticProvider().evaluate(request),
+    { sourceId: SOURCE_S1 },
+  );
+  const noRecord = cloneResult(
+    await createNoRecordSyntheticProvider().evaluate(request),
+    { sourceId: SOURCE_S2 },
+  );
+  const merged = mergeProviderResults([documented, noRecord]);
+  expect(merged.withinSourceInconsistencies).toEqual([]);
+
+  // A merge-level entry for a present source that the validated records and
+  // positions do not support must not surface in the assessment.
+  const tampered = {
+    ...merged,
+    withinSourceInconsistencies: [
+      {
+        pair: CONTRACT_PAIR_AB,
+        sourceId: SOURCE_S1,
+        reasons: ['severity-terms-differ' as const],
+        entries: [
+          {
+            providerId: documented.providerId,
+            sourceId: SOURCE_S1,
+            sourceVersion: documented.sourceVersion,
+            status: 'reported' as const,
+            severity: 'stale-term',
+          },
+        ],
+      },
+    ],
+  };
+  const result = assessInteractionPair(tampered, CONTRACT_PAIR_AB);
+
+  expect(result.evidence.withinSourceInconsistencies).toEqual([]);
+  expect(result.finding.documentedInteraction).toBe(true);
+  expect(result.evidence.coverageDiscrepancy).toBe(true);
+  wordingGuard(result);
+});

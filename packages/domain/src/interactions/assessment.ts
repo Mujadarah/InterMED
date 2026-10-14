@@ -5,7 +5,6 @@ import type {
   InteractionEvaluation,
   InteractionEvidence,
   InteractionIncompleteReason,
-  InteractionWithinSourceInconsistency,
   InteractionWithinSourceInconsistencyReason,
   MergedProviderResults,
   PairAssessment,
@@ -62,7 +61,6 @@ interface AssessmentState {
   globalInvalidity: boolean;
   providerUnavailable: boolean;
   evidenceConflict: boolean;
-  readonly mergedWithinSource: InteractionWithinSourceInconsistency[];
 }
 
 const KNOWN_REASONS = new Set([
@@ -629,10 +627,6 @@ function addMergedResults(
       matchesPair(disagreement.pair, requestedKey) &&
       disagreement.reasons.length > 0,
   );
-  for (const entry of merged.withinSourceInconsistencies ?? []) {
-    if (matchesPair(entry.pair, requestedKey))
-      state.mergedWithinSource.push(entry);
-  }
 }
 
 function sourceIsComplete(source: PairSource): boolean {
@@ -804,7 +798,6 @@ function createAssessmentState(): AssessmentState {
     globalInvalidity: false,
     providerUnavailable: false,
     evidenceConflict: false,
-    mergedWithinSource: [],
   };
 }
 
@@ -996,31 +989,9 @@ function createEvidenceDimension(
 function createWithinSourceInconsistencies(
   state: AssessmentState,
 ): PairAssessment['evidence']['withinSourceInconsistencies'] {
-  if (state.mergedWithinSource.length > 0) {
-    const presentSourceIds = new Set(
-      state.sources.map((source) => source.sourceId),
-    );
-    const mapped = state.mergedWithinSource
-      .filter((entry) => presentSourceIds.has(entry.sourceId))
-      .map((entry): PairAssessmentWithinSourceInconsistency => ({
-        sourceId: entry.sourceId,
-        reasons: [...entry.reasons].sort(compareStrings),
-        sourceVersions: [
-          ...new Set(entry.entries.map((item) => item.sourceVersion)),
-        ].sort(compareStrings),
-      }))
-      .sort((left, right) => compareStrings(left.sourceId, right.sourceId));
-    const unique = new Map<string, PairAssessmentWithinSourceInconsistency>();
-    for (const item of mapped) {
-      const key = JSON.stringify([
-        item.sourceId,
-        item.reasons,
-        item.sourceVersions,
-      ]);
-      if (!unique.has(key)) unique.set(key, item);
-    }
-    return [...unique.values()];
-  }
+  // Always derived from this assessment's validated records and source
+  // positions. The merge-level list is never copied in: an entry is reported
+  // only when the validated evidence for this pair shows the inconsistency.
   return deriveWithinSourceFromState(state);
 }
 

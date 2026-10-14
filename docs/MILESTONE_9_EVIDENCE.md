@@ -797,8 +797,8 @@ What changed in 4.0.0 (`INTERACTION_ASSESSMENT_LOGIC_VERSION = '4.0.0'`, exporte
   the merge-level list). `hasCrossSourceSeverityConflict` still compares `sourceId`.
 - `assessment.ts`: `evidence` gains
   `withinSourceInconsistencies: readonly { sourceId; reasons; sourceVersions }[]`,
-  derived from the validated positions and records for the pair; the merged list is used
-  when the input is merged, but only for sources present in this assessment. A
+  derived only from the validated positions and records for the pair, for every input
+  shape; the merge-level list is provenance and is never copied into the assessment. A
   within-source inconsistency never sets `evidenceConflict` or `coverageDiscrepancy`,
   never suppresses a documented finding, and is never phrased as safety or absence. A
   code comment records why source identity, not provider identity, defines independent
