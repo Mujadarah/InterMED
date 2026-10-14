@@ -1,0 +1,98 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ apps/web/pwa/shell-build.test.ts (21 tests | 3 failed) 20ms
+   × allows twenty-four assets but rejects a twenty-fifth 2ms
+   × allows exactly two MiB but rejects one additional byte 5ms
+   × reports the numeric precache budget and remaining asset and byte headroom 2ms
+ ❯ apps/web/pwa/worker.test.ts (71 tests | 1 failed) 98ms
+   × prior release with 24 assets has readiness true 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/pwa/shell-build.test.ts > allows twenty-four assets but rejects a twenty-fifth
+Error: Invalid or oversized public shell
+ ❯ Object.writeBundle apps/web/pwa/shell-build.ts:118:15
+    116|           2 * 1024 * 1024
+    117|       )
+    118|         throw new Error('Invalid or oversized public shell');
+       |               ^
+    119|       const assets = entries
+    120|         .sort((a, b) => a.url.localeCompare(b.url))
+ ❯ emit apps/web/pwa/shell-build.test.ts:84:3
+ ❯ apps/web/pwa/shell-build.test.ts:228:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  apps/web/pwa/shell-build.test.ts > allows exactly two MiB but rejects one additional byte
+AssertionError: expected [Function] to throw error matching /Public shell preca…/24 assets, 2097153\ but got 'Invalid or oversized public shell'
+
+- Expected:
+/Public shell precache budget exceeded: 8\/24 assets, 2097153\/2097152 bytes/
+
++ Received:
+"Invalid or oversized public shell"
+
+ ❯ apps/web/pwa/shell-build.test.ts:242:23
+    240|   vi.mocked(writeFile).mockClear();
+    241|   files.set('index.html', Buffer.alloc(2 * 1024 * 1024 - others + 1));
+    242|   await expect(emit()).rejects.toThrow(/Public shell precache budget e…
+       |                       ^
+    243|   expect(writeFile).not.toHaveBeenCalled();
+    244| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  apps/web/pwa/shell-build.test.ts > reports the numeric precache budget and remaining asset and byte headroom
+AssertionError: expected "vi.fn()" to be called with arguments: [ StringMatching{…} ]
+
+Number of calls: 0
+
+ ❯ apps/web/pwa/shell-build.test.ts:256:16
+    254| it('reports the numeric precache budget and remaining asset and byte h…
+    255|   await emit();
+    256|   expect(info).toHaveBeenCalledWith(expect.stringMatching(/Public shel…
+       |                ^
+    257| });
+    258|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  apps/web/pwa/worker.test.ts > prior release with 24 assets has readiness true
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
+-     "fallback": true,
+-     "ready": true,
++   {
++     "fallback": false,
++     "ready": false,
+      "storageAccessible": true,
++     "version": "aaaaaaaaaaaaaaaaaaaa",
++     "workerVersion": "aaaaaaaaaaaaaaaaaaaa",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ apps/web/pwa/worker.test.ts:644:47
+    642|     const env = worker({ version, assets }, assetBodies);
+    643|     const cache = await env.seed(priorVersion, 1);
+    644|     expect(await env.message('SHELL_STATUS')).toHaveBeenCalledWith(
+       |                                               ^
+    645|       expect.objectContaining({ ready, storageAccessible: true, fallba…
+    646|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 88 passed (92)
+   Start at  15:07:29
+   Duration  294ms (transform 74ms, setup 0ms, import 131ms, tests 118ms, environment 0ms)

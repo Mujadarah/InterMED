@@ -1,9 +1,14 @@
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
+import { runInNewContext } from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
+import { renderWorker } from '../../apps/web/pwa/worker';
+import type { ShellRelease } from '../../apps/web/pwa/shell-build';
 
 /** Node-only test controls: no admin endpoints are served to the application. */
-export async function productionServer() {
+export async function productionServer(precacheAssets?: number) {
+  const syntheticAssets = new Map<string, string>();
   let revision = 'a';
   let failure:
     | 'none'
@@ -27,6 +32,11 @@ export async function productionServer() {
       response.end(
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Worker probe</title></head><body>Worker probe</body></html>',
       );
+      return;
+    }
+    if (syntheticAssets.has(path)) {
+      response.setHeader('Content-Type', 'text/javascript');
+      response.end(syntheticAssets.get(path));
       return;
     }
     if (
@@ -60,6 +70,34 @@ export async function productionServer() {
       if (!target.startsWith(root + '/') && !target.startsWith(root + '\\'))
         throw new Error('Outside test root');
       let bytes = await readFile(target);
+      if (path === '/sw.js' && precacheAssets !== undefined) {
+        // Pad the real production release with pinned synthetic JS, only in tests.
+        const shell = runInNewContext(bytes.toString() + '\nSHELL;', {
+          self: { addEventListener() {} },
+        }) as ShellRelease;
+        if (shell.assets.length > precacheAssets)
+          throw new Error(
+            'Synthetic precache target is below the real asset count',
+          );
+        for (let i = shell.assets.length; i < precacheAssets; i++) {
+          const url = '/assets/budget-fixture-' + i + '.js';
+          const body = '/* synthetic budget fixture ' + i + ' */';
+          syntheticAssets.set(url, body);
+          shell.assets.push({
+            url,
+            hash: createHash('sha256').update(body).digest('hex'),
+            type: 'javascript',
+          });
+        }
+        shell.assets.sort((a, b) => a.url.localeCompare(b.url));
+        shell.version = createHash('sha256')
+          .update(
+            renderWorker({ version: 'identity-input', assets: shell.assets }),
+          )
+          .digest('hex')
+          .slice(0, 20);
+        bytes = Buffer.from(renderWorker(shell));
+      }
       if (failure === 'corrupt' && path === '/icons/icon-512.png')
         bytes = Buffer.from('SYNTHETIC_CORRUPTION');
       if (failure === 'storage' && path === '/sw.js')
