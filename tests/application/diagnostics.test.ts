@@ -1,3 +1,4 @@
+import { mustId } from '../domain/builders';
 import 'fake-indexeddb/auto';
 import { expect, it } from 'vitest';
 import {
@@ -177,13 +178,21 @@ it('excludes seeded favorites, recent searches, viewed medication names and extr
   try {
     await store.open();
     await store.preferences.addFavorite({
-      productId: 'mp\u001ftest\u001fPRIVATE_PRODUCT',
+      productId: mustId('MedicationProduct', 'test', 'PRIVATE_PRODUCT'),
       lastKnownDisplayName: 'PRIVATE_MEDICATION_NAME',
-      lastKnownDatasetVersionId: 'PRIVATE_PREFERENCE_VERSION',
+      lastKnownDatasetVersionId: mustId(
+        'DatasetVersion',
+        'test',
+        'PRIVATE_PREFERENCE_VERSION',
+      ),
     });
     await store.preferences.addRecentSearch({
       query: 'PRIVATE_SEARCH_QUERY',
-      lastKnownDatasetVersionId: 'PRIVATE_HISTORY_VERSION',
+      lastKnownDatasetVersionId: mustId(
+        'DatasetVersion',
+        'test',
+        'PRIVATE_HISTORY_VERSION',
+      ),
     });
     const favorites = await store.preferences.listFavorites();
     const recentSearches = await store.preferences.listRecentSearches();
