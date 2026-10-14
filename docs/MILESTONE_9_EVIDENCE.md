@@ -541,12 +541,12 @@ The actual exported API at this baseline is **`assessInteractionPair(input, pair
 
 Each returned assessment contains all four dimensions and `provenance`; no dimension replaces another with a single clinical verdict:
 
-| Dimension  | Fields                                                                       | Meaning                                                                                                                  |
-| ---------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `finding`  | `documentedInteraction`, `affirmedNoInteraction`, `sourceSeverities`         | Current documented findings, a tightly constrained source-affirmed negative finding, and source-specific severity terms. |
-| `evidence` | `evidenceConflict`, `positions`, `sourceStatedUncertainty`, `evidenceLevels` | Conflicting evidence/positions, source statements, explicit uncertainty and source-supplied evidence levels.             |
-| `currency` | `currentRecordIds`, `historicalRecordIds`, `outdatedRecordIds`               | Valid current findings, retained history and source-version-mismatched records.                                          |
-| `coverage` | `status`, `coverageComplete`, `reasons`                                      | Pair-specific evaluation availability/completeness and its limitations.                                                  |
+| Dimension  | Fields                                                                       | Meaning                                                                                                                                                                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `finding`  | `documentedInteraction`, `affirmedNoInteraction`, `sourceSeverities`         | Current documented findings, a tightly constrained source-affirmed negative finding, and source-specific severity terms. **Superseded by assessment logic 2.0.0 (see Owner sign-off 2026-10-14 below): `affirmedNoInteraction` is removed and there is no affirmative-negative finding concept.** |
+| `evidence` | `evidenceConflict`, `positions`, `sourceStatedUncertainty`, `evidenceLevels` | Conflicting evidence/positions, source statements, explicit uncertainty and source-supplied evidence levels.                                                                                                                                                                                      |
+| `currency` | `currentRecordIds`, `historicalRecordIds`, `outdatedRecordIds`               | Valid current findings, retained history and source-version-mismatched records.                                                                                                                                                                                                                   |
+| `coverage` | `status`, `coverageComplete`, `reasons`                                      | Pair-specific evaluation availability/completeness and its limitations.                                                                                                                                                                                                                           |
 
 A current finding can coexist with conflicting evidence, historical records, uncertainty or incomplete coverage. A withdrawn record never cancels a current finding. The assessment generates no “safe” or unqualified “no interaction” message; it preserves structured facts without a generated clinical explanation.
 
@@ -556,6 +556,8 @@ A current finding can coexist with conflicting evidence, historical records, unc
 
 `finding.affirmedNoInteraction` is true only if at least one source position is `affirms-none`, **coverage is complete**, and there is **no valid current documenting record**. A complete source's explicit `covered-no-record` coverage with no source records supplies that negative position. Missing records alone, historical-only records, unresolved inputs, omitted coverage, unsupported context, provider unavailability, online-only/offline restrictions, blocked rights or truncated evaluation cannot establish the flag. A source's negative position cannot cancel another source's current documented finding; both source positions remain visible.
 
+> Superseded by assessment logic 2.0.0 (see Owner sign-off 2026-10-14 below). Covered-no-record is not a negative assertion: the `affirms-none` position and `finding.affirmedNoInteraction` no longer exist. A complete covered-no-record source reports `no-record-in-coverage` and never an affirmative claim that no interaction exists.
+
 `sourceSeverities` preserves entries for all retained pair records, including history/outdated records, with `sourceId`, `sourceVersion`, `recordId` and verbatim `severityTerm` only when supplied. No combined severity or inferred term is produced. For evaluation inputs, `normalizedSeverity` is exposed only when the evaluation mapping is reviewed, the record explicitly carries the reviewed flag and the mapping version matches. A matching unreviewed mapping is marked `severityMappingReviewed: false` without exposing its normalized severity. Merged raw provider input has no evaluation mapping-review context, so the assessment preserves raw terms without inventing reviewed normalization.
 
 ### Evidence: conflicts, source positions and uncertainty
@@ -563,18 +565,20 @@ A current finding can coexist with conflicting evidence, historical records, unc
 `evidence.evidenceConflict` combines three inputs:
 
 - Explicit non-empty disagreements for the pair supplied through `MergedProviderResults`.
-- Coexisting `documents-interaction` and `affirms-none` source positions.
+- Coexisting `documents-interaction` and `affirms-none` source positions. **Superseded by assessment logic 2.0.0: the second position is now `no-record-in-coverage`, and the conflict is a disagreement in what sources hold, not a negative finding.**
 - Different verbatim severity terms on valid current records from **different `sourceId` values**. The direct comparison requires both terms to be present; provider identity alone is not the source identity check.
 
 The `dabf2bb` regression tests pin the last rule: differing current-record severities within **one source** remain separate terms and do not alone trigger that comparison; differing terms across **different sources** do. Historical/outdated terms are preserved but are not fed to this direct current-record comparison. Explicit merged disagreements remain separate supplied inputs; the assessment does not reclassify their supplied disagreement reasons.
 
 Each `positions` entry includes `sourceId`, `sourceVersion` and one of `documents-interaction`, `affirms-none`, `no-coverage` or `unavailable`. A source with a non-historical `current` record reports `documents-interaction`; a historical-only source reports `no-coverage`; otherwise unavailable sources report `unavailable`, and available, non-stale, structurally valid `covered-no-record` sources report `affirms-none`. Other cases report `no-coverage`. Positions preserve what a source reports and can therefore coexist with a false current-finding flag for an outdated record or with incomplete overall coverage. Identical source/version/position entries are deduplicated and sorted.
 
+> Superseded by assessment logic 2.0.0 (see Owner sign-off 2026-10-14 below). The position is now `no-record-in-coverage` (not `affirms-none`): "No interaction record identified within that source's evaluated coverage." It is never an affirmative clinical assertion that no interaction exists.
+
 `sourceStatedUncertainty` is true when any retained pair record explicitly supplies `sourceStatesUncertainEvidence === true`, including historical/outdated records. It is not inferred from missing fields, source age, unreviewed mappings or a text evidence label. `evidenceLevels` retains each record's `sourceId`, `recordId` and optional verbatim `evidenceLevel`; missing levels remain absent. Uncertainty is independent of `evidenceConflict` and `documentedInteraction`.
 
 ### Currency and per-record provenance
 
-`currentRecordIds` contains the valid-current set used for `documentedInteraction`; `historicalRecordIds` contains superseded/withdrawn records and records supplied through `inactiveRecords`; `outdatedRecordIds` contains source-version-mismatched records (or an evaluator-derived outdated flag for evaluation input). These are separately deduplicated and sorted sets, not mutually exclusive lifecycle labels: a historical record may also be outdated. Neither history nor an outdated record overrides a current record. Historical-only assessments keep the history and incomplete coverage without affirming a negative finding.
+`currentRecordIds` contains the valid-current set used for `documentedInteraction`; `historicalRecordIds` contains superseded/withdrawn records and records supplied through `inactiveRecords`; `outdatedRecordIds` contains source-version-mismatched records (or an evaluator-derived outdated flag for evaluation input). These are separately deduplicated and sorted sets, not mutually exclusive lifecycle labels: a historical record may also be outdated. Neither history nor an outdated record overrides a current record. Historical-only assessments keep the history and incomplete coverage with no affirmative-negative finding concept (superseded wording for the former `affirmedNoInteraction` flag; see assessment logic 2.0.0 below).
 
 `provenance` retains `sourceId`, `sourceVersion`, `recordId`, `datasetVersionId` and optional `retrievedAt` per record. Retrieval time comes from matching linked evidence for the same record/source/version, choosing the first sorted supplied timestamp, or an available pair-coverage/provider-result fallback; no current timestamp is invented. Source and dataset versions are never rewritten to make a record appear current. For raw `MergedProviderResults`, the assessment checks each record against its provider-result source/version; there is no evaluation-level pinned dataset comparison on that input path, while each record's dataset version remains in provenance.
 
@@ -591,6 +595,8 @@ Each `positions` entry includes `sourceId`, `sourceVersion` and one of `document
 The existing provider contract still asserts explicit lifecycle metadata/history, source terminology and absent fields, fixed expected pair coverage, evidence links, canonical ordering, errors/timeouts, offline availability, request propagation and coverage completeness. Lifecycle fixtures retain withdrawn-only, superseded-only, superseded-plus-current, withdrawn-with-claimed-covered-no-record, outdated and explicitly uncertain records. The new withdrawn-plus-current fixture confirms that withdrawn history and a current documented record coexist. Existing reversed-pair, outside/self-pair, omitted-coverage, provider-identity and dangling-evidence tests remain in place.
 
 `tests/domain/interaction-dimensions.test.ts` now contains **13 tests**: ten named scenarios, removal of the rejected API, and two severity-conflict regressions. They cover current findings alongside source disagreement; withdrawn-plus-current history; historical-only findings; complete source-affirmed negative coverage; a negative source alongside another current finding; incomplete/unresolved/unsupported/unavailable/offline/rights-blocked/truncated coverage; outdated source versions; explicit uncertainty/evidence levels; neutral structured output; deterministic deeply frozen assessments; and same-source versus cross-source severity differences. The scenarios also verify reviewed versus unreviewed severity mappings. These synthetic tests establish contract behavior, not final clinical acceptance.
+
+> Superseded in part by assessment logic 2.0.0 (see Owner sign-off 2026-10-14 below). "Complete source-affirmed negative coverage" and "a negative source" now mean complete covered-no-record reported as `no-record-in-coverage` with no `affirmedNoInteraction` concept; scenarios 4, 5 and 9 are re-tested under logic 2.0.0.
 
 ### Recorded checks and post-merge verification
 
@@ -612,7 +618,7 @@ The documentation worker independently reran lint, typecheck, unit tests and arc
 Commit `9578e0d` (found in an independent read-only review) closes a robustness gap on the raw `MergedProviderResults` path. The structural `isProviderResult` guard moved from `evaluate.ts` into a shared `provider-result.ts`. Evaluation behaviour is unchanged.
 
 - `mergeProviderResults` keeps a malformed payload in `providerResults` but takes no records, evidence, source versions or disagreements from it.
-- `assessInteractionPair` reports that source as unavailable with `provider-result-invalid`, so the pair's coverage status is `unavailable` and `affirmedNoInteraction` stays false. Before this fix, the code threw a `TypeError` and returned no assessment.
+- `assessInteractionPair` reports that source as unavailable with `provider-result-invalid`, so the pair's coverage status is `unavailable` and there is no affirmative-negative finding (formerly `affirmedNoInteraction` stays false; superseded by assessment logic 2.0.0 where the field is removed). Before this fix, the code threw a `TypeError` and returned no assessment.
 - A valid source's current documented finding remains visible.
 
 The fixture-only reason `synthetic-partial-coverage` is no longer whitelisted in production coverage reasons.
@@ -631,3 +637,31 @@ Four new tests (scenarios 11, 13 and 14, plus a guard test) failed against the p
 ### Pending owner clinical sign-off
 
 The owner's 2026-10-12 decision selects independent finding/evidence/currency/coverage dimensions and record-level provenance; final clinical sign-off of the implemented semantics and presentation is still pending. Review must retain current documented findings alongside conflict, history and coverage limits; keep source-affirmed negatives conditional on complete coverage; preserve verbatim source severity/positions/uncertainty; and avoid an overall clinical verdict. Provider selection, source rights, reviewed ingredient/severity mappings, real-provider clinical validation and M10 presentation remain open as described above and in `docs/INTERACTION_SOURCE_ASSESSMENT.md`.
+
+> Superseded in part by the 2026-10-14 sign-off below: source-affirmed negatives conditional on complete coverage are replaced by assessment logic 2.0.0, where covered-no-record is never a negative finding.
+
+## Owner sign-off (2026-10-14) and assessment logic 2.0.0
+
+Owner decisions on `tests/domain/interaction-dimensions.test.ts` (surgeon, clinical reviewer):
+
+- Approved as presented: scenarios 1-3, 6-8, 10-14.
+- Scenario 4 — change required. A source reporting complete pair coverage with no interaction record must be described as "No interaction record identified within Source X's evaluated coverage." Covered-no-record must not be interpreted as an affirmative clinical assertion that no interaction exists. `finding.affirmedNoInteraction` and the `affirms-none` position must not be set solely because a source covers a pair and returns an empty record set. An explicit, supported source assertion may be represented separately from the absence of records.
+- Scenario 5 — principle approved, implementation must match scenario 4. A documented interaction from any current valid source stays visible even if another source has no record or explicitly reports a conflicting conclusion. Each source's actual position is preserved without interpreting record absence as an affirmative negative.
+- Scenario 9 — change required. InterMED must never generate an unqualified statement declaring a combination "safe" or "no interaction". Original source wording may be reproduced verbatim only when clearly identified as a source statement with provenance, limitations and version; it must never become InterMED's own verdict. Source-native severity terms and evidence grades are kept; unreviewed severity mappings are never clinically authoritative.
+
+What changed in 2.0.0 (`INTERACTION_ASSESSMENT_LOGIC_VERSION = '2.0.0'`, exported from `@intermed/domain`):
+
+- `PairAssessmentSourcePosition`: `'affirms-none'` is replaced by `'no-record-in-coverage'`.
+- `PairAssessment.finding.affirmedNoInteraction` is removed. The finding holds only `documentedInteraction` plus `sourceSeverities`. No provider format today carries an explicit, verbatim source assertion, so nothing may set a negative finding.
+- `PairAssessment` carries `readonly logicVersion: string`, set to `'2.0.0'` on every assessment, including unavailable and malformed-payload paths. Assessments remain deeply frozen and deterministic.
+- `evidenceConflict` remains true when one source documents an interaction and another has no record in coverage. This is a disagreement in what sources hold, not a negative finding.
+- Scenarios 4, 5 and 9 are re-tested under logic 2.0.0 and are pending owner approval at logic 2.0.0.
+
+Fixed display sentences for the UI:
+
+- "No interaction record identified within Source X's evaluated coverage."
+- "Absence of a record does not mean the combination is safe."
+
+Source-statement rule (scenario 9): the assessment JSON contains no "safe" or "no interaction" wording across no-record, documented, conflicting, historical-only and unavailable cases, and no key or value contains an affirmative-negative concept. InterMED never issues its own unqualified "safe" or "no interaction" verdict. A future explicit source assertion is out of scope for 2.0.0 and would require, at minimum, the verbatim source statement with its sourceId, sourceVersion and recordId, stated limitations, an explicit "source statement" label, separate versioning, and owner approval. It is documented here only; it is not implemented.
+
+Boundaries: this sign-off does not approve a live provider, a medication database, severity mappings, dosing rules or public clinical release. All fixtures remain synthetic; provider selection, source rights, reviewed ingredient and severity mappings, real-provider clinical validation and M10 presentation remain open.
