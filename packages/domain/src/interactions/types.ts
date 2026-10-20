@@ -334,6 +334,12 @@ export interface PairAssessmentProvenance {
   readonly retrievedAt?: string;
 }
 
+export interface PairAssessmentWithinSourceInconsistency {
+  readonly sourceId: DataSourceId;
+  readonly reasons: readonly InteractionWithinSourceInconsistencyReason[];
+  readonly sourceVersions: readonly string[];
+}
+
 export interface PairAssessment {
   readonly pair: CanonicalIngredientPair;
   readonly logicVersion: string;
@@ -344,6 +350,7 @@ export interface PairAssessment {
   readonly evidence: {
     readonly evidenceConflict: boolean;
     readonly coverageDiscrepancy: boolean;
+    readonly withinSourceInconsistencies: readonly PairAssessmentWithinSourceInconsistency[];
     readonly positions: readonly PairAssessmentSourcePositionEntry[];
     readonly sourceStatedUncertainty: boolean;
     readonly evidenceLevels: readonly PairAssessmentEvidenceLevel[];
@@ -367,6 +374,24 @@ export type PairAssessmentInput =
   | MergedProviderResults;
 
 export type InteractionDisagreementReason = 'severity-terms-differ';
+
+export type InteractionWithinSourceInconsistencyReason =
+  'severity-terms-differ' | 'reported-vs-covered-no-record';
+
+export interface InteractionWithinSourceInconsistencyEntry {
+  readonly providerId: string;
+  readonly sourceId: DataSourceId;
+  readonly sourceVersion: string;
+  readonly status: PairCoverageStatus;
+  readonly severity?: string;
+}
+
+export interface InteractionWithinSourceInconsistency {
+  readonly pair: CanonicalIngredientPair;
+  readonly sourceId: DataSourceId;
+  readonly reasons: readonly InteractionWithinSourceInconsistencyReason[];
+  readonly entries: readonly InteractionWithinSourceInconsistencyEntry[];
+}
 
 export interface InteractionDisagreementTerm {
   readonly providerId: string;
@@ -400,6 +425,7 @@ export interface MergedProviderResults {
   readonly sourceVersions: readonly InteractionSourceVersion[];
   readonly disagreements: readonly InteractionDisagreement[];
   readonly coverageDiscrepancies: readonly InteractionCoverageDiscrepancy[];
+  readonly withinSourceInconsistencies: readonly InteractionWithinSourceInconsistency[];
 }
 
 export interface EvaluationBase {
