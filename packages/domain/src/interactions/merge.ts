@@ -253,6 +253,7 @@ function hasCurrentRecordForPair(
   return result.records.some(
     (record) =>
       record.recordStatus === 'current' &&
+      record.sourceId === result.sourceId &&
       record.sourceVersion === result.sourceVersion &&
       pairKey(canonicalPair(record.ingredientAId, record.ingredientBId)) ===
         key,
@@ -412,7 +413,7 @@ function deriveWithinSourceInconsistencies(
         const effectiveStatuses: PairCoverageStatus[] =
           statuses.length > 0
             ? statuses
-            : severities.length > 0
+            : hasCurrentRecordForPair(providerResults, index, finding.pair)
               ? (['reported'] as PairCoverageStatus[])
               : [];
         if (effectiveStatuses.length === 0) continue;

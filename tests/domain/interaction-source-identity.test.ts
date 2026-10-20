@@ -443,3 +443,51 @@ it('merge counts a current record without a coverage row as reporting for within
     wordingGuard(result);
   }
 });
+
+it('merge keeps both sides of a record-only mismatch and ignores records from another source', async () => {
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const documented = cloneResult(
+    await createDisagreementSyntheticProvider().evaluate(request),
+    { providerId: 'synthetic-s1-adapter-a', sourceId: SOURCE_S1 },
+  );
+  const noRecord = cloneResult(
+    await createNoRecordSyntheticProvider().evaluate(request),
+    { providerId: 'synthetic-s1-adapter-b', sourceId: SOURCE_S1 },
+  );
+
+  // A current record without a severity term and without a coverage row still
+  // reports the pair; both providers must appear in the provenance entries.
+  const recordOnlyNoSeverity = {
+    ...documented,
+    pairCoverage: [],
+    records: documented.records.map(
+      (record) =>
+        Object.fromEntries(
+          Object.entries(record).filter(([key]) => key !== 'severity'),
+        ) as typeof record,
+    ),
+  };
+  const merged = mergeProviderResults([recordOnlyNoSeverity, noRecord]);
+  const entry = merged.withinSourceInconsistencies.find(
+    (item) => item.sourceId === SOURCE_S1,
+  );
+  expect(entry?.reasons).toContain('reported-vs-covered-no-record');
+  expect(new Set(entry?.entries.map((item) => item.providerId))).toEqual(
+    new Set(['synthetic-s1-adapter-a', 'synthetic-s1-adapter-b']),
+  );
+
+  // A record whose sourceId differs from its provider result is not counted
+  // as that source reporting the pair.
+  const foreignRecordOnly = {
+    ...documented,
+    pairCoverage: [],
+    records: documented.records.map((record) => ({
+      ...record,
+      sourceId: SOURCE_S2,
+    })),
+  };
+  const mergedForeign = mergeProviderResults([foreignRecordOnly, noRecord]);
+  expect(
+    mergedForeign.withinSourceInconsistencies.flatMap((item) => item.reasons),
+  ).not.toContain('reported-vs-covered-no-record');
+});
