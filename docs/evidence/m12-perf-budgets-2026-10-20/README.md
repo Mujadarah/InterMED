@@ -129,3 +129,15 @@ process was stopped. No CI result is implied by a local pass.
 
 - Every wait in the first-load test now gets the time left until the shared 10 s first-interactive deadline. A slow but valid load is therefore judged by the budget assertion, instead of failing early on Playwright's default 5 s assertion timeout.
 - The byte window now ends only after the service worker reports `activated`, so the total includes the full shell precache. The re-measured total was 1,280,116 bytes over 26 responses (budget 1,500,000), matching the earlier figure within main's latest changes. Repeated 3/3 on chromium-desktop.
+
+## Re-baseline for the M10 checker route (PR #43)
+
+The M10 interaction checker is loaded lazily. This adds two production chunks and grows the shared stylesheet. The new and changed entries below use the same rule as the first baseline: the local build-output measurement plus about 15%, rounded up to the next 100 bytes. All other budgets are unchanged.
+
+| Asset                              | Measured gzip bytes |      Budget bytes |
+| ---------------------------------- | ------------------: | ----------------: |
+| `InteractionCheckerPage-[hash].js` |               9,601 |            11,100 |
+| `route-focus-[hash].js`            |                 430 |               500 |
+| `index-[hash].css`                 |               3,445 | 4,000 (was 3,200) |
+
+The aggregate cap rises by the new and changed per-asset budgets, from 226,900 to 239,300 bytes. The measured total was 203,879 bytes. Measurements are from the `M12_BUNDLE_GZIP` line printed by `apps/web/pwa/build-output.test.ts`.

@@ -442,7 +442,7 @@ it('renders covered no-record wording exactly and keeps the fixed warning', asyn
     name: 'Ingredient pair 1 assessment',
   });
   expect(
-    within(pair).getByText('Assessment logic version: 3.0.0.'),
+    within(pair).getByText('Assessment logic version: 4.0.0.'),
   ).toBeVisible();
   expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
   expect(
@@ -504,7 +504,7 @@ it('keeps a current interaction visible beside another source no-record position
     within(pair).queryByText(/Evidence conflict:/i),
   ).not.toBeInTheDocument();
   expect(
-    within(pair).getByText('Assessment logic version: 3.0.0.'),
+    within(pair).getByText('Assessment logic version: 4.0.0.'),
   ).toBeVisible();
   expect(
     within(pair).getByText(
