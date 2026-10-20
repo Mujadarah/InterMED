@@ -21,6 +21,39 @@ const buildDirectory = await mkdtemp(join(tmpdir(), 'intermed-build-output-'));
 /** Vite reports kilobytes as 1 kB = 1,000 bytes, so the 500 kB advisory is 500,000 bytes. */
 const maxChunkBytes = 500_000;
 
+/**
+ * Effective headers for a request path under Netlify / Cloudflare Pages
+ * `_headers` semantics: every matching rule applies, and a header set by
+ * more than one rule has its values joined with ", ".
+ */
+function effectiveHeaders(
+  headersFile: string,
+  requestPath: string,
+): Record<string, string> {
+  const effective: Record<string, string[]> = {};
+  let matches = false;
+  for (const line of headersFile.split('\n')) {
+    if (line.trim() === '') continue;
+    if (!line.startsWith(' ')) {
+      const rule = line.trim();
+      matches = rule.endsWith('*')
+        ? requestPath.startsWith(rule.slice(0, -1))
+        : requestPath === rule;
+      continue;
+    }
+    if (!matches) continue;
+    const separator = line.indexOf(':');
+    const name = line.slice(0, separator).trim();
+    (effective[name] ??= []).push(line.slice(separator + 1).trim());
+  }
+  return Object.fromEntries(
+    Object.entries(effective).map(([name, values]) => [
+      name,
+      [...new Set(values)].join(', '),
+    ]),
+  );
+}
+
 afterAll(async () => {
   await rm(buildDirectory, { recursive: true, force: true });
 });
@@ -132,6 +165,15 @@ it('emits _headers and security-headers.json agreeing with buildSecurityHeaders(
     `  Content-Security-Policy: ${headerContentSecurityPolicy}`,
   );
   expect(headersFile).toContain('  Cache-Control: no-cache');
+  // Overlapping rules must resolve to exactly the intended set per route:
+  // `/sw.js` also matches `/*`, so every shared header must be identical.
+  expect(effectiveHeaders(headersFile, '/')).toEqual(headers);
+  expect(effectiveHeaders(headersFile, '/medications/SP-1')).toEqual(headers);
+  expect(effectiveHeaders(headersFile, '/sw.js')).toEqual(swHeaders);
+  const rawSwValues = headersFile
+    .split('\n')
+    .filter((line) => line.startsWith('  Content-Security-Policy:'));
+  expect(new Set(rawSwValues).size).toBe(1);
 });
 
 it('excludes the generated host files from the precache list', async () => {

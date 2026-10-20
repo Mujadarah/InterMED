@@ -1,4 +1,4 @@
-import { expect, test, type ConsoleMessage } from '@playwright/test';
+import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 import {
   buildSecurityHeaders,
   buildSwSecurityHeaders,
@@ -84,6 +84,25 @@ test('loads and works with the security headers on', async ({
   }
 });
 
+/**
+ * Render a static iframe, then assign its URL through the DOM so no URL is
+ * ever interpolated into HTML markup.
+ */
+async function loadIntoStaticFrame(
+  page: Page,
+  url: string,
+  title: string,
+): Promise<void> {
+  await page.setContent("<iframe width='800' height='600'></iframe>");
+  await page.locator('iframe').evaluate(
+    (frame, input) => {
+      frame.setAttribute('title', input.title);
+      frame.setAttribute('src', input.url);
+    },
+    { url, title },
+  );
+}
+
 test('refuses to frame the origin', async ({ page }, testInfo) => {
   chromiumOnly(testInfo);
   // The vessel carries no CSP of its own, so only the framed response's
@@ -98,9 +117,7 @@ test('refuses to frame the origin', async ({ page }, testInfo) => {
     ).toBeVisible();
 
     // Control: without the response headers the same origin frames fine.
-    await page.setContent(
-      `<iframe src='${plain.url}/' width='800' height='600' title='framing control'></iframe>`,
-    );
+    await loadIntoStaticFrame(page, `${plain.url}/`, 'framing control');
     await expect(
       page
         .frameLocator('iframe')
@@ -112,9 +129,7 @@ test('refuses to frame the origin', async ({ page }, testInfo) => {
         message.type() === 'error' && /frame-ancestors/i.test(message.text()),
       timeout: 10_000,
     });
-    await page.setContent(
-      `<iframe src='${server.url}/' width='800' height='600' title='framing probe'></iframe>`,
-    );
+    await loadIntoStaticFrame(page, `${server.url}/`, 'framing probe');
     await refused;
     // The framed shell must never render inside the probing page.
     const framed = page.frameLocator('iframe');
