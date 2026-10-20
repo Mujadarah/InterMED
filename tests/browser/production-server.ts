@@ -6,9 +6,16 @@ import { resolve, extname } from 'node:path';
 import type { Socket } from 'node:net';
 import { renderWorker } from '../../apps/web/pwa/worker';
 import type { ShellRelease } from '../../apps/web/pwa/shell-build';
+import {
+  buildSecurityHeaders,
+  buildSwSecurityHeaders,
+} from '../../apps/web/security-headers';
 
 /** Node-only test controls: no admin endpoints are served to the application. */
-export async function productionServer(precacheAssets?: number) {
+export async function productionServer(
+  precacheAssets?: number,
+  options?: { securityHeaders?: boolean },
+) {
   const syntheticAssets = new Map<string, string>();
   let revision = 'a';
   let failure:
@@ -29,6 +36,12 @@ export async function productionServer(precacheAssets?: number) {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     requests.push(request.url ?? '/');
     response.setHeader('Cache-Control', 'no-store');
+    if (options?.securityHeaders) {
+      const headers =
+        path === '/sw.js' ? buildSwSecurityHeaders() : buildSecurityHeaders();
+      for (const [name, value] of Object.entries(headers))
+        response.setHeader(name, value);
+    }
     if (failure === 'offline') {
       request.socket.destroy();
       return;
@@ -37,6 +50,22 @@ export async function productionServer(precacheAssets?: number) {
       response.setHeader('Content-Type', 'text/html');
       response.end(
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Worker probe</title></head><body>Worker probe</body></html>',
+      );
+      return;
+    }
+    if (path === '/test-framing-parent.html') {
+      // Bare vessel for the framing probe: the fixture HTML without its
+      // meta CSP, so only the framed response's `frame-ancestors` decides.
+      const shell = await readFile(
+        resolve(`artifacts/pwa-${revision}`, 'index.html'),
+        'utf8',
+      );
+      response.setHeader('Content-Type', 'text/html');
+      response.end(
+        shell.replace(
+          /<meta[^>]*http-equiv="Content-Security-Policy"[^>]*>/,
+          '',
+        ),
       );
       return;
     }
