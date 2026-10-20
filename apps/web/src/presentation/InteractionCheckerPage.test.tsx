@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import {
@@ -745,6 +745,57 @@ it('keeps the selected list ephemeral and provides a named remove button', async
   expect(
     within(selected).queryByText(product.commercialName),
   ).not.toBeInTheDocument();
+});
+
+it('ignores a delayed provider response after another product is added', async () => {
+  const baseProvider = createOfflineSyntheticProvider();
+  type ProviderEvaluation = Awaited<
+    ReturnType<DrugInteractionProvider['evaluate']>
+  >;
+  let announceProviderRequest!: () => void;
+  const providerRequestStarted = new Promise<void>((resolve) => {
+    announceProviderRequest = resolve;
+  });
+  let finishProviderRequest: (() => void) | undefined;
+  const provider: DrugInteractionProvider = {
+    describe: baseProvider.describe,
+    evaluate: async (request) => {
+      const response = await baseProvider.evaluate(request);
+      announceProviderRequest();
+      return new Promise<ProviderEvaluation>((resolve) => {
+        finishProviderRequest = () => resolve(response);
+      });
+    },
+  };
+  const { user, selection } = await renderScenario({
+    specs: productSpecs(3),
+    provider,
+  });
+
+  for (const product of selection.snapshot.products.slice(0, 2)) {
+    await user.click(
+      await screen.findByRole('button', {
+        name: `Add ${product.commercialName}`,
+      }),
+    );
+  }
+  await checkSelectedProducts(user);
+  await providerRequestStarted;
+
+  const addedProduct = selection.snapshot.products[2];
+  if (!addedProduct) throw new Error('Missing third synthetic product');
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ${addedProduct.commercialName}`,
+    }),
+  );
+
+  if (!finishProviderRequest)
+    throw new Error('The delayed provider request was not captured');
+  await act(async () => finishProviderRequest?.());
+
+  expect(screen.getByText('No evaluation has been run.')).toBeVisible();
+  expect(screen.queryByText(/Evaluation complete/)).not.toBeInTheDocument();
 });
 
 it('shows the production no-provider state without a check action', async () => {

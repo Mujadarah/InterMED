@@ -923,6 +923,7 @@ export function InteractionCheckerPage({
       : null;
 
   function addProduct(match: MedicationSearchMatch) {
+    requestRevision.current += 1;
     const product = productFromMatch(match);
     setSelectedProducts((current) =>
       current.some((item) => item.id === product.id)
