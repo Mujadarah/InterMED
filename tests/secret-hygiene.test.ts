@@ -28,34 +28,36 @@ interface SecretRule {
   readonly pattern: RegExp;
 }
 
+// Literal patterns with a one-character class inside each prefix (AK[I]A,
+// gh[p]_ ...) so this file never contains a contiguous secret shape that
+// this guard or DeepSource would match. No rule uses the g or y flag.
+const SECRET_RULES: readonly SecretRule[] = [
+  {
+    label: 'AWS access key',
+    pattern: /(?:AK[I]A|AS[I]A)[0-9A-Z]{16}/,
+  },
+  {
+    // Covers PKCS#8 and the typed RSA, EC, DSA, OpenSSH and encrypted headers.
+    label: 'PEM private key block',
+    pattern: /-----BEGI[N] (?:[A-Z]+ )*PRIVATE KEY-----/,
+  },
+  {
+    label: 'Appwrite key prefix carrying a value',
+    pattern: /standar[d]_[A-Za-z0-9._-]{16,}/,
+  },
+  {
+    label: 'GitHub token prefix carrying a value',
+    pattern: /(?:gh[p]_|githu[b]_pat_)[A-Za-z0-9]{10,}/,
+  },
+  {
+    // An optional closing quote covers JSON and YAML keys ("api_key": ...).
+    label: 'generic key assignment carrying a quoted value',
+    pattern: /ap[i][_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9]{24,}/i,
+  },
+];
+
 function secretRules(): readonly SecretRule[] {
-  // Literal patterns with a one-character class inside each prefix (AK[I]A,
-  // gh[p]_ ...) so this file never contains a contiguous secret shape that
-  // this guard or DeepSource would match. No rule uses the g or y flag.
-  return [
-    {
-      label: 'AWS access key',
-      pattern: /(?:AK[I]A|AS[I]A)[0-9A-Z]{16}/,
-    },
-    {
-      // Covers PKCS#8 and the typed RSA, EC, DSA, OpenSSH and encrypted headers.
-      label: 'PEM private key block',
-      pattern: /-----BEGI[N] (?:[A-Z]+ )*PRIVATE KEY-----/,
-    },
-    {
-      label: 'Appwrite key prefix carrying a value',
-      pattern: /standar[d]_[A-Za-z0-9._-]{16,}/,
-    },
-    {
-      label: 'GitHub token prefix carrying a value',
-      pattern: /(?:gh[p]_|githu[b]_pat_)[A-Za-z0-9]{10,}/,
-    },
-    {
-      // An optional closing quote covers JSON and YAML keys ("api_key": ...).
-      label: 'generic key assignment carrying a quoted value',
-      pattern: /ap[i][_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9]{24,}/i,
-    },
-  ];
+  return SECRET_RULES;
 }
 
 function isBinary(source: Buffer): boolean {
