@@ -27,6 +27,13 @@ h1[tabindex='-1']:focus {
   outline: 3px solid #8b4d09;
   outline-offset: 5px;
 }
+/* Radios and disclosure summaries are Tab stops with no other focus rule:
+   give them the same visible indicator instead of the browser default. */
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #8b4d09;
+  outline-offset: 3px;
+}
 .shell {
   max-width: 72rem;
   margin: auto;
@@ -42,6 +49,9 @@ h1[tabindex='-1']:focus {
   border-bottom: 1px solid var(--border);
 }
 .brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   font-size: 1.65rem;
   font-weight: 700;
   color: var(--ink);
@@ -755,6 +765,12 @@ button {
 }
 .calculator-meta {
   margin-top: 1.5rem;
+}
+/* Formula versions read like formula=1.0.0|population=2.1.0: long runs
+   without spaces that would otherwise push the page wider than a 320px
+   viewport. Wrapping changes no wording. */
+.calculator-meta p {
+  overflow-wrap: anywhere;
 }
 .review-badge {
   display: inline-block;
