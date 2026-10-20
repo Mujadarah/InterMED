@@ -10,8 +10,8 @@ import { describe, expect, it } from 'vitest';
  * with file and line number only. Matched values are never printed: the
  * failure message carries only `path:line (label)` entries.
  *
- * Pattern literals are assembled at runtime so this file itself carries no
- * matchable secret shape. The allow-list below names synthetic-fixture files
+ * Each pattern splits its prefix with a one-character class so this file
+ * itself carries no matchable secret shape. The allow-list below names synthetic-fixture files
  * explicitly; each entry documents why the file may carry key-shaped text.
  * Prefer shrinking the allow-list over growing it.
  */
@@ -29,40 +29,31 @@ interface SecretRule {
 }
 
 function secretRules(): readonly SecretRule[] {
-  const awsAccess = ['AK', 'IA'].join('');
-  const awsSession = ['AS', 'IA'].join('');
-  const appwritePrefix = ['standard', '_'].join('');
-  const classicToken = ['gh', 'p_'].join('');
-  const fineGrainedToken = ['github', '_pat_'].join('');
-  const genericKeyWord = ['ap', 'i'].join('') + '[_-]?key';
-  // Covers PKCS#8 and the typed RSA, EC, DSA, OpenSSH and encrypted headers.
-  const pemOpen = `-----BEGIN (?:[A-Z]+ )*${['PRIVATE', ' KEY-----'].join('')}`;
+  // Literal patterns with a one-character class inside each prefix (AK[I]A,
+  // gh[p]_ ...) so this file never contains a contiguous secret shape that
+  // this guard or DeepSource would match. No rule uses the g or y flag.
   return [
     {
       label: 'AWS access key',
-      pattern: new RegExp(`(?:${awsAccess}|${awsSession})[0-9A-Z]{16}`),
+      pattern: /(?:AK[I]A|AS[I]A)[0-9A-Z]{16}/,
     },
     {
+      // Covers PKCS#8 and the typed RSA, EC, DSA, OpenSSH and encrypted headers.
       label: 'PEM private key block',
-      pattern: new RegExp(`${pemOpen}`),
+      pattern: /-----BEGI[N] (?:[A-Z]+ )*PRIVATE KEY-----/,
     },
     {
       label: 'Appwrite key prefix carrying a value',
-      pattern: new RegExp(`${appwritePrefix}[A-Za-z0-9._-]{16,}`),
+      pattern: /standar[d]_[A-Za-z0-9._-]{16,}/,
     },
     {
       label: 'GitHub token prefix carrying a value',
-      pattern: new RegExp(
-        `(?:${classicToken}|${fineGrainedToken})[A-Za-z0-9]{10,}`,
-      ),
+      pattern: /(?:gh[p]_|githu[b]_pat_)[A-Za-z0-9]{10,}/,
     },
     {
+      // An optional closing quote covers JSON and YAML keys ("api_key": ...).
       label: 'generic key assignment carrying a quoted value',
-      pattern: new RegExp(
-        // An optional closing quote covers JSON and YAML keys ("api_key": ...).
-        `${genericKeyWord}['"]?\\s*[:=]\\s*['"][A-Za-z0-9]{24,}`,
-        'i',
-      ),
+      pattern: /ap[i][_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9]{24,}/i,
     },
   ];
 }
