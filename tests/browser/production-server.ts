@@ -77,6 +77,7 @@ export async function productionServer(precacheAssets?: number) {
         path === '/unavailable' ||
         path === '/search' ||
         path === '/favorites' ||
+        path === '/calculators' ||
         path.startsWith('/medication/')
           ? 'index.html'
           : path.slice(1);
