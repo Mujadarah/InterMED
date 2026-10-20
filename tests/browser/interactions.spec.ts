@@ -18,7 +18,7 @@ test.describe('production interaction checker', () => {
       ),
     ).toBeVisible();
     await expect(
-      page.getByRole('button', { name: 'Check selected products' }),
+      page.getByRole('button', { name: 'Check selected items' }),
     ).toHaveCount(0);
   });
 });
