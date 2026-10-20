@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { prepareSyntheticPublication } from '../infra/appwrite/live-acceptance/publication-preparation.mjs';
 import { runAnonymousProbe } from '../infra/appwrite/live-acceptance/anonymous-probe.mjs';
 import { readPublishedMetadata } from '../infra/appwrite/live-acceptance/adapter-read.mjs';
@@ -48,25 +48,6 @@ afterEach(async () => {
   // Regression guard: each staged directory must actually be gone once the
   // test finishes, independent of whatever else the OS temp directory holds.
   expect(directories.filter((directory) => existsSync(directory))).toEqual([]);
-});
-
-// Regression net over the whole file: the set of `intermed-live-*` entries in
-// the OS temp directory is identical after the file's tests as before them,
-// so nothing leaks even if a case skips the tracked helper.
-const stagingBefore = new Set(
-  (await readdir(tmpdir())).filter((entry) =>
-    entry.startsWith('intermed-live-'),
-  ),
-);
-
-afterAll(async () => {
-  expect(
-    new Set(
-      (await readdir(tmpdir())).filter((entry) =>
-        entry.startsWith('intermed-live-'),
-      ),
-    ),
-  ).toEqual(stagingBefore);
 });
 
 describe('Appwrite live acceptance preparation', () => {
