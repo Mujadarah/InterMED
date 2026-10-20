@@ -518,7 +518,10 @@ export function MedicationSearchPage({
         <div className="search-error" role="alert">
           <p>
             Search is temporarily unavailable. Try again or check{' '}
-            <Link to="/status">dataset status</Link>.
+            <Link to="/status" tabIndex={0}>
+              dataset status
+            </Link>
+            .
           </p>
           <button
             type="button"
@@ -533,7 +536,9 @@ export function MedicationSearchPage({
       )}
       {!generation && (
         <p>
-          <Link to="/status">Dataset status</Link>
+          <Link to="/status" tabIndex={0}>
+            Dataset status
+          </Link>
         </p>
       )}
       {result && result.results.length > 0 && (
