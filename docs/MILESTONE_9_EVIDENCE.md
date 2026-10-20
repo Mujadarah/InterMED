@@ -907,3 +907,39 @@ Boundaries: this sign-off does not approve a live provider, a medication databas
 severity mappings, dosing rules or public clinical release. All fixtures remain synthetic;
 provider selection, source rights, reviewed ingredient and severity mappings, real-provider
 clinical validation and M10 presentation remain open.
+
+## Owner sign-off (2026-10-20): scenario 5 at logic 4.0.0
+
+On 2026-10-20 the project owner (surgeon, clinical reviewer) wrote: "approve scenario 5 at
+4.0.0 as the best practices you can find". **Scenario 5 is therefore approved at
+assessment logic 4.0.0**, for the synthetic-data development scope only.
+
+The evidence below was presented to the owner before approval:
+
+- **A missing record is not evidence against a documented interaction.** Drug-interaction
+  compendia overlap poorly. Abarca et al. examined interactions rated "major" by at least
+  one of four compendia: 71.7% were listed in only one compendium, 2.2% in all four, and
+  the intraclass correlation was −0.092. Comparisons of other compendia also report weak
+  agreement on severity and evidence ratings. A covered source with no record therefore
+  stays a neutral observation: it is `no-record-in-coverage`, it may raise
+  `coverageDiscrepancy`, and it never becomes an `evidenceConflict` or a negative finding.
+- **Only independent sources can corroborate or conflict.** Two adapters, or two versions,
+  of the same underlying source are not independent evidence. Counting them twice would
+  inflate both apparent agreement and apparent conflict. Logic 4.0.0 therefore keys
+  clinical conflict and coverage discrepancy on `sourceId`. It reports same-source
+  mismatches separately as within-source inconsistencies, each with its provenance.
+- **Severity stays source-native.** A difference in severity terms between sources is
+  shown as a conflict. It is never resolved into a single InterMED severity, because
+  severity ratings are not interchangeable between compendia.
+
+References:
+
+- Abarca J, Malone DC, Armstrong EP, et al. Concordance of severity ratings provided in
+  four drug interaction compendia. J Am Pharm Assoc. 2004;44(2):136–141.
+- Comparisons of drug interaction compendia reporting weak agreement on severity and
+  evidence ratings: PMC3660128; PMC4334009.
+
+Scenario status at logic 4.0.0: **all scenarios 1–14 and both severity-conflict tests are
+owner-approved.** The boundaries above still apply. This approves assessment behaviour
+only: it does not approve a live provider, a medication database, severity mappings,
+dosing rules, public clinical release or M10 presentation.
