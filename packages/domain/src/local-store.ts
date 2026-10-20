@@ -207,6 +207,14 @@ export interface GenerationReader {
   /** Product ids of the pinned generation, in stable id order. */
   productIds(): Promise<readonly MedicationProductId[]>;
   /**
+   * Dataset-version and data-source records of the pinned generation,
+   * independent of any product, so provenance survives product-free reads.
+   */
+  datasetProvenance(): Promise<{
+    readonly datasetVersions: readonly DatasetVersion[];
+    readonly dataSources: readonly DataSource[];
+  }>;
+  /**
    * Search projections of products and their searchable labels from this
    * pinned generation only. Implementations may scan once to build an
    * in-memory index; callers must not combine rows from another generation.

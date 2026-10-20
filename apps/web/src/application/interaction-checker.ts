@@ -76,12 +76,15 @@ function uniqueById<T extends { readonly id: string }>(
 function snapshotFromReaderDetails(
   details: readonly ProductDetail[],
   directIngredients: readonly ActiveIngredient[],
-  provenanceDetails: readonly ProductDetail[] = details,
+  provenance: {
+    readonly datasetVersions: readonly DatasetVersion[];
+    readonly dataSources: readonly DataSource[];
+  } = { datasetVersions: [], dataSources: [] },
 ): MedicationCatalogueSnapshot {
-  const dataSources: DataSource[] = [];
-  const datasetVersions: DatasetVersion[] = [];
+  const dataSources: DataSource[] = [...provenance.dataSources];
+  const datasetVersions: DatasetVersion[] = [...provenance.datasetVersions];
 
-  for (const detail of provenanceDetails) {
+  for (const detail of details) {
     if (detail.dataSource) dataSources.push(detail.dataSource);
     if (detail.datasetVersion) datasetVersions.push(detail.datasetVersion);
   }
@@ -218,19 +221,12 @@ export function createInteractionCheckerService(
         if (dependencies.activeGenerationId() !== generationId)
           throw new InteractionCheckerGenerationChangedError();
 
-        const provenanceDetails = [...details];
-        if (
-          selectedIngredientIds.length > 0 &&
-          !provenanceDetails.some((detail) => detail.datasetVersion)
-        ) {
-          const firstProductId = (await reader.productIds())[0];
-          if (firstProductId) {
-            const metadataDetail = await reader.productDetail(firstProductId);
-            if (metadataDetail) provenanceDetails.push(metadataDetail);
-          }
-          if (dependencies.activeGenerationId() !== generationId)
-            throw new InteractionCheckerGenerationChangedError();
-        }
+        // Read the generation's provenance directly: an ingredient-only
+        // selection must keep its dataset version even in a product-free
+        // catalogue.
+        const provenance = await reader.datasetProvenance();
+        if (dependencies.activeGenerationId() !== generationId)
+          throw new InteractionCheckerGenerationChangedError();
 
         const selection: InteractionSelection = {
           snapshot: snapshotFromReaderDetails(
@@ -239,7 +235,7 @@ export function createInteractionCheckerService(
               (ingredient): ingredient is ActiveIngredient =>
                 ingredient !== null,
             ),
-            provenanceDetails,
+            provenance,
           ),
           // Missing records stay in the selection so the domain engine reports
           // `product-not-found` instead of silently dropping the user's choice.

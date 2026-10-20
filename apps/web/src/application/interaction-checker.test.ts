@@ -111,6 +111,10 @@ function readerFixture(synthetic = true) {
     ),
     productsByAtcCode: async () => [],
     productIds: async () => selection.productIds,
+    datasetProvenance: vi.fn(async () => ({
+      datasetVersions: selection.snapshot.datasetVersions,
+      dataSources: selection.snapshot.dataSources,
+    })),
     searchRecords: async () => [],
     release: vi.fn(),
   };
@@ -188,8 +192,38 @@ it('evaluates a directly selected ingredient without selecting a product', async
   expect(result.incompleteReasons).toContain('no-pairs-to-evaluate');
   expect(result.evaluatedIngredientIds).toEqual([ingredient.id]);
   expect(reader.ingredient).toHaveBeenCalledWith(ingredient.id);
-  expect(reader.productDetail).toHaveBeenCalledOnce();
+  expect(reader.productDetail).not.toHaveBeenCalled();
+  expect(reader.datasetProvenance).toHaveBeenCalledOnce();
   expect(reader.release).toHaveBeenCalledOnce();
+});
+
+it('keeps the dataset version for ingredient-only checks in a product-free catalogue', async () => {
+  const { generation, reader } = readerFixture();
+  const productFree: GenerationReader = {
+    ...reader,
+    product: async () => null,
+    productDetail: vi.fn(async () => null),
+    productIds: async () => [],
+  };
+  const provider = createOfflineSyntheticProvider();
+  const evaluate = vi.fn((request) => provider.evaluate(request));
+  const service = createInteractionCheckerService(
+    {
+      activeGenerationId: () => generation.generationId,
+      openReader: async () => productFree,
+    },
+    async () => ({ describe: provider.describe, evaluate }),
+  );
+  const [first, second] = selection.snapshot.activeIngredients;
+
+  const result = await service.evaluate(
+    { productIds: [], ingredientIds: [first!.id, second!.id] },
+    false,
+  );
+
+  expect(result.incompleteReasons).not.toContain('dataset-version-missing');
+  expect(evaluate).toHaveBeenCalled();
+  expect(productFree.productDetail).not.toHaveBeenCalled();
 });
 
 it('counts direct and product-derived exposure of the same ingredient', async () => {
