@@ -204,3 +204,48 @@ test('renders an offline deep link to /favorites from the precache', async ({
     await server.close();
   }
 });
+
+test('renders an offline deep link to /calculators from the precache', async ({
+  page,
+  context,
+}, testInfo) => {
+  const server = await productionServer();
+  server.revision('harness');
+  try {
+    await page.goto(server.url);
+    await expect(
+      page.getByText('Shell available offline', { exact: true }),
+    ).toBeVisible();
+    await page.waitForFunction(
+      () => navigator.serviceWorker.controller !== null,
+    );
+
+    // Disconnect the origin in every engine; also disable networking in Chromium.
+    server.failure('offline');
+    if (testInfo.project.name === 'chromium-desktop')
+      await context.setOffline(true);
+    const requestsAfterOffline = server.requests.length;
+
+    // A cold deep link to the calculators route, never visited in this
+    // session. The page renders from its precached lazy chunk and needs no
+    // staged dataset, so no local-store preparation is required.
+    const calculatorsTab = await context.newPage();
+    await calculatorsTab.goto(`${server.url}/calculators`);
+    await expect(
+      calculatorsTab.getByRole('heading', { name: 'Calculators', level: 1 }),
+    ).toBeVisible();
+    await expect(
+      calculatorsTab.getByText('Development preview — not for clinical use.'),
+    ).toBeVisible();
+
+    // Neither the deep link, nor its scripts or styles, reached the origin.
+    expect(
+      server.requests
+        .slice(requestsAfterOffline)
+        .filter((path) => path !== '/sw.js'),
+    ).toEqual([]);
+    await calculatorsTab.close();
+  } finally {
+    await server.close();
+  }
+});
