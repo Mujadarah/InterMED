@@ -145,22 +145,73 @@ async function auditSkipLink(page: Page) {
   ).toBeFocused();
 }
 
+type FocusStyleSnapshot = {
+  readonly outlineColor: string;
+  readonly outlineStyle: string;
+  readonly outlineWidth: string;
+  readonly boxShadow: string;
+};
+
+/** Computed focus-relevant styles while no control is focused. */
+async function unfocusedStyleSnapshots(
+  controls: ReturnType<Page['locator']>,
+): Promise<FocusStyleSnapshot[]> {
+  return controls.evaluateAll((elements) =>
+    elements.map((element) => {
+      const style = getComputedStyle(element);
+      return {
+        outlineColor: style.outlineColor,
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+        boxShadow: style.boxShadow,
+      };
+    }),
+  );
+}
+
 async function expectVisibleFocusIndicator(
   target: ReturnType<Page['locator']>,
+  unfocused: FocusStyleSnapshot,
 ) {
-  const indicator = await target.evaluate((element) => {
+  // A focus indicator must appear or change on focus. An always-present
+  // shadow (or an outline that was already there) is not a focus indicator,
+  // and a fully transparent colour is invisible.
+  const indicator = await target.evaluate((element, before) => {
+    const isTransparent = (color: string) => {
+      const normalized = color.trim().toLowerCase();
+      if (normalized === 'transparent') return true;
+      const rgba = /^rgba?\(([^)]+)\)$/.exec(normalized);
+      if (!rgba?.[1]) return false;
+      const parts = rgba[1].split(/[\s,/]+/).filter(Boolean);
+      return parts.length === 4 && Number.parseFloat(parts[3] ?? '1') === 0;
+    };
+    const isTransparentBoxShadow = (boxShadow: string) => {
+      if (boxShadow === 'none') return true;
+      const colors = boxShadow.match(/rgba?\([^)]*\)|\btransparent\b/g) ?? [];
+      return colors.length > 0 && colors.every(isTransparent);
+    };
     const style = getComputedStyle(element);
-    const outlineWidth = Number.parseFloat(style.outlineWidth);
-    const outline =
+    const outlineVisible =
       style.outlineStyle !== 'none' &&
-      outlineWidth > 0 &&
-      style.outlineColor !== 'transparent' &&
-      !/,\s*0\)$/.test(style.outlineColor);
-    return outline || style.boxShadow !== 'none';
-  });
-  expect(indicator, 'focused control shows an outline or box-shadow').toBe(
-    true,
-  );
+      Number.parseFloat(style.outlineWidth) > 0 &&
+      !isTransparent(style.outlineColor);
+    const outlineChanged =
+      style.outlineStyle !== before.outlineStyle ||
+      Number.parseFloat(style.outlineWidth) !==
+        Number.parseFloat(before.outlineWidth) ||
+      style.outlineColor !== before.outlineColor;
+    const boxShadowVisible =
+      style.boxShadow !== 'none' && !isTransparentBoxShadow(style.boxShadow);
+    const boxShadowChanged = style.boxShadow !== before.boxShadow;
+    return (
+      (outlineVisible && outlineChanged) ||
+      (boxShadowVisible && boxShadowChanged)
+    );
+  }, unfocused);
+  expect(
+    indicator,
+    'focused control shows an outline or box-shadow that differs from its unfocused state',
+  ).toBe(true);
 }
 
 /** DOM-order indexes (over INTERACTIVE_SELECTOR) of the Tab-reachable set. */
@@ -203,6 +254,9 @@ async function auditTabTraversal(page: Page) {
   const controls = page.locator(INTERACTIVE_SELECTOR);
   const expected = await tabbableIndexes(page);
   expect(expected.length).toBeGreaterThan(0);
+  // Capture unfocused styles before Tab traversal starts; comparing against
+  // them is what distinguishes a focus indicator from an always-on decoration.
+  const unfocused = await unfocusedStyleSnapshots(controls);
   // Start from a deterministic point: earlier checks (the skip link) leave
   // the sequential starting point mid-page, and blur() does not reset it.
   // The skip link itself was already proven Tab-reachable from the top, so
@@ -222,7 +276,12 @@ async function auditTabTraversal(page: Page) {
     visited.push(index);
     if (!seen.has(index)) {
       seen.add(index);
-      await expectVisibleFocusIndicator(controls.nth(index));
+      const before = unfocused[index];
+      if (before === undefined)
+        throw new Error(
+          `missing unfocused style snapshot for control ${index}`,
+        );
+      await expectVisibleFocusIndicator(controls.nth(index), before);
     }
   }
   // Full coverage in DOM order, then the wrap back to the top: every
@@ -243,6 +302,28 @@ async function auditNarrowViewport(page: Page) {
   ).toBeVisible();
   const overflow = await page.evaluate(() => {
     const clipped: string[] = [];
+    const clippedText: string[] = [];
+    const labelOf = (element: HTMLElement) => {
+      const className = element.getAttribute('class');
+      return (
+        element.tagName.toLowerCase() +
+        (className ? `.${className.split(/\s+/)[0]}` : '')
+      );
+    };
+    const visuallyHidden = (
+      element: HTMLElement,
+      style: CSSStyleDeclaration,
+    ) => {
+      // Skip links and screen-reader-only text are hidden on purpose: a
+      // transformed skip link, a clipped 1x1 box, or an explicit class.
+      if (element.closest('.skip-link, .sr-only, .visually-hidden'))
+        return true;
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 1 && rect.height <= 1) return true;
+      return style.clipPath !== 'none';
+    };
+    const clipsHorizontally = (overflowX: string) =>
+      overflowX === 'hidden' || overflowX === 'clip';
     for (const element of document.querySelectorAll('body *')) {
       if (!(element instanceof HTMLElement)) continue;
       const rect = element.getBoundingClientRect();
@@ -253,18 +334,26 @@ async function auditNarrowViewport(page: Page) {
         (rect.left < window.innerWidth && rect.right > window.innerWidth + 1) ||
         (rect.left < -1 && rect.right > 1)
       ) {
-        const name =
-          element.tagName.toLowerCase() +
-          (element.className
-            ? `.${String(element.className).split(' ')[0]}`
-            : '');
-        clipped.push(name);
+        clipped.push(labelOf(element));
+      }
+      // Text scrolling inside `auto`/`scroll` containers can be reached;
+      // text cropped by `hidden`/`clip` is lost. Form controls scroll their
+      // own values by design and are not containers to measure.
+      if (!clipsHorizontally(style.overflowX)) continue;
+      if (element.matches('input, select, textarea')) continue;
+      if (!(element.textContent ?? '').trim()) continue;
+      if (visuallyHidden(element, style)) continue;
+      if (element.scrollWidth > element.clientWidth + 1) {
+        clippedText.push(
+          `${labelOf(element)} scrollWidth ${element.scrollWidth} > clientWidth ${element.clientWidth}`,
+        );
       }
     }
     return {
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
       clipped: [...new Set(clipped)].slice(0, 20),
+      clippedText: [...new Set(clippedText)].slice(0, 20),
     };
   });
   expect(
@@ -272,6 +361,10 @@ async function auditNarrowViewport(page: Page) {
     `no horizontal page scroll at 320x640 (scrollWidth ${overflow.scrollWidth} <= ${overflow.innerWidth})`,
   ).toBeLessThanOrEqual(overflow.innerWidth + 1);
   expect(overflow.clipped, 'no text clipped off-screen at 320x640').toEqual([]);
+  expect(
+    overflow.clippedText,
+    'no text cropped inside overflow-hidden/clip containers at 320x640',
+  ).toEqual([]);
 }
 
 async function auditReducedMotion(page: Page) {
@@ -513,6 +606,20 @@ test.describe('m12 accessibility audit', () => {
       await page.getByLabel('Age in years').fill('30');
       await page.getByRole('button', { name: 'Calculate' }).click();
       await expect(page.getByText('Result: 22.9 kg/m²')).toBeVisible();
+      // The evidence claims the details were disclosed, so audit them open:
+      // assert the contents render, then keep them open for the 320px pass.
+      const details = page
+        .locator('details')
+        .filter({ hasText: 'Calculation details' });
+      await expect(details).not.toHaveAttribute('open', '');
+      await details.locator('summary').click();
+      await expect(details).toHaveAttribute('open', '');
+      await expect(
+        details.getByText('Unrounded value'),
+        'calculation details are open and visible before the audit',
+      ).toBeVisible();
+      // Unrounded value plus one echo per calculator input (weight/height/age).
+      await expect(details.locator('dd')).toHaveCount(4);
       await auditRoute(page, testInfo, 'calculators', 'Calculators');
     } finally {
       await server.close();
