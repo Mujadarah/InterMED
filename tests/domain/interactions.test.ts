@@ -37,7 +37,7 @@ import {
   createWithdrawnOnlySyntheticProvider,
   makeSyntheticSelection,
 } from './synthetic-interaction-providers';
-import { mustId, SOURCE_KEY } from './builders';
+import { mustId, SOURCE_KEY, SOURCE_NAMESPACE } from './builders';
 
 function options(
   overrides: Partial<InteractionEvaluationOptions> = {},
@@ -770,7 +770,13 @@ it('applies only explicit severity mappings and flags unreviewed mappings', asyn
 
 it('merges provider records and keeps severity conflicts separate from coverage discrepancies', async () => {
   const firstProvider = createOfflineSyntheticProvider();
-  const secondProvider = createSecondVocabularySyntheticProvider();
+  const secondProvider = createSecondVocabularySyntheticProvider({
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-second-vocabulary',
+    ),
+  });
   const firstResult = await firstProvider.evaluate(CONTRACT_REQUEST);
   const secondResult = await secondProvider.evaluate(CONTRACT_REQUEST);
   const severityMerge = mergeProviderResults([firstResult, secondResult]);
@@ -789,7 +795,13 @@ it('merges provider records and keeps severity conflicts separate from coverage 
   expect(severityMerge.coverageDiscrepancies).toEqual([]);
   expect(severityMerge).not.toHaveProperty('status');
 
-  const noRecord = createNoRecordSyntheticProvider();
+  const noRecord = createNoRecordSyntheticProvider({
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-no-record',
+    ),
+  });
   const noRecordResult: ProviderResult =
     await noRecord.evaluate(CONTRACT_REQUEST);
   const coverageMerge = mergeProviderResults([firstResult, noRecordResult]);
@@ -848,8 +860,13 @@ it('flags severity disagreement only when different providers report different t
       index === 1 ? { ...record, severity: 'source-band-crimson' } : record,
     ),
   };
-  const noRecordResult: ProviderResult =
-    await createNoRecordSyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const noRecordResult: ProviderResult = await createNoRecordSyntheticProvider({
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-no-record-cross',
+    ),
+  }).evaluate(CONTRACT_REQUEST);
   const sameProviderMerge = mergeProviderResults([
     variedSeverity,
     noRecordResult,
@@ -859,8 +876,13 @@ it('flags severity disagreement only when different providers report different t
   expect(sameProviderMerge.disagreements).toEqual([]);
   expect(sameProviderMerge.coverageDiscrepancies).not.toEqual([]);
 
-  const secondResult =
-    await createSecondVocabularySyntheticProvider().evaluate(CONTRACT_REQUEST);
+  const secondResult = await createSecondVocabularySyntheticProvider({
+    sourceId: mustId(
+      'DataSource',
+      SOURCE_NAMESPACE,
+      'source.synthetic-second-vocabulary-cross',
+    ),
+  }).evaluate(CONTRACT_REQUEST);
   const crossProviderMerge = mergeProviderResults([
     offlineResult,
     secondResult,
