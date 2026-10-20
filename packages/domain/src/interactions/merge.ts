@@ -242,6 +242,23 @@ function deriveCoverageDiscrepancies(
   );
 }
 
+function hasCurrentRecordForPair(
+  providerResults: readonly ProviderResult[],
+  providerIndex: number,
+  pair: CanonicalIngredientPair,
+): boolean {
+  const result = providerResults[providerIndex];
+  if (!result) return false;
+  const key = pairKey(pair);
+  return result.records.some(
+    (record) =>
+      record.recordStatus === 'current' &&
+      record.sourceVersion === result.sourceVersion &&
+      pairKey(canonicalPair(record.ingredientAId, record.ingredientBId)) ===
+        key,
+  );
+}
+
 function severitiesForProviderIndex(
   providerResults: readonly ProviderResult[],
   providerIndex: number,
@@ -321,8 +338,7 @@ function deriveWithinSourceInconsistencies(
         .filter(
           ({ result, index }) =>
             result.sourceId === sourceId &&
-            severitiesForProviderIndex(providerResults, index, finding.pair)
-              .length > 0,
+            hasCurrentRecordForPair(providerResults, index, finding.pair),
         )
         .map(({ index }) => index);
       const allIndexes = [
@@ -348,7 +364,13 @@ function deriveWithinSourceInconsistencies(
       );
       const reportedIdentities = new Set(
         allIndexes
-          .filter((index) => statusesByIndex.get(index)?.includes('reported'))
+          // A provider reports the pair through a coverage row or through a
+          // current record for it, matching how the assessment counts it.
+          .filter(
+            (index) =>
+              statusesByIndex.get(index)?.includes('reported') ||
+              hasCurrentRecordForPair(providerResults, index, finding.pair),
+          )
           .map((index) => {
             const result = providerResults[index];
             return JSON.stringify([result?.providerId, result?.sourceVersion]);

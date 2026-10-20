@@ -411,3 +411,35 @@ it('a merged within-source entry is reported only when the validated evidence fo
   expect(result.evidence.coverageDiscrepancy).toBe(true);
   wordingGuard(result);
 });
+
+it('merge counts a current record without a coverage row as reporting for within-source checks', async () => {
+  const request = requestForPair(CONTRACT_PAIR_AB);
+  const documented = cloneResult(
+    await createDisagreementSyntheticProvider().evaluate(request),
+    { providerId: 'synthetic-s1-adapter-a', sourceId: SOURCE_S1 },
+  );
+  const recordOnly = { ...documented, pairCoverage: [] };
+  const noRecord = cloneResult(
+    await createNoRecordSyntheticProvider().evaluate(request),
+    { providerId: 'synthetic-s1-adapter-b', sourceId: SOURCE_S1 },
+  );
+
+  for (const merged of [
+    mergeProviderResults([recordOnly, noRecord]),
+    mergeProviderResults([noRecord, recordOnly]),
+  ]) {
+    const result = assessInteractionPair(merged, CONTRACT_PAIR_AB);
+    const mergeReasons = merged.withinSourceInconsistencies.flatMap(
+      (entry) => entry.reasons,
+    );
+    const assessmentReasons =
+      result.evidence.withinSourceInconsistencies.flatMap(
+        (entry) => entry.reasons,
+      );
+    expect(assessmentReasons.includes('reported-vs-covered-no-record')).toBe(
+      mergeReasons.includes('reported-vs-covered-no-record'),
+    );
+    expect(result.evidence.coverageDiscrepancy).toBe(false);
+    wordingGuard(result);
+  }
+});
