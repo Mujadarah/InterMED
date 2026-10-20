@@ -240,15 +240,11 @@ it('passes online state from the browser shell into the interaction service', as
     indexDurationMilliseconds: 0,
     searchDurationMilliseconds: 0,
   }));
-  const evaluate = vi.fn(
-    async (productIds: readonly string[], online: boolean) => {
-      void productIds;
-      void online;
-      throw new Error(
-        'Synthetic test evaluation ends after recording online state.',
-      );
-    },
-  );
+  const evaluate = vi.fn(async () => {
+    throw new Error(
+      'Synthetic test evaluation ends after recording online state.',
+    );
+  });
   const shellState = {
     availability: 'development' as const,
     update: 'none' as const,
@@ -269,6 +265,7 @@ it('passes online state from the browser shell into the interaction service', as
           medicationSearch: { search },
           interactionChecker: {
             availability: 'synthetic-preview',
+            searchIngredients: vi.fn(async () => []),
             evaluate,
           },
         }}
@@ -294,12 +291,12 @@ it('passes online state from the browser shell into the interaction service', as
     }),
   );
   await user.click(
-    screen.getByRole('button', { name: 'Check selected products' }),
+    screen.getByRole('button', { name: 'Check selected items' }),
   );
 
   await waitFor(() =>
     expect(evaluate).toHaveBeenCalledWith(
-      [appProduct.id, secondProduct.id],
+      { productIds: [appProduct.id, secondProduct.id], ingredientIds: [] },
       false,
     ),
   );

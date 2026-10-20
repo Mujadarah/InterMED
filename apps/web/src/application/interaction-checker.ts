@@ -1,5 +1,6 @@
 import { evaluateInteractions, parseStableId } from '@intermed/domain';
 import type {
+  ActiveIngredient,
   DataSource,
   DatasetVersion,
   DrugInteractionProvider,
@@ -9,7 +10,11 @@ import type {
   MedicationProductId,
 } from '@intermed/domain';
 import { unavailableInteractionChecker } from './interaction-checker-contract';
-import type { InteractionCheckerService } from './interaction-checker-contract';
+import type {
+  InteractionCheckerService,
+  InteractionCheckerSelection,
+  InteractionIngredientCandidate,
+} from './interaction-checker-contract';
 
 /** Explicit work bound shown beside the checker action and in pair-limit results. */
 export const INTERACTION_CHECKER_MAX_PAIRS = 45;
@@ -42,9 +47,22 @@ export class SyntheticPreviewRequiresSyntheticCatalogueError extends Error {
 
 export class InteractionCheckerInvalidSelectionError extends Error {
   constructor() {
-    super('The interaction selection contains an invalid product identifier.');
+    super(
+      'The interaction selection contains an invalid product or ingredient identifier.',
+    );
     this.name = 'InteractionCheckerInvalidSelectionError';
   }
+}
+
+type ProductDetail = NonNullable<
+  Awaited<ReturnType<GenerationReader['productDetail']>>
+>;
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (!signal?.aborted) return;
+  const error = new Error('The ingredient search request was cancelled.');
+  error.name = 'AbortError';
+  throw error;
 }
 
 function uniqueById<T extends { readonly id: string }>(
@@ -56,14 +74,14 @@ function uniqueById<T extends { readonly id: string }>(
 }
 
 function snapshotFromReaderDetails(
-  details: readonly NonNullable<
-    Awaited<ReturnType<GenerationReader['productDetail']>>
-  >[],
+  details: readonly ProductDetail[],
+  directIngredients: readonly ActiveIngredient[],
+  provenanceDetails: readonly ProductDetail[] = details,
 ): MedicationCatalogueSnapshot {
   const dataSources: DataSource[] = [];
   const datasetVersions: DatasetVersion[] = [];
 
-  for (const detail of details) {
+  for (const detail of provenanceDetails) {
     if (detail.dataSource) dataSources.push(detail.dataSource);
     if (detail.datasetVersion) datasetVersions.push(detail.datasetVersion);
   }
@@ -72,13 +90,14 @@ function snapshotFromReaderDetails(
     dataSources: uniqueById(dataSources),
     datasetVersions: uniqueById(datasetVersions),
     products: uniqueById(details.map((detail) => detail.product)),
-    activeIngredients: uniqueById(
-      details.flatMap((detail) =>
+    activeIngredients: uniqueById([
+      ...details.flatMap((detail) =>
         detail.ingredients.flatMap((item) =>
           item.activeIngredient ? [item.activeIngredient] : [],
         ),
       ),
-    ),
+      ...directIngredients,
+    ]),
     medicationIngredients: uniqueById(
       details.flatMap((detail) =>
         detail.ingredients.map((item) => item.medicationIngredient),
@@ -112,8 +131,44 @@ export function createInteractionCheckerService(
 
   return {
     availability: 'synthetic-preview',
-    evaluate: async (productIds, online) => {
-      if (productIds.length === 0)
+    searchIngredients: async (
+      query: string,
+      signal?: AbortSignal,
+    ): Promise<readonly InteractionIngredientCandidate[]> => {
+      throwIfAborted(signal);
+      const prefix = query.trim();
+      if (prefix === '') return [];
+
+      const generationId = dependencies.activeGenerationId();
+      if (!generationId) throw new InteractionCheckerUnavailableError();
+      const reader = await dependencies.openReader();
+      if (!reader) throw new InteractionCheckerUnavailableError();
+
+      try {
+        throwIfAborted(signal);
+        if (
+          reader.generationId !== generationId ||
+          dependencies.activeGenerationId() !== generationId
+        )
+          throw new InteractionCheckerGenerationChangedError();
+        if (!reader.generation.synthetic)
+          throw new SyntheticPreviewRequiresSyntheticCatalogueError();
+
+        const ingredients = await reader.ingredientsByDciPrefix(prefix);
+        throwIfAborted(signal);
+        if (dependencies.activeGenerationId() !== generationId)
+          throw new InteractionCheckerGenerationChangedError();
+        return uniqueById(ingredients).map((ingredient) => ({
+          id: ingredient.id,
+          name: ingredient.preferredName,
+        }));
+      } finally {
+        reader.release();
+      }
+    },
+    evaluate: async (input: InteractionCheckerSelection, online) => {
+      const ingredientIds = input.ingredientIds ?? [];
+      if (input.productIds.length === 0 && ingredientIds.length === 0)
         throw new InteractionCheckerInvalidSelectionError();
 
       const generationId = dependencies.activeGenerationId();
@@ -124,8 +179,13 @@ export function createInteractionCheckerService(
           'The active catalogue version identifier is invalid.',
         );
 
-      const selectedProductIds = productIds.map((productId) => {
+      const selectedProductIds = input.productIds.map((productId) => {
         const parsed = parseStableId('MedicationProduct', productId);
+        if (!parsed.ok) throw new InteractionCheckerInvalidSelectionError();
+        return parsed.id;
+      });
+      const selectedIngredientIds = ingredientIds.map((ingredientId) => {
+        const parsed = parseStableId('ActiveIngredient', ingredientId);
         if (!parsed.ok) throw new InteractionCheckerInvalidSelectionError();
         return parsed.id;
       });
@@ -142,23 +202,49 @@ export function createInteractionCheckerService(
         if (!reader.generation.synthetic)
           throw new SyntheticPreviewRequiresSyntheticCatalogueError();
 
-        const details = await Promise.all(
+        const readDetails = await Promise.all(
           selectedProductIds.map((productId) =>
             reader.productDetail(productId),
+          ),
+        );
+        const details = readDetails.filter(
+          (detail): detail is ProductDetail => detail !== null,
+        );
+        const directIngredients = await Promise.all(
+          selectedIngredientIds.map((ingredientId) =>
+            reader.ingredient(ingredientId),
           ),
         );
         if (dependencies.activeGenerationId() !== generationId)
           throw new InteractionCheckerGenerationChangedError();
 
+        const provenanceDetails = [...details];
+        if (
+          selectedIngredientIds.length > 0 &&
+          !provenanceDetails.some((detail) => detail.datasetVersion)
+        ) {
+          const firstProductId = (await reader.productIds())[0];
+          if (firstProductId) {
+            const metadataDetail = await reader.productDetail(firstProductId);
+            if (metadataDetail) provenanceDetails.push(metadataDetail);
+          }
+          if (dependencies.activeGenerationId() !== generationId)
+            throw new InteractionCheckerGenerationChangedError();
+        }
+
         const selection: InteractionSelection = {
           snapshot: snapshotFromReaderDetails(
-            details.filter(
-              (detail): detail is NonNullable<typeof detail> => detail !== null,
+            details,
+            directIngredients.filter(
+              (ingredient): ingredient is ActiveIngredient =>
+                ingredient !== null,
             ),
+            provenanceDetails,
           ),
           // Missing records stay in the selection so the domain engine reports
           // `product-not-found` instead of silently dropping the user's choice.
           productIds: selectedProductIds as readonly MedicationProductId[],
+          ingredientIds: selectedIngredientIds,
           datasetVersionId: datasetVersion.id,
         };
         const provider = await loadProvider();

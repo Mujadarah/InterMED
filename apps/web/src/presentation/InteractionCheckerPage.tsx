@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type {
+  ActiveIngredientId,
   DatasetStateSource,
   DatasetUpdateState,
   InteractionEvaluation,
   LocalDatasetGeneration,
+  MedicationProductId,
   MedicationSearchMatch,
   PairAssessment,
 } from '@intermed/domain';
@@ -14,7 +16,10 @@ import {
   INTERACTION_CHECKER_MAX_PAIRS,
   SyntheticPreviewRequiresSyntheticCatalogueError,
 } from '../application/interaction-checker';
-import type { InteractionCheckerService } from '../application/interaction-checker-contract';
+import type {
+  InteractionCheckerService,
+  InteractionIngredientCandidate,
+} from '../application/interaction-checker-contract';
 import { useRouteHeadingFocus } from './route-focus';
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -24,9 +29,14 @@ const COVERAGE_DISCREPANCY_TEXT =
   'Coverage differs between sources: at least one source documents this interaction and another has no record within its evaluated coverage. Absence of a record is not evidence against the documented interaction.';
 
 interface SelectedProduct {
-  readonly id: string;
+  readonly id: MedicationProductId;
   readonly name: string;
   readonly ingredientNames: readonly string[];
+}
+
+interface SelectedIngredient {
+  readonly id: ActiveIngredientId;
+  readonly name: string;
 }
 
 interface SearchState {
@@ -36,9 +46,17 @@ interface SearchState {
   readonly status: 'ready' | 'error';
 }
 
+interface IngredientSearchState {
+  readonly generationId: string;
+  readonly query: string;
+  readonly results: readonly InteractionIngredientCandidate[];
+  readonly status: 'ready' | 'error';
+}
+
 interface EvaluationState {
   readonly generationId: string;
   readonly productIds: readonly string[];
+  readonly ingredientIds: readonly string[];
   readonly evaluation: InteractionEvaluation;
 }
 
@@ -298,7 +316,19 @@ function AssessmentDimension({
           details: sourceSeverityDetails(item, evaluation),
         }));
   const sourceSeverityGroups = groupBySourceId(sourceSeverityStatements);
-  const sourcePositionGroups = groupBySourceId(sourcePositions);
+  const withinSourceInconsistencies =
+    assessment.evidence.withinSourceInconsistencies;
+  const sourcePositionGroups = [
+    ...new Set([
+      ...sourcePositions.map((position) => position.sourceId),
+      ...withinSourceInconsistencies.map((item) => item.sourceId),
+    ]),
+  ].map((sourceId) => ({
+    sourceId,
+    entries: sourcePositions.filter(
+      (position) => position.sourceId === sourceId,
+    ),
+  }));
   const sourceEvidenceLevelGroups = groupBySourceId(
     assessment.evidence.evidenceLevels,
   );
@@ -382,6 +412,19 @@ function AssessmentDimension({
                     sourceId={sourceId}
                     evaluation={evaluation}
                   />
+                  {withinSourceInconsistencies
+                    .filter((item) => item.sourceId === sourceId)
+                    .map((item) => (
+                      <p
+                        key={`${item.sourceId}-${item.sourceVersions.join('-')}`}
+                        className="interaction-within-source-notice"
+                        role="note"
+                      >
+                        Source data inconsistency: this source&apos;s records
+                        differ between its versions or adapters (versions:{' '}
+                        {item.sourceVersions.join(', ') || 'not supplied'}).
+                      </p>
+                    ))}
                   {entries.map((position) => (
                     <div key={`${position.sourceVersion}-${position.position}`}>
                       {position.position === 'no-record-in-coverage' ? (
@@ -661,9 +704,11 @@ function EvaluationLimitations({
 function EvaluationResults({
   evaluation,
   selectedProducts,
+  selectedIngredients,
 }: {
   evaluation: InteractionEvaluation;
   selectedProducts: readonly SelectedProduct[];
+  selectedIngredients: readonly SelectedIngredient[];
 }) {
   return (
     <section
@@ -698,11 +743,26 @@ function EvaluationResults({
         ) : (
           <p>No product-to-ingredient mappings were returned.</p>
         )}
-        <p>
-          Direct ingredient ids:{' '}
-          {evaluation.directIngredientIds.map(identifierText).join(', ') ||
-            'None supplied.'}
-        </p>
+        {evaluation.directIngredientIds.length > 0 ? (
+          <ul aria-label="Directly selected ingredients">
+            {evaluation.directIngredientIds.map((ingredientId) => {
+              const ingredient = selectedIngredients.find(
+                (item) => item.id === ingredientId,
+              );
+              return (
+                <li key={ingredientId}>
+                  <strong>
+                    {ingredient?.name ?? identifierText(ingredientId)}
+                  </strong>{' '}
+                  <span>Ingredient (selected directly)</span>. Ingredient id:{' '}
+                  {identifierText(ingredientId)}.
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p>Direct ingredient ids: None supplied.</p>
+        )}
       </section>
 
       {evaluation.sourceVersions.length > 0 && (
@@ -775,11 +835,14 @@ function EvaluationResults({
           ))}
         </ol>
       ) : (
-        !evaluation.pairLimit && (
+        !evaluation.pairLimit &&
+        (evaluation.incompleteReasons.includes('no-pairs-to-evaluate') ? (
+          <p>Add at least two ingredients to check for interactions.</p>
+        ) : (
           <p>
             No ingredient pair assessments were returned by the domain engine.
           </p>
-        )
+        ))
       )}
     </section>
   );
@@ -817,15 +880,22 @@ export function InteractionCheckerPage({
   const generationId = generation?.generationId ?? null;
   const [query, setQuery] = useState('');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
+  const [ingredientQuery, setIngredientQuery] = useState('');
+  const [ingredientSearchState, setIngredientSearchState] =
+    useState<IngredientSearchState | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     [],
   );
+  const [selectedIngredients, setSelectedIngredients] = useState<
+    SelectedIngredient[]
+  >([]);
   const [evaluationState, setEvaluationState] =
     useState<EvaluationState | null>(null);
   const [requestState, setRequestState] = useState<RequestState>({
     status: 'idle',
   });
   const [retryRevision, setRetryRevision] = useState(0);
+  const [ingredientRetryRevision, setIngredientRetryRevision] = useState(0);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const requestRevision = useRef(0);
   const previousGenerationId = useRef(generationId);
@@ -837,8 +907,10 @@ export function InteractionCheckerPage({
     previousGenerationId.current = generationId;
     requestRevision.current += 1;
     setSelectedProducts([]);
+    setSelectedIngredients([]);
     setEvaluationState(null);
     setSearchState(null);
+    setIngredientSearchState(null);
     setRequestState({ status: 'idle' });
   }, [generationId]);
 
@@ -903,22 +975,85 @@ export function InteractionCheckerPage({
     search,
   ]);
 
+  useEffect(() => {
+    const normalizedQuery = ingredientQuery.trim();
+    if (
+      checker.availability !== 'synthetic-preview' ||
+      !generation?.synthetic ||
+      !generationId ||
+      !normalizedQuery
+    )
+      return;
+
+    let current = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      void checker.searchIngredients(normalizedQuery, controller.signal).then(
+        (results) => {
+          if (!current || controller.signal.aborted) return;
+          setIngredientSearchState({
+            generationId,
+            query: normalizedQuery,
+            results,
+            status: 'ready',
+          });
+        },
+        () => {
+          if (!current || controller.signal.aborted) return;
+          setIngredientSearchState({
+            generationId,
+            query: normalizedQuery,
+            results: [],
+            status: 'error',
+          });
+        },
+      );
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      current = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    checker,
+    generation?.synthetic,
+    generationId,
+    ingredientQuery,
+    ingredientRetryRevision,
+  ]);
+
   const currentSearch =
     searchState?.generationId === generationId &&
     searchState.query === query.trim()
       ? searchState
       : null;
+  const currentIngredientSearch =
+    ingredientSearchState?.generationId === generationId &&
+    ingredientSearchState.query === ingredientQuery.trim()
+      ? ingredientSearchState
+      : null;
   const selectedIds = new Set(selectedProducts.map((product) => product.id));
+  const selectedIngredientIds = new Set(
+    selectedIngredients.map((ingredient) => ingredient.id),
+  );
   const candidates =
     currentSearch?.status === 'ready'
       ? currentSearch.response.results.filter(
           (match) => !selectedIds.has(match.record.product.id),
         )
       : [];
+  const ingredientCandidates =
+    currentIngredientSearch?.status === 'ready'
+      ? currentIngredientSearch.results.filter(
+          (ingredient) => !selectedIngredientIds.has(ingredient.id),
+        )
+      : [];
   const currentEvaluation =
     evaluationState?.generationId === generationId &&
     evaluationState.productIds.join('\u001f') ===
-      selectedProducts.map((product) => product.id).join('\u001f')
+      selectedProducts.map((product) => product.id).join('\u001f') &&
+    evaluationState.ingredientIds.join('\u001f') ===
+      selectedIngredients.map((ingredient) => ingredient.id).join('\u001f')
       ? evaluationState.evaluation
       : null;
 
@@ -943,18 +1078,45 @@ export function InteractionCheckerPage({
     setRequestState({ status: 'idle' });
   }
 
+  function addIngredient(ingredient: InteractionIngredientCandidate) {
+    requestRevision.current += 1;
+    setSelectedIngredients((current) =>
+      current.some((item) => item.id === ingredient.id)
+        ? current
+        : [...current, { id: ingredient.id, name: ingredient.name }],
+    );
+    setEvaluationState(null);
+    setRequestState({ status: 'idle' });
+  }
+
+  function removeIngredient(ingredientId: ActiveIngredientId) {
+    requestRevision.current += 1;
+    setSelectedIngredients((current) =>
+      current.filter((ingredient) => ingredient.id !== ingredientId),
+    );
+    setEvaluationState(null);
+    setRequestState({ status: 'idle' });
+  }
+
   async function evaluateSelection() {
     const productIds = selectedProducts.map((product) => product.id);
-    if (productIds.length === 0) return;
+    const ingredientIds = selectedIngredients.map(
+      (ingredient) => ingredient.id,
+    );
+    if (productIds.length === 0 && ingredientIds.length === 0) return;
     const revision = ++requestRevision.current;
     setEvaluationState(null);
     setRequestState({ status: 'loading' });
     try {
-      const evaluation = await checker.evaluate(productIds, online);
+      const evaluation = await checker.evaluate(
+        { productIds, ingredientIds },
+        online,
+      );
       if (revision !== requestRevision.current) return;
       setEvaluationState({
         generationId: generationId ?? '',
         productIds,
+        ingredientIds,
         evaluation,
       });
       setRequestState({
@@ -969,7 +1131,7 @@ export function InteractionCheckerPage({
           error instanceof SyntheticPreviewRequiresSyntheticCatalogueError
             ? 'The synthetic preview requires a synthetic catalogue. No evaluation was produced.'
             : error instanceof InteractionCheckerGenerationChangedError
-              ? 'The active dataset changed. Select products from the active catalogue again.'
+              ? 'The active dataset changed. Select products or ingredients from the active catalogue again.'
               : 'The interaction preview could not be completed. No result was stored.',
       });
     }
@@ -992,7 +1154,7 @@ export function InteractionCheckerPage({
       <p className="lead">
         {checker.availability === 'unavailable'
           ? 'No source has been approved for interaction checking, so this feature is unavailable.'
-          : 'Select products from the local synthetic catalogue to inspect a development-only result. This feature does not support care decisions.'}
+          : 'Select products or active ingredients from the local synthetic catalogue to inspect a development-only result. This feature does not support care decisions.'}
       </p>
       <div className="interaction-preview-banner">
         <p role="note">
@@ -1025,134 +1187,247 @@ export function InteractionCheckerPage({
             truncation.
           </p>
 
-          <div className="search-control">
-            <label htmlFor="interaction-medication-search">
-              Search local medications to add
-            </label>
-            <input
-              id="interaction-medication-search"
-              type="search"
-              value={query}
-              autoComplete="off"
-              aria-describedby="interaction-medication-search-help"
-              onChange={(event) => {
-                setSearchState(null);
-                setEvaluationState(null);
-                setRequestState({ status: 'idle' });
-                setQuery(event.currentTarget.value);
-              }}
-            />
-            <p id="interaction-medication-search-help">
-              Search uses only this browser&apos;s active synthetic dataset.
-              Your selection and result stay in memory for this page and are not
-              saved.
-            </p>
-          </div>
+          <div className="interaction-search-grid">
+            <div className="interaction-search-panel">
+              <div className="search-control">
+                <label htmlFor="interaction-medication-search">
+                  Search local medications to add
+                </label>
+                <input
+                  id="interaction-medication-search"
+                  type="search"
+                  value={query}
+                  autoComplete="off"
+                  aria-describedby="interaction-medication-search-help"
+                  onChange={(event) => {
+                    requestRevision.current += 1;
+                    setSearchState(null);
+                    setEvaluationState(null);
+                    setRequestState({ status: 'idle' });
+                    setQuery(event.currentTarget.value);
+                  }}
+                />
+                <p id="interaction-medication-search-help">
+                  Search uses only this browser&apos;s active synthetic dataset.
+                  Your selection and result stay in memory for this page and are
+                  not saved.
+                </p>
+              </div>
 
-          <p
-            className="search-status"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {query.trim() === ''
-              ? 'Search for a local product to add it to the selection.'
-              : currentSearch?.status === 'error'
-                ? 'Local medication search is unavailable. Try the search again.'
-                : currentSearch?.status === 'ready'
-                  ? `${currentSearch.response.total} local candidate(s) found.`
-                  : 'Searching the active local catalogue.'}
-          </p>
-          {currentSearch?.status === 'error' && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchState(null);
-                setRetryRevision((current) => current + 1);
-              }}
-            >
-              Retry local search
-            </button>
-          )}
-          {currentSearch?.status === 'ready' &&
-            currentSearch.response.truncated && (
-              <p role="note">
-                The local search result list is limited. Refine the query to
-                find another product.
+              <p
+                className="search-status"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {query.trim() === ''
+                  ? 'Search for a local product to add it to the selection.'
+                  : currentSearch?.status === 'error'
+                    ? 'Local medication search is unavailable. Try the search again.'
+                    : currentSearch?.status === 'ready'
+                      ? `${currentSearch.response.total} local candidate(s) found.`
+                      : 'Searching the active local catalogue.'}
               </p>
-            )}
-          {candidates.length > 0 && (
-            <ul
-              className="interaction-candidate-list"
-              aria-label="Medication search candidates"
-            >
-              {candidates.map((match) => {
-                const candidate = productFromMatch(match);
-                return (
-                  <li key={candidate.id}>
-                    <div>
-                      <h2>{candidate.name}</h2>
-                      <p>
-                        Active ingredient(s):{' '}
-                        {candidate.ingredientNames.join(', ') ||
-                          'not resolved by search'}
-                      </p>
-                      <p>Product id: {identifierText(candidate.id)}</p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Add ${candidate.name}`}
-                      onClick={() => addProduct(match)}
-                    >
-                      Add
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+              {currentSearch?.status === 'error' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchState(null);
+                    setRetryRevision((current) => current + 1);
+                  }}
+                >
+                  Retry local search
+                </button>
+              )}
+              {currentSearch?.status === 'ready' &&
+                currentSearch.response.truncated && (
+                  <p role="note">
+                    The local search result list is limited. Refine the query to
+                    find another product.
+                  </p>
+                )}
+              {candidates.length > 0 && (
+                <ul
+                  className="interaction-candidate-list"
+                  aria-label="Medication search candidates"
+                >
+                  {candidates.map((match) => {
+                    const candidate = productFromMatch(match);
+                    return (
+                      <li key={candidate.id}>
+                        <div>
+                          <h2>{candidate.name}</h2>
+                          <p>
+                            Active ingredient(s):{' '}
+                            {candidate.ingredientNames.join(', ') ||
+                              'not resolved by search'}
+                          </p>
+                          <p>Product id: {identifierText(candidate.id)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={`Add ${candidate.name}`}
+                          onClick={() => addProduct(match)}
+                        >
+                          Add
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="interaction-search-panel">
+              <div className="search-control">
+                <label htmlFor="interaction-ingredient-search">
+                  Search local active ingredients to add
+                </label>
+                <input
+                  id="interaction-ingredient-search"
+                  type="search"
+                  value={ingredientQuery}
+                  autoComplete="off"
+                  aria-describedby="interaction-ingredient-search-help"
+                  onChange={(event) => {
+                    requestRevision.current += 1;
+                    setIngredientSearchState(null);
+                    setEvaluationState(null);
+                    setRequestState({ status: 'idle' });
+                    setIngredientQuery(event.currentTarget.value);
+                  }}
+                />
+                <p id="interaction-ingredient-search-help">
+                  Search synthetic active-ingredient names in the active local
+                  dataset. Your selection and result stay in memory for this
+                  page and are not saved.
+                </p>
+              </div>
+
+              <p
+                className="search-status"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {ingredientQuery.trim() === ''
+                  ? 'Search for a local active ingredient to add it to the selection.'
+                  : currentIngredientSearch?.status === 'error'
+                    ? 'Local ingredient search is unavailable. Try the search again.'
+                    : currentIngredientSearch?.status === 'ready'
+                      ? `${currentIngredientSearch.results.length} local active ingredient candidate(s) found.`
+                      : 'Searching active ingredients in the local catalogue.'}
+              </p>
+              {currentIngredientSearch?.status === 'error' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIngredientSearchState(null);
+                    setIngredientRetryRevision((current) => current + 1);
+                  }}
+                >
+                  Retry ingredient search
+                </button>
+              )}
+              {ingredientCandidates.length > 0 && (
+                <ul
+                  className="interaction-candidate-list"
+                  aria-label="Active ingredient search candidates"
+                >
+                  {ingredientCandidates.map((ingredient) => (
+                    <li key={ingredient.id}>
+                      <div>
+                        <h2>{ingredient.name}</h2>
+                        <p>Ingredient id: {identifierText(ingredient.id)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Add ingredient ${ingredient.name}`}
+                        onClick={() => addIngredient(ingredient)}
+                      >
+                        Add
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
 
           <section
             className="interaction-selection"
             aria-labelledby="interaction-selection-title"
           >
-            <h2 id="interaction-selection-title">Selected products</h2>
-            {selectedProducts.length > 0 ? (
-              <ul>
-                {selectedProducts.map((product) => (
-                  <li key={product.id}>
-                    <div>
-                      <strong>{product.name}</strong>
-                      <p>Product id: {identifierText(product.id)}</p>
-                      <p>
-                        Search ingredient name(s):{' '}
-                        {product.ingredientNames.join(', ') ||
-                          'not resolved by search'}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Remove ${product.name} from selection`}
-                      onClick={() => removeProduct(product.id)}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No products selected.</p>
-            )}
+            <h2 id="interaction-selection-title">Selected items</h2>
+            <section aria-labelledby="interaction-selected-products-title">
+              <h3 id="interaction-selected-products-title">
+                Selected products
+              </h3>
+              {selectedProducts.length > 0 ? (
+                <ul>
+                  {selectedProducts.map((product) => (
+                    <li key={product.id}>
+                      <div>
+                        <strong>{product.name}</strong>
+                        <p>Product id: {identifierText(product.id)}</p>
+                        <p>
+                          Search ingredient name(s):{' '}
+                          {product.ingredientNames.join(', ') ||
+                            'not resolved by search'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${product.name} from selection`}
+                        onClick={() => removeProduct(product.id)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No products selected.</p>
+              )}
+            </section>
+            <section aria-labelledby="interaction-selected-ingredients-title">
+              <h3 id="interaction-selected-ingredients-title">
+                Selected direct ingredients
+              </h3>
+              {selectedIngredients.length > 0 ? (
+                <ul>
+                  {selectedIngredients.map((ingredient) => (
+                    <li key={ingredient.id}>
+                      <div>
+                        <strong>{ingredient.name}</strong>
+                        <p>Ingredient id: {identifierText(ingredient.id)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${ingredient.name} from selection`}
+                        onClick={() => removeIngredient(ingredient.id)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No direct ingredients selected.</p>
+              )}
+            </section>
           </section>
 
           <button
             type="button"
             disabled={
-              selectedProducts.length === 0 || requestState.status === 'loading'
+              (selectedProducts.length === 0 &&
+                selectedIngredients.length === 0) ||
+              requestState.status === 'loading'
             }
             onClick={() => void evaluateSelection()}
           >
-            Check selected products
+            Check selected items
           </button>
 
           <p
@@ -1162,7 +1437,7 @@ export function InteractionCheckerPage({
             aria-atomic="true"
           >
             {requestState.status === 'loading'
-              ? 'Checking the selected synthetic products.'
+              ? 'Checking the selected synthetic items.'
               : requestState.status === 'error' ||
                   requestState.status === 'ready'
                 ? requestState.message
@@ -1172,6 +1447,7 @@ export function InteractionCheckerPage({
             <EvaluationResults
               evaluation={currentEvaluation}
               selectedProducts={selectedProducts}
+              selectedIngredients={selectedIngredients}
             />
           )}
         </>

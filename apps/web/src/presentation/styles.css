@@ -788,6 +788,22 @@ button {
   border: 1px solid var(--border);
   overflow-wrap: anywhere;
 }
+.interaction-search-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+.interaction-search-panel {
+  min-width: 0;
+}
+.interaction-search-panel .search-control {
+  margin-top: 0;
+}
+.interaction-search-panel .search-status {
+  margin: 0.75rem 0;
+}
 .interaction-candidate-list,
 .interaction-selection ul,
 .interaction-provenance,
@@ -842,6 +858,7 @@ button {
   border-radius: 0.55rem;
 }
 .interaction-selection h2,
+.interaction-selection h3,
 .interaction-evaluation h2,
 .interaction-limitations h2,
 .interaction-resolution h3,
@@ -954,6 +971,17 @@ button {
 .interaction-selection > ul {
   margin-bottom: 0;
 }
+.interaction-selection section + section {
+  margin-top: 1rem;
+}
+.interaction-within-source-notice {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  color: var(--ink);
+  background: #f3f7f8;
+  border-left: 4px solid var(--border);
+  overflow-wrap: anywhere;
+}
 .review-badge {
   display: inline-block;
   padding: 0.35rem 0.8rem;
@@ -964,6 +992,9 @@ button {
   font-weight: 700;
 }
 @media (max-width: 42rem) {
+  .interaction-search-grid {
+    grid-template-columns: 1fr;
+  }
   .calculator-value-unit {
     grid-template-columns: 1fr;
   }

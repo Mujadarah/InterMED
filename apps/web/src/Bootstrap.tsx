@@ -112,7 +112,7 @@ function interactionCheckerFor(
       let developmentService: Promise<InteractionCheckerService> | undefined;
       service = {
         availability: 'synthetic-preview',
-        evaluate: async (productIds, online) => {
+        searchIngredients: async (query, signal) => {
           developmentService ??=
             import('./application/interaction-checker').then(
               async ({ createInteractionCheckerService }) => {
@@ -124,7 +124,21 @@ function interactionCheckerFor(
                 );
               },
             );
-          return (await developmentService).evaluate(productIds, online);
+          return (await developmentService).searchIngredients(query, signal);
+        },
+        evaluate: async (selection, online) => {
+          developmentService ??=
+            import('./application/interaction-checker').then(
+              async ({ createInteractionCheckerService }) => {
+                const { developmentSyntheticInteractionProvider } =
+                  await import('./dev/synthetic-interaction-provider');
+                return createInteractionCheckerService(
+                  readerDependencies(store),
+                  async () => developmentSyntheticInteractionProvider,
+                );
+              },
+            );
+          return (await developmentService).evaluate(selection, online);
         },
       };
     } else service = unavailableInteractionChecker;

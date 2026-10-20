@@ -28,7 +28,10 @@ import {
   sourceId,
 } from '../../../../tests/domain/builders';
 import { INTERACTION_CHECKER_MAX_PAIRS } from '../application/interaction-checker';
-import type { InteractionCheckerService } from '../application/interaction-checker-contract';
+import type {
+  InteractionCheckerSelection,
+  InteractionCheckerService,
+} from '../application/interaction-checker-contract';
 import { InteractionCheckerPage } from './InteractionCheckerPage';
 
 afterEach(cleanup);
@@ -273,6 +276,34 @@ function withSecondProviderForSameSource(
   };
 }
 
+function withSameSourceAdapterNoRecord(
+  evaluation: InteractionEvaluation,
+): InteractionEvaluation {
+  const row = evaluation.evaluatedPairCoverage[0];
+  if (!row?.sourceId) return evaluation;
+  return {
+    ...evaluation,
+    evaluatedPairCoverage: [
+      ...evaluation.evaluatedPairCoverage,
+      {
+        pair: row.pair,
+        providerId: SAME_SOURCE_ADAPTER_PROVIDER_ID,
+        sourceId: row.sourceId,
+        sourceVersion: SAME_SOURCE_ADAPTER_VERSION,
+        status: 'covered-no-record',
+      },
+    ],
+    sourceVersions: [
+      ...evaluation.sourceVersions,
+      {
+        providerId: SAME_SOURCE_ADAPTER_PROVIDER_ID,
+        sourceId: row.sourceId,
+        sourceVersion: SAME_SOURCE_ADAPTER_VERSION,
+      },
+    ],
+  };
+}
+
 function expectNoUnlabelledSafetyLanguage() {
   expect(screen.getByText(REQUIRED_PREVIEW_BANNER)).toBeVisible();
   const page = screen
@@ -330,16 +361,32 @@ async function renderScenario({
   const search = {
     search: vi.fn(async () => response),
   };
+  const ingredientCandidates = selection.snapshot.activeIngredients.map(
+    (ingredient) => ({ id: ingredient.id, name: ingredient.preferredName }),
+  );
   const checker: InteractionCheckerService = {
     availability,
-    evaluate: vi.fn(async (_productIds, requestOnline) => {
-      const evaluation = await makeEvaluation(
-        selection,
-        provider,
-        requestOnline,
-      );
-      return decorate ? decorate(evaluation) : evaluation;
-    }),
+    searchIngredients: vi.fn(async (query) =>
+      ingredientCandidates.filter((ingredient) =>
+        ingredient.name
+          .toLocaleLowerCase()
+          .startsWith(query.toLocaleLowerCase()),
+      ),
+    ),
+    evaluate: vi.fn(
+      async (input: InteractionCheckerSelection, requestOnline) => {
+        const evaluation = await makeEvaluation(
+          {
+            ...selection,
+            productIds: input.productIds,
+            ingredientIds: input.ingredientIds,
+          },
+          provider,
+          requestOnline,
+        );
+        return decorate ? decorate(evaluation) : evaluation;
+      },
+    ),
   };
   const user = userEvent.setup();
   render(
@@ -383,7 +430,7 @@ async function addAllFixtureProducts(
 
 async function checkSelectedProducts(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
-    screen.getByRole('button', { name: 'Check selected products' }),
+    screen.getByRole('button', { name: 'Check selected items' }),
   );
 }
 
@@ -442,7 +489,7 @@ it('renders covered no-record wording exactly and keeps the fixed warning', asyn
     name: 'Ingredient pair 1 assessment',
   });
   expect(
-    within(pair).getByText('Assessment logic version: 3.0.0.'),
+    within(pair).getByText('Assessment logic version: 4.0.0.'),
   ).toBeVisible();
   expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
   expect(
@@ -479,6 +526,33 @@ it('groups provider adapters by source identity and lists provider versions as p
   ).not.toBeInTheDocument();
 });
 
+it('shows a same-source adapter inconsistency inside its source group without cross-source indicators', async () => {
+  const { user, selection } = await renderScenario({
+    decorate: withSameSourceAdapterNoRecord,
+  });
+  await addAllFixtureProducts(user, selection);
+  await checkSelectedProducts(user);
+
+  const pair = await screen.findByRole('region', {
+    name: 'Ingredient pair 1 assessment',
+  });
+  const sourcePositions = within(pair).getByRole('list', {
+    name: 'Source positions grouped by source',
+  });
+  const sourceGroups = within(sourcePositions).getAllByRole('listitem');
+  expect(sourceGroups).toHaveLength(1);
+  expect(sourceGroups[0]).toHaveTextContent(
+    /Source data inconsistency: this source's records differ between its versions or adapters \(versions: .*synthetic-interactions-v1.*synthetic-same-source-adapter-v2\)\./,
+  );
+  expect(within(pair).queryByText('Sources disagree')).not.toBeInTheDocument();
+  expect(
+    within(pair).queryByText(COVERAGE_DISCREPANCY_SENTENCE),
+  ).not.toBeInTheDocument();
+  expect(
+    within(pair).getByText('Assessment logic version: 4.0.0.'),
+  ).toBeVisible();
+});
+
 it('keeps a current interaction visible beside another source no-record position', async () => {
   const { user, selection } = await renderScenario({
     provider: createOfflineSyntheticProvider(),
@@ -504,7 +578,7 @@ it('keeps a current interaction visible beside another source no-record position
     within(pair).queryByText(/Evidence conflict:/i),
   ).not.toBeInTheDocument();
   expect(
-    within(pair).getByText('Assessment logic version: 3.0.0.'),
+    within(pair).getByText('Assessment logic version: 4.0.0.'),
   ).toBeVisible();
   expect(
     within(pair).getByText(
@@ -652,7 +726,10 @@ it('shows that an online-only provider is unavailable while the shell is offline
   expect(
     await screen.findByText(/online-only provider.*browser is offline/i),
   ).toBeVisible();
-  expect(checker.evaluate).toHaveBeenCalledWith(selection.productIds, false);
+  expect(checker.evaluate).toHaveBeenCalledWith(
+    { productIds: selection.productIds, ingredientIds: [] },
+    false,
+  );
   expect(screen.getByText(/online-required/)).toBeVisible();
 });
 
@@ -725,6 +802,124 @@ it('shows product-to-ingredient resolution and direct ingredient inputs', async 
   expect(
     screen.getByText(/Direct ingredient ids: None supplied/),
   ).toBeVisible();
+});
+
+it('combines one directly selected ingredient with one selected product', async () => {
+  const { user, selection, checker } = await renderScenario();
+  const product = selection.snapshot.products[0]!;
+  const directIngredient = selection.snapshot.activeIngredients[1]!;
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ${product.commercialName}`,
+    }),
+  );
+  const ingredientSearch = screen.getByRole('searchbox', {
+    name: /search local active ingredients/i,
+  });
+  await user.type(ingredientSearch, directIngredient.preferredName);
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ingredient ${directIngredient.preferredName}`,
+    }),
+  );
+  await checkSelectedProducts(user);
+
+  expect(checker.evaluate).toHaveBeenCalledWith(
+    {
+      productIds: [product.id],
+      ingredientIds: [directIngredient.id],
+    },
+    true,
+  );
+  expect(
+    await screen.findByText(/Ingredient \(selected directly\)/),
+  ).toBeVisible();
+  expect(screen.getByText(JSON.stringify(directIngredient.id))).toBeVisible();
+  expect(
+    screen.queryByText(/Preview product 2 .*resolves to:/),
+  ).not.toBeInTheDocument();
+});
+
+it('allows one directly selected ingredient and shows the add-at-least-two state', async () => {
+  const { user, selection, checker } = await renderScenario();
+  const ingredient = selection.snapshot.activeIngredients[0]!;
+  await user.type(
+    screen.getByRole('searchbox', {
+      name: /search local active ingredients/i,
+    }),
+    ingredient.preferredName,
+  );
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ingredient ${ingredient.preferredName}`,
+    }),
+  );
+  await checkSelectedProducts(user);
+
+  expect(checker.evaluate).toHaveBeenCalledWith(
+    { productIds: [], ingredientIds: [ingredient.id] },
+    true,
+  );
+  expect(
+    await screen.findByText(
+      'Add at least two ingredients to check for interactions.',
+    ),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('list', { name: 'Pair assessments' }),
+  ).not.toBeInTheDocument();
+});
+
+it('counts the same ingredient selected directly and through a product as duplicate exposure', async () => {
+  const { user, selection } = await renderScenario();
+  const product = selection.snapshot.products[0]!;
+  const ingredient = selection.snapshot.activeIngredients[0]!;
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ${product.commercialName}`,
+    }),
+  );
+  await user.type(
+    screen.getByRole('searchbox', {
+      name: /search local active ingredients/i,
+    }),
+    ingredient.preferredName,
+  );
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ingredient ${ingredient.preferredName}`,
+    }),
+  );
+  await checkSelectedProducts(user);
+
+  const limitations = await screen.findByRole('region', {
+    name: 'Evaluation limitations',
+  });
+  expect(
+    within(limitations).getByText(/Duplicate ingredient exposure/),
+  ).toBeVisible();
+  expect(
+    within(limitations).getByText(/and a direct ingredient input/),
+  ).toBeVisible();
+});
+
+it('supports choosing an active ingredient with only the keyboard', async () => {
+  const { user, selection } = await renderScenario();
+  const ingredient = selection.snapshot.activeIngredients[0]!;
+  const input = screen.getByRole('searchbox', {
+    name: /search local active ingredients/i,
+  });
+  await user.type(input, ingredient.preferredName);
+  const addButton = await screen.findByRole('button', {
+    name: `Add ingredient ${ingredient.preferredName}`,
+  });
+  await user.tab();
+  expect(addButton).toHaveFocus();
+  await user.keyboard('{Enter}');
+
+  expect(
+    screen.getByRole('region', { name: 'Selected direct ingredients' }),
+  ).toHaveTextContent(ingredient.preferredName);
 });
 
 it('keeps the selected list ephemeral and provides a named remove button', async () => {
@@ -808,6 +1003,7 @@ it('shows the production no-provider state without a check action', async () => 
         search={{ search: vi.fn() }}
         checker={{
           availability: 'unavailable',
+          searchIngredients: vi.fn(async () => []),
           evaluate: vi.fn(),
         }}
         online={true}
@@ -826,7 +1022,7 @@ it('shows the production no-provider state without a check action', async () => 
   expect(screen.getByText(REQUIRED_PREVIEW_BANNER)).toBeVisible();
   expect(screen.getByText(REQUIRED_CLINICAL_REVIEW_LINE)).toBeVisible();
   expect(
-    screen.queryByRole('button', { name: 'Check selected products' }),
+    screen.queryByRole('button', { name: 'Check selected items' }),
   ).not.toBeInTheDocument();
   expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
 });
