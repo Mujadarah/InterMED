@@ -26,7 +26,9 @@ function FavoriteRow({
     <li className="favorite-entry">
       <div className="favorite-entry-copy">
         {available ? (
-          <Link to={href}>{favorite.lastKnownDisplayName}</Link>
+          <Link to={href} tabIndex={0}>
+            {favorite.lastKnownDisplayName}
+          </Link>
         ) : (
           <span className="favorite-name">{favorite.lastKnownDisplayName}</span>
         )}
@@ -146,7 +148,9 @@ export function FavoritesPage({
       {favorites?.length === 0 && (
         <div className="favorite-empty-state">
           <p>No favorites yet.</p>
-          <Link to="/search">Search local medications</Link>
+          <Link to="/search" tabIndex={0}>
+            Search local medications
+          </Link>
         </div>
       )}
       {favorites && favorites.length > 0 && (
