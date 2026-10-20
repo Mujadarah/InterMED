@@ -21,8 +21,6 @@ const allowListedPaths: readonly string[] = [
   'tests/appwrite-config-secrets.test.ts',
   'tests/scan-dist-secrets.test.ts',
   'tests/support/secret-scan.ts',
-  // M12 evidence documents the control names without key material.
-  'docs/evidence/m12-supply-chain-2026-10-20/README.md',
 ];
 
 interface SecretRule {
@@ -37,7 +35,8 @@ function secretRules(): readonly SecretRule[] {
   const classicToken = ['gh', 'p_'].join('');
   const fineGrainedToken = ['github', '_pat_'].join('');
   const genericKeyWord = ['ap', 'i'].join('') + '[_-]?key';
-  const pemOpen = ['-----BEGIN ', 'PRIVATE KEY-----'].join('');
+  // Covers PKCS#8 and the typed RSA, EC, DSA, OpenSSH and encrypted headers.
+  const pemOpen = `-----BEGIN (?:[A-Z]+ )*${['PRIVATE', ' KEY-----'].join('')}`;
   return [
     {
       label: 'AWS access key',
@@ -60,7 +59,8 @@ function secretRules(): readonly SecretRule[] {
     {
       label: 'generic key assignment carrying a quoted value',
       pattern: new RegExp(
-        `${genericKeyWord}\\s*[:=]\\s*['"][A-Za-z0-9]{24,}`,
+        // An optional closing quote covers JSON and YAML keys ("api_key": ...).
+        `${genericKeyWord}['"]?\\s*[:=]\\s*['"][A-Za-z0-9]{24,}`,
         'i',
       ),
     },
@@ -90,9 +90,8 @@ function scanTrackedFiles(
     const lines = source.toString('utf8').split('\n');
     lines.forEach((line, index) => {
       for (const rule of rules) {
-        // Fresh matcher per line: several rules carry the global flag.
-        const matcher = new RegExp(rule.pattern.source, rule.pattern.flags);
-        if (matcher.test(line)) {
+        // No rule carries the global or sticky flag, so test() is stateless.
+        if (rule.pattern.test(line)) {
           // File and line only: never echo the matched value.
           findings.push({ path, line: index + 1, label: rule.label });
           break;
@@ -111,6 +110,10 @@ describe('secret hygiene', () => {
     const assembledFineGrained = `${['github', '_pat_'].join('')}abcdefghij1234`;
     const assembledAppwrite = `${['standard', '_'].join('')}${'f'.repeat(32)}`;
     const pemLine = ['-----BEGIN ', 'PRIVATE KEY-----'].join('');
+    const typedPemLines = ['RSA', 'EC', 'OPENSSH', 'ENCRYPTED'].map((kind) =>
+      ['-----BEGIN ', kind, ' PRIVATE KEY-----'].join(''),
+    );
+    const jsonKeyLine = `"${['ap', 'i'].join('')}_key": "${'a1B2'.repeat(8)}"`;
     const genericLine = `const ${['ap', 'i'].join('')}_${'key'} = "${'a1B2'.repeat(8)}";`;
     const matched = [
       assembledAws,
@@ -118,19 +121,19 @@ describe('secret hygiene', () => {
       assembledFineGrained,
       assembledAppwrite,
       pemLine,
+      ...typedPemLines,
       genericLine,
+      jsonKeyLine,
     ];
     for (const line of matched) {
       expect(
-        rules.some((rule) =>
-          new RegExp(rule.pattern.source, rule.pattern.flags).test(line),
-        ),
+        rules.some((rule) => rule.pattern.test(line)),
         'a synthetic secret shape must be detected',
       ).toBe(true);
     }
     expect(
       rules.some((rule) =>
-        new RegExp(rule.pattern.source, rule.pattern.flags).test(
+        rule.pattern.test(
           'intermed-dev synthetic placeholder without key material',
         ),
       ),

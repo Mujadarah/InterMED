@@ -38,8 +38,11 @@ const dangerousSinks: readonly {
   { label: 'outerHTML', pattern: /(?<![A-Za-z_$])outerHTML(?![A-Za-z_$])/ },
   { label: 'insertAdjacentHTML', pattern: /insertAdjacentHTML/ },
   { label: 'document.write', pattern: /document\s*\.\s*write\s*\(/ },
-  { label: 'eval(', pattern: /(?<![A-Za-z_$.])eval\s*\(/ },
-  { label: 'new Function(', pattern: /new\s+Function\s*\(/ },
+  // Also catches window.eval( and globalThis.eval(; only identifier
+  // characters (as in `medieval(`) suppress a match.
+  { label: 'eval(', pattern: /(?<![A-Za-z0-9_$])eval\s*\(/ },
+  // Function(...) runs a string as code with or without `new`.
+  { label: 'Function constructor', pattern: /(?<![A-Za-z0-9_$])Function\s*\(/ },
   { label: 'javascript: URL', pattern: /javascript\s*:/i },
 ];
 
@@ -92,10 +95,19 @@ describe('output-sanitization guard', () => {
         path: 'apps/web/src/c.ts',
         source: 'element.innerHTML = value;',
       },
+      { path: 'apps/web/src/d.ts', source: 'window.eval(value);' },
+      { path: 'apps/web/src/e.ts', source: 'globalThis.eval(value);' },
+      { path: 'apps/web/src/f.ts', source: 'Function(value)();' },
+      { path: 'apps/web/src/g.ts', source: 'new Function(value);' },
+      { path: 'apps/web/src/h.ts', source: 'medieval(value); isFunction(x);' },
     ];
     expect(findSinkViolations(files)).toEqual([
       'apps/web/src/b.tsx: forbidden sink dangerouslySetInnerHTML',
       'apps/web/src/c.ts: forbidden sink innerHTML',
+      'apps/web/src/d.ts: forbidden sink eval(',
+      'apps/web/src/e.ts: forbidden sink eval(',
+      'apps/web/src/f.ts: forbidden sink Function constructor',
+      'apps/web/src/g.ts: forbidden sink Function constructor',
     ]);
   });
 

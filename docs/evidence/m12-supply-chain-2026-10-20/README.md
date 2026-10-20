@@ -75,7 +75,7 @@ dynamic `src` attributes:
 
 ### 4.3 Inert-render test
 
-- `tests/output-sanitization.test.ts`, test
+- `apps/web/src/presentation/MedicationDetailSanitization.test.tsx`, test
   `renders script markup, event-handler markup and javascript: URLs as inert text`.
 - It renders the real `MedicationDetailPage` with synthetic hostile data: a
   product name containing `<script>` and `<img onerror>` markup, and a
@@ -140,8 +140,9 @@ repository settings:
 1. GitHub secret scanning (alerts) for the repository.
 2. Push protection against committed secrets.
 3. Dependabot alerts and the requested review of the first grouped update PRs.
-4. Required status checks including the new `Dependency review` job and the
-   `Verify` job with the audit step.
+4. Required status checks named exactly `Dependency review`,
+   `Verify (ubuntu-24.04)` and `Verify (windows-2025)` (the matrix Verify
+   jobs carry the audit step).
 
 DeepSource already runs a secrets check on PRs; the settings above are the
 remaining platform-side controls.
@@ -175,5 +176,17 @@ Commands were run with the repository Node toolchain. Results:
 - `npx vitest run` — all suites pass except the known local-only
   `tests/importer/artifact.test.ts` temp-directory case.
 - `npm run build` — pass, followed by the post-build bundle secret scan.
-- New suites: `tests/output-sanitization.test.ts` (guard plus inert-render
-  test) and `tests/secret-hygiene.test.ts` — pass.
+- New suites: `tests/output-sanitization.test.ts` (guard),
+  `apps/web/src/presentation/MedicationDetailSanitization.test.tsx`
+  (inert-render test) and `tests/secret-hygiene.test.ts` — pass.
+
+## Review follow-up (PR #52)
+
+- The secret guard now matches typed PEM private-key headers (RSA, EC, DSA,
+  OpenSSH, encrypted) and quoted JSON/YAML key names such as `"api_key":`.
+  Rules are tested with their stored, flag-free patterns. This evidence file
+  was removed from the guard's allow-list because it carries no key shapes.
+- The sink guard now also catches `window.eval(`, `globalThis.eval(` and
+  `Function(...)` with or without `new`, with fixtures for each and a
+  negative fixture (`medieval(`, `isFunction(`).
+- The inert-render test reference above was corrected to its real file.
