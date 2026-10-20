@@ -205,6 +205,47 @@ test('renders an offline deep link to /favorites from the precache', async ({
   }
 });
 
+test('renders an offline deep link to /interactions from the precache', async ({
+  page,
+  context,
+}, testInfo) => {
+  const server = await productionServer();
+  server.revision('harness');
+  try {
+    await page.goto(server.url);
+    await expect(
+      page.getByText('Shell available offline', { exact: true }),
+    ).toBeVisible();
+    await page.waitForFunction(
+      () => navigator.serviceWorker.controller !== null,
+    );
+
+    server.failure('offline');
+    if (testInfo.project.name === 'chromium-desktop')
+      await context.setOffline(true);
+    const requestsAfterOffline = server.requests.length;
+
+    const interactionsTab = await context.newPage();
+    await interactionsTab.goto(`${server.url}/interactions`);
+    await expect(
+      interactionsTab.getByRole('heading', { name: 'Check interactions' }),
+    ).toBeVisible();
+    await expect(
+      interactionsTab.getByText(
+        'Interaction checking is unavailable. No approved interaction source is configured.',
+      ),
+    ).toBeVisible();
+    expect(
+      server.requests
+        .slice(requestsAfterOffline)
+        .filter((path) => path !== '/sw.js'),
+    ).toEqual([]);
+    await interactionsTab.close();
+  } finally {
+    await server.close();
+  }
+});
+
 test('renders an offline deep link to /calculators from the precache', async ({
   page,
   context,

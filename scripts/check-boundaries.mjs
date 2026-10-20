@@ -35,6 +35,10 @@ const localStoreConsumers = [
   'apps/web/src/dev/',
   'packages/local-store/',
 ];
+const publicPackageSubpaths = new Set([
+  '@intermed/data-access/bootstrap',
+  '@intermed/local-store/synthetic',
+]);
 
 function isLocalStoreConsumer(path) {
   return localStoreConsumers.some(
@@ -65,12 +69,14 @@ export function inspectBoundary(files) {
     const checkImport = (specifier) => {
       if (
         specifier.startsWith('@intermed/') &&
-        specifier.split('/').length !== 2
+        specifier.split('/').length !== 2 &&
+        !publicPackageSubpaths.has(specifier)
       ) {
         report(`use the public package export: ${specifier}`);
       }
       if (
-        specifier === '@intermed/local-store' &&
+        (specifier === '@intermed/local-store' ||
+          specifier.startsWith('@intermed/local-store/')) &&
         !isLocalStoreConsumer(normalized)
       )
         report(

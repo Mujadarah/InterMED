@@ -48,20 +48,7 @@ export { attachConnectionLifecycle } from './lifecycle';
 export type { ConnectionLifecycle } from './lifecycle';
 export { openSchemaUpgradeProbe } from './probe';
 export type { ProbeFavorite, SchemaUpgradeProbe } from './probe';
-export {
-  bundleByteLength,
-  buildSyntheticCatalogueBundle,
-  SYNTHETIC_DATASET,
-  SYNTHETIC_DEFAULT_INGREDIENTS,
-  SYNTHETIC_DEFAULT_PRODUCTS,
-  SYNTHETIC_SOURCE_KEY,
-} from './synthetic-bundle';
-export type {
-  SyntheticBundle,
-  SyntheticBundleOptions,
-  SyntheticIngredientSpec,
-  SyntheticProductSpec,
-} from './synthetic-bundle';
+export { bundleByteLength } from './bundle-byte-length';
 export {
   checkBundle,
   checkManifest,

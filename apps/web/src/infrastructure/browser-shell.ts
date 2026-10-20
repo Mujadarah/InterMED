@@ -20,6 +20,7 @@ export function createBrowserShell(production: boolean): ShellController {
     availability: production ? 'installing' : 'development',
     update: 'none',
     canInstall: false,
+    online: typeof navigator.onLine === 'boolean' ? navigator.onLine : true,
   };
   const listeners = new Set<() => void>();
   /** Merge a state patch and notify subscribers synchronously; listener errors propagate. */
@@ -127,6 +128,11 @@ export function createBrowserShell(production: boolean): ShellController {
         void probe();
       })
       .catch(() => emit({ availability: 'unavailable' }));
+  window.addEventListener('online', () => {
+    emit({ online: true });
+    if (production) void check();
+  });
+  window.addEventListener('offline', () => emit({ online: false }));
   if (production) {
     if (!window.isSecureContext || !('serviceWorker' in navigator))
       emit({ availability: 'unsupported' });
@@ -166,9 +172,6 @@ export function createBrowserShell(production: boolean): ShellController {
         hadController = true;
       });
       void register();
-      window.addEventListener('online', () => {
-        void check();
-      });
       window.addEventListener('focus', () => {
         void probe();
       });

@@ -106,6 +106,36 @@ it('rejects private workspace imports from presentation', () => {
 });
 
 it.each([
+  ['apps/web/src/Bootstrap.tsx', '@intermed/data-access/bootstrap'],
+  [
+    'apps/web/src/dev/local-store-harness.ts',
+    '@intermed/local-store/synthetic',
+  ],
+])('allows declared package export %s from %s', (path, specifier) => {
+  expect(
+    inspectBoundary([
+      {
+        path,
+        source: `import { item } from '${specifier}';`,
+      },
+    ]),
+  ).toEqual([]);
+});
+
+it('rejects an undeclared package subpath', () => {
+  expect(
+    inspectBoundary([
+      {
+        path: 'apps/web/src/Bootstrap.tsx',
+        source: "import { item } from '@intermed/data-access/private';",
+      },
+    ]),
+  ).toContain(
+    'apps/web/src/Bootstrap.tsx: use the public package export: @intermed/data-access/private',
+  );
+});
+
+it.each([
   'apps/web/src/presentation/View.ts',
   'apps/web/src/application/services.ts',
   'apps/web/src/infrastructure/browser-shell.ts',

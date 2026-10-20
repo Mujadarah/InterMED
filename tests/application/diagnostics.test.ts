@@ -50,6 +50,7 @@ function sources(
       update: 'failed',
       usingPrior: true,
       canInstall: false,
+      online: true,
     },
     datasetState,
     formulas: [BMI_FORMULA, MOSTELLER_BSA_FORMULA],
@@ -141,6 +142,7 @@ it.each([
       availability: 'unsupported',
       update: 'none',
       canInstall: false,
+      online: true,
     },
   });
   expect(report.localStore.activeDataset).toBeNull();

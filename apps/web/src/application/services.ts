@@ -16,6 +16,10 @@ import {
   unavailablePreferencesService,
   type PreferencesService,
 } from './preferences';
+import {
+  unavailableInteractionChecker,
+  type InteractionCheckerService,
+} from './interaction-checker-contract';
 
 export interface AppServices {
   readonly runtimeMode?: AppConfig['mode'];
@@ -25,6 +29,7 @@ export interface AppServices {
   readonly medicationSearch: MedicationSearchService;
   readonly medicationDetail: MedicationDetailService;
   readonly preferences: PreferencesService;
+  readonly interactionChecker: InteractionCheckerService;
 }
 
 /**
@@ -40,6 +45,7 @@ export function createServices(
   medicationDetail: MedicationDetailService = unavailableMedicationDetail,
   preferences: PreferencesService = unavailablePreferencesService,
   localStoreSchemaVersion: number | null = null,
+  interactionChecker: InteractionCheckerService = unavailableInteractionChecker,
 ): AppServices {
   if (config.mode !== 'mock') throw new Error('Only mock mode is supported');
   return {
@@ -50,5 +56,6 @@ export function createServices(
     medicationSearch,
     medicationDetail,
     preferences,
+    interactionChecker,
   };
 }

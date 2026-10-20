@@ -58,18 +58,20 @@ function effectiveHeaders(
 /** Gzip budgets are baseline measurements plus roughly 15%, rounded up to 100 bytes. */
 const gzipBudgets = {
   'CalculatorsPage-[hash].js': 3_600,
+  'InteractionCheckerPage-[hash].js': 11_100,
   'MedicationDetailPage-[hash].js': 4_800,
   'MedicationSearchPage-[hash].js': 4_000,
   'dexie-vendor-[hash].js': 35_700,
   'framework-vendor-[hash].js': 93_500,
-  'index-[hash].css': 3_200,
+  'index-[hash].css': 4_000,
   'index-[hash].js': 45_500,
   'rolldown-runtime-[hash].js': 500,
+  'route-focus-[hash].js': 500,
   'search-status-[hash].js': 1_200,
   'sw.js': 6_000,
   'zod-vendor-[hash].js': 29_300,
 } as const;
-const totalGzipBudgetBytes = 226_900;
+const totalGzipBudgetBytes = 239_300;
 
 function stableAssetName(name: string): string {
   return name.replace(/-[\w-]{8}(?=\.(?:js|css)$)/u, '-[hash]');

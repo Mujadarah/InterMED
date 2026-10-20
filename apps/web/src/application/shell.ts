@@ -6,6 +6,8 @@ export interface ShellState {
   readonly usingPrior?: boolean;
   readonly repairFailed?: boolean;
   readonly canInstall: boolean;
+  /** Current browser network state, published with the other shell state. */
+  readonly online: boolean;
 }
 export interface ShellController {
   getSnapshot: () => ShellState;
@@ -20,6 +22,7 @@ const developmentState: ShellState = {
   availability: 'development',
   update: 'none',
   canInstall: false,
+  online: true,
 };
 export const developmentShell: ShellController = {
   /** Return the shared snapshot reporting development mode and no install prompt. */

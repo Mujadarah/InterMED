@@ -21,6 +21,7 @@ it('requires an explicit accessible action to activate or reload', async () => {
     availability: 'ready',
     update: 'available',
     canInstall: false,
+    online: true,
   });
   render(<ShellStatus shell={shell} />);
   expect(shell.activate).not.toHaveBeenCalled();
@@ -40,6 +41,7 @@ it('does not equate cached shell availability with medication availability', () 
         availability: 'ready',
         update: 'none',
         canInstall: false,
+        online: true,
       })}
     />,
   );
@@ -55,6 +57,7 @@ it('offers installation only when a browser capability supplies a prompt', async
     availability: 'ready',
     update: 'none',
     canInstall: true,
+    online: true,
   });
   render(<ShellStatus shell={shell} />);
   await userEvent
@@ -69,6 +72,7 @@ it('keeps unavailable storage and development mode explicit', () => {
         availability: 'unavailable',
         update: 'failed',
         canInstall: false,
+        online: true,
       })}
     />,
   );
@@ -80,6 +84,7 @@ it('keeps unavailable storage and development mode explicit', () => {
         availability: 'development',
         update: 'none',
         canInstall: false,
+        online: true,
       })}
     />,
   );
@@ -99,7 +104,12 @@ it.each([
   (availability, label) => {
     render(
       <ShellStatus
-        shell={controller({ availability, update: 'none', canInstall: false })}
+        shell={controller({
+          availability,
+          update: 'none',
+          canInstall: false,
+          online: true,
+        })}
       />,
     );
     expect(screen.getByRole('status')).toHaveTextContent(label);
@@ -112,6 +122,7 @@ it('checks for updates only after the user requests it', async () => {
     availability: 'ready',
     update: 'none',
     canInstall: false,
+    online: true,
   });
   render(<ShellStatus shell={shell} />);
   expect(shell.check).not.toHaveBeenCalled();
@@ -127,6 +138,7 @@ it('explains blocked activation and allows an explicit retry', async () => {
     availability: 'ready',
     update: 'blocked',
     canInstall: false,
+    online: true,
   });
   render(<ShellStatus shell={shell} />);
   expect(
@@ -147,6 +159,7 @@ it('offers reload without activation when a cached shell is already ready', asyn
     availability: 'ready',
     update: 'reload',
     canInstall: false,
+    online: true,
   });
   render(<ShellStatus shell={shell} />);
   expect(shell.reload).not.toHaveBeenCalled();
@@ -161,12 +174,18 @@ it('offers reload without activation when a cached shell is already ready', asyn
 });
 
 it.each([
-  { availability: 'unavailable', update: 'none', canInstall: false },
+  {
+    availability: 'unavailable',
+    update: 'none',
+    canInstall: false,
+    online: true,
+  },
   {
     availability: 'ready',
     update: 'failed',
     usingPrior: true,
     canInstall: false,
+    online: true,
   },
 ] satisfies ShellState[])(
   'offers repair for $availability with prior=$usingPrior',
@@ -194,6 +213,7 @@ it.each(['available', 'blocked'] as const)(
           usingPrior: true,
           version: 'synthetic-prior',
           canInstall: false,
+          online: true,
         })}
       />,
     );
@@ -216,6 +236,7 @@ it('reacts to controller notifications and unsubscribes on unmount', () => {
     availability: 'installing',
     update: 'none',
     canInstall: false,
+    online: true,
   };
   const listeners = new Set<() => void>();
   const shell = {
@@ -233,7 +254,12 @@ it('reacts to controller notifications and unsubscribes on unmount', () => {
     'Preparing shell for offline use',
   );
   act(() => {
-    state = { availability: 'ready', update: 'available', canInstall: true };
+    state = {
+      availability: 'ready',
+      update: 'available',
+      canInstall: true,
+      online: true,
+    };
     for (const listener of listeners) listener();
   });
   expect(screen.getByText('Shell available offline')).toBeVisible();

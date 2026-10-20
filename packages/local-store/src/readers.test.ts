@@ -478,6 +478,11 @@ it('looks up names, DCI, links and ATC codes inside the pinned generation only',
     await current.productIngredients(alpha.productIds['SP-PLACEBEX']!),
   ).toHaveLength(3);
   expect(await current.productIds()).toHaveLength(2);
+  const provenance = await current.datasetProvenance();
+  expect(provenance.datasetVersions.map((version) => version.id)).toEqual([
+    current.generationId,
+  ]);
+  expect(provenance.dataSources.length).toBeGreaterThan(0);
   reader.release();
   current.release();
 });

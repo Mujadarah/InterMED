@@ -4,13 +4,15 @@ import type {
   MedicationProductId,
 } from '@intermed/domain';
 import {
-  buildSyntheticCatalogueBundle,
   createLocalDatasetStore,
   LOCAL_DATASET_DB_NAME,
   openSchemaUpgradeProbe,
+} from '@intermed/local-store';
+import {
+  buildSyntheticCatalogueBundle,
   SYNTHETIC_DATASET,
   SYNTHETIC_DEFAULT_PRODUCTS,
-} from '@intermed/local-store';
+} from '@intermed/local-store/synthetic';
 
 /**
  * Test-only browser harness for the local dataset store.

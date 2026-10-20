@@ -279,6 +279,20 @@ export function createRetention(deps: RetentionDeps): Retention {
         }
         return products;
       },
+      datasetProvenance: async () => {
+        const db = deps.requireDatabase();
+        const [datasetVersions, dataSources] = await Promise.all([
+          db.datasetVersions
+            .where('generationId')
+            .equals(generationId)
+            .toArray(),
+          db.sources.where('generationId').equals(generationId).toArray(),
+        ]);
+        return {
+          datasetVersions: datasetVersions.map((row) => row.entity),
+          dataSources: dataSources.map((row) => row.entity),
+        };
+      },
       productIds: async () => {
         const rows = await deps
           .requireDatabase()

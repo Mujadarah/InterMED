@@ -11,7 +11,9 @@ import type {
 } from '@intermed/domain';
 import { presentField } from '@intermed/domain';
 import { product as makeProduct } from '../../../../tests/domain/builders';
+import { unavailableInteractionChecker } from '../application/interaction-checker-contract';
 import type { PreferencesService } from '../application/preferences';
+import { developmentShell } from '../application/shell';
 import { App } from './App';
 
 afterEach(cleanup);
@@ -88,6 +90,7 @@ const services = {
   medicationDetail: {
     productDetail: async () => null,
   },
+  interactionChecker: unavailableInteractionChecker,
   preferences,
 };
 
@@ -172,6 +175,131 @@ it('registers calculators as a route in navigation', async () => {
   expect(
     screen.getByText('Development preview — not for clinical use.'),
   ).toBeVisible();
+});
+
+it('registers the interaction checker route in navigation and focuses its heading', async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App services={services} />
+    </MemoryRouter>,
+  );
+  await user.click(screen.getByRole('link', { name: 'Check interactions' }));
+  expect(
+    await screen.findByRole('heading', { name: 'Check interactions' }),
+  ).toHaveFocus();
+  expect(
+    screen.getByText(
+      'Development preview — not for clinical use. No interaction source has been approved.',
+    ),
+  ).toBeVisible();
+  expect(
+    screen.getByText('Interaction presentation pending clinical review'),
+  ).toBeVisible();
+  expect(
+    screen.getByText(
+      'Interaction checking is unavailable. No approved interaction source is configured.',
+    ),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: /check selected products/i }),
+  ).not.toBeInTheDocument();
+});
+
+it('passes online state from the browser shell into the interaction service', async () => {
+  const secondProduct = makeProduct('SP-APP-TEST-B', 'Placebex app test', {
+    strengthText: presentField('synthetic strength'),
+  });
+  const search = vi.fn(async () => ({
+    generationId: appGeneration.generationId,
+    results: [
+      {
+        record: {
+          product: appProduct,
+          ingredientNames: ['Fictivolinum'],
+          atcCodes: [],
+          dosageFormName: 'fictional tablet',
+          manufacturerNames: [],
+        },
+        rank: 'exact' as const,
+      },
+      {
+        record: {
+          product: secondProduct,
+          ingredientNames: ['Placebexium'],
+          atcCodes: [],
+          dosageFormName: 'fictional tablet',
+          manufacturerNames: [],
+        },
+        rank: 'exact' as const,
+      },
+    ],
+    total: 2,
+    truncated: false,
+    indexedProductCount: 2,
+    indexDurationMilliseconds: 0,
+    searchDurationMilliseconds: 0,
+  }));
+  const evaluate = vi.fn(async () => {
+    throw new Error(
+      'Synthetic test evaluation ends after recording online state.',
+    );
+  });
+  const shellState = {
+    availability: 'development' as const,
+    update: 'none' as const,
+    canInstall: false,
+    online: false,
+  };
+  const shell = {
+    ...developmentShell,
+    getSnapshot: () => shellState,
+  };
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <App
+        services={{
+          ...services,
+          dataset: appDataset,
+          medicationSearch: { search },
+          interactionChecker: {
+            availability: 'synthetic-preview',
+            searchIngredients: vi.fn(async () => []),
+            evaluate,
+          },
+        }}
+        shell={shell}
+      />
+    </MemoryRouter>,
+  );
+
+  await user.click(screen.getByRole('link', { name: 'Check interactions' }));
+  await screen.findByRole('heading', { name: 'Check interactions' });
+  await user.type(
+    screen.getByRole('searchbox', { name: /search local medications/i }),
+    'app',
+  );
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ${appProduct.commercialName}`,
+    }),
+  );
+  await user.click(
+    await screen.findByRole('button', {
+      name: `Add ${secondProduct.commercialName}`,
+    }),
+  );
+  await user.click(
+    screen.getByRole('button', { name: 'Check selected items' }),
+  );
+
+  await waitFor(() =>
+    expect(evaluate).toHaveBeenCalledWith(
+      { productIds: [appProduct.id, secondProduct.id], ingredientIds: [] },
+      false,
+    ),
+  );
 });
 
 it('registers favorites as a route in navigation', async () => {
