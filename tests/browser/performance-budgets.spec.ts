@@ -57,16 +57,40 @@ test('cold production load reaches an interactive search input within budget', a
     server.transfers.splice(0);
 
     const startedAt = performance.now();
-    await page.goto(server.url, { waitUntil: 'commit' });
+    // Every wait gets the time left until the shared first-interactive
+    // deadline, so a valid but slow load is judged by the budget assertion
+    // below instead of failing early on Playwright's default 5 s timeout.
+    const remaining = () =>
+      Math.max(
+        1,
+        firstInteractiveInputBudgetMilliseconds -
+          (performance.now() - startedAt),
+      );
+    await page.goto(server.url, { waitUntil: 'commit', timeout: remaining() });
     await expect(
       page.getByRole('heading', { name: 'A foundation for InterMED' }),
-    ).toBeVisible();
-    await page.getByRole('link', { name: 'Medication search' }).click();
+    ).toBeVisible({ timeout: remaining() });
+    await page
+      .getByRole('link', { name: 'Medication search' })
+      .click({ timeout: remaining() });
     const searchbox = page.getByRole('searchbox');
-    await expect(searchbox).toBeVisible();
-    await expect(searchbox).toBeEnabled();
+    await expect(searchbox).toBeVisible({ timeout: remaining() });
+    await expect(searchbox).toBeEnabled({ timeout: remaining() });
     const firstInteractiveInputMilliseconds = performance.now() - startedAt;
 
+    // The byte window ends only after the service worker has finished
+    // installing (its shell precache is fetched one file at a time), so the
+    // first-load total includes every precached asset, not just the page.
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      const worker = registration.active;
+      if (worker && worker.state !== 'activated')
+        await new Promise<void>((resolve) => {
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'activated') resolve();
+          });
+        });
+    });
     await page.waitForLoadState('networkidle');
     const responseBodyBytes = server.transfers.reduce(
       (total, transfer) => total + transfer.responseBodyBytes,

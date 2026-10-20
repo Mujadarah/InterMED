@@ -124,3 +124,8 @@ The Chromium command recorded 26 responses, 1,280,089 response body bytes and
 with port 5174 while another worktree was running its offline-deeplinks tests;
 the exact command passed after that run released the port. No unrelated
 process was stopped. No CI result is implied by a local pass.
+
+## Review follow-up (PR #49)
+
+- Every wait in the first-load test now gets the time left until the shared 10 s first-interactive deadline. A slow but valid load is therefore judged by the budget assertion, instead of failing early on Playwright's default 5 s assertion timeout.
+- The byte window now ends only after the service worker reports `activated`, so the total includes the full shell precache. The re-measured total was 1,280,116 bytes over 26 responses (budget 1,500,000), matching the earlier figure within main's latest changes. Repeated 3/3 on chromium-desktop.
