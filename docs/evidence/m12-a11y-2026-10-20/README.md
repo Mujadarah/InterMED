@@ -13,22 +13,24 @@ Projects: `chromium-desktop`, `webkit-phone`, `webkit-tablet`. Every cell is
 `pass`. `fixed` marks cells that failed before the minimal UI fixes below and
 pass after; there are no `fixme` cells.
 
-| Check                                                                                           | home `/`             | search `/search` | detail `/medication/:id`      | favorites `/favorites`        | calculators `/calculators`                         | status `/status` |
-| ----------------------------------------------------------------------------------------------- | -------------------- | ---------------- | ----------------------------- | ----------------------------- | -------------------------------------------------- | ---------------- |
-| Exactly one `main`, single `h1` (aria snapshot pins role+name+level), no skipped heading levels | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
-| Every form control has an accessible name; every button has a name; images have alt text        | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
-| Skip link works, focus lands on main                                                            | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
-| Tab reaches every control in DOM order, visible focus indicator, no trap                        | pass x3              | pass x3          | fixed x3 (phone+tablet links) | fixed x3 (phone+tablet links) | fixed x3 (phone focus ring; all projects overflow) | pass x3          |
-| No horizontal scroll at 320x640, no clipped text                                                | pass x3              | pass x3          | pass x3                       | pass x3                       | fixed x3 (formula version wrap)                    | pass x3          |
-| Touch targets >= 44x44 on phone (primary fail, inline report-only)                              | fixed (brand 42.2px) | pass             | pass                          | pass                          | pass                                               | pass             |
-| `prefers-reduced-motion: reduce` disables transitions/animations (none exist)                   | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
-| `lang` present on `<html>`                                                                      | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
+| Check                                                                                             | home `/`             | search `/search` | detail `/medication/:id`      | favorites `/favorites`        | calculators `/calculators`                         | status `/status` |
+| ------------------------------------------------------------------------------------------------- | -------------------- | ---------------- | ----------------------------- | ----------------------------- | -------------------------------------------------- | ---------------- |
+| Exactly one `main`, single `h1` (aria snapshot pins role+name+level), no skipped heading levels   | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
+| Every form control has an accessible name; every button has a name; images have alt text          | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
+| Skip link works, focus lands on main                                                              | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
+| Tab reaches every control in DOM order, focus indicator changes from the unfocused state, no trap | pass x3              | pass x3          | fixed x3 (phone+tablet links) | fixed x3 (phone+tablet links) | fixed x3 (phone focus ring; all projects overflow) | pass x3          |
+| No horizontal scroll at 320x640, no off-screen boxes, no text cropped by `overflow: hidden/clip`  | pass x3              | pass x3          | pass x3                       | pass x3                       | fixed x3 (formula version wrap)                    | pass x3          |
+| Touch targets >= 44x44 on phone (primary fail, inline report-only)                                | fixed (brand 42.2px) | pass             | pass                          | pass                          | pass                                               | pass             |
+| `prefers-reduced-motion: reduce` disables transitions/animations (none exist)                     | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
+| `lang` present on `<html>`                                                                        | pass x3              | pass x3          | pass x3                       | pass x3                       | pass x3                                            | pass x3          |
 
 Synthetic data: `alpha` generation staged through the test-only harness
 (`Fictivol alpha` searched, opened, favorited; calculators run a BMI
-70 kg / 175 cm / 30 y = 22.9 kg/m² result with details disclosed). The
-unknown-route fallback is not in the synthetic server's route map; it stays
-covered by `tests/browser/shell.spec.ts` on the dev server.
+70 kg / 175 cm / 30 y = 22.9 kg/m² result with the "Calculation details"
+disclosure opened and its contents asserted visible before the audit, so the
+Tab and 320 px checks include the disclosed state). The unknown-route
+fallback is not in the synthetic server's route map; it stays covered by
+`tests/browser/shell.spec.ts` on the dev server.
 
 Touch-target minimums on `webkit-phone` (smallest primary target per route;
 all >= 44x44; inline prose links measured and reported without failing):
@@ -71,18 +73,47 @@ Each fix was verified to address a check that genuinely failed before it
 (horizontal scroll 654 px, brand 42.2 px, skipped links, missing indicator),
 not added speculatively.
 
+## Review follow-up (PR #48)
+
+Three Greptile findings on `tests/browser/accessibility-audit.spec.ts` were
+valid and are addressed in the test only; none exposed an application defect,
+so no UI code changed:
+
+1. Calculators: the "Calculation details" disclosure is now opened, checked
+   for content (visible `Unrounded value` and exactly four `dd` definition
+   values), and left open before `auditRoute`. The Tab traversal and the
+   320 px overflow and clipped-text checks therefore audit the disclosed
+   state claimed above.
+2. Focus indicator: computed outline and box-shadow are snapshotted before
+   Tab traversal and compared with the focused state. A pass now requires an
+   outline that appears or changes (non-zero width, non-transparent colour)
+   or a box-shadow that differs from the unfocused value and is not fully
+   transparent. An always-present or transparent shadow no longer passes.
+3. Clipped text at 320 px: for text-bearing elements whose computed
+   `overflow-x` is `hidden` or `clip`, `scrollWidth > clientWidth + 1` fails.
+   Scrollable (`auto`/`scroll`) containers are allowed, as are form controls
+   that scroll their own values. The skip link, `.sr-only` equivalents,
+   clip-path-only elements and 1x1 screen-reader-only boxes are excluded as
+   intentionally hidden.
+
+The clipped-text check was exercised against synthetic markup before the run:
+an 80 px `overflow: hidden; white-space: nowrap` box with longer text is
+reported (`scrollWidth 209 > clientWidth 80`), while an `overflow-x: auto`
+box, the 1x1 clip-path label and the translated skip link are not.
+
 ## Commands and pass counts
 
-Node from `.tools` (`node-v24.21.0-win-x64`, npm 11.19.0):
+Follow-up verification used Node 24.21.0 and npm 11.19.0 from `.tools`, with
+`INTERMED_NODE22_RUNTIME` pointing at the Node 22.23.2 executable:
 
 - `npm ci`
-- `npm run format:check && npm run lint && npm run typecheck && npx vitest run && npm run check:boundaries && npm run build`
-- `npx playwright test tests/browser/accessibility-audit.spec.ts --repeat-each=3` — **54 passed** (6 tests x 3 projects x 3 repeats)
-- `npx playwright test` — full browser suite (see report below)
+- `npm run format:check && npm run lint && npm run typecheck && npm run build`
+- `npx playwright test tests/browser/accessibility-audit.spec.ts --repeat-each=2` — **36 passed** (6 tests x 3 projects x 2 repeats)
+- `npx vitest run tests/repository-path-hygiene.test.ts` — 3 passed (path hygiene still clean)
 
-Known local-only failure per the brief: `tests/importer/artifact.test.ts`
-"builds under the OS temp directory" (to be confirmed in the verification
-run and left untouched).
+The initial audit run before this follow-up passed the same spec with
+`--repeat-each=3` (54 passed). The matrix wording above describes the
+strengthened checks, not the earlier version.
 
 ## Manual checks that still need a human
 
