@@ -65,7 +65,25 @@ jobs:
           fi
       - name: Reproducible install
         run: npm ci --no-fund
+      - name: Dependency audit (fail on high or critical)
+        run: npm audit --audit-level=high
       - name: Install browser binaries and OS dependencies
         run: npx playwright install --with-deps chromium webkit
       - name: Run documented quality gates
         run: npm run check
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      # Pinned to the full commit SHA of v4.9.0, verified via the GitHub API
+      # (api.github.com/repos/actions/dependency-review-action/commits/v4).
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
