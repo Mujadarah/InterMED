@@ -7,6 +7,12 @@ import { gzipSync } from 'node:zlib';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { ShellRelease } from './shell-build';
 import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget';
+import {
+  buildSecurityHeaders,
+  buildSwSecurityHeaders,
+  headerContentSecurityPolicy,
+  metaContentSecurityPolicy,
+} from '../security-headers';
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..');
 const webRoot = resolve(repositoryRoot, 'apps/web');
@@ -15,6 +21,39 @@ const buildDirectory = await mkdtemp(join(tmpdir(), 'intermed-build-output-'));
 
 /** Vite reports kilobytes as 1 kB = 1,000 bytes, so the 500 kB advisory is 500,000 bytes. */
 const maxChunkBytes = 500_000;
+
+/**
+ * Effective headers for a request path under Netlify / Cloudflare Pages
+ * `_headers` semantics: every matching rule applies, and a header set by
+ * more than one rule has its values joined with ", ".
+ */
+function effectiveHeaders(
+  headersFile: string,
+  requestPath: string,
+): Record<string, string> {
+  const effective: Record<string, string[]> = {};
+  let matches = false;
+  for (const line of headersFile.split('\n')) {
+    if (line.trim() === '') continue;
+    if (!line.startsWith(' ')) {
+      const rule = line.trim();
+      matches = rule.endsWith('*')
+        ? requestPath.startsWith(rule.slice(0, -1))
+        : requestPath === rule;
+      continue;
+    }
+    if (!matches) continue;
+    const separator = line.indexOf(':');
+    const name = line.slice(0, separator).trim();
+    (effective[name] ??= []).push(line.slice(separator + 1).trim());
+  }
+  return Object.fromEntries(
+    Object.entries(effective).map(([name, values]) => [
+      name,
+      [...new Set(values)].join(', '),
+    ]),
+  );
+}
 
 /** Gzip budgets are baseline measurements plus roughly 15%, rounded up to 100 bytes. */
 const gzipBudgets = {
@@ -174,6 +213,62 @@ it('precaches every emitted JavaScript and CSS asset', async () => {
     expect(precached, `/assets/${asset.name} must be precached`).toContain(
       `/assets/${asset.name}`,
     );
+});
+
+it('keeps the built index.html meta CSP byte-identical to the source policy', async () => {
+  await buildShell();
+  const html = await readFile(join(buildDirectory, 'index.html'), 'utf8');
+  const match = html.match(
+    /<meta[^>]*http-equiv="Content-Security-Policy"[^>]*content="([^"]*)"[^>]*>/,
+  );
+  // Vite HTML-escapes the attribute value; decode it before comparing.
+  const raw = match?.[1];
+  expect(raw).toBeDefined();
+  const emitted = (raw ?? '')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&quot;', '"');
+  expect(emitted).toBe(metaContentSecurityPolicy);
+});
+
+it('emits _headers and security-headers.json agreeing with buildSecurityHeaders()', async () => {
+  await buildShell();
+  const headersFile = await readFile(join(buildDirectory, '_headers'), 'utf8');
+  const manifest = JSON.parse(
+    await readFile(join(buildDirectory, 'security-headers.json'), 'utf8'),
+  );
+  const headers = buildSecurityHeaders();
+  const swHeaders = buildSwSecurityHeaders();
+  expect(manifest).toEqual({
+    routes: [
+      { path: '/*', headers },
+      { path: '/sw.js', headers: swHeaders },
+    ],
+  });
+  expect(headersFile).toContain('/*\n');
+  expect(headersFile).toContain('/sw.js\n');
+  for (const [name, value] of Object.entries(headers))
+    expect(headersFile).toContain(`  ${name}: ${value}`);
+  expect(headersFile).toContain(
+    `  Content-Security-Policy: ${headerContentSecurityPolicy}`,
+  );
+  expect(headersFile).toContain('  Cache-Control: no-cache');
+  // Overlapping rules must resolve to exactly the intended set per route:
+  // `/sw.js` also matches `/*`, so every shared header must be identical.
+  expect(effectiveHeaders(headersFile, '/')).toEqual(headers);
+  expect(effectiveHeaders(headersFile, '/medications/SP-1')).toEqual(headers);
+  expect(effectiveHeaders(headersFile, '/sw.js')).toEqual(swHeaders);
+  const rawSwValues = headersFile
+    .split('\n')
+    .filter((line) => line.startsWith('  Content-Security-Policy:'));
+  expect(new Set(rawSwValues).size).toBe(1);
+});
+
+it('excludes the generated host files from the precache list', async () => {
+  const { release } = await buildShell();
+  const urls = release.assets.map((asset) => asset.url);
+  expect(urls).not.toContain('/_headers');
+  expect(urls).not.toContain('/security-headers.json');
+  expect(urls).toContain('/index.html');
 });
 
 it('reports headroom within the 24-asset / 2 MiB public-shell precache budget', async () => {

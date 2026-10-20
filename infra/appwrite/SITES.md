@@ -70,7 +70,11 @@ Git-connected build path, which is the intended flow
   deployments stay synthetic/nonclinical and carry no production write access.
 - Response-header policy (CSP header with `frame-ancestors`, CSP for `/sw.js`,
   `Referrer-Policy`, `Permissions-Policy`) is **not** expressible in this Sites
-  configuration and remains an open Milestone 12 gate (see
+  configuration. The host-agnostic policy as code is prepared in
+  [M12 security-headers evidence](../../docs/evidence/m12-security-headers-2026-10-20/README.md)
+  (`apps/web/security-headers.ts`, emitted `dist/_headers` and
+  `dist/security-headers.json`); applying it needs the owner's choice of
+  header-capable host/edge and remains the open Milestone 12 gate (see
   [Milestone 2 evidence](../../docs/MILESTONE_2_EVIDENCE.md)). The production
   meta CSP stays unchanged; a future reader against a cross-origin API would
   also need a `connect-src` allowance — recorded in
