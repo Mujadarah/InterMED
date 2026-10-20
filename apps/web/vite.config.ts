@@ -1,22 +1,11 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { metaContentSecurityPolicy } from './security-headers.ts';
 import { parseConfig } from './src/config.ts';
+import { securityHeadersBuild } from './pwa/security-headers-build.ts';
 import { shellBuild } from './pwa/shell-build.ts';
 
-const shellCsp = [
-  "default-src 'none'",
-  "base-uri 'none'",
-  "object-src 'none'",
-  "frame-src 'none'",
-  "form-action 'self'",
-  "script-src 'self'",
-  "style-src 'self'",
-  "img-src 'self'",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "manifest-src 'self'",
-  "worker-src 'self'",
-].join('; ');
+const shellCsp = metaContentSecurityPolicy;
 
 function productionShellCsp(): Plugin {
   return {
@@ -79,6 +68,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       shellBuild(),
+      securityHeadersBuild(),
       productionShellCsp(),
       localStoreHarnessPlugin(mode),
     ],

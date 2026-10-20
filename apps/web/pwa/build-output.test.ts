@@ -6,6 +6,12 @@ import { runInNewContext } from 'node:vm';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { ShellRelease } from './shell-build';
 import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget';
+import {
+  buildSecurityHeaders,
+  buildSwSecurityHeaders,
+  headerContentSecurityPolicy,
+  metaContentSecurityPolicy,
+} from '../security-headers';
 
 const repositoryRoot = resolve(import.meta.dirname, '../../..');
 const webRoot = resolve(repositoryRoot, 'apps/web');
@@ -87,6 +93,53 @@ it('precaches every emitted JavaScript and CSS asset', async () => {
     expect(precached, `/assets/${asset.name} must be precached`).toContain(
       `/assets/${asset.name}`,
     );
+});
+
+it('keeps the built index.html meta CSP byte-identical to the source policy', async () => {
+  await buildShell();
+  const html = await readFile(join(buildDirectory, 'index.html'), 'utf8');
+  const match = html.match(
+    /<meta[^>]*http-equiv="Content-Security-Policy"[^>]*content="([^"]*)"[^>]*>/,
+  );
+  // Vite HTML-escapes the attribute value; decode it before comparing.
+  const raw = match?.[1];
+  expect(raw).toBeDefined();
+  const emitted = (raw ?? '')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&quot;', '"');
+  expect(emitted).toBe(metaContentSecurityPolicy);
+});
+
+it('emits _headers and security-headers.json agreeing with buildSecurityHeaders()', async () => {
+  await buildShell();
+  const headersFile = await readFile(join(buildDirectory, '_headers'), 'utf8');
+  const manifest = JSON.parse(
+    await readFile(join(buildDirectory, 'security-headers.json'), 'utf8'),
+  );
+  const headers = buildSecurityHeaders();
+  const swHeaders = buildSwSecurityHeaders();
+  expect(manifest).toEqual({
+    routes: [
+      { path: '/*', headers },
+      { path: '/sw.js', headers: swHeaders },
+    ],
+  });
+  expect(headersFile).toContain('/*\n');
+  expect(headersFile).toContain('/sw.js\n');
+  for (const [name, value] of Object.entries(headers))
+    expect(headersFile).toContain(`  ${name}: ${value}`);
+  expect(headersFile).toContain(
+    `  Content-Security-Policy: ${headerContentSecurityPolicy}`,
+  );
+  expect(headersFile).toContain('  Cache-Control: no-cache');
+});
+
+it('excludes the generated host files from the precache list', async () => {
+  const { release } = await buildShell();
+  const urls = release.assets.map((asset) => asset.url);
+  expect(urls).not.toContain('/_headers');
+  expect(urls).not.toContain('/security-headers.json');
+  expect(urls).toContain('/index.html');
 });
 
 it('reports headroom within the 24-asset / 2 MiB public-shell precache budget', async () => {
