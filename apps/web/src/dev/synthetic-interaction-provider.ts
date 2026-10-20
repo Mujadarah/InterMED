@@ -12,19 +12,19 @@ const SYNTHETIC_RETRIEVED_AT = '2026-10-14T00:00:00.000Z';
 const FICTIVOLINUM = deriveStableId(
   'ActiveIngredient',
   SYNTHETIC_SOURCE_ID,
-  'AI-CONTRACT-FICTIVOLINUM',
+  'AI-FICTIVOLINUM',
 );
-const SYNTHETINIX = deriveStableId(
+const SYNTHETINUM = deriveStableId(
   'ActiveIngredient',
   SYNTHETIC_SOURCE_ID,
-  'AI-CONTRACT-SYNTHETINIX',
+  'AI-SYNTHETINUM',
 );
 const sourceIdResult = deriveStableId(
   'DataSource',
   'intermed',
   'source.synthetic-interaction-preview',
 );
-if (!FICTIVOLINUM.ok || !SYNTHETINIX.ok || !sourceIdResult.ok)
+if (!FICTIVOLINUM.ok || !SYNTHETINUM.ok || !sourceIdResult.ok)
   throw new Error('Synthetic interaction fixture identifiers are invalid.');
 
 const sourceId = sourceIdResult.id;
@@ -32,7 +32,7 @@ const interactionId = 'synthetic-preview-interaction-fictivol-synthetinix-v1';
 const evidenceId = 'synthetic-preview-evidence-fictivol-synthetinix-v1';
 const fictionalPair: CanonicalIngredientPair = canonicalPair(
   FICTIVOLINUM.id as ActiveIngredientId,
-  SYNTHETINIX.id as ActiveIngredientId,
+  SYNTHETINUM.id as ActiveIngredientId,
 );
 
 function pairKey(pair: CanonicalIngredientPair): string {
@@ -45,7 +45,7 @@ const fictionalRecord: Omit<DrugInteraction, 'datasetVersionId'> = {
   ingredientBId: fictionalPair[1],
   severity: 'fictional-demo-category',
   clinicalEffect:
-    'Synthetic fixture using FICTIVOLINUM and SYNTHETINIX. It carries no clinical meaning.',
+    'Synthetic fixture using FICTIVOLINUM and SYNTHETINUM. It carries no clinical meaning.',
   evidenceLevel: 'fictional-fixture-only',
   contextLimitations: [],
   evidenceIds: [evidenceId],
