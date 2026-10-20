@@ -194,6 +194,29 @@ describe.each([
       expect(importer.schedule ?? '', label).toBe('');
     });
 
+    it('gives anonymous and users roles no write on any collection or bucket', () => {
+      const denied = appwriteGrants(config).filter(({ kind, grant }) => {
+        if (kind !== 'tables' && kind !== 'buckets') return false;
+        const parsed = parseGrant(grant);
+        if (!parsed || parsed.verb === 'read') return false;
+        return ['any', 'users', 'guests'].some(
+          (role) => parsed.role === role || parsed.role.startsWith(`${role}/`),
+        );
+      });
+      expect(denied, label).toEqual([]);
+    });
+
+    it('excludes any, guests and users from the importer execute list', () => {
+      const importer = findResource(config, 'functions', 'import-anmdmr');
+      for (const entry of importer.execute ?? []) {
+        const role = entry.replace(/^role:/, '');
+        const denied = ['any', 'guests', 'users'].some(
+          (candidate) => role === candidate || role.startsWith(`${candidate}/`),
+        );
+        expect(denied, `${label}/execute:${entry}`).toBe(false);
+      }
+    });
+
     it('documents SPA fallback and monorepo build settings on the site', () => {
       expect(config.sites ?? [], label).toHaveLength(1);
       const site = config.sites?.[0];
