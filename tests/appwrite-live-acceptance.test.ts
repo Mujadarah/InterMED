@@ -1,7 +1,8 @@
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { prepareSyntheticPublication } from '../infra/appwrite/live-acceptance/publication-preparation.mjs';
 import { runAnonymousProbe } from '../infra/appwrite/live-acceptance/anonymous-probe.mjs';
 import { readPublishedMetadata } from '../infra/appwrite/live-acceptance/adapter-read.mjs';
@@ -25,9 +26,33 @@ type ProbeFetchResponse = {
   json: () => Promise<unknown>;
 };
 
+// Every staging directory a case creates is removed again after the case
+// finishes, whether it passes or fails, so repeated runs do not pile up
+// `intermed-live-*` folders in the OS temp directory.
+const temporaryDirectories: string[] = [];
+
+/** Create a throwaway staging directory and track it for after-test removal. */
+async function temporaryOutputDirectory(): Promise<string> {
+  const directory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+  temporaryDirectories.push(directory);
+  return directory;
+}
+
+afterEach(async () => {
+  const directories = temporaryDirectories.splice(0);
+  await Promise.all(
+    directories.map((directory) =>
+      rm(directory, { recursive: true, force: true }),
+    ),
+  );
+  // Regression guard: each staged directory must actually be gone once the
+  // test finishes, independent of whatever else the OS temp directory holds.
+  expect(directories.filter((directory) => existsSync(directory))).toEqual([]);
+});
+
 describe('Appwrite live acceptance preparation', () => {
   it('writes one canonical synthetic generation and owner-only command plan', async () => {
-    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const outputDirectory = await temporaryOutputDirectory();
     const result = await prepareSyntheticPublication({
       ...project,
       outputDirectory,
@@ -127,7 +152,7 @@ describe('Appwrite live acceptance preparation', () => {
   });
 
   it('creates guards in a different staging dataset and never targets publication ids', async () => {
-    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const outputDirectory = await temporaryOutputDirectory();
     const result = await prepareSyntheticPublication({
       ...project,
       outputDirectory,
@@ -150,7 +175,7 @@ describe('Appwrite live acceptance preparation', () => {
   });
 
   it('reads the prepared published rows through the actual adapter contract', async () => {
-    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const outputDirectory = await temporaryOutputDirectory();
     const prepared = await prepareSyntheticPublication({
       ...project,
       outputDirectory,
@@ -189,7 +214,7 @@ describe('Appwrite live acceptance preparation', () => {
   });
 
   it('preserves manifest unavailability in the descriptor result', async () => {
-    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const outputDirectory = await temporaryOutputDirectory();
     const result = await readPublishedMetadata({
       ...project,
       outputDirectory,
@@ -626,7 +651,7 @@ describe('anonymous Appwrite probe', () => {
 
 describe('actual Appwrite adapter read recording', () => {
   it('uses the exported adapter and records sanitized payloads', async () => {
-    const outputDirectory = await mkdtemp(join(tmpdir(), 'intermed-live-'));
+    const outputDirectory = await temporaryOutputDirectory();
     const result = await readPublishedMetadata({
       ...project,
       outputDirectory,
