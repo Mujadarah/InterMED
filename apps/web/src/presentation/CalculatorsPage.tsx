@@ -555,6 +555,7 @@ export function CalculatorsPage() {
             href={definition.primaryReference.urlOrDoi}
             target="_blank"
             rel="noopener noreferrer"
+            tabIndex={0}
           >
             Open primary reference in a new tab
           </a>

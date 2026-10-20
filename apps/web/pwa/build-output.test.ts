@@ -3,6 +3,7 @@ import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
+import { gzipSync } from 'node:zlib';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { ShellRelease } from './shell-build';
 import { maxPrecacheAssets, maxPrecacheBytes } from './shell-budget';
@@ -54,13 +55,38 @@ function effectiveHeaders(
   );
 }
 
+/** Gzip budgets are baseline measurements plus roughly 15%, rounded up to 100 bytes. */
+const gzipBudgets = {
+  'CalculatorsPage-[hash].js': 3_600,
+  'MedicationDetailPage-[hash].js': 4_800,
+  'MedicationSearchPage-[hash].js': 4_000,
+  'dexie-vendor-[hash].js': 35_700,
+  'framework-vendor-[hash].js': 93_500,
+  'index-[hash].css': 3_200,
+  'index-[hash].js': 45_500,
+  'rolldown-runtime-[hash].js': 500,
+  'search-status-[hash].js': 1_200,
+  'sw.js': 6_000,
+  'zod-vendor-[hash].js': 29_300,
+} as const;
+const totalGzipBudgetBytes = 226_900;
+
+function stableAssetName(name: string): string {
+  return name.replace(/-[\w-]{8}(?=\.(?:js|css)$)/u, '-[hash]');
+}
+
 afterAll(async () => {
   await rm(buildDirectory, { recursive: true, force: true });
 });
 
 interface BuildOutput {
-  readonly assets: readonly { name: string; bytes: number }[];
+  readonly assets: readonly {
+    name: string;
+    bytes: number;
+    gzipBytes: number;
+  }[];
   readonly release: ShellRelease;
+  readonly workerGzipBytes: number;
 }
 
 let cached: Promise<BuildOutput> | undefined;
@@ -80,21 +106,29 @@ async function buildShell(): Promise<BuildOutput> {
       },
     );
     expect(result.status, result.stderr).toBe(0);
-    const emitted = await readdir(join(buildDirectory, 'assets'));
+    const emitted = (await readdir(join(buildDirectory, 'assets')))
+      .filter((name) => /\.(?:js|css)$/.test(name))
+      .sort();
     const assets = await Promise.all(
-      emitted.map(async (name) => ({
-        name,
-        bytes: (await stat(join(buildDirectory, 'assets', name))).size,
-      })),
+      emitted.map(async (name) => {
+        const bytes = await readFile(join(buildDirectory, 'assets', name));
+        return {
+          name,
+          bytes: (await stat(join(buildDirectory, 'assets', name))).size,
+          gzipBytes: gzipSync(bytes).byteLength,
+        };
+      }),
     );
     // Evaluate the emitted classic worker to read its public release
     // descriptor, following the pattern used by the worker tests.
-    const worker = await readFile(join(buildDirectory, 'sw.js'), 'utf8');
+    const workerBytes = await readFile(join(buildDirectory, 'sw.js'));
+    const worker = workerBytes.toString('utf8');
     return {
       assets,
       release: runInNewContext(`${worker}\nSHELL;`, {
         self: { addEventListener: () => {} },
       }) as ShellRelease,
+      workerGzipBytes: gzipSync(workerBytes).byteLength,
     };
   })();
   return cached;
@@ -113,6 +147,59 @@ it('emits every JavaScript chunk below the 500 kB advisory limit', async () => {
       chunk.bytes,
       `${chunk.name} is ${chunk.bytes} bytes, above the 500 kB limit`,
     ).toBeLessThan(maxChunkBytes);
+});
+
+it('enforces per-asset and total gzip budgets for chunks, CSS and the worker', async () => {
+  const { assets, workerGzipBytes } = await buildShell();
+  const measurements = [
+    ...assets.map((asset) => ({
+      name: stableAssetName(asset.name),
+      actualName: asset.name,
+      gzipBytes: asset.gzipBytes,
+    })),
+    { name: 'sw.js', actualName: 'sw.js', gzipBytes: workerGzipBytes },
+  ];
+  const labels = new Set(measurements.map((asset) => asset.name));
+
+  for (const asset of measurements) {
+    const budgetBytes = gzipBudgets[asset.name as keyof typeof gzipBudgets];
+    if (budgetBytes === undefined)
+      throw new Error(
+        `Missing gzip budget for emitted asset ${asset.actualName}`,
+      );
+    const overageBytes = Math.max(0, asset.gzipBytes - budgetBytes);
+    expect(
+      asset.gzipBytes,
+      `${asset.actualName} gzip is ${asset.gzipBytes} bytes, exceeding its ${budgetBytes}-byte budget by ${overageBytes} bytes`,
+    ).toBeLessThanOrEqual(budgetBytes);
+  }
+  for (const expectedName of Object.keys(gzipBudgets))
+    if (!labels.has(expectedName))
+      throw new Error(
+        `Expected gzip-budgeted asset ${expectedName} was not emitted`,
+      );
+
+  const totalGzipBytes = measurements.reduce(
+    (total, asset) => total + asset.gzipBytes,
+    0,
+  );
+  const totalOverageBytes = Math.max(0, totalGzipBytes - totalGzipBudgetBytes);
+  console.info(
+    `M12_BUNDLE_GZIP ${JSON.stringify({
+      assets: measurements.map(({ name, gzipBytes }) => ({
+        name,
+        measuredGzipBytes: gzipBytes,
+        budgetBytes: gzipBudgets[name as keyof typeof gzipBudgets],
+      })),
+      totalMeasuredGzipBytes: totalGzipBytes,
+      totalBudgetBytes: totalGzipBudgetBytes,
+      totalOverageBytes,
+    })}`,
+  );
+  expect(
+    totalGzipBytes,
+    `Total gzip for emitted JavaScript/CSS and sw.js is ${totalGzipBytes} bytes, exceeding its ${totalGzipBudgetBytes}-byte budget by ${totalOverageBytes} bytes`,
+  ).toBeLessThanOrEqual(totalGzipBudgetBytes);
 });
 
 it('precaches every emitted JavaScript and CSS asset', async () => {

@@ -102,7 +102,7 @@ function DetailBackLink({ query }: { query: string | null }) {
     ? `Back to results for ${query}`
     : 'Back to medication search';
   return (
-    <Link className="detail-back-link" to={target}>
+    <Link className="detail-back-link" to={target} tabIndex={0}>
       {label}
     </Link>
   );
@@ -217,7 +217,7 @@ function DocumentRow({
         ) : !canOpen ? (
           'This document URL cannot be opened from this page.'
         ) : online ? (
-          <a href={url} target="_blank" rel="noopener noreferrer">
+          <a href={url} target="_blank" rel="noopener noreferrer" tabIndex={0}>
             Open source document in a new tab: {document.type} —{' '}
             {fieldText(document.title)}
           </a>
@@ -716,7 +716,7 @@ export function MedicationDetailPage({
             Medication detail is unavailable
           </h1>
           <p role="status">{pageState.message}</p>
-          <Link className="detail-status-link" to="/status">
+          <Link className="detail-status-link" to="/status" tabIndex={0}>
             Check dataset status
           </Link>
         </>
@@ -734,7 +734,7 @@ export function MedicationDetailPage({
           <button type="button" onClick={retry}>
             Retry medication detail
           </button>
-          <Link className="detail-status-link" to="/status">
+          <Link className="detail-status-link" to="/status" tabIndex={0}>
             Check dataset status
           </Link>
         </>

@@ -27,6 +27,7 @@ export async function productionServer(
     | 'offline'
     | 'worker' = 'none';
   const requests: string[] = [];
+  const transfers: { requestUrl: string; responseBodyBytes: number }[] = [];
   // Every accepted TCP connection, including idle keep-alive and half-open
   // ones that never complete a request. A real offline origin fails all of
   // them fast; destroying only on 'request' leaves the rest hanging, and
@@ -35,6 +36,14 @@ export async function productionServer(
   const server = createServer(async (request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     requests.push(request.url ?? '/');
+    const sendBody = (body: string | Uint8Array) => {
+      const bytes = Buffer.from(body);
+      transfers.push({
+        requestUrl: request.url ?? '/',
+        responseBodyBytes: bytes.byteLength,
+      });
+      response.end(bytes);
+    };
     response.setHeader('Cache-Control', 'no-store');
     if (options?.securityHeaders) {
       const headers =
@@ -48,7 +57,7 @@ export async function productionServer(
     }
     if (path === '/test-probe.html') {
       response.setHeader('Content-Type', 'text/html');
-      response.end(
+      sendBody(
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Worker probe</title></head><body>Worker probe</body></html>',
       );
       return;
@@ -71,7 +80,7 @@ export async function productionServer(
     }
     if (syntheticAssets.has(path)) {
       response.setHeader('Content-Type', 'text/javascript');
-      response.end(syntheticAssets.get(path));
+      sendBody(syntheticAssets.get(path)!);
       return;
     }
     if (
@@ -79,7 +88,7 @@ export async function productionServer(
       (failure === 'worker' && path === '/sw.js')
     ) {
       response.writeHead(503);
-      response.end('Synthetic failure');
+      sendBody('Synthetic failure');
       return;
     }
     if (
@@ -87,7 +96,7 @@ export async function productionServer(
       request.method !== 'GET'
     ) {
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ synthetic: 'PROHIBITED_CANARY' }));
+      sendBody(JSON.stringify({ synthetic: 'PROHIBITED_CANARY' }));
       return;
     }
     try {
@@ -97,6 +106,7 @@ export async function productionServer(
         path === '/unavailable' ||
         path === '/search' ||
         path === '/favorites' ||
+        path === '/calculators' ||
         path.startsWith('/medication/')
           ? 'index.html'
           : path.slice(1);
@@ -178,10 +188,10 @@ self.addEventListener('message', event => {
         'Content-Type',
         types[extname(name)] ?? 'application/octet-stream',
       );
-      response.end(bytes);
+      sendBody(bytes);
     } catch {
       response.writeHead(404);
-      response.end('Missing test asset');
+      sendBody('Missing test asset');
     }
   });
   server.on('connection', (socket) => {
@@ -201,6 +211,7 @@ self.addEventListener('message', event => {
   return {
     url: `http://127.0.0.1:${address.port}`,
     requests,
+    transfers,
     revision: (value: 'a' | 'b' | 'c' | 'harness') => {
       revision = value;
     },
