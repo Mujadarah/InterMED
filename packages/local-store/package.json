@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@intermed/domain": "0.0.0",
-    "dexie": "4.4.6"
+    "dexie": "4.4.7"
   }
 }
