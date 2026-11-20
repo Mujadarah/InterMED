@@ -13,9 +13,9 @@
     "@intermed/data-access": "0.0.0",
     "@intermed/domain": "0.0.0",
     "@intermed/local-store": "0.0.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "react-router": "7.18.4",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   }
 }
